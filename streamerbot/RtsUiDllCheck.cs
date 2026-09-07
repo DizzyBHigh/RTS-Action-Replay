@@ -97,14 +97,14 @@ public class CPHInline
         catch { return null; }
     }
 
-    private static Version GetLatestReleaseVersion(string extensionName)
+    private Version GetLatestReleaseVersion(string extensionName)
     {
         try
         {
             using (var client = new WebClient())
             {
                 client.Headers[HttpRequestHeader.UserAgent] = "RTS-RtsUI-DLL-Check";
-                Match match = Regex.Match(client.DownloadString(ReleaseApiUrl), @"\"tag_name\"\s*:\s*\"v?([0-9]+(?:\.[0-9]+){1,3})\"", RegexOptions.IgnoreCase);
+                Match match = Regex.Match(client.DownloadString(ReleaseApiUrl), @"""tag_name""\s*:\s*""v?([0-9]+(?:\.[0-9]+){1,3})""", RegexOptions.IgnoreCase);
                 return match.Success ? ParseVersion(match.Groups[1].Value) : null;
             }
         }
