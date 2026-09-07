@@ -10,12 +10,18 @@ public class RTSActionReplayPlayback : CPHInline
 #endif
 {
     private const string DataKey = "rts.actionreplay.data";
+    private const string PendingKey = "rts.actionreplay.pendingSaves";
     private const string EventName = "RTS-Action Replay";
 
     public bool Execute() => PlayReplay();
 
     public bool SaveReplay()
     {
+        CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName);
+        var pending = CPH.GetGlobalVar<string>(PendingKey, false);
+        var queue = string.IsNullOrWhiteSpace(pending) ? new JArray() : JArray.Parse(pending);
+        if (!string.IsNullOrWhiteSpace(userId)) queue.Add(new JObject { ["id"] = userId, ["name"] = userName ?? "", ["queued"] = DateTime.UtcNow.ToString("o") });
+        CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), false);
         CPH.ObsReplayBufferSave();
         CPH.LogInfo("RTS Action Replay: requested OBS Replay Buffer save.");
         return true;
