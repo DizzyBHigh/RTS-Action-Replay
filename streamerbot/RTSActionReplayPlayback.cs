@@ -1,0 +1,67 @@
+using System;
+using System.IO;
+using System.Linq;
+using Newtonsoft.Json.Linq;
+
+#if EXTERNAL_EDITOR
+public class RTSActionReplayPlayback : CPHInlineBase
+#else
+public class RTSActionReplayPlayback : CPHInline
+#endif
+{
+    private const string DataKey = "rts.actionreplay.data";
+
+    public bool Execute() => PlayReplay();
+
+    public bool SaveReplay()
+    {
+        CPH.ObsReplayBufferSave();
+        CPH.LogInfo("RTS Action Replay: requested OBS Replay Buffer save.");
+        return true;
+    }
+
+    public bool PlayReplay()
+    {
+        var data = Load(); var list = (JArray)data["replays"];
+        if (!CPH.TryGetArg("replaySelector", out string selector)) return false;
+        JObject replay = null;
+        if (int.TryParse(selector, out var index) && index > 0 && index <= list.Count) replay = (JObject)list[index - 1];
+        else replay = list.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["title"], selector.Trim(), StringComparison.OrdinalIgnoreCase));
+        if (replay == null) { CPH.SendMessage("Replay not found."); return false; }
+
+        var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true);
+        var mapping = CPH.GetGlobalVar<string>("rts.actionreplay.httpMapping", true) ?? "replays";
+        var port = CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474;
+        var path = Path.Combine(folder ?? "", (string)replay["file"]);
+        if (!File.Exists(path)) { CPH.SendMessage($"Replay file is missing: {(string)replay["title"]}"); return false; }
+
+        CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName);
+        var url = $"http://127.0.0.1:{port}/{mapping.Trim('/')}/{CPH.UrlEncode((string)replay["file"])}";
+        var message = new JObject {
+            ["type"] = "replay", ["command"] = "load", ["replayId"] = (string)replay["id"],
+            ["url"] = url, ["autoplay"] = true, ["userId"] = userId ?? "", ["userName"] = userName ?? ""
+        };
+        CPH.WebsocketBroadcastJson(message.ToString(Newtonsoft.Json.Formatting.None));
+        return true;
+    }
+
+    public bool ConfirmPlayback()
+    {
+        if (!CPH.TryGetArg("replayId", out string replayId)) return false;
+        var data = Load(); var replay = ((JArray)data["replays"]).OfType<JObject>().FirstOrDefault(x => (string)x["id"] == replayId);
+        if (replay == null) return false;
+        replay["plays"] = ((int?)replay["plays"] ?? 0) + 1;
+        if (CPH.TryGetArg("userId", out string userId) && !string.IsNullOrWhiteSpace(userId))
+        {
+            var name = CPH.TryGetArg("userName", out string userName) ? userName : userId;
+            var users = (JObject)(replay["users"] ?? new JObject()); replay["users"] = users;
+            var user = (JObject)(users[userId] ?? new JObject { ["name"] = name, ["plays"] = 0 });
+            user["name"] = string.IsNullOrWhiteSpace(name) ? (string)user["name"] : name;
+            user["plays"] = ((int?)user["plays"] ?? 0) + 1; users[userId] = user;
+        }
+        Save(data); return true;
+    }
+
+    private JObject Load() => JObject.Parse(CPH.GetGlobalVar<string>(DataKey, true) ?? "{\"version\":1,\"replays\":[]}");
+    private void Save(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
+}
