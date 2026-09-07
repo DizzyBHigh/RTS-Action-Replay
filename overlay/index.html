@@ -53,6 +53,11 @@
       const ws = new WebSocket(`ws://${host}:${port}/`);
 
       ws.onopen = () => {
+        ws.send(JSON.stringify({
+          request: 'Subscribe',
+          id: 'rts-action-replay-poc',
+          events: { Custom: ['Event'] }
+        }));
         setStatus('Connected to Streamer.bot WebSocket', 'connected');
       };
 
