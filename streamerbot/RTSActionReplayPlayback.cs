@@ -27,7 +27,7 @@ public class RTSActionReplayPlayback : CPHInline
         if (!CPH.TryGetArg("replaySelector", out string selector)) return false;
         JObject replay = null;
         if (int.TryParse(selector, out var index) && index > 0 && index <= list.Count) replay = (JObject)list[index - 1];
-        else replay = list.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["title"], selector.Trim(), StringComparison.OrdinalIgnoreCase));
+        else replay = list.OfType<JObject>().FirstOrDefault(x => ((bool?)x["customTitle"] ?? false) && string.Equals((string)x["title"], selector.Trim(), StringComparison.OrdinalIgnoreCase));
         if (replay == null) { CPH.SendMessage("Replay not found."); return false; }
 
         var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true);
