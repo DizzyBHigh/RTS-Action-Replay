@@ -1,5 +1,5 @@
 // Streamer.bot C# action: open the Action Replay settings window.
-// Requires RtsUI.dll to be available as a custom assembly reference.
+// Requires RtsUI.dll 0.2.0 or newer as a custom assembly reference.
 public class CPHInline
 {
     public bool Execute()
@@ -18,7 +18,7 @@ public class CPHInline
         ui.AddTitle("Replay Source", "General");
         ui.AddTextbox("Replay Folder", "Folder containing OBS Replay Buffer files.", "General", "rts.actionreplay.replayFolder", "", false);
         ui.AddTextbox("HTTP Mapping", "Streamer.bot HTTP path mapped to the replay folder, without leading or trailing slashes.", "General", "rts.actionreplay.httpMapping", "replays", false);
-        ui.AddSlider("HTTP Port", "Streamer.bot HTTP Server port used to serve replay files.", "General", "rts.actionreplay.httpPort", 1, 65535, 7474);
+        ui.AddNumericTextbox("HTTP Port", "Streamer.bot HTTP Server port used to serve replay files.", "General", "rts.actionreplay.httpPort", 7474, 1, 65535);
 
         ui.AddTitle("Playlist", "Playlist");
         ui.AddSlider("Maximum History", "Maximum number of saved replays retained in the playlist.", "Playlist", "rts.actionreplay.maxHistory", 1, 100, 20);
@@ -26,7 +26,6 @@ public class CPHInline
         ui.AddToggleSwitch("Auto-play Newest Replay", "Load and play a newly saved replay automatically.", "Playlist", "rts.actionreplay.autoPlay", false);
 
         ui.AddTitle("Player", "Player");
-        ui.AddThemeSelector("Player Theme", "Select the player theme.", "Player", "rts.actionreplay.playerTheme", "Dark");
         ui.AddToggleSwitch("Show Controls", "Display player controls in the overlay.", "Player", "rts.actionreplay.showControls", false);
         ui.AddToggleSwitch("Show Progress Bar", "Display the playback progress bar.", "Player", "rts.actionreplay.showProgress", true);
         ui.AddDropdown("Default Playback Speed", "Playback speed used when a replay is loaded.", "Player", "rts.actionreplay.playbackSpeed", new[] { "0.25", "0.5", "0.75", "1.0", "1.25", "1.5", "2.0" }, "1.0");
