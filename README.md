@@ -1,44 +1,15 @@
-# RTS Extension Template
+# RTS Action Replay
 
-Template repository for The Road to Somewhere Streamer.bot extensions.
+Action replay overlay for Streamer.bot and OBS.
 
-## Structure
+This repository is currently a proof-of-concept for testing the RTS-hosted overlay architecture before building the full extension.
 
-```text
-site/rts.json                         Product and website configuration
-RTS Extension - Import Code.txt      Required Streamer.bot import-code source
-assets/images/                        Optional extension images
-assets/video/                         Optional extension video
-overlay/                              Optional OBS browser-source overlay
-```
+## Test goals
 
-## Create an extension
+- Load the overlay from `https://duhbuhhuh.xyz`.
+- Connect from the OBS Browser Source to the local Streamer.bot WebSocket server.
+- Confirm the overlay can receive Streamer.bot events.
+- Load a local replay video served by the Streamer.bot HTTP server.
+- Confirm the architecture works in OBS Browser Source before implementing playlist, skinning, 3D views and extension actions.
 
-1. Copy this repository to a new extension repository.
-2. Update `site/rts.json` with the real extension information.
-3. Build the Streamer.bot extension and add its source code.
-4. Export the required Streamer.bot actions and replace the contents of `RTS Extension - Import Code.txt`.
-5. Keep the source import-code filename unchanged.
-6. Add extension-owned assets under `assets/` and an `overlay/` directory only when needed.
-7. Create a version tag and GitHub release.
-8. Add the new repository to `products/sources.json` in the RTS website repository when it is ready to be published.
-
-The template repository itself must not be added to the RTS product registry.
-
-## Import-code filename
-
-The source file always keeps the stable name:
-
-`RTS Extension - Import Code.txt`
-
-The release build automatically publishes it using the extension name and release version:
-
-`Extension Name v1.2.3 - Import Code.txt`
-
-The import code is manually maintained. The build changes the published filename only; it does not generate or modify the Streamer.bot import code.
-
-## Publishing
-
-The extension release workflow creates the versioned import-code asset. The RTS website importer consumes the released asset and publishes it with the extension page.
-
-Keep extension-specific website content in `site/rts.json`. Do not edit generated website files.
+The production overlay is intended to remain hosted by the RTS website. Replay files remain local and are served by Streamer.bot.
