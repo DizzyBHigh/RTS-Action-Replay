@@ -3,13 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>RTS Action Replay WebSocket Test</title>
+  <title>RTS Action Replay</title>
   <link rel="stylesheet" href="overlay.css">
 </head>
 <body>
-  <div id="status">Connecting to Streamer.bot…</div>
-  <div id="message">No WebSocket message received.</div>
-  <video id="video" controls playsinline></video>
+  <div id="rts-overlay">
+    <div id="status">Connecting to Streamer.bot…</div>
+    <div id="message">No replay command received.</div>
+    <video id="video" controls playsinline></video>
+  </div>
   <script src="overlay.js"></script>
 </body>
 </html>
