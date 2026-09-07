@@ -1,3 +1,5 @@
+#r "System"
+
 using System;
 using System.IO;
 using Newtonsoft.Json.Linq;
@@ -110,42 +112,33 @@ public class CPHInline
             return true;
         }
 
-        var output = "";
+        var lines = "";
         for (int i = 0; i < list.Count; i++)
-        {
-            if (i > 0) output += " | ";
-            output += $"#{i + 1} {(string)list[i]["title"]}";
-        }
-        CPH.SendMessage(output);
+            lines += (i > 0 ? " | " : "") + $"#{i + 1} {(string)list[i]["title"]}";
+        CPH.SendMessage(lines);
         return true;
     }
 
     public bool CreatorLeaderboard()
     {
         var list = (JArray)Load()["replays"];
-        var creators = new JObject();
-
+        var groups = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.KeyValuePair<string, int>>(StringComparer.OrdinalIgnoreCase);
         for (int i = 0; i < list.Count; i++)
         {
             var creator = (JObject)list[i]["creator"];
             var id = (string)creator["id"];
             if (string.IsNullOrWhiteSpace(id)) continue;
-            if (creators[id] == null) creators[id] = new JObject { ["name"] = (string)creator["name"], ["count"] = 0 };
-            creators[id]["count"] = (int)creators[id]["count"] + 1;
+            var name = (string)creator["name"] ?? id;
+            if (groups.ContainsKey(id)) groups[id] = new System.Collections.Generic.KeyValuePair<string, int>(name, groups[id].Value + 1);
+            else groups[id] = new System.Collections.Generic.KeyValuePair<string, int>(name, 1);
         }
 
-        var entries = new JArray();
-        foreach (var property in creators.Properties()) entries.Add(property.Value);
-        SortLeaderboard(entries, "count");
-
+        var results = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, int>>(groups.Values);
+        results.Sort((a, b) => b.Value.CompareTo(a.Value));
         var message = "Replay creators: ";
-        if (entries.Count == 0) message += "No replay creators yet.";
-        else
-            for (int i = 0; i < Math.Min(5, entries.Count); i++)
-            {
-                if (i > 0) message += " | ";
-                message += $"#{i + 1} {(string)entries[i]["name"]} ({(int)entries[i]["count"]})";
-            }
+        var count = Math.Min(5, results.Count);
+        if (count == 0) message += "No replay creators yet.";
+        else for (int i = 0; i < count; i++) message += (i > 0 ? " | " : "") + $"#{i + 1} {results[i].Key} ({results[i].Value})";
         CPH.SendMessage(message);
         return true;
     }
@@ -153,34 +146,26 @@ public class CPHInline
     public bool PlaybackLeaderboard()
     {
         var list = (JArray)Load()["replays"];
-        var users = new JObject();
-
+        var users = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.KeyValuePair<string, int>>(StringComparer.OrdinalIgnoreCase);
         for (int i = 0; i < list.Count; i++)
         {
             var replayUsers = (JObject)list[i]["users"];
-            if (replayUsers == null) continue;
             foreach (var property in replayUsers.Properties())
             {
-                var id = property.Name;
                 var user = (JObject)property.Value;
-                if (users[id] == null) users[id] = new JObject { ["name"] = (string)user["name"], ["plays"] = 0 };
-                users[id]["plays"] = (int)users[id]["plays"] + ((int?)user["plays"] ?? 0);
-                if (!string.IsNullOrWhiteSpace((string)user["name"])) users[id]["name"] = (string)user["name"];
+                var name = (string)user["name"] ?? property.Name;
+                var plays = (int?)user["plays"] ?? 0;
+                if (users.ContainsKey(property.Name)) users[property.Name] = new System.Collections.Generic.KeyValuePair<string, int>(name, users[property.Name].Value + plays);
+                else users[property.Name] = new System.Collections.Generic.KeyValuePair<string, int>(name, plays);
             }
         }
 
-        var entries = new JArray();
-        foreach (var property in users.Properties()) entries.Add(property.Value);
-        SortLeaderboard(entries, "plays");
-
+        var results = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, int>>(users.Values);
+        results.Sort((a, b) => b.Value.CompareTo(a.Value));
         var message = "Replay viewers: ";
-        if (entries.Count == 0) message += "No replay plays yet.";
-        else
-            for (int i = 0; i < Math.Min(5, entries.Count); i++)
-            {
-                if (i > 0) message += " | ";
-                message += $"#{i + 1} {(string)entries[i]["name"]} ({(int)entries[i]["plays"]})";
-            }
+        var count = Math.Min(5, results.Count);
+        if (count == 0) message += "No replay plays yet.";
+        else for (int i = 0; i < count; i++) message += (i > 0 ? " | " : "") + $"#{i + 1} {results[i].Key} ({results[i].Value})";
         CPH.SendMessage(message);
         return true;
     }
@@ -214,7 +199,6 @@ public class CPHInline
         if (string.IsNullOrWhiteSpace(raw)) return;
         var queue = JArray.Parse(raw);
         if (queue.Count == 0) return;
-
         var item = (JObject)queue[0];
         queue.RemoveAt(0);
         CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), false);
@@ -222,22 +206,6 @@ public class CPHInline
         {
             id = (string)item["id"] ?? "";
             name = (string)item["name"] ?? "";
-        }
-    }
-
-    private void SortLeaderboard(JArray entries, string countKey)
-    {
-        for (int i = 0; i < entries.Count - 1; i++)
-        {
-            for (int j = i + 1; j < entries.Count; j++)
-            {
-                if ((int)entries[j][countKey] > (int)entries[i][countKey])
-                {
-                    var temp = entries[i];
-                    entries[i] = entries[j];
-                    entries[j] = temp;
-                }
-            }
         }
     }
 
