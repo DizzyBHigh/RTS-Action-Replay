@@ -39,11 +39,11 @@
     }
 
     function handleReplayCommand(command) {
-      if (command.command === 'load') loadReplay(command.url);
-      if (command.command === 'play') video.play().catch(error => console.warn('Replay play failed', error));
-      if (command.command === 'pause') video.pause();
-      if (command.command === 'stop') { video.pause(); video.currentTime = 0; }
-      if (command.command === 'replay') { video.currentTime = 0; video.play().catch(() => {}); }
+      if (command.replayCommand === 'load') loadReplay(command.replayUrl);
+      if (command.replayCommand === 'play') video.play().catch(error => console.warn('Replay play failed', error));
+      if (command.replayCommand === 'pause') video.pause();
+      if (command.replayCommand === 'stop') { video.pause(); video.currentTime = 0; }
+      if (command.replayCommand === 'replay') { video.currentTime = 0; video.play().catch(() => {}); }
     }
 
     function connect() {
@@ -61,7 +61,14 @@
         try {
           const message = JSON.parse(event.data);
           console.log('Streamer.bot message', message);
-          if (message.type === 'replay') handleReplayCommand(message);
+
+          const data = message.data;
+          if (message.event?.source === 'Custom' &&
+              message.event?.type === 'Event' &&
+              data?.eventName === 'RTS-Action Replay' &&
+              data.args) {
+            handleReplayCommand(data.args);
+          }
         } catch (error) {
           console.warn('Invalid WebSocket message', error);
         }
