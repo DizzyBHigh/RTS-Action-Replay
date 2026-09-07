@@ -4,9 +4,6 @@ public class CPHInline
 {
     public bool Execute()
     {
-        string savedTheme = CPH.GetGlobalVar<string>("rts.actionreplay.uiTheme", true);
-        CPH.SetGlobalVar("__rts_ui_theme", string.IsNullOrWhiteSpace(savedTheme) ? "Dark" : savedTheme, true);
-
         var ui = new RtsUI(
             "RTS Action Replay",
             "0.1.0",
