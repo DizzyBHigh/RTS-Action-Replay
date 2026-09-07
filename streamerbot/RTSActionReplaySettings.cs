@@ -21,6 +21,7 @@ public class CPHInline
         ui.AddNumericTextbox("HTTP Port", "Streamer.bot HTTP Server port used to serve replay files.", "General", "rts.actionreplay.httpPort", 7474, 1, 65535);
 
         ui.AddTitle("Playlist", "Playlist");
+        ui.AddTextbox("Replay Title Template", "Default title for new replays. Streamer.bot variables can be used, including %replayName%, %replayDate% and %replayTime%.", "Playlist", "rts.actionreplay.replayTitle", "%replayName%", false);
         ui.AddSlider("Maximum History", "Maximum number of saved replays retained in the playlist.", "Playlist", "rts.actionreplay.maxHistory", 1, 100, 20);
         ui.AddToggleSwitch("Auto-add Saved Replays", "Add each newly saved OBS replay to the playlist.", "Playlist", "rts.actionreplay.autoAdd", true);
         ui.AddToggleSwitch("Auto-play Newest Replay", "Load and play a newly saved replay automatically.", "Playlist", "rts.actionreplay.autoPlay", false);
