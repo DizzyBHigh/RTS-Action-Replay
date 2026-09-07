@@ -5,7 +5,7 @@ public class CPHInline
     public bool Execute()
     {
         CPH.SetArgument("rts.extensionName", "RTS Action Replay");
-        CPH.SetArgument("rts.minimumRtsUiVersion", "0.1.0");
+        CPH.SetArgument("rts.minimumRtsUiVersion", "0.2.0");
         return true;
     }
 }
