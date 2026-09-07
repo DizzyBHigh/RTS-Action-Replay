@@ -10,6 +10,7 @@ public class RTSActionReplayPlayback : CPHInline
 #endif
 {
     private const string DataKey = "rts.actionreplay.data";
+    private const string EventName = "RTS-Action Replay";
 
     public bool Execute() => PlayReplay();
 
@@ -37,11 +38,10 @@ public class RTSActionReplayPlayback : CPHInline
 
         CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName);
         var url = $"http://127.0.0.1:{port}/{mapping.Trim('/')}/{CPH.UrlEncode((string)replay["file"])}";
-        var message = new JObject {
-            ["type"] = "replay", ["command"] = "load", ["replayId"] = (string)replay["id"],
-            ["url"] = url, ["autoplay"] = true, ["userId"] = userId ?? "", ["userName"] = userName ?? ""
-        };
-        CPH.WebsocketBroadcastJson(message.ToString(Newtonsoft.Json.Formatting.None));
+        CPH.SetArgument("replayCommand", "load"); CPH.SetArgument("replayId", (string)replay["id"]);
+        CPH.SetArgument("replayUrl", url); CPH.SetArgument("replayAutoplay", true);
+        CPH.SetArgument("replayUserId", userId ?? ""); CPH.SetArgument("replayUserName", userName ?? "");
+        CPH.TriggerEvent(EventName, true);
         return true;
     }
 
