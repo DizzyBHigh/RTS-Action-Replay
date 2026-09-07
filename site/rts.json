@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "rts-extension-template",
+  "name": "RTS Extension Template",
+  "type": "extension",
+  "description": "Template for building The Road to Somewhere Streamer.bot extensions.",
+  "tags": ["Streamer.bot", "RTS"],
+  "publish": {
+    "importFile": "RTS Extension - Import Code.txt",
+    "assets": "assets"
+  },
+  "website": {
+    "footerLabel": "Part of The Road to Somewhere."
+  },
+  "content": {
+    "hero": {
+      "kicker": "RTS STREAMER.BOT EXTENSION",
+      "title": "Build your",
+      "titleAccent": "next extension"
+    },
+    "experience": {
+      "kicker": "THE EXPERIENCE",
+      "title": "A consistent foundation for RTS extensions.",
+      "text": "Use this repository as the starting point for a new The Road to Somewhere Streamer.bot extension.",
+      "features": [
+        {"title": "Data driven", "text": "Keep extension-specific content in rts.json rather than hard-coding it into the website template."},
+        {"title": "Release ready", "text": "The publishing workflow handles versioned release assets and the published import-code filename."},
+        {"title": "Shared UI", "text": "Supported extensions can use the shared RtsUI.dll settings experience."},
+        {"title": "Optional overlay", "text": "Add an overlay directory and release asset when the extension needs an OBS browser source."}
+      ]
+    }
+  },
+  "setup": {
+    "title": "Build the extension.",
+    "intro": "Replace the template content with your extension implementation and keep the repository structure intact.",
+    "steps": [
+      {"number": 1, "title": "Define the extension", "description": "Update <strong>site/rts.json</strong> with the extension name, content, setup instructions, dependencies and release policy."},
+      {"number": 2, "title": "Add the import code", "description": "Export the required Streamer.bot actions and replace the contents of <strong>RTS Extension - Import Code.txt</strong>. Keep the filename unchanged."},
+      {"number": 3, "title": "Add optional assets", "description": "Place extension-owned images and video under <strong>assets/</strong>. Add an <strong>overlay/</strong> directory when the extension provides an OBS overlay."},
+      {"number": 4, "title": "Create the release", "description": "Create a version tag and GitHub release. The workflow uses the release version when publishing the extension files."}
+    ]
+  },
+  "notes": [
+    "Do not rename RTS Extension - Import Code.txt in the source repository. The release build publishes it automatically as <strong>Extension Name vX.Y.Z - Import Code.txt</strong>.",
+    "Keep extension-specific website content in site/rts.json. Do not edit generated website files."
+  ]
+}

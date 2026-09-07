@@ -1,0 +1,12 @@
+RTS EXTENSION IMPORT CODE PLACEHOLDER
+
+THIS FILE MUST BE REPLACED BEFORE RELEASE.
+
+1. Create and configure the Streamer.bot actions for this extension.
+2. Export the required actions from Streamer.bot.
+3. Replace the contents of this file with the exported import code.
+4. Do not rename this file. The release build automatically publishes it as:
+   <Extension Name> v<Version> - Import Code.txt
+
+TODO:
+- Replace this placeholder with the actual Streamer.bot import code.

@@ -1,0 +1,57 @@
+name: Release Extension
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare release files
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          NAME=$(python - <<'PY'
+          import json
+          with open('site/rts.json', encoding='utf-8') as f:
+              data = json.load(f)
+          print(data['name'])
+          PY
+          )
+          IMPORT_SOURCE="$(python - <<'PY'
+          import json
+          with open('site/rts.json', encoding='utf-8') as f:
+              data = json.load(f)
+          print(data.get('publish', {}).get('importFile', 'RTS Extension - Import Code.txt'))
+          PY
+          )"
+          IMPORT_NAME="${NAME} v${VERSION} - Import Code.txt"
+          test -f "${IMPORT_SOURCE}"
+          mkdir -p dist
+          cp "${IMPORT_SOURCE}" "dist/${IMPORT_NAME}"
+          echo "IMPORT_PATH=dist/${IMPORT_NAME}" >> "$GITHUB_ENV"
+
+      - name: Check placeholder was replaced
+        shell: bash
+        run: |
+          if grep -q "RTS EXTENSION IMPORT CODE PLACEHOLDER" "$IMPORT_PATH"; then
+            echo "The Streamer.bot import code is still the template placeholder."
+            exit 1
+          fi
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            "$IMPORT_PATH" \
+            --title "${GITHUB_REF_NAME}" \
+            --generate-notes
