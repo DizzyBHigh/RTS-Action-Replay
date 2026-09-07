@@ -17,9 +17,9 @@ public class CPHInline
 
     public bool Execute()
     {
-        string extensionName = CPH.GetArgument<string>("rts.extensionName");
-        string minimumText = CPH.GetArgument<string>("rts.minimumRtsUiVersion");
-        if (string.IsNullOrWhiteSpace(extensionName) || string.IsNullOrWhiteSpace(minimumText))
+        if (!CPH.TryGetArg("rts.extensionName", out string extensionName) ||
+            !CPH.TryGetArg("rts.minimumRtsUiVersion", out string minimumText) ||
+            string.IsNullOrWhiteSpace(extensionName) || string.IsNullOrWhiteSpace(minimumText))
         {
             CPH.LogError("[RTS UI DLL Check] Missing rts.extensionName or rts.minimumRtsUiVersion action arguments.");
             return false;
