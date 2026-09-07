@@ -1,8 +1,14 @@
+const RTS_OVERLAY = {
+  host: '127.0.0.1',
+  port: 8080,
+  eventName: 'RTS-Action Replay',
+  reconnectDelay: 3000
+};
+
 const status = document.getElementById('status');
 const messageBox = document.getElementById('message');
 const video = document.getElementById('video');
-const host = '127.0.0.1';
-const port = 8080;
+let rtsSocket;
 let reconnectTimer;
 
 function setStatus(text, state = '') {
@@ -12,7 +18,7 @@ function setStatus(text, state = '') {
 
 function loadReplay(url) {
   if (!url) return;
-  setStatus(`Loading replay: ${url}`);
+  messageBox.textContent = `Replay: ${url}`;
   video.src = url;
   video.style.display = 'block';
   video.load();
@@ -23,50 +29,51 @@ function handleReplayCommand(command) {
   if (command.replayCommand === 'play') video.play().catch(error => console.warn('Replay play failed', error));
   if (command.replayCommand === 'pause') video.pause();
   if (command.replayCommand === 'stop') { video.pause(); video.currentTime = 0; }
-  if (command.replayCommand === 'replay') { video.currentTime = 0; video.play().catch(() => {}); }
+  if (command.replayCommand === 'replay') {
+    video.currentTime = 0;
+    video.play().catch(() => {});
+  }
+}
+
+function handleEvent(message) {
+  if (message?.event?.source !== 'Custom' || message?.event?.type !== 'Event') return;
+  const data = message.data;
+  if (data?.eventName !== RTS_OVERLAY.eventName || !data.args) return;
+  messageBox.textContent = `Command: ${data.args.replayCommand || 'unknown'}`;
+  handleReplayCommand(data.args);
 }
 
 function connect() {
   clearTimeout(reconnectTimer);
-  setStatus(`Connecting to Streamer.bot at ws://${host}:${port}/…`);
+  setStatus(`Connecting to Streamer.bot at ws://${RTS_OVERLAY.host}:${RTS_OVERLAY.port}/…`);
+  rtsSocket = new WebSocket(`ws://${RTS_OVERLAY.host}:${RTS_OVERLAY.port}/`);
 
-  const ws = new WebSocket(`ws://${host}:${port}/`);
-
-  ws.onopen = () => {
-    ws.send(JSON.stringify({
+  rtsSocket.onopen = () => {
+    rtsSocket.send(JSON.stringify({
       request: 'Subscribe',
-      id: 'rts-action-replay-poc',
+      id: 'rts-action-replay',
       events: { Custom: ['Event'] }
     }));
     setStatus('Connected to Streamer.bot WebSocket', 'connected');
   };
 
-  ws.onmessage = event => {
-    messageBox.textContent = `Last WebSocket message: ${event.data}`;
+  rtsSocket.onmessage = event => {
     try {
-      const message = JSON.parse(event.data);
-      console.log('Streamer.bot message', message);
-      const data = message.data;
-      if (message.event?.source === 'Custom' &&
-          message.event?.type === 'Event' &&
-          data?.eventName === 'RTS-Action Replay' &&
-          data.args) {
-        handleReplayCommand(data.args);
-      }
+      handleEvent(JSON.parse(event.data));
     } catch (error) {
       console.warn('Invalid WebSocket message', error);
     }
   };
 
-  ws.onerror = () => setStatus('Streamer.bot WebSocket connection error', 'error');
-
-  ws.onclose = event => {
+  rtsSocket.onerror = () => setStatus('Streamer.bot WebSocket connection error', 'error');
+  rtsSocket.onclose = event => {
     setStatus(`Streamer.bot WebSocket closed (code ${event.code})`, 'error');
-    reconnectTimer = setTimeout(connect, 3000);
+    reconnectTimer = setTimeout(connect, RTS_OVERLAY.reconnectDelay);
   };
 
-  window.ws = ws;
+  window.rtsSocket = rtsSocket;
 }
 
+window.rtsOverlay = RTS_OVERLAY;
 window.testReplay = loadReplay;
 connect();
