@@ -28,8 +28,9 @@ public class CPHInline
 
         var data = Load();
         var list = (JArray)data["replays"];
-        for (var i = 0; i < list.Count; i++)
-            if (string.Equals((string)list[i]["file"], Path.GetFileName(path), StringComparison.OrdinalIgnoreCase)) return true;
+        var file = Path.GetFileName(path);
+        for (int i = 0; i < list.Count; i++)
+            if (string.Equals((string)list[i]["file"], file, StringComparison.OrdinalIgnoreCase)) return true;
 
         var now = DateTime.Now;
         var id = now.ToString("yyyyMMdd-HHmmssfff") + "-" + Guid.NewGuid().ToString("N").Substring(0, 6);
@@ -38,7 +39,7 @@ public class CPHInline
         ApplyPendingCreator(ref creatorId, ref creatorName);
 
         CPH.SetArgument("replayId", id);
-        CPH.SetArgument("replayFile", Path.GetFileName(path));
+        CPH.SetArgument("replayFile", file);
         CPH.SetArgument("replayPath", path);
         CPH.SetArgument("replayName", Path.GetFileNameWithoutExtension(path));
         CPH.SetArgument("replayNumber", 1);
@@ -54,9 +55,14 @@ public class CPHInline
         if (string.IsNullOrWhiteSpace(title)) title = Path.GetFileNameWithoutExtension(path);
 
         var replay = new JObject {
-            ["id"] = id, ["file"] = Path.GetFileName(path), ["title"] = title, ["customTitle"] = false,
-            ["added"] = now.ToString("o"), ["creator"] = new JObject { ["id"] = creatorId, ["name"] = creatorName },
-            ["plays"] = 0, ["users"] = new JObject()
+            ["id"] = id,
+            ["file"] = file,
+            ["title"] = title,
+            ["customTitle"] = false,
+            ["added"] = now.ToString("o"),
+            ["creator"] = new JObject { ["id"] = creatorId, ["name"] = creatorName },
+            ["plays"] = 0,
+            ["users"] = new JObject()
         };
 
         list.Insert(0, replay);
@@ -78,11 +84,11 @@ public class CPHInline
         if (index < 1 || index > list.Count) { CPH.SendMessage($"Replay #{index} does not exist."); return false; }
         var target = (JObject)list[index - 1];
 
-        for (var i = 0; i < list.Count; i++)
+        for (int i = 0; i < list.Count; i++)
         {
-            var item = (JObject)list[i];
-            if (item == target || !((bool?)item["customTitle"] ?? false)) continue;
-            if (string.Equals((string)item["title"], title, StringComparison.OrdinalIgnoreCase))
+            var other = (JObject)list[i];
+            if (other == target || !((bool?)other["customTitle"] ?? false)) continue;
+            if (string.Equals((string)other["title"], title, StringComparison.OrdinalIgnoreCase))
             {
                 CPH.SendMessage("That title already exists.");
                 return false;
@@ -104,34 +110,42 @@ public class CPHInline
             return true;
         }
 
-        var message = "";
-        for (var i = 0; i < list.Count; i++)
+        var output = "";
+        for (int i = 0; i < list.Count; i++)
         {
-            if (i > 0) message += " | ";
-            message += $"#{i + 1} {(string)list[i]["title"]}";
+            if (i > 0) output += " | ";
+            output += $"#{i + 1} {(string)list[i]["title"]}";
         }
-        CPH.SendMessage(message);
+        CPH.SendMessage(output);
         return true;
     }
 
     public bool CreatorLeaderboard()
     {
         var list = (JArray)Load()["replays"];
-        var totals = new JObject();
-        for (var i = 0; i < list.Count; i++)
+        var creators = new JObject();
+
+        for (int i = 0; i < list.Count; i++)
         {
             var creator = (JObject)list[i]["creator"];
-            var id = (string)creator?["id"];
+            var id = (string)creator["id"];
             if (string.IsNullOrWhiteSpace(id)) continue;
-            var entry = (JObject)(totals[id] ?? new JObject { ["name"] = (string)creator["name"], ["count"] = 0 });
-            entry["name"] = (string)creator["name"] ?? (string)entry["name"];
-            entry["count"] = ((int?)entry["count"] ?? 0) + 1;
-            totals[id] = entry;
+            if (creators[id] == null) creators[id] = new JObject { ["name"] = (string)creator["name"], ["count"] = 0 };
+            creators[id]["count"] = (int)creators[id]["count"] + 1;
         }
 
+        var entries = new JArray();
+        foreach (var property in creators.Properties()) entries.Add(property.Value);
+        SortLeaderboard(entries, "count");
+
         var message = "Replay creators: ";
-        if (totals.Count == 0) message += "No replay creators yet.";
-        else message += TopEntries(totals, "count");
+        if (entries.Count == 0) message += "No replay creators yet.";
+        else
+            for (int i = 0; i < Math.Min(5, entries.Count); i++)
+            {
+                if (i > 0) message += " | ";
+                message += $"#{i + 1} {(string)entries[i]["name"]} ({(int)entries[i]["count"]})";
+            }
         CPH.SendMessage(message);
         return true;
     }
@@ -139,23 +153,34 @@ public class CPHInline
     public bool PlaybackLeaderboard()
     {
         var list = (JArray)Load()["replays"];
-        var totals = new JObject();
-        for (var i = 0; i < list.Count; i++)
+        var users = new JObject();
+
+        for (int i = 0; i < list.Count; i++)
         {
-            var users = (JObject)(list[i]["users"] ?? new JObject());
-            foreach (var property in users.Properties())
+            var replayUsers = (JObject)list[i]["users"];
+            if (replayUsers == null) continue;
+            foreach (var property in replayUsers.Properties())
             {
+                var id = property.Name;
                 var user = (JObject)property.Value;
-                var entry = (JObject)(totals[property.Name] ?? new JObject { ["name"] = (string)user["name"], ["plays"] = 0 });
-                entry["name"] = (string)user["name"] ?? (string)entry["name"];
-                entry["plays"] = ((int?)entry["plays"] ?? 0) + ((int?)user["plays"] ?? 0);
-                totals[property.Name] = entry;
+                if (users[id] == null) users[id] = new JObject { ["name"] = (string)user["name"], ["plays"] = 0 };
+                users[id]["plays"] = (int)users[id]["plays"] + ((int?)user["plays"] ?? 0);
+                if (!string.IsNullOrWhiteSpace((string)user["name"])) users[id]["name"] = (string)user["name"];
             }
         }
 
+        var entries = new JArray();
+        foreach (var property in users.Properties()) entries.Add(property.Value);
+        SortLeaderboard(entries, "plays");
+
         var message = "Replay viewers: ";
-        if (totals.Count == 0) message += "No replay plays yet.";
-        else message += TopEntries(totals, "plays");
+        if (entries.Count == 0) message += "No replay plays yet.";
+        else
+            for (int i = 0; i < Math.Min(5, entries.Count); i++)
+            {
+                if (i > 0) message += " | ";
+                message += $"#{i + 1} {(string)entries[i]["name"]} ({(int)entries[i]["plays"]})";
+            }
         CPH.SendMessage(message);
         return true;
     }
@@ -200,23 +225,20 @@ public class CPHInline
         }
     }
 
-    private string TopEntries(JObject totals, string countKey)
+    private void SortLeaderboard(JArray entries, string countKey)
     {
-        var result = "";
-        for (var rank = 1; rank <= 5; rank++)
+        for (int i = 0; i < entries.Count - 1; i++)
         {
-            JProperty best = null;
-            foreach (var property in totals.Properties())
+            for (int j = i + 1; j < entries.Count; j++)
             {
-                var value = (int?)property.Value[countKey] ?? 0;
-                if (best == null || value > ((int?)best.Value[countKey] ?? 0)) best = property;
+                if ((int)entries[j][countKey] > (int)entries[i][countKey])
+                {
+                    var temp = entries[i];
+                    entries[i] = entries[j];
+                    entries[j] = temp;
+                }
             }
-            if (best == null) break;
-            if (result.Length > 0) result += " | ";
-            result += $"#{rank} {(string)best.Value["name"]} ({(int?)best.Value[countKey] ?? 0})";
-            best.Remove();
         }
-        return result;
     }
 
     private void BroadcastReplay(JObject replay)
