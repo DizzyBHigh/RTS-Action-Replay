@@ -27,6 +27,22 @@
       status.className = state;
     }
 
+    function loadReplay(url) {
+      if (!url) return;
+      setStatus(`Loading replay: ${url}`);
+      video.src = url;
+      video.style.display = 'block';
+      video.load();
+    }
+
+    function handleReplayCommand(command) {
+      if (command.command === 'load') loadReplay(command.url);
+      if (command.command === 'play') video.play().catch(error => console.warn('Replay play failed', error));
+      if (command.command === 'pause') video.pause();
+      if (command.command === 'stop') { video.pause(); video.currentTime = 0; }
+      if (command.command === 'replay') { video.currentTime = 0; video.play().catch(() => {}); }
+    }
+
     function connect() {
       clearTimeout(reconnectTimer);
       setStatus(`Connecting to Streamer.bot at ws://${host}:${port}/…`);
@@ -35,25 +51,19 @@
 
       ws.onopen = () => {
         setStatus('Connected to Streamer.bot WebSocket', 'connected');
-        ws.send(JSON.stringify({
-          request: 'Subscribe',
-          id: 'rts-action-replay-poc',
-          events: { General: ['Custom'] }
-        }));
       };
 
       ws.onmessage = event => {
         try {
           const message = JSON.parse(event.data);
           console.log('Streamer.bot message', message);
+          if (message.type === 'replay') handleReplayCommand(message);
         } catch (error) {
           console.warn('Invalid WebSocket message', error);
         }
       };
 
-      ws.onerror = () => {
-        setStatus('Streamer.bot WebSocket connection error', 'error');
-      };
+      ws.onerror = () => setStatus('Streamer.bot WebSocket connection error', 'error');
 
       ws.onclose = event => {
         setStatus(`Streamer.bot WebSocket closed (code ${event.code})`, 'error');
@@ -63,16 +73,8 @@
       window.ws = ws;
     }
 
-    window.testReplay = url => {
-      status.textContent = `Loading replay: ${url}`;
-      status.className = '';
-      video.src = url;
-      video.style.display = 'block';
-      video.load();
-    };
-
+    window.testReplay = loadReplay;
     connect();
-    console.log('RTS Action Replay POC loaded. Use testReplay("http://127.0.0.1:7474/...") to test local video playback.');
   </script>
 </body>
 </html>
