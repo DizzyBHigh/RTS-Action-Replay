@@ -16,7 +16,7 @@ public class CPHInline
 
         ui.AddThemeSelector("Settings Theme", "Choose the RtsUI theme.", "General", "rts.actionreplay.uiTheme", "Dark");
         ui.AddTitle("Replay Source", "General");
-        ui.AddTextbox("Replay Folder", "Folder containing OBS Replay Buffer files.", "General", "rts.actionreplay.replayFolder", "", false);
+        ui.AddFolderPicker("Replay Folder", "Folder containing OBS Replay Buffer files.", "General", "rts.actionreplay.replayFolder", "");
         ui.AddTextbox("HTTP Mapping", "Streamer.bot HTTP path mapped to the replay folder, without leading or trailing slashes.", "General", "rts.actionreplay.httpMapping", "replays", false);
         ui.AddNumericTextbox("HTTP Port", "Streamer.bot HTTP Server port used to serve replay files.", "General", "rts.actionreplay.httpPort", 7474, 1, 65535);
 
@@ -28,7 +28,7 @@ public class CPHInline
         ui.AddTitle("Player", "Player");
         ui.AddToggleSwitch("Show Controls", "Display player controls in the overlay.", "Player", "rts.actionreplay.showControls", false);
         ui.AddToggleSwitch("Show Progress Bar", "Display the playback progress bar.", "Player", "rts.actionreplay.showProgress", true);
-        ui.AddDropdown("Default Playback Speed", "Playback speed used when a replay is loaded.", "Player", "rts.actionreplay.playbackSpeed", new[] { "0.25", "0.5", "0.75", "1.0", "1.25", "1.5", "2.0" }, "1.0");
+        ui.AddDecimalTextbox("Default Playback Speed", "Playback speed used when a replay is loaded.", "Player", "rts.actionreplay.playbackSpeed", 1.0, 0.25, 2.0, 0.25);
 
         ui.AddTitle("Player Frame", "Appearance");
         ui.AddColorPicker("Frame Color", "Color of the player frame.", "Appearance", "rts.actionreplay.frameColor", "#FF0384CB");
