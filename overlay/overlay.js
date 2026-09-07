@@ -2,6 +2,7 @@ const RTS_OVERLAY = {
   host: '127.0.0.1',
   port: 8080,
   eventName: 'RTS-Action Replay',
+  confirmAction: 'RTS Action Replay - Playback Confirm',
   reconnectDelay: 3000
 };
 
@@ -16,22 +17,41 @@ function setStatus(text, state = '') {
   status.className = state;
 }
 
-function loadReplay(url) {
-  if (!url) return;
-  messageBox.textContent = `Replay: ${url}`;
-  video.src = url;
+function confirmPlayback(replayId, userId, userName) {
+  if (!replayId || !rtsSocket || rtsSocket.readyState !== WebSocket.OPEN) return;
+  rtsSocket.send(JSON.stringify({
+    request: 'DoAction',
+    id: `rts-replay-confirm-${Date.now()}`,
+    action: { name: RTS_OVERLAY.confirmAction },
+    args: { replayId, userId: userId || '', userName: userName || '' }
+  }));
+}
+
+function playReplay(command) {
+  video.play().then(() => {
+    confirmPlayback(command.replayId, command.replayUserId, command.replayUserName);
+  }).catch(error => console.warn('Replay play failed', error));
+}
+
+function loadReplay(command) {
+  if (!command.replayUrl) return;
+  messageBox.textContent = `Replay: ${command.replayUrl}`;
+  video.src = command.replayUrl;
   video.style.display = 'block';
   video.load();
+  if (command.replayAutoplay) {
+    video.addEventListener('canplay', () => playReplay(command), { once: true });
+  }
 }
 
 function handleReplayCommand(command) {
-  if (command.replayCommand === 'load') loadReplay(command.replayUrl);
-  if (command.replayCommand === 'play') video.play().catch(error => console.warn('Replay play failed', error));
+  if (command.replayCommand === 'load') loadReplay(command);
+  if (command.replayCommand === 'play') playReplay(command);
   if (command.replayCommand === 'pause') video.pause();
   if (command.replayCommand === 'stop') { video.pause(); video.currentTime = 0; }
   if (command.replayCommand === 'replay') {
     video.currentTime = 0;
-    video.play().catch(() => {});
+    playReplay(command);
   }
 }
 
@@ -75,5 +95,5 @@ function connect() {
 }
 
 window.rtsOverlay = RTS_OVERLAY;
-window.testReplay = loadReplay;
+window.testReplay = url => loadReplay({ replayUrl: url, replayAutoplay: false });
 connect();
