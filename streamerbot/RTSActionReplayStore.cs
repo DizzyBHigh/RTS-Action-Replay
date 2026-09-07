@@ -24,7 +24,7 @@ public class RTSActionReplayStore : CPHInline
 
     public bool AddReplay()
     {
-        if (!CPH.GetGlobalVar<bool?>("rts.actionreplay.autoAdd", true) ?? true) return true;
+        if (!(CPH.GetGlobalVar<bool?>("rts.actionreplay.autoAdd", true) ?? true)) return true;
         if (!CPH.TryGetArg("fullPath", out string path) || string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return false;
         var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true);
         if (!string.IsNullOrWhiteSpace(folder) && !Path.GetFullPath(path).StartsWith(Path.GetFullPath(folder).TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase)) return false;
@@ -49,7 +49,7 @@ public class RTSActionReplayStore : CPHInline
         };
         list.Insert(0, replay); Trim(list); Save(data);
         CPH.LogInfo($"RTS Action Replay: added {title} ({id})");
-        if (CPH.GetGlobalVar<bool?>("rts.actionreplay.autoPlay", true) ?? false) BroadcastReplay(replay, path);
+        if (CPH.GetGlobalVar<bool?>("rts.actionreplay.autoPlay", true) ?? false) BroadcastReplay(replay);
         return true;
     }
 
@@ -101,9 +101,8 @@ public class RTSActionReplayStore : CPHInline
         var max = CPH.GetGlobalVar<int?>(MaxHistoryKey, true) ?? 20;
         while (list.Count > Math.Max(1, max)) list.RemoveAt(list.Count - 1);
     }
-    private void BroadcastReplay(JObject replay, string path)
+    private void BroadcastReplay(JObject replay)
     {
-        var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true) ?? "";
         var mapping = CPH.GetGlobalVar<string>("rts.actionreplay.httpMapping", true) ?? "replays";
         var port = CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474;
         CPH.SetArgument("replayCommand", "load"); CPH.SetArgument("replayId", (string)replay["id"]);
