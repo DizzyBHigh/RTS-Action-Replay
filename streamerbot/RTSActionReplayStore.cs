@@ -24,15 +24,15 @@ public class RTSActionReplayStore : CPHInline
 
     public bool AddReplay()
     {
+        if (!CPH.GetGlobalVar<bool?>("rts.actionreplay.autoAdd", true) ?? true) return true;
         if (!CPH.TryGetArg("fullPath", out string path) || string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return false;
         var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true);
         if (!string.IsNullOrWhiteSpace(folder) && !Path.GetFullPath(path).StartsWith(Path.GetFullPath(folder).TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase)) return false;
-        if (!Stable(path)) return false;
+        if (Path.GetExtension(path).Equals(".tmp", StringComparison.OrdinalIgnoreCase) || !Stable(path)) return false;
         var data = Load(); var list = (JArray)data["replays"];
         if (list.Any(x => string.Equals((string)x["file"], Path.GetFileName(path), StringComparison.OrdinalIgnoreCase))) return true;
 
-        var now = DateTime.Now;
-        var id = now.ToString("yyyyMMdd-HHmmssfff") + "-" + Guid.NewGuid().ToString("N").Substring(0, 6);
+        var now = DateTime.Now; var id = now.ToString("yyyyMMdd-HHmmssfff") + "-" + Guid.NewGuid().ToString("N").Substring(0, 6);
         var number = list.Count + 1;
         CPH.SetArgument("replayId", id); CPH.SetArgument("replayFile", Path.GetFileName(path));
         CPH.SetArgument("replayPath", path); CPH.SetArgument("replayName", Path.GetFileNameWithoutExtension(path));
@@ -40,18 +40,16 @@ public class RTSActionReplayStore : CPHInline
         CPH.SetArgument("replayTime", now.ToString("HH:mm:ss")); CPH.SetArgument("replayPlays", 0);
         CPH.SetArgument("replayUser", Get("userName")); CPH.SetArgument("replayUserId", Get("userId"));
         CPH.SetArgument("replayUserPlays", 0); CPH.SetArgument("replayTitle", "");
-        var template = CPH.GetGlobalVar<string>(TitleKey, true) ?? "%replayName%";
-        var title = CPH.Parse(template);
+        var title = CPH.Parse(CPH.GetGlobalVar<string>(TitleKey, true) ?? "%replayName%");
         if (string.IsNullOrWhiteSpace(title)) title = Path.GetFileNameWithoutExtension(path);
-
-        var creator = new JObject { ["id"] = Get("userId"), ["name"] = Get("userName") };
         var replay = new JObject {
-            ["id"] = id, ["file"] = Path.GetFileName(path), ["title"] = title,
-            ["added"] = now.ToString("o"), ["creator"] = creator, ["plays"] = 0,
-            ["users"] = new JObject()
+            ["id"] = id, ["file"] = Path.GetFileName(path), ["title"] = title, ["customTitle"] = false,
+            ["added"] = now.ToString("o"), ["creator"] = new JObject { ["id"] = Get("userId"), ["name"] = Get("userName") },
+            ["plays"] = 0, ["users"] = new JObject()
         };
         list.Insert(0, replay); Trim(list); Save(data);
         CPH.LogInfo($"RTS Action Replay: added {title} ({id})");
+        if (CPH.GetGlobalVar<bool?>("rts.actionreplay.autoPlay", true) ?? false) BroadcastReplay(replay, path);
         return true;
     }
 
@@ -63,8 +61,8 @@ public class RTSActionReplayStore : CPHInline
         var data = Load(); var list = (JArray)data["replays"];
         if (index < 1 || index > list.Count) { CPH.SendMessage($"Replay #{index} does not exist."); return false; }
         var target = (JObject)list[index - 1];
-        if (list.OfType<JObject>().Where(x => x != target).Any(x => string.Equals((string)x["title"], title, StringComparison.OrdinalIgnoreCase))) { CPH.SendMessage("That title already exists."); return false; }
-        target["title"] = title; Save(data); return true;
+        if (list.OfType<JObject>().Where(x => x != target && ((bool?)x["customTitle"] ?? false)).Any(x => string.Equals((string)x["title"], title, StringComparison.OrdinalIgnoreCase))) { CPH.SendMessage("That title already exists."); return false; }
+        target["title"] = title; target["customTitle"] = true; Save(data); return true;
     }
 
     public bool ListPlaylist()
@@ -102,5 +100,14 @@ public class RTSActionReplayStore : CPHInline
     {
         var max = CPH.GetGlobalVar<int?>(MaxHistoryKey, true) ?? 20;
         while (list.Count > Math.Max(1, max)) list.RemoveAt(list.Count - 1);
+    }
+    private void BroadcastReplay(JObject replay, string path)
+    {
+        var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true) ?? "";
+        var mapping = CPH.GetGlobalVar<string>("rts.actionreplay.httpMapping", true) ?? "replays";
+        var port = CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474;
+        CPH.SetArgument("replayCommand", "load"); CPH.SetArgument("replayId", (string)replay["id"]);
+        CPH.SetArgument("replayUrl", $"http://127.0.0.1:{port}/{mapping.Trim('/')}/{CPH.UrlEncode((string)replay["file"])}");
+        CPH.SetArgument("replayAutoplay", true); CPH.TriggerEvent("RTS-Action Replay", true);
     }
 }
