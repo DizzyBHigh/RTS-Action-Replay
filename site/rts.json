@@ -1,47 +1,56 @@
 {
   "schemaVersion": 1,
-  "id": "rts-extension-template",
-  "name": "RTS Extension Template",
+  "id": "rts-action-replay",
+  "name": "RTS Action Replay",
   "type": "extension",
-  "description": "Template for building The Road to Somewhere Streamer.bot extensions.",
-  "tags": ["Streamer.bot", "RTS"],
+  "description": "Capture OBS replay-buffer clips and play them through a Streamer.bot-controlled browser overlay.",
+  "tags": ["Streamer.bot", "OBS", "Replay Buffer", "Overlay"],
   "publish": {
     "importFile": "RTS Extension - Import Code.txt",
+    "overlay": "overlay",
     "assets": "assets"
   },
   "website": {
+    "overlayPath": "overlay",
     "footerLabel": "Part of The Road to Somewhere."
   },
   "content": {
     "hero": {
       "kicker": "RTS STREAMER.BOT EXTENSION",
-      "title": "Build your",
-      "titleAccent": "next extension"
+      "title": "Replay your",
+      "titleAccent": "best moments"
     },
     "experience": {
       "kicker": "THE EXPERIENCE",
-      "title": "A consistent foundation for RTS extensions.",
-      "text": "Use this repository as the starting point for a new The Road to Somewhere Streamer.bot extension.",
+      "title": "Turn OBS replay clips into an interactive on-stream replay player.",
+      "text": "RTS Action Replay connects OBS Replay Buffer captures, Streamer.bot and a remote browser overlay so saved clips can be loaded and controlled without a separate web server.",
       "features": [
-        {"title": "Data driven", "text": "Keep extension-specific content in rts.json rather than hard-coding it into the website template."},
-        {"title": "Release ready", "text": "The publishing workflow handles versioned release assets and the published import-code filename."},
-        {"title": "Shared UI", "text": "Supported extensions can use the shared RtsUI.dll settings experience."},
-        {"title": "Optional overlay", "text": "Add an overlay directory and release asset when the extension needs an OBS browser source."}
+        {"title": "OBS replay buffer", "text": "Trigger OBS to save the current replay buffer from Streamer.bot."},
+        {"title": "Local replay serving", "text": "Use Streamer.bot's HTTP server to expose replay files to the overlay."},
+        {"title": "Playlist ready", "text": "Keep saved replays available for previous and next playback control."},
+        {"title": "Remote overlay", "text": "Host the player on The Road to Somewhere while the video files remain local."}
       ]
     }
   },
+  "requirements": [
+    "Streamer.bot with its WebSocket and HTTP servers enabled.",
+    "OBS with Replay Buffer enabled.",
+    "RtsUI.dll for the extension settings interface."
+  ],
   "setup": {
-    "title": "Build the extension.",
-    "intro": "Replace the template content with your extension implementation and keep the repository structure intact.",
+    "title": "Connect Action Replay.",
+    "intro": "Install the Streamer.bot import and configure the local replay mapping before using the overlay.",
     "steps": [
-      {"number": 1, "title": "Define the extension", "description": "Update <strong>site/rts.json</strong> with the extension name, content, setup instructions, dependencies and release policy."},
-      {"number": 2, "title": "Add the import code", "description": "Export the required Streamer.bot actions and replace the contents of <strong>RTS Extension - Import Code.txt</strong>. Keep the filename unchanged."},
-      {"number": 3, "title": "Add optional assets", "description": "Place extension-owned images and video under <strong>assets/</strong>. Add an <strong>overlay/</strong> directory when the extension provides an OBS overlay."},
-      {"number": 4, "title": "Create the release", "description": "Create a version tag and GitHub release. The workflow uses the release version when publishing the extension files."}
+      {"number": 1, "title": "Import the extension", "description": "Import the published Streamer.bot actions from this page."},
+      {"number": 2, "title": "Enable OBS Replay Buffer", "description": "Enable Replay Buffer in OBS and choose the folder where replay files are saved."},
+      {"number": 3, "title": "Enable Streamer.bot HTTP Server", "description": "Map a URL path such as <strong>replays</strong> to your OBS replay-buffer folder."},
+      {"number": 4, "title": "Enable Streamer.bot WebSocket", "description": "Use the local WebSocket server so the remote overlay can receive extension events."},
+      {"number": 5, "title": "Configure the extension", "description": "Open the RTS Action Replay settings and enter the replay folder and HTTP mapping details."}
     ]
   },
   "notes": [
-    "Do not rename RTS Extension - Import Code.txt in the source repository. The release build publishes it automatically as <strong>Extension Name vX.Y.Z - Import Code.txt</strong>.",
-    "Keep extension-specific website content in site/rts.json. Do not edit generated website files."
-  ]
+    "Replay files remain on the local computer. The RTS overlay does not upload them to the website.",
+    "The production overlay is hosted by The Road to Somewhere; Streamer.bot supplies the local WebSocket and HTTP services."
+  ],
+  "review": false
 }
