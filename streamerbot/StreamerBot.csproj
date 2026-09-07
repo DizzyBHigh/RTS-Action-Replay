@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net481</TargetFramework>
+    <LangVersion>13.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <DefineConstants>EXTERNAL_EDITOR</DefineConstants>
+    <NoWarn>CS0114</NoWarn>
+    <StreamerBotPath>C:/path/to/streamer.bot-directory</StreamerBotPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Using Include="Streamer.bot.Plugin.Interface" />
+    <Using Include="Streamer.bot.Plugin.Interface.Model" />
+    <Using Include="Streamer.bot.Plugin.Interface.Enums" />
+    <Using Include="Streamer.bot.Common.Events" />
+    <Reference Include="$(StreamerBotPath)/Streamer.bot.Plugin.Interface.dll" />
+    <Reference Include="$(StreamerBotPath)/Streamer.bot.Common.dll" />
+    <Reference Include="$(StreamerBotPath)/Twitch.Common.dll" />
+    <Reference Include="$(StreamerBotPath)/Newtonsoft.Json.dll" />
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+</Project>
