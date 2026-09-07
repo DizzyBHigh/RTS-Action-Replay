@@ -12,6 +12,7 @@ public class RTSActionReplayStore : CPHInline
     private const string DataKey = "rts.actionreplay.data";
     private const string TitleKey = "rts.actionreplay.replayTitle";
     private const string MaxHistoryKey = "rts.actionreplay.maxHistory";
+    private const string PendingKey = "rts.actionreplay.pendingSaves";
 
     public bool Execute() => Initialize();
 
@@ -33,18 +34,19 @@ public class RTSActionReplayStore : CPHInline
         if (list.Any(x => string.Equals((string)x["file"], Path.GetFileName(path), StringComparison.OrdinalIgnoreCase))) return true;
 
         var now = DateTime.Now; var id = now.ToString("yyyyMMdd-HHmmssfff") + "-" + Guid.NewGuid().ToString("N").Substring(0, 6);
-        var number = list.Count + 1;
+        var number = list.Count + 1; var creatorId = Get("userId"); var creatorName = Get("userName");
+        ApplyPendingCreator(ref creatorId, ref creatorName);
         CPH.SetArgument("replayId", id); CPH.SetArgument("replayFile", Path.GetFileName(path));
         CPH.SetArgument("replayPath", path); CPH.SetArgument("replayName", Path.GetFileNameWithoutExtension(path));
         CPH.SetArgument("replayNumber", number); CPH.SetArgument("replayDate", now.ToString("yyyy-MM-dd"));
         CPH.SetArgument("replayTime", now.ToString("HH:mm:ss")); CPH.SetArgument("replayPlays", 0);
-        CPH.SetArgument("replayUser", Get("userName")); CPH.SetArgument("replayUserId", Get("userId"));
+        CPH.SetArgument("replayUser", creatorName); CPH.SetArgument("replayUserId", creatorId);
         CPH.SetArgument("replayUserPlays", 0); CPH.SetArgument("replayTitle", "");
         var title = CPH.Parse(CPH.GetGlobalVar<string>(TitleKey, true) ?? "%replayName%");
         if (string.IsNullOrWhiteSpace(title)) title = Path.GetFileNameWithoutExtension(path);
         var replay = new JObject {
             ["id"] = id, ["file"] = Path.GetFileName(path), ["title"] = title, ["customTitle"] = false,
-            ["added"] = now.ToString("o"), ["creator"] = new JObject { ["id"] = Get("userId"), ["name"] = Get("userName") },
+            ["added"] = now.ToString("o"), ["creator"] = new JObject { ["id"] = creatorId, ["name"] = creatorName },
             ["plays"] = 0, ["users"] = new JObject()
         };
         list.Insert(0, replay); Trim(list); Save(data);
@@ -100,6 +102,15 @@ public class RTSActionReplayStore : CPHInline
     {
         var max = CPH.GetGlobalVar<int?>(MaxHistoryKey, true) ?? 20;
         while (list.Count > Math.Max(1, max)) list.RemoveAt(list.Count - 1);
+    }
+    private void ApplyPendingCreator(ref string id, ref string name)
+    {
+        if (!string.IsNullOrWhiteSpace(id)) return;
+        var raw = CPH.GetGlobalVar<string>(PendingKey, false); if (string.IsNullOrWhiteSpace(raw)) return;
+        var queue = JArray.Parse(raw); if (queue.Count == 0) return;
+        var item = (JObject)queue[0]; queue.RemoveAt(0); CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), false);
+        if (DateTime.TryParse((string)item["queued"], out var queued) && DateTime.UtcNow - queued <= TimeSpan.FromSeconds(60))
+        { id = (string)item["id"] ?? ""; name = (string)item["name"] ?? ""; }
     }
     private void BroadcastReplay(JObject replay)
     {
