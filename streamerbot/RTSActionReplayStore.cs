@@ -3,11 +3,7 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 
-#if EXTERNAL_EDITOR
-public class RTSActionReplayStore : CPHInlineBase
-#else
-public class RTSActionReplayStore : CPHInline
-#endif
+public class CPHInline
 {
     private const string DataKey = "rts.actionreplay.data";
     private const string TitleKey = "rts.actionreplay.replayTitle";
