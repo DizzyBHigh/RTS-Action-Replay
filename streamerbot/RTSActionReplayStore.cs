@@ -1,5 +1,3 @@
-#r "System"
-
 using System;
 using System.IO;
 using Newtonsoft.Json.Linq;
@@ -23,7 +21,8 @@ public class CPHInline
     public bool AddReplay()
     {
         if (!(CPH.GetGlobalVar<bool?>("rts.actionreplay.autoAdd", true) ?? true)) return true;
-        if (!CPH.TryGetArg("fullPath", out string path) || string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return false;
+        string path;
+        if (!CPH.TryGetArg("fullPath", out path) || string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return false;
         var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true);
         if (!string.IsNullOrWhiteSpace(folder) && !Path.GetFullPath(path).StartsWith(Path.GetFullPath(folder).TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase)) return false;
         if (Path.GetExtension(path).Equals(".tmp", StringComparison.OrdinalIgnoreCase) || !Stable(path)) return false;
@@ -77,26 +76,25 @@ public class CPHInline
 
     public bool NameReplay()
     {
-        if (!CPH.TryGetArg("replayIndex", out int index) || !CPH.TryGetArg("replayTitleInput", out string title)) return false;
+        int index;
+        string title;
+        if (!CPH.TryGetArg("replayIndex", out index) || !CPH.TryGetArg("replayTitleInput", out title)) return false;
         title = (title ?? "").Trim();
         if (title.Length == 0) { CPH.SendMessage("Please provide a replay title."); return false; }
-
         var data = Load();
         var list = (JArray)data["replays"];
         if (index < 1 || index > list.Count) { CPH.SendMessage($"Replay #{index} does not exist."); return false; }
         var target = (JObject)list[index - 1];
-
         for (int i = 0; i < list.Count; i++)
         {
             var other = (JObject)list[i];
-            if (other == target || !((bool?)other["customTitle"] ?? false)) continue;
+            if (object.ReferenceEquals(other, target) || !((bool?)other["customTitle"] ?? false)) continue;
             if (string.Equals((string)other["title"], title, StringComparison.OrdinalIgnoreCase))
             {
                 CPH.SendMessage("That title already exists.");
                 return false;
             }
         }
-
         target["title"] = title;
         target["customTitle"] = true;
         Save(data);
@@ -106,16 +104,11 @@ public class CPHInline
     public bool ListPlaylist()
     {
         var list = (JArray)Load()["replays"];
-        if (list.Count == 0)
-        {
-            CPH.SendMessage("The replay playlist is empty.");
-            return true;
-        }
-
-        var lines = "";
+        if (list.Count == 0) { CPH.SendMessage("The replay playlist is empty."); return true; }
+        var message = "";
         for (int i = 0; i < list.Count; i++)
-            lines += (i > 0 ? " | " : "") + $"#{i + 1} {(string)list[i]["title"]}";
-        CPH.SendMessage(lines);
+            message += (i > 0 ? " | " : "") + "#" + (i + 1) + " " + (string)list[i]["title"];
+        CPH.SendMessage(message);
         return true;
     }
 
@@ -132,13 +125,12 @@ public class CPHInline
             if (groups.ContainsKey(id)) groups[id] = new System.Collections.Generic.KeyValuePair<string, int>(name, groups[id].Value + 1);
             else groups[id] = new System.Collections.Generic.KeyValuePair<string, int>(name, 1);
         }
-
         var results = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, int>>(groups.Values);
         results.Sort((a, b) => b.Value.CompareTo(a.Value));
         var message = "Replay creators: ";
         var count = Math.Min(5, results.Count);
         if (count == 0) message += "No replay creators yet.";
-        else for (int i = 0; i < count; i++) message += (i > 0 ? " | " : "") + $"#{i + 1} {results[i].Key} ({results[i].Value})";
+        else for (int i = 0; i < count; i++) message += (i > 0 ? " | " : "") + "#" + (i + 1) + " " + results[i].Key + " (" + results[i].Value + ")";
         CPH.SendMessage(message);
         return true;
     }
@@ -150,7 +142,8 @@ public class CPHInline
         for (int i = 0; i < list.Count; i++)
         {
             var replayUsers = (JObject)list[i]["users"];
-            foreach (var property in replayUsers.Properties())
+            if (replayUsers == null) continue;
+            foreach (JProperty property in replayUsers.Properties())
             {
                 var user = (JObject)property.Value;
                 var name = (string)user["name"] ?? property.Name;
@@ -159,20 +152,19 @@ public class CPHInline
                 else users[property.Name] = new System.Collections.Generic.KeyValuePair<string, int>(name, plays);
             }
         }
-
         var results = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, int>>(users.Values);
         results.Sort((a, b) => b.Value.CompareTo(a.Value));
         var message = "Replay viewers: ";
         var count = Math.Min(5, results.Count);
         if (count == 0) message += "No replay plays yet.";
-        else for (int i = 0; i < count; i++) message += (i > 0 ? " | " : "") + $"#{i + 1} {results[i].Key} ({results[i].Value})";
+        else for (int i = 0; i < count; i++) message += (i > 0 ? " | " : "") + "#" + (i + 1) + " " + results[i].Key + " (" + results[i].Value + " plays)";
         CPH.SendMessage(message);
         return true;
     }
 
     private JObject Load() => JObject.Parse(CPH.GetGlobalVar<string>(DataKey, true) ?? "{\"version\":1,\"replays\":[]}");
     private void Save(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
-    private string Get(string key) => CPH.TryGetArg(key, out string value) ? value ?? "" : "";
+    private string Get(string key) { string value; return CPH.TryGetArg(key, out value) ? value ?? "" : ""; }
 
     private bool Stable(string path)
     {
@@ -202,7 +194,8 @@ public class CPHInline
         var item = (JObject)queue[0];
         queue.RemoveAt(0);
         CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), false);
-        if (DateTime.TryParse((string)item["queued"], out var queued) && DateTime.UtcNow - queued <= TimeSpan.FromSeconds(60))
+        DateTime queued;
+        if (DateTime.TryParse((string)item["queued"], out queued) && DateTime.UtcNow - queued <= TimeSpan.FromSeconds(60))
         {
             id = (string)item["id"] ?? "";
             name = (string)item["name"] ?? "";
