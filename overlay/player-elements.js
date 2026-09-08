@@ -80,14 +80,14 @@ RTSReplayElements.configure = command => {
   RTSReplayElements.slowMotion.textContent = '';
   RTSReplayElements.speedLabel.classList.remove('visible');
   RTSReplayElements.slowMotion.classList.remove('visible');
-  if (speedValue > 1.001) {
-    RTSReplayElements.speedLabel.textContent = `${Number(speedValue.toFixed(2))}x`;
-    RTSReplayElements.speedLabel.classList.add('visible');
-  } else if (speedValue < 0.999) {
+  if (speedValue < 0.999) {
     const text = String(command.replaySlowMotionText || 'Slow Motion').trim() || 'Slow Motion';
     const showSpeed = command.replaySlowMotionShowSpeed !== false;
     RTSReplayElements.slowMotion.textContent = showSpeed ? `${text} ${Number(speedValue.toFixed(2))}x` : text;
     RTSReplayElements.slowMotion.classList.add('visible');
+  } else {
+    RTSReplayElements.speedLabel.textContent = `${Number(speedValue.toFixed(2))}x`;
+    RTSReplayElements.speedLabel.classList.add('visible');
   }
   RTSReplayElements.showTitle(command);
 };
