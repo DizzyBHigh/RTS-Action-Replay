@@ -8,7 +8,7 @@ RTSReplayElements.defaultPositions = {
 
 RTSReplayElements.getPositions = () => {
   try {
-    const raw = RTSReplayElements.currentCommand?.replayElementPositions;
+    const raw = RTSReplayElements.currentCommand?.replayElementPositions ?? RTSReplayElements.currentCommand?.replayPlayerElements;
     const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
     return parsed && typeof parsed === 'object' ? parsed : RTSReplayElements.defaultPositions;
   } catch (_) { return RTSReplayElements.defaultPositions; }
@@ -34,6 +34,11 @@ RTSReplayElements.applyPosition = (element, position) => {
 
 RTSReplayElements.configure = command => {
   RTSReplayElements.currentCommand = command;
+  RTSReplayElements.layer.style.setProperty('--frame-color', command.replayFrameColor || '#0384CB');
+  RTSReplayElements.layer.style.setProperty('--title-font-size', `${Math.max(1, Number(command.replayTitleFontSize) || 34)}px`);
+  RTSReplayElements.layer.style.setProperty('--speed-font-size', `${Math.max(1, Number(command.replaySpeedFontSize) || 30)}px`);
+  RTSReplayElements.layer.style.setProperty('--player-elements-font', `'${String(command.replayPlayerFont || 'Inter').replace(/'/g, "\\'")}', system-ui, sans-serif`);
+
   const positions = RTSReplayElements.getPositions();
   RTSReplayElements.applyPosition(RTSReplayElements.brand, positions.Brand || RTSReplayElements.defaultPositions.Brand);
   RTSReplayElements.applyPosition(RTSReplayElements.title, positions.Title || RTSReplayElements.defaultPositions.Title);
@@ -52,8 +57,9 @@ RTSReplayElements.configure = command => {
 
   RTSReplayElements.title.textContent = '';
   const title = String(command.replayTitle || '').trim();
-  RTSReplayElements.title.classList.toggle('visible', command.replayShowTitle !== false && !!title);
-  if (command.replayShowTitle !== false && title) RTSReplayElements.title.textContent = title;
+  const showTitle = command.replayShowTitle !== false && !!title;
+  RTSReplayElements.title.classList.toggle('visible', showTitle);
+  if (showTitle) RTSReplayElements.title.textContent = title;
 
   RTSReplayElements.speedLabel.textContent = '';
   RTSReplayElements.slowMotion.textContent = '';
@@ -86,6 +92,7 @@ RTSReplayElements.clear = () => {
 };
 
 RTSReplayElements.hide = RTSReplayElements.clear;
+RTSReplayElements.layer = document.getElementById('player-elements');
 RTSReplayElements.brand = document.getElementById('player-branding');
 RTSReplayElements.title = document.getElementById('player-title');
 RTSReplayElements.speedLabel = document.getElementById('player-speed-indicator');
