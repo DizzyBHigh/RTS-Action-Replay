@@ -40,6 +40,26 @@
   background: #000;
 }
 
+#replay-player.preview #player-frame {
+  aspect-ratio: 16 / 9;
+}
+
+#replay-player.preview #video {
+  display: none;
+}
+
+#replay-player.preview #player-frame::after {
+  content: "REPLAY PLAYER PREVIEW";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, .8);
+  font: 700 18px system-ui, sans-serif;
+  letter-spacing: .08em;
+  pointer-events: none;
+}
+
 #player-controls {
   display: flex;
   align-items: center;
