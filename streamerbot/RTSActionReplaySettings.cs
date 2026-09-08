@@ -46,7 +46,22 @@ public class CPHInline
         ui.AddSlider("Position X", "Custom horizontal position.", "Perspective", "rts.actionreplay.positionX", -100, 100, 0);
         ui.AddSlider("Position Y", "Custom vertical position.", "Perspective", "rts.actionreplay.positionY", -100, 100, 0);
 
+        ui.AddTitle("Messages", "Messages");
+        AddMessageSettings(ui, "Save Replay", "Replay saved: %replayTitle%.", "rts.actionreplay.message.save");
+        AddMessageSettings(ui, "Name Replay", "Replay #%replayNumber% renamed to %replayTitle%.", "rts.actionreplay.message.name");
+        AddMessageSettings(ui, "Play Replay", "Playing replay #%replayNumber%: %replayTitle%.", "rts.actionreplay.message.play");
+        AddMessageSettings(ui, "Playlist", "%replayPlaylist%", "rts.actionreplay.message.playlist");
+        AddMessageSettings(ui, "Creator Leaderboard", "%replayLeaderboard%", "rts.actionreplay.message.creatorLeaderboard");
+        AddMessageSettings(ui, "Playback Leaderboard", "%replayLeaderboard%", "rts.actionreplay.message.playbackLeaderboard");
+
         ui.ShowUI();
         return true;
+    }
+
+    private void AddMessageSettings(RtsUI ui, string name, string message, string key)
+    {
+        ui.AddTextbox(name + " Message", "Message sent when this command completes. Streamer.bot variables can be used.", "Messages", key + ".text", message, false);
+        ui.AddToggleSwitch(name + " - Chat", "Send this message to Twitch chat.", "Messages", key + ".chat", true);
+        ui.AddToggleSwitch(name + " - Overlay", "Send this message to the Action Replay overlay.", "Messages", key + ".overlay", false);
     }
 }
