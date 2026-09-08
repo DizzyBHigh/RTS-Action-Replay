@@ -16,7 +16,7 @@ RTSReplayElements.getPositions = () => {
 
 RTSReplayElements.getPosition = name => {
   const positions = RTSReplayElements.getPositions();
-  return positions[name] || positions[String(name)] || RTSReplayElements.defaultPositions[name];
+  return positions[name] || RTSReplayElements.defaultPositions[name];
 };
 
 RTSReplayElements.transformFor = (p, scaleFactor = 1) => {
@@ -44,31 +44,34 @@ RTSReplayElements.configure = command => {
   RTSReplayElements.brand.innerHTML = '';
   const showBranding = command.replayShowBranding !== false;
   const logo = String(command.replayLogoUrl || '').trim();
+  RTSReplayElements.brand.classList.toggle('visible', showBranding);
   if (showBranding) {
     if (logo) RTSReplayElements.brand.innerHTML = `<img src="${logo.replace(/"/g, '&quot;')}" alt="">`;
     else RTSReplayElements.brand.textContent = 'RTS';
-    RTSReplayElements.player.classList.add('has-branding');
-  } else RTSReplayElements.player.classList.remove('has-branding');
+  }
 
   RTSReplayElements.title.textContent = '';
   const title = String(command.replayTitle || '').trim();
-  if (command.replayShowTitle !== false && title) {
-    RTSReplayElements.title.textContent = title;
-    RTSReplayElements.player.classList.add('has-title');
-  } else RTSReplayElements.player.classList.remove('has-title');
+  RTSReplayElements.title.classList.toggle('visible', command.replayShowTitle !== false && !!title);
+  if (command.replayShowTitle !== false && title) RTSReplayElements.title.textContent = title;
 
   RTSReplayElements.speedLabel.textContent = '';
   RTSReplayElements.slowMotion.textContent = '';
   const speedValue = Number(command.replayPlaybackSpeed) || 1;
   if (speedValue > 1.001) {
     RTSReplayElements.speedLabel.textContent = `${Number(speedValue.toFixed(2))}x`;
-    RTSReplayElements.player.classList.add('has-speed');
+    RTSReplayElements.speedLabel.classList.add('visible');
+    RTSReplayElements.slowMotion.classList.remove('visible');
   } else if (speedValue < 0.999) {
     const text = String(command.replaySlowMotionText || 'Slow Motion').trim() || 'Slow Motion';
     const showSpeed = command.replaySlowMotionShowSpeed !== false;
     RTSReplayElements.slowMotion.textContent = showSpeed ? `${text} ${Number(speedValue.toFixed(2))}x` : text;
-    RTSReplayElements.player.classList.add('has-speed');
-  } else RTSReplayElements.player.classList.remove('has-speed');
+    RTSReplayElements.slowMotion.classList.add('visible');
+    RTSReplayElements.speedLabel.classList.remove('visible');
+  } else {
+    RTSReplayElements.speedLabel.classList.remove('visible');
+    RTSReplayElements.slowMotion.classList.remove('visible');
+  }
 };
 
 RTSReplayElements.clear = () => {
@@ -76,13 +79,15 @@ RTSReplayElements.clear = () => {
   RTSReplayElements.title.textContent = '';
   RTSReplayElements.speedLabel.textContent = '';
   RTSReplayElements.slowMotion.textContent = '';
-  RTSReplayElements.player.classList.remove('has-title', 'has-speed', 'has-branding');
+  RTSReplayElements.brand.classList.remove('visible');
+  RTSReplayElements.title.classList.remove('visible');
+  RTSReplayElements.speedLabel.classList.remove('visible');
+  RTSReplayElements.slowMotion.classList.remove('visible');
 };
 
-RTSReplayElements.hide = () => RTSReplayElements.clear();
+RTSReplayElements.hide = RTSReplayElements.clear;
 RTSReplayElements.brand = document.getElementById('player-branding');
 RTSReplayElements.title = document.getElementById('player-title');
 RTSReplayElements.speedLabel = document.getElementById('player-speed-indicator');
 RTSReplayElements.slowMotion = document.getElementById('player-slow-motion');
-RTSReplayElements.player = document.getElementById('replay-player');
 window.RTSReplayElements = RTSReplayElements;
