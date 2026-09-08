@@ -52,13 +52,9 @@ RTSReplayElements.showTitle = command => {
 
 RTSReplayElements.configure = command => {
   RTSReplayElements.currentCommand = command;
-  const playerFont = command.replayPlayerFont || 'Inter';
-  const titleFont = command.replayTitleFont || playerFont;
-  RTSReplayElements.loadFont(playerFont, 'player-elements-font');
+  const titleFont = command.replayTitleFont || 'Inter';
   RTSReplayElements.loadFont(titleFont, 'player-title-font');
   RTSReplayElements.layer.style.setProperty('--frame-color', command.replayFrameColor || '#0384CB');
-  RTSReplayElements.layer.style.setProperty('--speed-font-size', `${Math.max(1, Number(command.replaySpeedFontSize) || 30)}px`);
-  RTSReplayElements.layer.style.setProperty('--player-elements-font', `'${String(playerFont).replace(/'/g, "\\'")}', system-ui, sans-serif`);
   RTSReplayElements.layer.style.setProperty('--title-font', `'${String(titleFont).replace(/'/g, "\\'")}', system-ui, sans-serif`);
   RTSReplayElements.layer.style.setProperty('--title-font-size', `${Math.max(1, Number(command.replayTitleFontSize) || 34)}px`);
   RTSReplayElements.layer.style.setProperty('--title-color', command.replayTitleColor || '#FFFFFF');
@@ -76,19 +72,8 @@ RTSReplayElements.configure = command => {
   }
 
   const speedValue = Number(command.replayPlaybackSpeed) || 1;
-  RTSReplayElements.speedLabel.textContent = '';
-  RTSReplayElements.slowMotion.textContent = '';
-  RTSReplayElements.speedLabel.classList.remove('visible');
-  RTSReplayElements.slowMotion.classList.remove('visible');
-  if (speedValue < 0.999) {
-    const text = String(command.replaySlowMotionText || 'Slow Motion').trim() || 'Slow Motion';
-    const showSpeed = command.replaySlowMotionShowSpeed !== false;
-    RTSReplayElements.slowMotion.textContent = showSpeed ? `${text} ${Number(speedValue.toFixed(2))}x` : text;
-    RTSReplayElements.slowMotion.classList.add('visible');
-  } else {
-    RTSReplayElements.speedLabel.textContent = `${Number(speedValue.toFixed(2))}x`;
-    RTSReplayElements.speedLabel.classList.add('visible');
-  }
+  RTSReplayElements.speedLabel.textContent = `${Number(speedValue.toFixed(2))}x`;
+  RTSReplayElements.speedLabel.classList.add('visible');
   RTSReplayElements.showTitle(command);
 };
 
@@ -97,11 +82,9 @@ RTSReplayElements.clear = () => {
   RTSReplayElements.brand.innerHTML = '';
   RTSReplayElements.title.textContent = '';
   RTSReplayElements.speedLabel.textContent = '';
-  RTSReplayElements.slowMotion.textContent = '';
   RTSReplayElements.brand.classList.remove('visible');
   RTSReplayElements.title.classList.remove('visible', 'closing', 'title-top', 'title-bottom');
   RTSReplayElements.speedLabel.classList.remove('visible');
-  RTSReplayElements.slowMotion.classList.remove('visible');
 };
 
 RTSReplayElements.hide = RTSReplayElements.clear;
@@ -109,5 +92,4 @@ RTSReplayElements.layer = document.getElementById('player-elements');
 RTSReplayElements.brand = document.getElementById('player-branding');
 RTSReplayElements.title = document.getElementById('player-title');
 RTSReplayElements.speedLabel = document.getElementById('player-speed-indicator');
-RTSReplayElements.slowMotion = document.getElementById('player-slow-motion');
 window.RTSReplayElements = RTSReplayElements;
