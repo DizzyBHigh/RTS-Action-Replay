@@ -10,19 +10,30 @@ RTSReplaySkin.loadFont = font => {
 RTSReplaySkin.elementDefaults = { Brand: { scale: 100, x: 0, y: 0 }, Title: { scale: 100, x: 0, y: 0 }, 'Play Speed Indicator': { scale: 100, x: 0, y: 0 } };
 RTSReplaySkin.readElements = command => {
   let data = {};
-  try { data = JSON.parse(command.replayPlayerElements || '{}'); } catch { }
-  return data;
+  const raw = command.replayPlayerElements;
+  try {
+    if (typeof raw === 'string' && raw.trim()) data = JSON.parse(raw);
+    else if (raw && typeof raw === 'object') data = raw;
+  } catch { data = {}; }
+  return data || {};
 };
+RTSReplaySkin.elementValue = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 RTSReplaySkin.applyElementPosition = (element, data, defaults) => {
-  const p = data || defaults; const scale = Math.max(0, Number(p.scale) || 0); const x = Math.max(-100, Math.min(100, Number(p.x) || 0)); const y = Math.max(-100, Math.min(100, Number(p.y) || 0));
+  const p = data || defaults;
+  const scale = Math.max(0, RTSReplaySkin.elementValue(p.scale, defaults.scale));
+  const x = Math.max(-50, Math.min(50, RTSReplaySkin.elementValue(p.x, defaults.x)));
+  const y = Math.max(-50, Math.min(50, RTSReplaySkin.elementValue(p.y, defaults.y)));
   element.style.left = `${50 + x}%`; element.style.top = `${50 + y}%`; element.style.transform = `translate(-50%, -50%) scale(${scale / 100})`;
 };
 RTSReplaySkin.configureElements = command => {
-  const elements = RTSReplaySkin.readElements(command); const speed = elements['Play Speed Indicator'] || RTSReplaySkin.elementDefaults['Play Speed Indicator'];
+  const elements = RTSReplaySkin.readElements(command);
+  const speed = elements['Play Speed Indicator'] || RTSReplaySkin.elementDefaults['Play Speed Indicator'];
   RTSReplaySkin.applyElementPosition(RTSReplaySkin.brand, elements.Brand, RTSReplaySkin.elementDefaults.Brand);
   RTSReplaySkin.applyElementPosition(RTSReplaySkin.title, elements.Title, RTSReplaySkin.elementDefaults.Title);
   RTSReplaySkin.applyElementPosition(RTSReplaySkin.speedLabel, speed, RTSReplaySkin.elementDefaults['Play Speed Indicator']);
-  const scale = Math.max(0, Number(speed.scale) || 0); const x = Math.max(-100, Math.min(100, Number(speed.x) || 0)); const y = Math.max(-100, Math.min(100, Number(speed.y) || 0));
+  const scale = Math.max(0, RTSReplaySkin.elementValue(speed.scale, 100));
+  const x = Math.max(-50, Math.min(50, RTSReplaySkin.elementValue(speed.x, 0)));
+  const y = Math.max(-50, Math.min(50, RTSReplaySkin.elementValue(speed.y, 0)));
   RTSReplaySkin.slowMotion.style.left = `${50 + x}%`; RTSReplaySkin.slowMotion.style.top = `calc(${50 + y}% + ${1.2 * scale / 100}em)`; RTSReplaySkin.slowMotion.style.transform = `translate(-50%, 0) scale(${scale / 100})`;
 };
 RTSReplaySkin.configureFrame = command => {
