@@ -1,5 +1,5 @@
 #player-elements {
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 20;
@@ -11,7 +11,7 @@
 
 #player-branding,
 #player-speed-indicator {
-  position: fixed;
+  position: absolute;
   top: 24px;
   display: none;
   align-items: center;
@@ -40,22 +40,22 @@
   object-fit: contain;
 }
 
-#player-speed-indicator {
+#player-speed-indicator,
+#player-slow-motion {
   right: 24px;
-  justify-content: flex-end;
   color: var(--frame-color, #0384CB);
   font-size: var(--speed-font-size, 30px);
   white-space: nowrap;
 }
 
+#player-speed-indicator {
+  justify-content: flex-end;
+}
+
 #player-slow-motion {
-  position: fixed;
+  position: absolute;
   top: 24px;
-  right: 24px;
   display: none;
-  color: var(--frame-color, #0384CB);
-  font-size: var(--speed-font-size, 30px);
-  white-space: nowrap;
 }
 
 #player-slow-motion.visible {
@@ -63,10 +63,10 @@
 }
 
 #player-title {
-  position: fixed;
+  position: absolute;
   left: 50%;
   display: none;
-  width: min(92vw, 1200px);
+  width: min(92%, 1200px);
   box-sizing: border-box;
   padding: 13px 28px 15px;
   align-items: center;
