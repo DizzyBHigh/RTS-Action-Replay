@@ -44,7 +44,10 @@ public class CPHInline
         CPH.SetArgument("replayCommand", "load"); CPH.SetArgument("replayId", (string)replay["id"]);
         CPH.SetArgument("replayUrl", url); CPH.SetArgument("replayAutoplay", true);
         CPH.SetArgument("replayUserId", userId ?? ""); CPH.SetArgument("replayUserName", userName ?? "");
+        CPH.SetArgument("replayNumber", Array.IndexOf(list.ToArray(), replay) + 1);
+        CPH.SetArgument("replayTitle", (string)replay["title"] ?? "");
         CPH.TriggerEvent(EventName, true);
+        SendMessage("play");
         return true;
     }
 
@@ -63,6 +66,21 @@ public class CPHInline
             user["plays"] = ((int?)user["plays"] ?? 0) + 1; users[userId] = user;
         }
         Save(data); return true;
+    }
+
+    private void SendMessage(string type)
+    {
+        var key = "rts.actionreplay.message." + type;
+        var text = CPH.GetGlobalVar<string>(key + ".text", true);
+        if (string.IsNullOrWhiteSpace(text)) return;
+        text = CPH.Parse(text);
+        if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) CPH.SendMessage(text);
+        if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false)
+        {
+            CPH.SetArgument("replayCommand", "message");
+            CPH.SetArgument("replayMessage", text);
+            CPH.TriggerEvent(EventName, true);
+        }
     }
 
     private JObject Load() => JObject.Parse(CPH.GetGlobalVar<string>(DataKey, true) ?? "{\"version\":1,\"replays\":[]}");
