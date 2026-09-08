@@ -41,7 +41,7 @@ public class CPHInline
 
         ui.AddTitle("Player Animation", "Animation");
         ui.AddDropdown("Animation In", "Entrance animation when the player loads.", "Animation", "rts.actionreplay.animationIn", new[] { "None", "Zoom In", "Slide From Left", "Slide From Right", "Slide From Top", "Slide From Bottom" }, "None");
-        ui.AddDropdown("Animation Out", "Exit animation when Streamer.bot hides the player.", "Animation", "Animation", "rts.actionreplay.animationOut", new[] { "None", "Zoom Out", "Slide To Left", "Slide To Right", "Slide To Top", "Slide To Bottom" }, "None");
+        ui.AddDropdown("Animation Out", "Exit animation when Streamer.bot hides the player.", "Animation", "rts.actionreplay.animationOut", new[] { "None", "Zoom Out", "Slide To Left", "Slide To Right", "Slide To Top", "Slide To Bottom" }, "None");
         ui.AddDecimalTextbox("Animation Duration", "Animation duration in seconds.", "Animation", "rts.actionreplay.animationDuration", 0.5, 0.1, 5.0, 0.1);
         ui.AddDropdown("Animation Easing", "CSS easing used for player movement.", "Animation", "rts.actionreplay.animationEasing", new[] { "linear", "ease", "ease-in", "ease-out", "ease-in-out" }, "ease-in-out");
 
