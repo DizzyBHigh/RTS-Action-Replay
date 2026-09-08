@@ -26,10 +26,11 @@ public class CPHInline
     public bool PlayReplay()
     {
         var data = Load(); var list = (JArray)data["replays"];
-        if (!CPH.TryGetArg("replaySelector", out string selector)) return false;
+        if (!CPH.TryGetArg("rawInput", out string selector) || string.IsNullOrWhiteSpace(selector)) return false;
+        selector = selector.Trim();
         JObject replay = null;
         if (int.TryParse(selector, out var index) && index > 0 && index <= list.Count) replay = (JObject)list[index - 1];
-        else replay = list.OfType<JObject>().FirstOrDefault(x => ((bool?)x["customTitle"] ?? false) && string.Equals((string)x["title"], selector.Trim(), StringComparison.OrdinalIgnoreCase));
+        else replay = list.OfType<JObject>().FirstOrDefault(x => ((bool?)x["customTitle"] ?? false) && string.Equals((string)x["title"], selector, StringComparison.OrdinalIgnoreCase));
         if (replay == null) { CPH.SendMessage("Replay not found."); return false; }
 
         var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true);
