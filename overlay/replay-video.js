@@ -1,42 +1,42 @@
-const RTSReplay = window.RTSReplay;
+const RTSReplayVideo = window.RTSReplay;
 
-RTSReplay.confirmPlayback = (replayId, userId, userName) => {
-  if (!replayId || !RTSReplay.socket || RTSReplay.socket.readyState !== WebSocket.OPEN) return;
-  RTSReplay.socket.send(JSON.stringify({
+RTSReplayVideo.confirmPlayback = (replayId, userId, userName) => {
+  if (!replayId || !RTSReplayVideo.socket || RTSReplayVideo.socket.readyState !== WebSocket.OPEN) return;
+  RTSReplayVideo.socket.send(JSON.stringify({
     request: 'DoAction',
     id: `rts-replay-confirm-${Date.now()}`,
-    action: { name: RTSReplay.config.confirmAction },
+    action: { name: RTSReplayVideo.config.confirmAction },
     args: { replayId, userId: userId || '', userName: userName || '' }
   }));
 };
 
-RTSReplay.playReplay = command => {
-  RTSReplay.video.play().then(() => {
-    RTSReplay.confirmPlayback(command.replayId, command.replayUserId, command.replayUserName);
+RTSReplayVideo.playReplay = command => {
+  RTSReplayVideo.video.play().then(() => {
+    RTSReplayVideo.confirmPlayback(command.replayId, command.replayUserId, command.replayUserName);
   }).catch(error => console.warn('Replay play failed', error));
 };
 
-RTSReplay.loadReplay = command => {
+RTSReplayVideo.loadReplay = command => {
   if (!command.replayUrl) return;
-  RTSReplay.video.src = command.replayUrl;
-  RTSReplay.video.style.display = 'block';
-  RTSReplay.video.load();
+  RTSReplayVideo.video.src = command.replayUrl;
+  RTSReplayVideo.video.style.display = 'block';
+  RTSReplayVideo.video.load();
   if (command.replayAutoplay) {
-    RTSReplay.video.addEventListener('canplay', () => RTSReplay.playReplay(command), { once: true });
+    RTSReplayVideo.video.addEventListener('canplay', () => RTSReplayVideo.playReplay(command), { once: true });
   }
 };
 
-RTSReplay.handleReplayCommand = command => {
-  if (command.replayCommand === 'message') RTSReplay.showMessage(command);
-  if (command.replayCommand === 'load') RTSReplay.loadReplay(command);
-  if (command.replayCommand === 'play') RTSReplay.playReplay(command);
-  if (command.replayCommand === 'pause') RTSReplay.video.pause();
+RTSReplayVideo.handleReplayCommand = command => {
+  if (command.replayCommand === 'message') RTSReplayVideo.showMessage(command);
+  if (command.replayCommand === 'load') RTSReplayVideo.loadReplay(command);
+  if (command.replayCommand === 'play') RTSReplayVideo.playReplay(command);
+  if (command.replayCommand === 'pause') RTSReplayVideo.video.pause();
   if (command.replayCommand === 'stop') {
-    RTSReplay.video.pause();
-    RTSReplay.video.currentTime = 0;
+    RTSReplayVideo.video.pause();
+    RTSReplayVideo.video.currentTime = 0;
   }
   if (command.replayCommand === 'replay') {
-    RTSReplay.video.currentTime = 0;
-    RTSReplay.playReplay(command);
+    RTSReplayVideo.video.currentTime = 0;
+    RTSReplayVideo.playReplay(command);
   }
 };
