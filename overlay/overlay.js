@@ -32,6 +32,12 @@ function confirmPlayback(replayId, userId, userName) {
   }));
 }
 
+function clamp(value, min, max, fallback) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(max, Math.max(min, number));
+}
+
 function applyMessageStyle(command) {
   const style = messageCard.style;
   style.setProperty('--board-color', command.replayMessageBoardColor || '#101416');
@@ -40,15 +46,9 @@ function applyMessageStyle(command) {
   style.setProperty('--accent-color', command.replayMessageAccent || '#0384CB');
   style.setProperty('--message-color', command.replayMessageTextColor || '#0384CB');
   style.setProperty('--message-font', command.replayMessageFont || 'Arial, sans-serif');
+  style.setProperty('--message-scale', clamp(command.replayMessageSize, 50, 150, 100) / 100);
   style.left = `${clamp(command.replayMessagePositionX, 0, 100, 50)}%`;
   style.top = `${clamp(command.replayMessagePositionY, 0, 100, 50)}%`;
-  style.setProperty('--message-size', `${clamp(command.replayMessageSize, 50, 150, 100) / 100}`);
-}
-
-function clamp(value, min, max, fallback) {
-  const number = Number(value);
-  if (!Number.isFinite(number)) return fallback;
-  return Math.min(max, Math.max(min, number));
 }
 
 function showMessage(command) {
