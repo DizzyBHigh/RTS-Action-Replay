@@ -1,4 +1,4 @@
-#replay-player { position: fixed; left: 50%; top: 50%; width: 100vw; transform: translate(-50%, -50%) translate(0, 0) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg); transform-origin: center center; will-change: transform, opacity; opacity: 0; visibility: hidden; pointer-events: none; --frame-color: #0384CB; --border-color: #FFFFFF; --border-width: 2px; --shadow-color: transparent; --player-duration: 0.5s; --player-easing: ease-in-out; }
+#replay-player { position: fixed; left: 50%; top: 50%; width: 100vw; transform: translate(-50%, -50%) translate(0, 0) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg); transform-origin: center center; will-change: transform, opacity; opacity: 0; visibility: hidden; pointer-events: none; --frame-color: #0384CB; --border-color: #FFFFFF; --border-width: 2px; --shadow-color: transparent; --player-duration: 0.5s; --player-easing: ease-in-out; --title-font-size: 34px; --speed-font-size: 30px; }
 #replay-player.show { opacity: 1; visibility: visible; }
 #replay-player.player-transition { transition: transform var(--player-duration) var(--player-easing), opacity var(--player-duration) var(--player-easing); }
 #player-frame { position: relative; overflow: hidden; border: var(--border-width) solid var(--border-color); background: var(--frame-color); box-sizing: border-box; }
@@ -9,9 +9,9 @@
 #player-branding, #player-title, #player-speed-indicator, #player-slow-motion { display: none; position: absolute; }
 #replay-player.has-branding #player-branding { display: block; max-width: 22%; color: #fff; font-size: clamp(14px, 1.5vw, 24px); transform-origin: center center; }
 #player-branding img { display: block; max-width: 100%; max-height: 64px; width: auto; height: auto; object-fit: contain; }
-#replay-player.has-title #player-title { display: block; max-width: 70%; color: #fff; font-size: clamp(16px, 2.2vw, 34px); transform-origin: center center; }
-#replay-player.has-speed #player-speed-indicator { display: block; color: var(--frame-color); font-size: clamp(16px, 2vw, 30px); transform-origin: center top; white-space: nowrap; }
-#player-slow-motion { color: #fff; font-size: clamp(12px, 1.4vw, 22px); transform-origin: center top; white-space: nowrap; }
+#replay-player.has-title #player-title { display: block; max-width: 70%; color: #fff; font-size: var(--title-font-size); transform-origin: center center; }
+#replay-player.has-speed #player-speed-indicator { display: block; color: var(--frame-color); font-size: var(--speed-font-size); transform-origin: center top; white-space: nowrap; }
+#player-slow-motion { color: #fff; font-size: var(--speed-font-size); transform-origin: center top; white-space: nowrap; }
 #player-slow-motion.slow-motion-hidden { display: block; opacity: 0; }
 #player-slow-motion.slow-motion-active { display: block; opacity: 1; }
 #player-slow-motion.slow-motion-no-fade { transition: none; }
