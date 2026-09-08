@@ -125,9 +125,15 @@ public class CPHInline
     {
         JObject element = elements?[name] as JObject;
         string prefix = name == "Play Speed Indicator" ? "Speed" : name;
-        CPH.SetArgument("replay" + prefix + "Scale", element?["scale"]?.Value<int>() ?? 100);
-        CPH.SetArgument("replay" + prefix + "X", element?["x"]?.Value<int>() ?? 0);
-        CPH.SetArgument("replay" + prefix + "Y", element?["y"]?.Value<int>() ?? 0);
+        CPH.SetArgument("replay" + prefix + "Scale", ReadElementInt(element, "scale", 100));
+        CPH.SetArgument("replay" + prefix + "X", ReadElementInt(element, "x", 0));
+        CPH.SetArgument("replay" + prefix + "Y", ReadElementInt(element, "y", 0));
+    }
+
+    private int ReadElementInt(JObject element, string key, int fallback)
+    {
+        try { return Convert.ToInt32(element == null ? null : element[key], System.Globalization.CultureInfo.InvariantCulture); }
+        catch { return fallback; }
     }
 
     private void AddMessages(RtsUI ui)
