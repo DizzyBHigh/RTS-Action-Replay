@@ -19,14 +19,7 @@ RTSReplayElements.getPosition = name => {
   return positions[name] || RTSReplayElements.defaultPositions[name];
 };
 
-RTSReplayElements.transformFor = (p, scaleFactor = 1) => {
-  const rawScale = Number(p?.scale);
-  const scale = (Number.isFinite(rawScale) ? rawScale : 100) / 100 * scaleFactor;
-  const x = Number(p?.x), y = Number(p?.y);
-  const rotateX = Number(p?.rotateX), rotateY = Number(p?.rotateY), rotateZ = Number(p?.rotateZ);
-  return `translate(-50%, -50%) translate(${Number.isFinite(x) ? x : 0}%, ${Number.isFinite(y) ? y : 0}%) scale(${scale}) rotateX(${Number.isFinite(rotateX) ? rotateX : 0}deg) rotateY(${Number.isFinite(rotateY) ? rotateY : 0}deg) rotateZ(${Number.isFinite(rotateZ) ? rotateZ : 0}deg)`;
-};
-
+RTSReplayElements.transformFor = RTSReplayElements.transformFor || RTSReplayPlayer.transformFor;
 RTSReplayElements.applyPosition = (element, position) => {
   if (!element) return;
   element.style.transform = RTSReplayElements.transformFor(position || {});
