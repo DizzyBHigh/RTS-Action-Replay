@@ -4,6 +4,7 @@ public class CPHInline
 {
     public bool Execute()
     {
+        string pendingPositions = null;
         var ui = new RtsUI("RTS Action Replay", "0.1.0",
             (key, persisted) => CPH.GetGlobalVar<bool?>(key, persisted),
             (key, persisted) => CPH.GetGlobalVar<int?>(key, persisted),
@@ -38,7 +39,7 @@ public class CPHInline
         ui.AddTitle("Player Positions", "Positions");
         ui.AddPositionSelector("Default Start Position", "Position used when the player starts showing.", "Positions", "rts.actionreplay.defaultStartPosition", "rts.actionreplay.positions", "Full Screen");
         ui.AddPositionSelector("Default End Position", "Position used when the player has finished showing.", "Positions", "rts.actionreplay.defaultEndPosition", "rts.actionreplay.positions", "Full Screen");
-        ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", PreviewPosition);
+        ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", saved => pendingPositions = saved, PreviewPosition);
 
         ui.AddTitle("Player Animation", "Animation");
         ui.AddDecimalTextbox("Animation Duration", "Duration used when moving between the Start and End positions.", "Animation", "rts.actionreplay.animationDuration", 0.5, 0.1, 5.0, 0.1);
@@ -46,6 +47,11 @@ public class CPHInline
 
         AddMessages(ui);
         ui.ShowUI();
+        if (pendingPositions != null)
+        {
+            CPH.SetGlobalVar("rts.actionreplay.positions", pendingPositions, true);
+            CPH.LogInfo("[RTS Action Replay] Persisted player positions after settings window closed.");
+        }
         return true;
     }
 
