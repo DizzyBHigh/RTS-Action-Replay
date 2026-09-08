@@ -1,4 +1,5 @@
 using System;
+using Newtonsoft.Json.Linq;
 
 // Streamer.bot C# action: open the Action Replay settings window.
 // Requires RtsUI.dll 0.2.0 or newer as a custom assembly reference.
@@ -87,7 +88,9 @@ public class CPHInline
         CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
         CPH.SetArgument("replayShowTitle", CPH.GetGlobalVar<bool?>("rts.actionreplay.showTitle", true) ?? true);
         CPH.SetArgument("replayTitle", "Replay Title");
-        CPH.SetArgument("replayPlayerElements", CPH.GetGlobalVar<string>("rts.actionreplay.playerElements", true) ?? "{\"Brand\":{\"name\":\"Brand\",\"scale\":100,\"x\":0,\"y\":0},\"Title\":{\"name\":\"Title\",\"scale\":100,\"x\":0,\"y\":0},\"Play Speed Indicator\":{\"name\":\"Play Speed Indicator\",\"scale\":100,\"x\":0,\"y\":0}}");
+        string elementsJson = CPH.GetGlobalVar<string>("rts.actionreplay.playerElements", true) ?? "{\"Brand\":{\"name\":\"Brand\",\"scale\":100,\"x\":0,\"y\":0},\"Title\":{\"name\":\"Title\",\"scale\":100,\"x\":0,\"y\":0},\"Play Speed Indicator\":{\"name\":\"Play Speed Indicator\",\"scale\":100,\"x\":0,\"y\":0}}";
+        CPH.SetArgument("replayPlayerElements", elementsJson);
+        SetPreviewElementArguments(elementsJson);
         CPH.SetArgument("replayPlayerFont", CPH.GetGlobalVar<string>("rts.actionreplay.playerFont", true) ?? "Inter");
         CPH.SetArgument("replayShowControls", CPH.GetGlobalVar<bool?>("rts.actionreplay.showControls", true) ?? false);
         CPH.SetArgument("replayShowProgress", CPH.GetGlobalVar<bool?>("rts.actionreplay.showProgress", true) ?? true);
@@ -99,6 +102,32 @@ public class CPHInline
         CPH.SetArgument("replayShadowColor", CPH.GetGlobalVar<string>("rts.actionreplay.shadowColor", true) ?? "#80000000");
         CPH.SetArgument("replayPositions", positionsJson ?? "{\"Full Screen\":{\"name\":\"Full Screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
         CPH.TriggerEvent("RTS-Action Replay", true);
+    }
+
+    private void SetPreviewElementArguments(string json)
+    {
+        try
+        {
+            var elements = JObject.Parse(json ?? "{}");
+            SetPreviewElement("Brand", elements);
+            SetPreviewElement("Title", elements);
+            SetPreviewElement("Play Speed Indicator", elements);
+        }
+        catch
+        {
+            SetPreviewElement("Brand", null);
+            SetPreviewElement("Title", null);
+            SetPreviewElement("Play Speed Indicator", null);
+        }
+    }
+
+    private void SetPreviewElement(string name, JObject elements)
+    {
+        JObject element = elements?[name] as JObject;
+        string prefix = name == "Play Speed Indicator" ? "Speed" : name;
+        CPH.SetArgument("replay" + prefix + "Scale", element?["scale"]?.Value<int>() ?? 100);
+        CPH.SetArgument("replay" + prefix + "X", element?["x"]?.Value<int>() ?? 0);
+        CPH.SetArgument("replay" + prefix + "Y", element?["y"]?.Value<int>() ?? 0);
     }
 
     private void AddMessages(RtsUI ui)
