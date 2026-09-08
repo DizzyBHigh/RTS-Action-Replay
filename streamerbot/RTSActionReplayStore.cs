@@ -72,6 +72,8 @@ public class CPHInline
         Trim(list);
         Save(data);
         CPH.LogInfo($"RTS Action Replay: added {title} ({id})");
+        CPH.SetArgument("replayTitle", title);
+        SendMessage("save");
         if (CPH.GetGlobalVar<bool?>("rts.actionreplay.autoPlay", true) ?? false) BroadcastReplay(replay);
         return true;
     }
@@ -103,6 +105,9 @@ public class CPHInline
         target["title"] = title;
         target["customTitle"] = true;
         Save(data);
+        CPH.SetArgument("replayNumber", index);
+        CPH.SetArgument("replayTitle", title);
+        SendMessage("name");
         return true;
     }
 
@@ -113,7 +118,8 @@ public class CPHInline
         var message = "";
         for (int i = 0; i < list.Count; i++)
             message += (i > 0 ? " | " : "") + "#" + (i + 1) + " " + (string)list[i]["title"];
-        CPH.SendMessage(message);
+        CPH.SetArgument("replayPlaylist", message);
+        SendMessage("playlist");
         return true;
     }
 
@@ -136,7 +142,8 @@ public class CPHInline
         var count = Math.Min(5, results.Count);
         if (count == 0) message += "No replay creators yet.";
         else for (int i = 0; i < count; i++) message += (i > 0 ? " | " : "") + "#" + (i + 1) + " " + results[i].Key + " (" + results[i].Value + ")";
-        CPH.SendMessage(message);
+        CPH.SetArgument("replayLeaderboard", message);
+        SendMessage("creatorLeaderboard");
         return true;
     }
 
@@ -163,8 +170,24 @@ public class CPHInline
         var count = Math.Min(5, results.Count);
         if (count == 0) message += "No replay plays yet.";
         else for (int i = 0; i < count; i++) message += (i > 0 ? " | " : "") + "#" + (i + 1) + " " + results[i].Key + " (" + results[i].Value + " plays)";
-        CPH.SendMessage(message);
+        CPH.SetArgument("replayLeaderboard", message);
+        SendMessage("playbackLeaderboard");
         return true;
+    }
+
+    private void SendMessage(string type)
+    {
+        var key = "rts.actionreplay.message." + type;
+        var text = CPH.GetGlobalVar<string>(key + ".text", true);
+        if (string.IsNullOrWhiteSpace(text)) return;
+        text = CPH.Parse(text);
+        if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) CPH.SendMessage(text);
+        if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false)
+        {
+            CPH.SetArgument("replayCommand", "message");
+            CPH.SetArgument("replayMessage", text);
+            CPH.TriggerEvent("RTS-Action Replay", true);
+        }
     }
 
     private bool IsReplayFile(string path)
