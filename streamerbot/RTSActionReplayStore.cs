@@ -114,10 +114,9 @@ public class CPHInline
     public bool ListPlaylist()
     {
         var list = (JArray)Load()["replays"];
-        if (list.Count == 0) { CPH.SendMessage("The replay playlist is empty."); return true; }
         var message = "";
-        for (int i = 0; i < list.Count; i++)
-            message += (i > 0 ? " | " : "") + "#" + (i + 1) + " " + (string)list[i]["title"];
+        if (list.Count == 0) message = "The replay playlist is empty.";
+        else for (int i = 0; i < list.Count; i++) message += (i > 0 ? " | " : "") + "#" + (i + 1) + " " + (string)list[i]["title"];
         CPH.SetArgument("replayPlaylist", message);
         SendMessage("playlist");
         return true;
@@ -186,6 +185,7 @@ public class CPHInline
         {
             CPH.SetArgument("replayCommand", "message");
             CPH.SetArgument("replayMessage", text);
+            CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
             CPH.TriggerEvent("RTS-Action Replay", true);
         }
     }
