@@ -45,6 +45,10 @@ function loadReplay(command) {
 }
 
 function handleReplayCommand(command) {
+  if (command.replayCommand === 'message') {
+    messageBox.textContent = command.replayMessage || '';
+    return;
+  }
   if (command.replayCommand === 'load') loadReplay(command);
   if (command.replayCommand === 'play') playReplay(command);
   if (command.replayCommand === 'pause') video.pause();
