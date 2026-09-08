@@ -2,17 +2,11 @@ const RTSReplayVideo = window.RTSReplay;
 
 RTSReplayVideo.confirmPlayback = (replayId, userId, userName) => {
   if (!replayId || !RTSReplayVideo.socket || RTSReplayVideo.socket.readyState !== WebSocket.OPEN) return;
-  RTSReplayVideo.socket.send(JSON.stringify({
-    request: 'DoAction', id: `rts-replay-confirm-${Date.now()}`,
-    action: { name: RTSReplayVideo.config.confirmAction },
-    args: { replayId, userId: userId || '', userName: userName || '' }
-  }));
+  RTSReplayVideo.socket.send(JSON.stringify({ request: 'DoAction', id: `rts-replay-confirm-${Date.now()}`, action: { name: RTSReplayVideo.config.confirmAction }, args: { replayId, userId: userId || '', userName: userName || '' } }));
 };
 
 RTSReplayVideo.playReplay = command => {
-  RTSReplayVideo.video.play().then(() => {
-    RTSReplayVideo.confirmPlayback(command.replayId, command.replayUserId, command.replayUserName);
-  }).catch(error => console.warn('Replay play failed', error));
+  RTSReplayVideo.video.play().then(() => RTSReplayVideo.confirmPlayback(command.replayId, command.replayUserId, command.replayUserName)).catch(error => console.warn('Replay play failed', error));
 };
 
 RTSReplayVideo.loadReplay = command => {
@@ -26,6 +20,7 @@ RTSReplayVideo.loadReplay = command => {
   RTSReplayVideo.activePosition = RTSReplayVideo.getPosition(endPosition);
   RTSReplayVideo.video.src = command.replayUrl;
   RTSReplayVideo.video.style.display = 'block';
+  RTSReplayVideo.video.playbackRate = Number(command.replayPlaybackSpeed) || 1;
   RTSReplayVideo.video.load();
   RTSReplayVideo.animateIn(RTSReplayVideo.getPosition(startPosition), RTSReplayVideo.getPosition(endPosition));
   if (command.replayAutoplay) RTSReplayVideo.video.addEventListener('canplay', () => RTSReplayVideo.playReplay(command), { once: true });
@@ -35,6 +30,7 @@ RTSReplayVideo.previewPosition = command => {
   RTSReplayVideo.currentCommand = command;
   RTSReplayControls.configure(command);
   RTSReplaySkin.clearSkin();
+  RTSReplaySkin.configureFrame(command);
   RTSReplayVideo.activePosition = RTSReplayVideo.getPosition(command.replayPosition || 'Full Screen');
   RTSReplayVideo.player.classList.add('preview', 'show');
   RTSReplayVideo.applyPosition(RTSReplayVideo.activePosition);
@@ -61,13 +57,7 @@ RTSReplayVideo.handleReplayCommand = command => {
   if (command.replayCommand === 'play') RTSReplayVideo.playReplay(command);
   if (command.replayCommand === 'pause') RTSReplayVideo.video.pause();
   if (command.replayCommand === 'move') RTSReplayVideo.moveReplay(command);
-  if (command.replayCommand === 'hide') RTSReplayVideo.animateOut();
-  if (command.replayCommand === 'stop') {
-    RTSReplayVideo.video.pause();
-    RTSReplayVideo.video.currentTime = 0;
-  }
-  if (command.replayCommand === 'replay') {
-    RTSReplayVideo.video.currentTime = 0;
-    RTSReplayVideo.playReplay(command);
-  }
+  if (command.replayCommand === 'hide') { RTSReplaySkin.hide(); RTSReplayVideo.animateOut(); }
+  if (command.replayCommand === 'stop') { RTSReplaySkin.hide(); RTSReplayVideo.video.pause(); RTSReplayVideo.video.currentTime = 0; }
+  if (command.replayCommand === 'replay') { RTSReplayVideo.video.currentTime = 0; RTSReplayVideo.playReplay(command); }
 };
