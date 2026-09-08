@@ -97,6 +97,7 @@ public class CPHInline
             return;
         }
         CPH.SetArgument("replayCommand", "preview");
+        CPH.SetArgument("replayElementPreview", true);
         CPH.SetArgument("replayPosition", "Full Screen");
         CPH.SetArgument("replayShowBranding", CPH.GetGlobalVar<bool?>("rts.actionreplay.showPlayerBranding", true) ?? true);
         CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
@@ -137,6 +138,7 @@ public class CPHInline
             return;
         }
         CPH.SetArgument("replayCommand", "preview");
+        CPH.SetArgument("replayElementPreview", false);
         CPH.SetArgument("replayPosition", position);
         CPH.SetArgument("replayShowBranding", CPH.GetGlobalVar<bool?>("rts.actionreplay.showPlayerBranding", true) ?? true);
         CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
