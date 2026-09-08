@@ -10,7 +10,7 @@ RTSReplaySkin.clearSkin = () => {
 RTSReplaySkin.configure = command => {
   RTSReplaySkin.clearSkin();
   const title = String(command.replayTitle || '').trim();
-  if (title) {
+  if (command.replayShowTitle !== false && title) {
     RTSReplaySkin.title.textContent = title;
     RTSReplaySkin.player.classList.add('has-title');
     const duration = Number(command.replayTitleDuration);
