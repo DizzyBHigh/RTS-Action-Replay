@@ -25,8 +25,11 @@ RTSReplayPlayer.configureTransition = () => {
 };
 
 RTSReplayPlayer.transformFor = (p, scaleFactor = 1, offsetX = 0, offsetY = 0) => {
-  const scale = ((Number(p.scale) || 100) / 100) * scaleFactor;
-  return `translate(-50%, -50%) translate(${(Number(p.x) || 0) + offsetX}%, ${(Number(p.y) || 0) + offsetY}%) scale(${scale}) rotateX(${Number(p.rotateX) || 0}deg) rotateY(${Number(p.rotateY) || 0}deg) rotateZ(${Number(p.rotateZ) || 0}deg)`;
+  const rawScale = Number(p.scale);
+  const scale = (Number.isFinite(rawScale) ? rawScale : 100) / 100 * scaleFactor;
+  const x = Number(p.x), y = Number(p.y);
+  const rotateX = Number(p.rotateX), rotateY = Number(p.rotateY), rotateZ = Number(p.rotateZ);
+  return `translate(-50%, -50%) translate(${(Number.isFinite(x) ? x : 0) + offsetX}%, ${(Number.isFinite(y) ? y : 0) + offsetY}%) scale(${scale}) rotateX(${Number.isFinite(rotateX) ? rotateX : 0}deg) rotateY(${Number.isFinite(rotateY) ? rotateY : 0}deg) rotateZ(${Number.isFinite(rotateZ) ? rotateZ : 0}deg)`;
 };
 
 RTSReplayPlayer.applyPosition = (position, immediate = false) => {
