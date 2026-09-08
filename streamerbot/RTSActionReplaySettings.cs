@@ -9,6 +9,7 @@ public class CPHInline
     public bool Execute()
     {
         string pendingPlayerElements = null;
+        string pendingPositions = null;
         var ui = new RtsUI("RTS Action Replay", "0.1.0",
             (key, persisted) => CPH.GetGlobalVar<bool?>(key, persisted),
             (key, persisted) => CPH.GetGlobalVar<int?>(key, persisted),
