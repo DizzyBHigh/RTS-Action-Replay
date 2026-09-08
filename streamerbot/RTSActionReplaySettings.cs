@@ -48,6 +48,17 @@ public class CPHInline
 
         ui.AddTitle("Messages", "Messages");
         ui.AddTextbox("Brand Logo URL", "HTTPS URL to a PNG logo shown on the message clapperboard. Leave blank to use the RTS text fallback.", "Messages", "rts.actionreplay.brandLogoUrl", "", false);
+        ui.AddTitle("Clapperboard Appearance", "Messages");
+        ui.AddColorPicker("Board Color", "Main clapperboard slate colour.", "Messages", "rts.actionreplay.clapper.boardColor", "#101416");
+        ui.AddColorPicker("Stripe Light", "Light colour used on the clapperstick stripes.", "Messages", "rts.actionreplay.clapper.stripeLight", "#EEEEEE");
+        ui.AddColorPicker("Stripe Dark", "Dark colour used on the clapperstick stripes.", "Messages", "rts.actionreplay.clapper.stripeDark", "#111111");
+        ui.AddColorPicker("Accent Color", "Clapperboard border, glow and brand accent colour.", "Messages", "rts.actionreplay.clapper.accent", "#0384CB");
+        ui.AddColorPicker("Text Color", "Main message text colour.", "Messages", "rts.actionreplay.clapper.textColor", "#0384CB");
+        ui.AddTextbox("Font", "CSS font family used for clapperboard message text. Example: Arial, sans-serif", "Messages", "rts.actionreplay.clapper.font", "Arial, sans-serif", false);
+        ui.AddSlider("Size (%)", "Overall clapperboard size.", "Messages", "rts.actionreplay.clapper.size", 50, 150, 100);
+        ui.AddSlider("Position X (%)", "Horizontal screen position. 50 is centered.", "Messages", "rts.actionreplay.clapper.positionX", 0, 100, 50);
+        ui.AddSlider("Position Y (%)", "Vertical screen position. 50 is centered.", "Messages", "rts.actionreplay.clapper.positionY", 0, 100, 50);
+
         AddMessageSettings(ui, "Save Replay", "Replay saved: %replayTitle%.", "rts.actionreplay.message.save");
         AddMessageSettings(ui, "Name Replay", "Replay #%replayNumber% renamed to %replayTitle%.", "rts.actionreplay.message.name");
         AddMessageSettings(ui, "Play Replay", "Playing replay #%replayNumber%: %replayTitle%.", "rts.actionreplay.message.play");
