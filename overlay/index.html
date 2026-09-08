@@ -8,8 +8,31 @@
 </head>
 <body>
   <div id="rts-overlay">
-    <div id="status">Connecting to Streamer.bot…</div>
-    <div id="message">No replay command received.</div>
+    <div id="status" aria-hidden="true">Connecting to Streamer.bot…</div>
+    <div id="message-card" aria-hidden="true">
+      <div class="clapper">
+        <div class="clapstick" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="hinge" aria-hidden="true"><i></i><i></i></div>
+        <div class="slate">
+          <div class="brand">
+            <img id="brand-logo" alt="">
+            <div id="brand-fallback">RTS</div>
+            <small>ACTION REPLAY</small>
+          </div>
+          <div class="message-content">
+            <div class="message-kicker">RTS ACTION REPLAY</div>
+            <div id="message-text"></div>
+          </div>
+          <div class="slate-fields" aria-hidden="true">
+            <div><span>SCENE</span><b>01</b></div>
+            <div><span>TAKE</span><b>01</b></div>
+            <div><span>ROLL</span><b>∞</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
     <video id="video" controls playsinline></video>
   </div>
   <script src="overlay.js"></script>
