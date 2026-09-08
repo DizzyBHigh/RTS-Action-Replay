@@ -45,7 +45,7 @@ public class CPHInline
         ui.AddToggleSwitch("Flash Slow Motion Indicator", "Flash the slow-motion indicator on and off repeatedly while slow motion is active.", "Player", "rts.actionreplay.slowMotionFlash", false);
         ui.AddDecimalTextbox("Slow Motion Flash Interval", "Seconds shown and hidden for each flash phase. 0.5 gives 0.5 seconds on, then 0.5 seconds off.", "Player", "rts.actionreplay.slowMotionFlashInterval", 0.5, 0.1, 5.0, 0.1);
         ui.AddTitle("Player Elements", "Player");
-        ui.AddPositionEditor("Element Positions", "Set the screen-relative position and size of Brand, Title, and Play Speed Indicator.", "Player", "rts.actionreplay.playerElements", "{\"Brand\":{\"name\":\"Brand\",\"scale\":100,\"x\":0,\"y\":0},\"Title\":{\"name\":\"Title\",\"scale\":100,\"x\":0,\"y\":0},\"Play Speed Indicator\":{\"name\":\"Play Speed Indicator\",\"scale\":100,\"x\":0,\"y\":0}}", new[] { "Brand", "Title", "Play Speed Indicator" }, "scale,x,y", null, null);
+        ui.AddPositionEditor("Element Positions", "Set the screen-relative position and size of Brand, Title, and Play Speed Indicator.", "Player", "rts.actionreplay.playerElements", "{\"Brand\":{\"name\":\"Brand\",\"scale\":100,\"x\":0,\"y\":0},\"Title\":{\"name\":\"Title\",\"scale\":100,\"x\":0,\"y\":0},\"Play Speed Indicator\":{\"name\":\"Play Speed Indicator\",\"scale\":100,\"x\":0,\"y\":0}}", new[] { "Brand", "Title", "Play Speed Indicator" }, "scale,x,y", null, PreviewPlayerElements);
 
         ui.AddTitle("Player Frame", "Appearance");
         ui.AddColorPicker("Frame Color", "Main player frame and progress colour.", "Appearance", "rts.actionreplay.frameColor", "#FF0384CB");
@@ -72,6 +72,44 @@ public class CPHInline
             CPH.LogInfo("[RTS Action Replay] Persisted player positions after settings window closed.");
         }
         return true;
+    }
+
+    private void PreviewPlayerElements(string position, string elementsJson)
+    {
+        if (string.IsNullOrWhiteSpace(position))
+        {
+            CPH.SetArgument("replayCommand", "previewHide");
+            CPH.TriggerEvent("RTS-Action Replay", true);
+            return;
+        }
+        CPH.SetArgument("replayCommand", "preview");
+        CPH.SetArgument("replayPosition", "Full Screen");
+        CPH.SetArgument("replayShowBranding", CPH.GetGlobalVar<bool?>("rts.actionreplay.showPlayerBranding", true) ?? true);
+        CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
+        CPH.SetArgument("replayShowTitle", CPH.GetGlobalVar<bool?>("rts.actionreplay.showTitle", true) ?? true);
+        CPH.SetArgument("replayTitle", "Replay Title");
+        string json = string.IsNullOrWhiteSpace(elementsJson) ? "{\"Brand\":{\"name\":\"Brand\",\"scale\":100,\"x\":0,\"y\":0},\"Title\":{\"name\":\"Title\",\"scale\":100,\"x\":0,\"y\":0},\"Play Speed Indicator\":{\"name\":\"Play Speed Indicator\",\"scale\":100,\"x\":0,\"y\":0}}" : elementsJson;
+        CPH.SetArgument("replayPlayerElements", json);
+        SetPreviewElementArguments(json);
+        CPH.SetArgument("replayPlayerFont", CPH.GetGlobalVar<string>("rts.actionreplay.playerFont", true) ?? "Inter");
+        CPH.SetArgument("replayShowControls", CPH.GetGlobalVar<bool?>("rts.actionreplay.showControls", true) ?? false);
+        CPH.SetArgument("replayShowProgress", CPH.GetGlobalVar<bool?>("rts.actionreplay.showProgress", true) ?? true);
+        CPH.SetArgument("replayPlaybackSpeed", GetSettingDouble("rts.actionreplay.playbackSpeed", 1.0));
+        CPH.SetArgument("replayTitleDuration", GetSettingDouble("rts.actionreplay.titleDuration", 5.0));
+        CPH.SetArgument("replaySlowMotionText", CPH.GetGlobalVar<string>("rts.actionreplay.slowMotionText", true) ?? "Slow Motion");
+        CPH.SetArgument("replaySlowMotionShowSpeed", CPH.GetGlobalVar<bool?>("rts.actionreplay.slowMotionShowSpeed", true) ?? true);
+        CPH.SetArgument("replaySlowMotionFade", CPH.GetGlobalVar<bool?>("rts.actionreplay.slowMotionFade", true) ?? true);
+        CPH.SetArgument("replaySlowMotionFadeDuration", GetSettingDouble("rts.actionreplay.slowMotionFadeDuration", .25));
+        CPH.SetArgument("replaySlowMotionFlash", CPH.GetGlobalVar<bool?>("rts.actionreplay.slowMotionFlash", true) ?? false);
+        CPH.SetArgument("replaySlowMotionFlashInterval", GetSettingDouble("rts.actionreplay.slowMotionFlashInterval", .5));
+        CPH.SetArgument("replayFrameColor", CPH.GetGlobalVar<string>("rts.actionreplay.frameColor", true) ?? "#0384CB");
+        CPH.SetArgument("replayBorderColor", CPH.GetGlobalVar<string>("rts.actionreplay.borderColor", true) ?? "#FFFFFF");
+        CPH.SetArgument("replayBorderWidth", GetSettingInt("rts.actionreplay.borderWidth", 2));
+        CPH.SetArgument("replayBorderStyle", CPH.GetGlobalVar<string>("rts.actionreplay.borderStyle", true) ?? "Solid");
+        CPH.SetArgument("replayDropShadow", CPH.GetGlobalVar<bool?>("rts.actionreplay.dropShadow", true) ?? false);
+        CPH.SetArgument("replayShadowColor", CPH.GetGlobalVar<string>("rts.actionreplay.shadowColor", true) ?? "#80000000");
+        CPH.SetArgument("replayPositions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
+        CPH.TriggerEvent("RTS-Action Replay", true);
     }
 
     private void PreviewPosition(string position, string positionsJson)
@@ -167,6 +205,12 @@ public class CPHInline
     private int GetSettingInt(string key, int fallback)
     {
         try { return Convert.ToInt32(CPH.GetGlobalVar<object>(key, true), System.Globalization.CultureInfo.InvariantCulture); }
+        catch { return fallback; }
+    }
+
+    private double GetSettingDouble(string key, double fallback)
+    {
+        try { return Convert.ToDouble(CPH.GetGlobalVar<object>(key, true), System.Globalization.CultureInfo.InvariantCulture); }
         catch { return fallback; }
     }
 }
