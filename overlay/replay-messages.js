@@ -54,6 +54,8 @@ RTSReplayMessages.showMessage = command => {
   }
 
   RTSReplayMessages.messageText.textContent = text;
+  const showBranding = command.replayShowClapperBranding !== false;
+  RTSReplayMessages.messageCard.querySelector('.brand').style.display = showBranding ? '' : 'none';
   const logoUrl = command.replayLogoUrl || '';
   if (logoUrl) {
     RTSReplayMessages.brandLogo.onload = () => {
