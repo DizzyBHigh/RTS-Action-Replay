@@ -45,6 +45,14 @@ RTSReplayMessages.showMessage = command => {
   if (!text) return;
 
   RTSReplayMessages.applyMessageStyle(command);
+  const size = clamp(command.replayMessageSize, 0, 100, 50);
+  if (size === 0) {
+    clearTimeout(RTSReplayMessages.messageTimer);
+    RTSReplayMessages.messageCard.classList.remove('show');
+    RTSReplayMessages.messageCard.setAttribute('aria-hidden', 'true');
+    return;
+  }
+
   RTSReplayMessages.messageText.textContent = text;
   const logoUrl = command.replayLogoUrl || '';
   if (logoUrl) {
