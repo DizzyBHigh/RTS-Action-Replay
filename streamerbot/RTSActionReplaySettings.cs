@@ -47,6 +47,7 @@ public class CPHInline
         ui.AddSlider("Position Y", "Custom vertical position.", "Perspective", "rts.actionreplay.positionY", -100, 100, 0);
 
         ui.AddTitle("Messages", "Messages");
+        ui.AddTextbox("Brand Logo URL", "HTTPS URL to a PNG logo shown on the message clapperboard. Leave blank to use the RTS text fallback.", "Messages", "rts.actionreplay.brandLogoUrl", "", false);
         AddMessageSettings(ui, "Save Replay", "Replay saved: %replayTitle%.", "rts.actionreplay.message.save");
         AddMessageSettings(ui, "Name Replay", "Replay #%replayNumber% renamed to %replayTitle%.", "rts.actionreplay.message.name");
         AddMessageSettings(ui, "Play Replay", "Playing replay #%replayNumber%: %replayTitle%.", "rts.actionreplay.message.play");
