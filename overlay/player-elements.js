@@ -1,52 +1,73 @@
 const RTSReplayElements = window.RTSReplay;
 
-RTSReplayElements.defaultPositions = {
-  Brand: { name: 'Brand', scale: 100, x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0 },
-  Title: { name: 'Title', scale: 100, x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0 },
-  'Play Speed Indicator': { name: 'Play Speed Indicator', scale: 100, x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0 }
-};
-
-RTSReplayElements.getPositions = () => {
-  try {
-    const raw = RTSReplayElements.currentCommand?.replayElementPositions ?? RTSReplayElements.currentCommand?.replayPlayerElements;
-    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-    return parsed && typeof parsed === 'object' ? parsed : RTSReplayElements.defaultPositions;
-  } catch (_) { return RTSReplayElements.defaultPositions; }
-};
-
-RTSReplayElements.getPosition = name => {
-  const positions = RTSReplayElements.getPositions();
-  return positions[name] || RTSReplayElements.defaultPositions[name];
-};
-
-RTSReplayElements.transformFor = RTSReplayElements.transformFor || RTSReplay.transformFor;
-RTSReplayElements.applyPosition = (element, position) => {
-  if (!element) return;
-  element.style.transform = RTSReplayElements.transformFor(position || {});
-};
-
 RTSReplayElements.loadFont = font => {
   const family = String(font || 'Inter').trim();
   if (!family) return;
   let link = document.getElementById('player-elements-font');
-  if (!link) { link = document.createElement('link'); link.id = 'player-elements-font'; link.rel = 'stylesheet'; document.head.appendChild(link); }
+  if (!link) {
+    link = document.createElement('link');
+    link.id = 'player-elements-font';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+  }
   link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family).replace(/%20/g, '+')}:wght@400;600;700&display=swap`;
+};
+
+RTSReplayElements.toRgba = (value, opacity) => {
+  const color = String(value || '').trim();
+  const match = color.match(/^#([0-9a-f]{6})$/i);
+  const alpha = Math.max(0, Math.min(1, Number(opacity) / 100));
+  if (!match) return color || `rgba(16,20,22,${alpha})`;
+  const hex = match[1];
+  return `rgba(${parseInt(hex.slice(0, 2), 16)},${parseInt(hex.slice(2, 4), 16)},${parseInt(hex.slice(4, 6), 16)},${alpha})`;
+};
+
+RTSReplayElements.clearTitleTimer = () => {
+  if (RTSReplayElements.titleTimer) clearTimeout(RTSReplayElements.titleTimer);
+  RTSReplayElements.titleTimer = null;
+};
+
+RTSReplayElements.hideTitle = () => {
+  RTSReplayElements.clearTitleTimer();
+  RTSReplayElements.title.classList.remove('visible');
+  RTSReplayElements.title.classList.remove('closing');
+};
+
+RTSReplayElements.showTitle = command => {
+  RTSReplayElements.hideTitle();
+  const title = String(command.replayTitle || '').trim();
+  if (command.replayShowTitle === false || !title) return;
+
+  const position = String(command.replayTitlePosition || 'Top').toLowerCase() === 'bottom' ? 'title-bottom' : 'title-top';
+  const duration = Math.max(.1, Number(command.replayTitleAnimationDuration) || .45);
+  const displayDuration = Math.max(0, Number(command.replayTitleDuration) || 0);
+
+  RTSReplayElements.title.classList.add(position);
+  RTSReplayElements.title.textContent = title;
+  RTSReplayElements.title.classList.add('visible');
+
+  if (displayDuration > 0) {
+    RTSReplayElements.titleTimer = setTimeout(() => {
+      RTSReplayElements.title.classList.add('closing');
+      RTSReplayElements.titleTimer = setTimeout(RTSReplayElements.hideTitle, duration * 1000);
+    }, displayDuration * 1000);
+  }
 };
 
 RTSReplayElements.configure = command => {
   RTSReplayElements.currentCommand = command;
   RTSReplayElements.loadFont(command.replayPlayerFont || 'Inter');
+  RTSReplayElements.loadFont(command.replayTitleFont || command.replayPlayerFont || 'Inter');
+
   RTSReplayElements.layer.style.setProperty('--frame-color', command.replayFrameColor || '#0384CB');
-  RTSReplayElements.layer.style.setProperty('--title-font-size', `${Math.max(1, Number(command.replayTitleFontSize) || 34)}px`);
   RTSReplayElements.layer.style.setProperty('--speed-font-size', `${Math.max(1, Number(command.replaySpeedFontSize) || 30)}px`);
   RTSReplayElements.layer.style.setProperty('--player-elements-font', `'${String(command.replayPlayerFont || 'Inter').replace(/'/g, "\\'")}', system-ui, sans-serif`);
-
-  const positions = RTSReplayElements.getPositions();
-  RTSReplayElements.applyPosition(RTSReplayElements.brand, positions.Brand || RTSReplayElements.defaultPositions.Brand);
-  RTSReplayElements.applyPosition(RTSReplayElements.title, positions.Title || RTSReplayElements.defaultPositions.Title);
-  const speed = positions['Play Speed Indicator'] || RTSReplayElements.defaultPositions['Play Speed Indicator'];
-  RTSReplayElements.applyPosition(RTSReplayElements.speedLabel, speed);
-  RTSReplayElements.applyPosition(RTSReplayElements.slowMotion, speed);
+  RTSReplayElements.layer.style.setProperty('--title-font', `'${String(command.replayTitleFont || command.replayPlayerFont || 'Inter').replace(/'/g, "\\'")}', system-ui, sans-serif`);
+  RTSReplayElements.layer.style.setProperty('--title-font-size', `${Math.max(1, Number(command.replayTitleFontSize) || 34)}px`);
+  RTSReplayElements.layer.style.setProperty('--title-color', command.replayTitleColor || '#FFFFFF');
+  RTSReplayElements.layer.style.setProperty('--title-shadow-color', command.replayTitleShadowColor || '#000000');
+  RTSReplayElements.layer.style.setProperty('--title-background', RTSReplayElements.toRgba(command.replayTitleBackgroundColor || '#101416', command.replayTitleBackgroundOpacity ?? 88));
+  RTSReplayElements.layer.style.setProperty('--title-animation-duration', `${Math.max(.1, Number(command.replayTitleAnimationDuration) || .45)}s`);
 
   RTSReplayElements.brand.innerHTML = '';
   const showBranding = command.replayShowBranding !== false;
@@ -57,38 +78,32 @@ RTSReplayElements.configure = command => {
     else RTSReplayElements.brand.textContent = 'RTS';
   }
 
-  RTSReplayElements.title.textContent = '';
-  const title = String(command.replayTitle || '').trim();
-  const showTitle = command.replayShowTitle !== false && !!title;
-  RTSReplayElements.title.classList.toggle('visible', showTitle);
-  if (showTitle) RTSReplayElements.title.textContent = title;
-
+  const speedValue = Number(command.replayPlaybackSpeed) || 1;
   RTSReplayElements.speedLabel.textContent = '';
   RTSReplayElements.slowMotion.textContent = '';
-  const speedValue = Number(command.replayPlaybackSpeed) || 1;
+  RTSReplayElements.speedLabel.classList.remove('visible');
+  RTSReplayElements.slowMotion.classList.remove('visible');
   if (speedValue > 1.001) {
     RTSReplayElements.speedLabel.textContent = `${Number(speedValue.toFixed(2))}x`;
     RTSReplayElements.speedLabel.classList.add('visible');
-    RTSReplayElements.slowMotion.classList.remove('visible');
   } else if (speedValue < 0.999) {
     const text = String(command.replaySlowMotionText || 'Slow Motion').trim() || 'Slow Motion';
     const showSpeed = command.replaySlowMotionShowSpeed !== false;
     RTSReplayElements.slowMotion.textContent = showSpeed ? `${text} ${Number(speedValue.toFixed(2))}x` : text;
     RTSReplayElements.slowMotion.classList.add('visible');
-    RTSReplayElements.speedLabel.classList.remove('visible');
-  } else {
-    RTSReplayElements.speedLabel.classList.remove('visible');
-    RTSReplayElements.slowMotion.classList.remove('visible');
   }
+
+  RTSReplayElements.showTitle(command);
 };
 
 RTSReplayElements.clear = () => {
+  RTSReplayElements.clearTitleTimer();
   RTSReplayElements.brand.innerHTML = '';
   RTSReplayElements.title.textContent = '';
   RTSReplayElements.speedLabel.textContent = '';
   RTSReplayElements.slowMotion.textContent = '';
   RTSReplayElements.brand.classList.remove('visible');
-  RTSReplayElements.title.classList.remove('visible');
+  RTSReplayElements.title.classList.remove('visible', 'closing', 'title-top', 'title-bottom');
   RTSReplayElements.speedLabel.classList.remove('visible');
   RTSReplayElements.slowMotion.classList.remove('visible');
 };
