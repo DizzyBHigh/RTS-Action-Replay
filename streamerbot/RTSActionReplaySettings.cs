@@ -49,7 +49,9 @@ public class CPHInline
         ui.AddToggleSwitch("Flash Slow Motion Indicator", "Flash the slow-motion indicator on and off repeatedly while slow motion is active.", "Player", "rts.actionreplay.slowMotionFlash", false);
         ui.AddDecimalTextbox("Slow Motion Flash Interval", "Seconds shown and hidden for each flash phase. 0.5 gives 0.5 seconds on, then 0.5 seconds off.", "Player", "rts.actionreplay.slowMotionFlashInterval", 0.5, 0.1, 5.0, 0.1);
         ui.AddTitle("Player Elements", "Player");
-        ui.AddPositionEditor("Element Positions", "Set the screen-relative position and size of Brand, Title, and Play Speed Indicator.", "Player", "rts.actionreplay.playerElements", "{\"Brand\":{\"name\":\"Brand\",\"scale\":100,\"x\":0,\"y\":0},\"Title\":{\"name\":\"Title\",\"scale\":100,\"x\":0,\"y\":0},\"Play Speed Indicator\":{\"name\":\"Play Speed Indicator\",\"scale\":100,\"x\":0,\"y\":0}}", new[] { "Brand", "Title", "Play Speed Indicator" }, "scale,x,y", saved => pendingPlayerElements = saved, PreviewPlayerElements, new Dictionary<string, RtsUIPreviewSize>
+        string playerElementsDefault = "{\"Brand\":{\"name\":\"Brand\",\"scale\":100,\"x\":0,\"y\":0},\"Title\":{\"name\":\"Title\",\"scale\":100,\"x\":0,\"y\":0},\"Play Speed Indicator\":{\"name\":\"Play Speed Indicator\",\"scale\":100,\"x\":0,\"y\":0}}";
+        string playerElements = NormalizePlayerElements(CPH.GetGlobalVar<string>("rts.actionreplay.playerElements", true), playerElementsDefault);
+        ui.AddPositionEditor("Element Positions", "Set the screen-relative position and size of Brand, Title, and Play Speed Indicator.", "Player", "rts.actionreplay.playerElements", playerElements, new[] { "Brand", "Title", "Play Speed Indicator" }, "scale,x,y", saved => pendingPlayerElements = saved, PreviewPlayerElements, new Dictionary<string, RtsUIPreviewSize>
         {
             ["Brand"] = new RtsUIPreviewSize(120, 60),
             ["Title"] = new RtsUIPreviewSize(360, 48),
@@ -88,6 +90,34 @@ public class CPHInline
         return true;
     }
 
+    private string NormalizePlayerElements(string json, string fallback)
+    {
+        try
+        {
+            JObject source = JObject.Parse(string.IsNullOrWhiteSpace(json) ? fallback : json);
+            JObject result = new JObject();
+            AddNormalizedElement(result, source, "Brand");
+            AddNormalizedElement(result, source, "Title");
+            AddNormalizedElement(result, source, "Play Speed Indicator");
+            return result.ToString(Newtonsoft.Json.Formatting.None);
+        }
+        catch
+        {
+            return fallback;
+        }
+    }
+
+    private void AddNormalizedElement(JObject result, JObject source, string name)
+    {
+        JObject element = source[name] as JObject ?? source.Properties().FirstOrDefault(p => string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase))?.Value as JObject;
+        JObject normalized = element == null ? new JObject() : (JObject)element.DeepClone();
+        normalized["name"] = name;
+        if (normalized["scale"] == null) normalized["scale"] = 100;
+        if (normalized["x"] == null) normalized["x"] = 0;
+        if (normalized["y"] == null) normalized["y"] = 0;
+        result[name] = normalized;
+    }
+
     private void PreviewPlayerElements(string position, string elementsJson)
     {
         if (string.IsNullOrWhiteSpace(position))
@@ -103,7 +133,7 @@ public class CPHInline
         CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
         CPH.SetArgument("replayShowTitle", CPH.GetGlobalVar<bool?>("rts.actionreplay.showTitle", true) ?? true);
         CPH.SetArgument("replayTitle", "Replay Title");
-        string json = string.IsNullOrWhiteSpace(elementsJson) ? "{\"Brand\":{\"name\":\"Brand\",\"scale\":100,\"x\":0,\"y\":0},\"Title\":{\"name\":\"Title\",\"scale\":100,\"x\":0,\"y\":0},\"Play Speed Indicator\":{\"name\":\"Play Speed Indicator\",\"scale\":100,\"x\":0,\"y\":0}}" : elementsJson;
+        string json = NormalizePlayerElements(elementsJson, "{\"Brand\":{\"name\":\"Brand\",\"scale\":100,\"x\":0,\"y\":0},\"Title\":{\"name\":\"Title\",\"scale\":100,\"x\":0,\"y\":0},\"Play Speed Indicator\":{\"name\":\"Play Speed Indicator\",\"scale\":100,\"x\":0,\"y\":0}}");
         CPH.SetArgument("replayPlayerElements", json);
         SetPreviewElementArguments(json);
         CPH.SetArgument("replayPlayerFont", CPH.GetGlobalVar<string>("rts.actionreplay.playerFont", true) ?? "Inter");
@@ -144,7 +174,7 @@ public class CPHInline
         CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
         CPH.SetArgument("replayShowTitle", CPH.GetGlobalVar<bool?>("rts.actionreplay.showTitle", true) ?? true);
         CPH.SetArgument("replayTitle", "Replay Title");
-        string elementsJson = CPH.GetGlobalVar<string>("rts.actionreplay.playerElements", true) ?? "{\"Brand\":{\"name\":\"Brand\",\"scale\":100,\"x\":0,\"y\":0},\"Title\":{\"name\":\"Title\",\"scale\":100,\"x\":0,\"y\":0},\"Play Speed Indicator\":{\"name\":\"Play Speed Indicator\",\"scale\":100,\"x\":0,\"y\":0}}";
+        string elementsJson = NormalizePlayerElements(CPH.GetGlobalVar<string>("rts.actionreplay.playerElements", true), "{\"Brand\":{\"name\":\"Brand\",\"scale\":100,\"x\":0,\"y\":0},\"Title\":{\"name\":\"Title\",\"scale\":100,\"x\":0,\"y\":0},\"Play Speed Indicator\":{\"name\":\"Play Speed Indicator\",\"scale\":100,\"x\":0,\"y\":0}}");
         CPH.SetArgument("replayPlayerElements", elementsJson);
         SetPreviewElementArguments(elementsJson);
         CPH.SetArgument("replayPlayerFont", CPH.GetGlobalVar<string>("rts.actionreplay.playerFont", true) ?? "Inter");
