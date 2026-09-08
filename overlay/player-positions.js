@@ -24,12 +24,12 @@ RTSReplayPlayer.configureTransition = () => {
   RTSReplayPlayer.player.classList.add('player-transition');
 };
 
-RTSReplayPlayer.transformFor = (p, scaleFactor = 1, offsetX = 0, offsetY = 0) => {
-  const rawScale = Number(p.scale);
+RTSReplayPlayer.transformFor = (p, scaleFactor = 1) => {
+  const rawScale = Number(p?.scale);
   const scale = (Number.isFinite(rawScale) ? rawScale : 100) / 100 * scaleFactor;
-  const x = Number(p.x), y = Number(p.y);
-  const rotateX = Number(p.rotateX), rotateY = Number(p.rotateY), rotateZ = Number(p.rotateZ);
-  return `translate(-50%, -50%) translate(${(Number.isFinite(x) ? x : 0) + offsetX}%, ${(Number.isFinite(y) ? y : 0) + offsetY}%) scale(${scale}) rotateX(${Number.isFinite(rotateX) ? rotateX : 0}deg) rotateY(${Number.isFinite(rotateY) ? rotateY : 0}deg) rotateZ(${Number.isFinite(rotateZ) ? rotateZ : 0}deg)`;
+  const x = Number(p?.x), y = Number(p?.y);
+  const rotateX = Number(p?.rotateX), rotateY = Number(p?.rotateY), rotateZ = Number(p?.rotateZ);
+  return `translate(-50%, -50%) translate(${Number.isFinite(x) ? x : 0}%, ${Number.isFinite(y) ? y : 0}%) scale(${scale}) rotateX(${Number.isFinite(rotateX) ? rotateX : 0}deg) rotateY(${Number.isFinite(rotateY) ? rotateY : 0}deg) rotateZ(${Number.isFinite(rotateZ) ? rotateZ : 0}deg)`;
 };
 
 RTSReplayPlayer.applyPosition = (position, immediate = false) => {
@@ -39,28 +39,28 @@ RTSReplayPlayer.applyPosition = (position, immediate = false) => {
   if (immediate) requestAnimationFrame(RTSReplayPlayer.configureTransition);
 };
 
-RTSReplayPlayer.getAnimation = type => RTSReplayPlayer.currentCommand?.[type] || 'None';
-
-RTSReplayPlayer.animateIn = position => {
-  const mode = RTSReplayPlayer.getAnimation('replayAnimationIn');
+RTSReplayPlayer.animateIn = (startPosition, endPosition) => {
+  const start = startPosition || RTSReplayPlayer.defaultPositions['Full Screen'];
+  const end = endPosition || start;
   RTSReplayPlayer.configureTransition();
-  if (mode === 'Zoom In') RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(position, .001);
-  else if (mode.startsWith('Slide From ')) {
-    const offset = { Left: [-120, 0], Right: [120, 0], Top: [0, -120], Bottom: [0, 120] }[mode.slice(11)] || [0, 0];
-    RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(position, 1, offset[0], offset[1]);
-  } else RTSReplayPlayer.applyPosition(position);
-  requestAnimationFrame(() => { RTSReplayPlayer.applyPosition(position); RTSReplayPlayer.player.classList.add('show'); });
+  RTSReplayPlayer.player.classList.add('show');
+  RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(start);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(end);
+    RTSReplayPlayer.activePosition = end;
+  }));
 };
 
 RTSReplayPlayer.animateOut = () => {
-  const mode = RTSReplayPlayer.getAnimation('replayAnimationOut');
-  if (mode === 'None') { RTSReplayPlayer.player.classList.remove('show'); return; }
-  const p = RTSReplayPlayer.activePosition || RTSReplayPlayer.defaultPositions['Full Screen'];
+  const start = RTSReplayPlayer.activePosition || RTSReplayPlayer.defaultPositions['Full Screen'];
+  const end = RTSReplayPlayer.getPosition(RTSReplayPlayer.currentCommand?.replayStartPosition || 'Full Screen');
   RTSReplayPlayer.configureTransition();
-  if (mode === 'Zoom Out') RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(p, .001);
-  else if (mode.startsWith('Slide To ')) {
-    const offset = { Left: [-120, 0], Right: [120, 0], Top: [0, -120], Bottom: [0, 120] }[mode.slice(9)] || [0, 0];
-    RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(p, 1, offset[0], offset[1]);
-  }
-  RTSReplayPlayer.player.addEventListener('transitionend', () => RTSReplayPlayer.player.classList.remove('show'), { once: true });
+  RTSReplayPlayer.player.classList.add('show');
+  RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(start);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(end);
+  }));
+  RTSReplayPlayer.player.addEventListener('transitionend', event => {
+    if (event.propertyName === 'transform') RTSReplayPlayer.player.classList.remove('show');
+  }, { once: true });
 };
