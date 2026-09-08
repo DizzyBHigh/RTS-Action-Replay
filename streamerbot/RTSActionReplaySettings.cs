@@ -38,6 +38,8 @@ public class CPHInline
         ui.AddDecimalTextbox("Default Playback Speed", "Playback speed applied when a replay is loaded. Values below 1x are slow motion.", "Player", "rts.actionreplay.playbackSpeed", 1.0, 0.25, 2.0, 0.25);
         ui.AddToggleSwitch("Show Replay Title", "Display the replay title on the player.", "Player", "rts.actionreplay.showTitle", true);
         ui.AddDecimalTextbox("Replay Title Display Duration", "Seconds the replay title remains visible. Set to 0 to keep it visible for the entire replay.", "Player", "rts.actionreplay.titleDuration", 5.0, 0.0, 60.0, 1.0);
+        ui.AddNumericTextbox("Title Font Size", "Font size of the replay title in pixels.", "Player", "rts.actionreplay.titleFontSize", 34, 8, 100);
+        ui.AddNumericTextbox("Speed Font Size", "Font size of the playback-speed and slow-motion indicators in pixels.", "Player", "rts.actionreplay.speedFontSize", 30, 8, 100);
         ui.AddGoogleFontSelector("Player Skin Font", "Font used by the replay title and playback-speed indicators.", "Player", "rts.actionreplay.playerFont", "Inter");
         ui.AddTextbox("Slow Motion Text", "Text shown during slow-motion playback.", "Player", "rts.actionreplay.slowMotionText", "Slow Motion", false);
         ui.AddToggleSwitch("Show Slow Motion Speed", "Append the current playback speed to the slow-motion text.", "Player", "rts.actionreplay.slowMotionShowSpeed", true);
@@ -102,6 +104,8 @@ public class CPHInline
         CPH.SetArgument("replayShowProgress", CPH.GetGlobalVar<bool?>("rts.actionreplay.showProgress", true) ?? true);
         CPH.SetArgument("replayPlaybackSpeed", GetSettingDouble("rts.actionreplay.playbackSpeed", 1.0));
         CPH.SetArgument("replayTitleDuration", GetSettingDouble("rts.actionreplay.titleDuration", 5.0));
+        CPH.SetArgument("replayTitleFontSize", GetSettingInt("rts.actionreplay.titleFontSize", 34));
+        CPH.SetArgument("replaySpeedFontSize", GetSettingInt("rts.actionreplay.speedFontSize", 30));
         CPH.SetArgument("replaySlowMotionText", CPH.GetGlobalVar<string>("rts.actionreplay.slowMotionText", true) ?? "Slow Motion");
         CPH.SetArgument("replaySlowMotionShowSpeed", CPH.GetGlobalVar<bool?>("rts.actionreplay.slowMotionShowSpeed", true) ?? true);
         CPH.SetArgument("replaySlowMotionFade", CPH.GetGlobalVar<bool?>("rts.actionreplay.slowMotionFade", true) ?? true);
@@ -138,6 +142,8 @@ public class CPHInline
         CPH.SetArgument("replayPlayerFont", CPH.GetGlobalVar<string>("rts.actionreplay.playerFont", true) ?? "Inter");
         CPH.SetArgument("replayShowControls", CPH.GetGlobalVar<bool?>("rts.actionreplay.showControls", true) ?? false);
         CPH.SetArgument("replayShowProgress", CPH.GetGlobalVar<bool?>("rts.actionreplay.showProgress", true) ?? true);
+        CPH.SetArgument("replayTitleFontSize", GetSettingInt("rts.actionreplay.titleFontSize", 34));
+        CPH.SetArgument("replaySpeedFontSize", GetSettingInt("rts.actionreplay.speedFontSize", 30));
         CPH.SetArgument("replayFrameColor", CPH.GetGlobalVar<string>("rts.actionreplay.frameColor", true) ?? "#0384CB");
         CPH.SetArgument("replayBorderColor", CPH.GetGlobalVar<string>("rts.actionreplay.borderColor", true) ?? "#FFFFFF");
         CPH.SetArgument("replayBorderWidth", GetSettingInt("rts.actionreplay.borderWidth", 2));
