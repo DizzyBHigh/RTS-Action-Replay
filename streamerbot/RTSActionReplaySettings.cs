@@ -55,7 +55,7 @@ public class CPHInline
         ui.AddColorPicker("Accent Color", "Clapperboard border, glow and brand accent colour.", "Messages", "rts.actionreplay.clapper.accent", "#0384CB");
         ui.AddColorPicker("Text Color", "Main message text colour.", "Messages", "rts.actionreplay.clapper.textColor", "#0384CB");
         ui.AddTextbox("Font", "CSS font family used for clapperboard message text. Example: Arial, sans-serif", "Messages", "rts.actionreplay.clapper.font", "Arial, sans-serif", false);
-        ui.AddSlider("Size (%)", "Overall clapperboard size.", "Messages", "rts.actionreplay.clapper.size", 50, 150, 100);
+        ui.AddSlider("Size (%)", "Overall clapperboard size.", "Messages", "rts.actionreplay.clapper.size", 0, 100, 50);
         ui.AddSlider("Position X (%)", "Horizontal screen position. 50 is centered.", "Messages", "rts.actionreplay.clapper.positionX", 0, 100, 50);
         ui.AddSlider("Position Y (%)", "Vertical screen position. 50 is centered.", "Messages", "rts.actionreplay.clapper.positionY", 0, 100, 50);
 
