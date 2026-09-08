@@ -49,7 +49,7 @@ public class CPHInline
         return true;
     }
 
-    private void PreviewPosition(string position)
+    private void PreviewPosition(string position, string positionsJson)
     {
         if (string.IsNullOrWhiteSpace(position))
         {
@@ -64,7 +64,7 @@ public class CPHInline
         CPH.SetArgument("replayFrameColor", CPH.GetGlobalVar<string>("rts.actionreplay.frameColor", true) ?? "#0384CB");
         CPH.SetArgument("replayBorderColor", CPH.GetGlobalVar<string>("rts.actionreplay.borderColor", true) ?? "#FFFFFF");
         CPH.SetArgument("replayBorderStyle", CPH.GetGlobalVar<string>("rts.actionreplay.borderStyle", true) ?? "Solid");
-        CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>("rts.actionreplay.positions", true) ?? "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
+        CPH.SetArgument("replayPositions", positionsJson ?? "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
         CPH.TriggerEvent("RTS-Action Replay", true);
     }
 
