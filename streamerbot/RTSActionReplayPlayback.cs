@@ -79,6 +79,7 @@ public class CPHInline
         {
             CPH.SetArgument("replayCommand", "message");
             CPH.SetArgument("replayMessage", text);
+            CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
             CPH.TriggerEvent(EventName, true);
         }
     }
