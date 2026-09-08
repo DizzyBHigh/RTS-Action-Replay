@@ -1,0 +1,15 @@
+@media (max-width: 650px) {
+  .slate {
+    min-height: 250px;
+    padding: 36px 24px 22px;
+    grid-template-columns: 110px 1fr;
+    gap: 14px;
+  }
+
+  .brand { padding-right: 14px; }
+  #brand-fallback { font-size: 44px; }
+  #brand-logo { max-width: 90px; max-height: 70px; }
+  .brand small { font-size: 9px; letter-spacing: 1px; }
+  .message-kicker { font-size: 11px; letter-spacing: 2px; }
+  #message-text { font-size: 28px; }
+}
