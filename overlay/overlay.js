@@ -1,13 +1,13 @@
-const RTSReplay = window.RTSReplay;
+const RTSReplayOverlay = window.RTSReplay;
 
-RTSReplay.handleEvent = message => {
+RTSReplayOverlay.handleEvent = message => {
   if (message?.event?.source !== 'Custom' || message?.event?.type !== 'Event') return;
   const data = message.data;
-  if (data?.eventName !== RTSReplay.config.eventName || !data.args) return;
-  RTSReplay.handleReplayCommand(data.args);
+  if (data?.eventName !== RTSReplayOverlay.config.eventName || !data.args) return;
+  RTSReplayOverlay.handleReplayCommand(data.args);
 };
 
-window.rtsOverlay = RTSReplay.config;
-window.testReplay = url => RTSReplay.loadReplay({ replayUrl: url, replayAutoplay: false });
-window.testMessage = text => RTSReplay.showMessage({ replayMessage: text });
-RTSReplay.connect();
+window.rtsOverlay = RTSReplayOverlay.config;
+window.testReplay = url => RTSReplayOverlay.loadReplay({ replayUrl: url, replayAutoplay: false });
+window.testMessage = text => RTSReplayOverlay.showMessage({ replayMessage: text });
+RTSReplayOverlay.connect();
