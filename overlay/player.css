@@ -40,14 +40,25 @@
   background: #000;
 }
 
-#replay-player.preview #player-frame {
-  aspect-ratio: 16 / 9;
+#player-skin {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-family: system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-shadow: 0 2px 5px rgba(0,0,0,.8);
 }
 
-#replay-player.preview #video {
-  display: none;
-}
+#player-title,
+#player-speed-indicator,
+#player-slow-motion { display: none; position: absolute; }
+#replay-player.has-title #player-title { display: block; left: 3%; bottom: 4%; max-width: 70%; color: #fff; font-size: clamp(16px, 2.2vw, 34px); }
+#replay-player.has-speed #player-speed-indicator { display: block; right: 3%; top: 4%; color: var(--frame-color); font-size: clamp(16px, 2vw, 30px); }
+#replay-player.slow-motion #player-slow-motion { display: block; right: 3%; top: 12%; color: #fff; font-size: clamp(12px, 1.4vw, 22px); }
 
+#replay-player.preview #player-frame { aspect-ratio: 16 / 9; }
+#replay-player.preview #video { display: none; }
 #replay-player.preview #player-frame::after {
   content: "REPLAY PLAYER PREVIEW";
   position: absolute;
@@ -60,19 +71,7 @@
   pointer-events: none;
 }
 
-#player-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 34px;
-  padding: 7px 10px;
-  box-sizing: border-box;
-  background: rgba(8, 12, 15, .94);
-  border-top: 2px solid var(--frame-color);
-  font: 600 13px system-ui, sans-serif;
-  color: #fff;
-}
-
+#player-controls { display: flex; align-items: center; gap: 12px; min-height: 34px; padding: 7px 10px; box-sizing: border-box; background: rgba(8, 12, 15, .94); border-top: 2px solid var(--frame-color); font: 600 13px system-ui, sans-serif; color: #fff; }
 #player-controls[aria-hidden="true"] { display: none; }
 #player-state { width: 22px; text-align: center; }
 #player-progress { flex: 1; height: 4px; border-radius: 2px; overflow: hidden; background: rgba(255,255,255,.2); }
@@ -81,9 +80,3 @@
 #player-speed { min-width: 42px; text-align: right; color: var(--frame-color); }
 #replay-player.controls-hidden #player-controls { display: none; }
 #replay-player.progress-hidden #player-progress { display: none; }
-
-@media (max-width: 700px) {
-  #replay-player { width: 100vw; }
-  #player-controls { gap: 7px; padding: 5px 7px; }
-  #player-speed { display: none; }
-}
