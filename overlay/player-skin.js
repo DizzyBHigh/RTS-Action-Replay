@@ -7,13 +7,27 @@ RTSReplaySkin.loadFont = font => {
   if (!family) return;
   let link = document.getElementById('player-skin-font');
   if (!link) {
-    link = document.createElement('link');
-    link.id = 'player-skin-font';
-    link.rel = 'stylesheet';
-    document.head.appendChild(link);
+    link = document.createElement('link'); link.id = 'player-skin-font'; link.rel = 'stylesheet'; document.head.appendChild(link);
   }
   link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family).replace(/%20/g, '+')}:wght@400;600;700&display=swap`;
   RTSReplaySkin.player.style.setProperty('--player-skin-font', `'${family.replace(/'/g, "\\'")}', system-ui, sans-serif`);
+};
+
+RTSReplaySkin.configureFrame = command => {
+  const frame = RTSReplaySkin.frame;
+  frame.style.setProperty('--frame-color', command.replayFrameColor || '#0384CB');
+  frame.style.setProperty('--border-color', command.replayBorderColor || '#FFFFFF');
+  frame.style.setProperty('--border-width', `${Math.max(0, Number(command.replayBorderWidth) || 0)}px`);
+  frame.style.setProperty('--shadow-color', command.replayShadowColor || '#80000000');
+  frame.classList.remove('border-none', 'border-solid', 'border-dashed', 'border-double', 'drop-shadow');
+  frame.classList.add(`border-${String(command.replayBorderStyle || 'Solid').toLowerCase()}`);
+  if (command.replayDropShadow === true) frame.classList.add('drop-shadow');
+};
+
+RTSReplaySkin.clearSlowMotion = () => {
+  clearTimeout(RTSReplaySkin.slowHideTimer);
+  RTSReplaySkin.slowMotion.classList.remove('slow-motion-active', 'slow-motion-flash');
+  RTSReplaySkin.slowMotion.classList.add('slow-motion-hidden');
 };
 
 RTSReplaySkin.clearSkin = () => {
@@ -22,12 +36,6 @@ RTSReplaySkin.clearSkin = () => {
   RTSReplaySkin.player.classList.remove('has-title', 'has-speed');
   RTSReplaySkin.speedLabel.textContent = '';
   RTSReplaySkin.clearSlowMotion();
-};
-
-RTSReplaySkin.clearSlowMotion = () => {
-  clearTimeout(RTSReplaySkin.slowHideTimer);
-  RTSReplaySkin.slowMotion.classList.remove('slow-motion-active', 'slow-motion-flash');
-  RTSReplaySkin.slowMotion.classList.add('slow-motion-hidden');
 };
 
 RTSReplaySkin.showSlowMotion = command => {
@@ -45,6 +53,7 @@ RTSReplaySkin.showSlowMotion = command => {
 
 RTSReplaySkin.configure = command => {
   RTSReplaySkin.clearSkin();
+  RTSReplaySkin.configureFrame(command);
   RTSReplaySkin.loadFont(command.replayPlayerFont || 'Inter');
   const title = String(command.replayTitle || '').trim();
   if (command.replayShowTitle !== false && title) {
@@ -67,4 +76,5 @@ RTSReplaySkin.slowHideTimer = null;
 RTSReplaySkin.title = document.getElementById('player-title');
 RTSReplaySkin.speedLabel = document.getElementById('player-speed-indicator');
 RTSReplaySkin.slowMotion = document.getElementById('player-slow-motion');
+RTSReplaySkin.frame = document.getElementById('player-frame');
 window.RTSReplaySkin = RTSReplaySkin;
