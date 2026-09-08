@@ -49,7 +49,11 @@ public class CPHInline
         ui.ShowUI();
         if (pendingPositions != null)
         {
+            CPH.LogInfo("[RTS Action Replay] Position JSON from editor (length " + pendingPositions.Length + "): " + pendingPositions);
             CPH.SetGlobalVar("rts.actionreplay.positions", pendingPositions, true);
+            CPH.LogInfo("[RTS Action Replay] SetGlobalVar completed for rts.actionreplay.positions.");
+            string savedPositions = CPH.GetGlobalVar<string>("rts.actionreplay.positions", true);
+            CPH.LogInfo("[RTS Action Replay] Position JSON read back (length " + (savedPositions == null ? 0 : savedPositions.Length) + "): " + (savedPositions ?? "<null>"));
             CPH.LogInfo("[RTS Action Replay] Persisted player positions after settings window closed.");
         }
         return true;
