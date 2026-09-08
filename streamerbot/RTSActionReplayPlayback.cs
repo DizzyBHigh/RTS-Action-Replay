@@ -50,7 +50,11 @@ public class CPHInline
     private void SetElementArgument(string name, JObject elements)
     {
         JObject element = elements?[name] as JObject; string prefix = name == "Play Speed Indicator" ? "Speed" : name;
-        CPH.SetArgument("replay" + prefix + "Scale", element?["scale"]?.Value<int>() ?? 100); CPH.SetArgument("replay" + prefix + "X", element?["x"]?.Value<int>() ?? 0); CPH.SetArgument("replay" + prefix + "Y", element?["y"]?.Value<int>() ?? 0);
+        CPH.SetArgument("replay" + prefix + "Scale", ReadElementInt(element, "scale", 100)); CPH.SetArgument("replay" + prefix + "X", ReadElementInt(element, "x", 0)); CPH.SetArgument("replay" + prefix + "Y", ReadElementInt(element, "y", 0));
+    }
+    private int ReadElementInt(JObject element, string key, int fallback)
+    {
+        try { return Convert.ToInt32(element == null ? null : element[key], System.Globalization.CultureInfo.InvariantCulture); } catch { return fallback; }
     }
     private static string DefaultElements() => "{\"Brand\":{\"name\":\"Brand\",\"scale\":100,\"x\":0,\"y\":0},\"Title\":{\"name\":\"Title\",\"scale\":100,\"x\":0,\"y\":0},\"Play Speed Indicator\":{\"name\":\"Play Speed Indicator\",\"scale\":100,\"x\":0,\"y\":0}}";
     private void SendMessage(string type)
