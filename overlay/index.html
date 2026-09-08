@@ -17,6 +17,11 @@
     <div id="replay-player" aria-hidden="true">
       <div id="player-frame" class="border-solid">
         <video id="video" playsinline></video>
+        <div id="player-skin" aria-hidden="true">
+          <div id="player-title"></div>
+          <div id="player-speed-indicator"></div>
+          <div id="player-slow-motion">SLOW MOTION</div>
+        </div>
         <div id="player-controls" aria-hidden="true">
           <span id="player-state">▶</span>
           <div id="player-progress" aria-hidden="true"><div id="player-progress-bar"></div></div>
@@ -42,6 +47,7 @@
   <script src="replay-config.js"></script>
   <script src="player-positions.js"></script>
   <script src="player-controls.js"></script>
+  <script src="player-skin.js"></script>
   <script src="replay-messages.js"></script>
   <script src="replay-video.js"></script>
   <script src="replay-websocket.js"></script>
