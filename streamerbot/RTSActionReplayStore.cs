@@ -78,10 +78,13 @@ public class CPHInline
 
     public bool NameReplay()
     {
+        string indexInput;
+        string rawInput;
+        if (!CPH.TryGetArg("input0", out indexInput) || !CPH.TryGetArg("rawInput", out rawInput)) return false;
         int index;
-        string title;
-        if (!CPH.TryGetArg("replayIndex", out index) || !CPH.TryGetArg("replayTitleInput", out title)) return false;
-        title = (title ?? "").Trim();
+        if (!int.TryParse(indexInput, out index)) { CPH.SendMessage("Please provide a valid replay number."); return false; }
+        var title = (rawInput ?? "").Trim();
+        if (title.StartsWith(indexInput + " ", StringComparison.OrdinalIgnoreCase)) title = title.Substring(indexInput.Length).Trim();
         if (title.Length == 0) { CPH.SendMessage("Please provide a replay title."); return false; }
         var data = Load();
         var list = (JArray)data["replays"];
