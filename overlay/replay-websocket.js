@@ -1,38 +1,38 @@
-const RTSReplay = window.RTSReplay;
+const RTSReplayWebSocket = window.RTSReplay;
 
-RTSReplay.setStatus = (text, state = '') => {
-  RTSReplay.status.textContent = text;
-  RTSReplay.status.className = state;
+RTSReplayWebSocket.setStatus = (text, state = '') => {
+  RTSReplayWebSocket.status.textContent = text;
+  RTSReplayWebSocket.status.className = state;
 };
 
-RTSReplay.connect = () => {
-  clearTimeout(RTSReplay.reconnectTimer);
-  const { host, port } = RTSReplay.config;
-  RTSReplay.setStatus(`Connecting to Streamer.bot at ws://${host}:${port}/…`);
-  RTSReplay.socket = new WebSocket(`ws://${host}:${port}/`);
+RTSReplayWebSocket.connect = () => {
+  clearTimeout(RTSReplayWebSocket.reconnectTimer);
+  const { host, port } = RTSReplayWebSocket.config;
+  RTSReplayWebSocket.setStatus(`Connecting to Streamer.bot at ws://${host}:${port}/…`);
+  RTSReplayWebSocket.socket = new WebSocket(`ws://${host}:${port}/`);
 
-  RTSReplay.socket.onopen = () => {
-    RTSReplay.socket.send(JSON.stringify({
+  RTSReplayWebSocket.socket.onopen = () => {
+    RTSReplayWebSocket.socket.send(JSON.stringify({
       request: 'Subscribe',
       id: 'rts-action-replay',
       events: { Custom: ['Event'] }
     }));
-    RTSReplay.setStatus('Connected to Streamer.bot WebSocket', 'connected');
+    RTSReplayWebSocket.setStatus('Connected to Streamer.bot WebSocket', 'connected');
   };
 
-  RTSReplay.socket.onmessage = event => {
+  RTSReplayWebSocket.socket.onmessage = event => {
     try {
-      RTSReplay.handleEvent(JSON.parse(event.data));
+      RTSReplayWebSocket.handleEvent(JSON.parse(event.data));
     } catch (error) {
       console.warn('Invalid WebSocket message', error);
     }
   };
 
-  RTSReplay.socket.onerror = () => RTSReplay.setStatus('Streamer.bot WebSocket connection error', 'error');
-  RTSReplay.socket.onclose = event => {
-    RTSReplay.setStatus(`Streamer.bot WebSocket closed (code ${event.code})`, 'error');
-    RTSReplay.reconnectTimer = setTimeout(RTSReplay.connect, RTSReplay.config.reconnectDelay);
+  RTSReplayWebSocket.socket.onerror = () => RTSReplayWebSocket.setStatus('Streamer.bot WebSocket connection error', 'error');
+  RTSReplayWebSocket.socket.onclose = event => {
+    RTSReplayWebSocket.setStatus(`Streamer.bot WebSocket closed (code ${event.code})`, 'error');
+    RTSReplayWebSocket.reconnectTimer = setTimeout(RTSReplayWebSocket.connect, RTSReplayWebSocket.config.reconnectDelay);
   };
 
-  window.rtsSocket = RTSReplay.socket;
+  window.rtsSocket = RTSReplayWebSocket.socket;
 };
