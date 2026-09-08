@@ -80,6 +80,15 @@ public class CPHInline
             CPH.SetArgument("replayCommand", "message");
             CPH.SetArgument("replayMessage", text);
             CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
+            CPH.SetArgument("replayMessageBoardColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.boardColor", true) ?? "#101416");
+            CPH.SetArgument("replayMessageStripeLight", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeLight", true) ?? "#EEEEEE");
+            CPH.SetArgument("replayMessageStripeDark", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeDark", true) ?? "#111111");
+            CPH.SetArgument("replayMessageAccent", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.accent", true) ?? "#0384CB");
+            CPH.SetArgument("replayMessageTextColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.textColor", true) ?? "#0384CB");
+            CPH.SetArgument("replayMessageFont", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.font", true) ?? "Arial, sans-serif");
+            CPH.SetArgument("replayMessageSize", CPH.GetGlobalVar<int?>("rts.actionreplay.clapper.size", true) ?? 100);
+            CPH.SetArgument("replayMessagePositionX", CPH.GetGlobalVar<int?>("rts.actionreplay.clapper.positionX", true) ?? 50);
+            CPH.SetArgument("replayMessagePositionY", CPH.GetGlobalVar<int?>("rts.actionreplay.clapper.positionY", true) ?? 50);
             CPH.TriggerEvent(EventName, true);
         }
     }
