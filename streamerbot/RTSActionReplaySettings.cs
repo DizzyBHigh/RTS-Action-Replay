@@ -1,3 +1,5 @@
+using System;
+
 // Streamer.bot C# action: open the Action Replay settings window.
 // Requires RtsUI.dll 0.2.0 or newer as a custom assembly reference.
 public class CPHInline
@@ -41,6 +43,8 @@ public class CPHInline
         ui.AddDecimalTextbox("Slow Motion Fade Duration", "Seconds used for slow-motion indicator fading.", "Player", "rts.actionreplay.slowMotionFadeDuration", 0.25, 0.0, 2.0, 0.05);
         ui.AddToggleSwitch("Flash Slow Motion Indicator", "Flash the slow-motion indicator on and off repeatedly while slow motion is active.", "Player", "rts.actionreplay.slowMotionFlash", false);
         ui.AddDecimalTextbox("Slow Motion Flash Interval", "Seconds shown and hidden for each flash phase. 0.5 gives 0.5 seconds on, then 0.5 seconds off.", "Player", "rts.actionreplay.slowMotionFlashInterval", 0.5, 0.1, 5.0, 0.1);
+        ui.AddTitle("Player Elements", "Player");
+        ui.AddPlayerElementEditor("Element Positions", "Set the screen-relative position and size of Brand, Title, and Play Speed Indicator.", "Player", "rts.actionreplay.playerElements", "{\"Brand\":{\"name\":\"Brand\",\"scale\":100,\"x\":0,\"y\":0},\"Title\":{\"name\":\"Title\",\"scale\":100,\"x\":0,\"y\":0},\"Play Speed Indicator\":{\"name\":\"Play Speed Indicator\",\"scale\":100,\"x\":0,\"y\":0}}");
 
         ui.AddTitle("Player Frame", "Appearance");
         ui.AddColorPicker("Frame Color", "Main player frame and progress colour.", "Appearance", "rts.actionreplay.frameColor", "#FF0384CB");
@@ -87,7 +91,7 @@ public class CPHInline
         CPH.SetArgument("replayBorderStyle", CPH.GetGlobalVar<string>("rts.actionreplay.borderStyle", true) ?? "Solid");
         CPH.SetArgument("replayDropShadow", CPH.GetGlobalVar<bool?>("rts.actionreplay.dropShadow", true) ?? false);
         CPH.SetArgument("replayShadowColor", CPH.GetGlobalVar<string>("rts.actionreplay.shadowColor", true) ?? "#80000000");
-        CPH.SetArgument("replayPositions", positionsJson ?? "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
+        CPH.SetArgument("replayPositions", positionsJson ?? "{\"Full Screen\":{\"name\":\"Full Screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
         CPH.TriggerEvent("RTS-Action Replay", true);
     }
 
