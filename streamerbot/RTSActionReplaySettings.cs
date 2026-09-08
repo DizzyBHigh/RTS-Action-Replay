@@ -8,7 +8,7 @@ public class CPHInline
 {
     public bool Execute()
     {
-        string pendingPositions = null;
+        string pendingPlayerElements = null;
         var ui = new RtsUI("RTS Action Replay", "0.1.0",
             (key, persisted) => CPH.GetGlobalVar<bool?>(key, persisted),
             (key, persisted) => CPH.GetGlobalVar<int?>(key, persisted),
@@ -48,7 +48,7 @@ public class CPHInline
         ui.AddToggleSwitch("Flash Slow Motion Indicator", "Flash the slow-motion indicator on and off repeatedly while slow motion is active.", "Player", "rts.actionreplay.slowMotionFlash", false);
         ui.AddDecimalTextbox("Slow Motion Flash Interval", "Seconds shown and hidden for each flash phase. 0.5 gives 0.5 seconds on, then 0.5 seconds off.", "Player", "rts.actionreplay.slowMotionFlashInterval", 0.5, 0.1, 5.0, 0.1);
         ui.AddTitle("Player Elements", "Player");
-        ui.AddPositionEditor("Element Positions", "Set the screen-relative position and size of Brand, Title, and Play Speed Indicator.", "Player", "rts.actionreplay.playerElements", "{\"Brand\":{\"name\":\"Brand\",\"scale\":100,\"x\":0,\"y\":0},\"Title\":{\"name\":\"Title\",\"scale\":100,\"x\":0,\"y\":0},\"Play Speed Indicator\":{\"name\":\"Play Speed Indicator\",\"scale\":100,\"x\":0,\"y\":0}}", new[] { "Brand", "Title", "Play Speed Indicator" }, "scale,x,y", null, PreviewPlayerElements, new Dictionary<string, RtsUIPreviewSize>
+        ui.AddPositionEditor("Element Positions", "Set the screen-relative position and size of Brand, Title, and Play Speed Indicator.", "Player", "rts.actionreplay.playerElements", "{\"Brand\":{\"name\":\"Brand\",\"scale\":100,\"x\":0,\"y\":0},\"Title\":{\"name\":\"Title\",\"scale\":100,\"x\":0,\"y\":0},\"Play Speed Indicator\":{\"name\":\"Play Speed Indicator\",\"scale\":100,\"x\":0,\"y\":0}}", new[] { "Brand", "Title", "Play Speed Indicator" }, "scale,x,y", saved => pendingPlayerElements = saved, PreviewPlayerElements, new Dictionary<string, RtsUIPreviewSize>
         {
             ["Brand"] = new RtsUIPreviewSize(120, 60),
             ["Title"] = new RtsUIPreviewSize(360, 48),
@@ -74,6 +74,11 @@ public class CPHInline
 
         AddMessages(ui);
         ui.ShowUI();
+        if (pendingPlayerElements != null)
+        {
+            CPH.SetGlobalVar("rts.actionreplay.playerElements", pendingPlayerElements, true);
+            CPH.LogInfo("[RTS Action Replay] Persisted player elements after settings window closed.");
+        }
         if (pendingPositions != null)
         {
             CPH.SetGlobalVar("rts.actionreplay.positions", pendingPositions, true);
@@ -150,7 +155,7 @@ public class CPHInline
         CPH.SetArgument("replayBorderStyle", CPH.GetGlobalVar<string>("rts.actionreplay.borderStyle", true) ?? "Solid");
         CPH.SetArgument("replayDropShadow", CPH.GetGlobalVar<bool?>("rts.actionreplay.dropShadow", true) ?? false);
         CPH.SetArgument("replayShadowColor", CPH.GetGlobalVar<string>("rts.actionreplay.shadowColor", true) ?? "#80000000");
-        CPH.SetArgument("replayPositions", positionsJson ?? "{\"Full Screen\":{\"name\":\"Full Screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
+        CPH.SetArgument("replayPositions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
         CPH.TriggerEvent("RTS-Action Replay", true);
     }
 
@@ -158,20 +163,20 @@ public class CPHInline
     {
         try
         {
-            var elements = JObject.Parse(json ?? "{}");
-            SetPreviewElement("Brand", elements);
-            SetPreviewElement("Title", elements);
-            SetPreviewElement("Play Speed Indicator", elements);
+            var elements = JObject.Parse(json);
+            SetPreviewElementArgument("Brand", elements);
+            SetPreviewElementArgument("Title", elements);
+            SetPreviewElementArgument("Play Speed Indicator", elements);
         }
         catch
         {
-            SetPreviewElement("Brand", null);
-            SetPreviewElement("Title", null);
-            SetPreviewElement("Play Speed Indicator", null);
+            SetPreviewElementArgument("Brand", null);
+            SetPreviewElementArgument("Title", null);
+            SetPreviewElementArgument("Play Speed Indicator", null);
         }
     }
 
-    private void SetPreviewElement(string name, JObject elements)
+    private void SetPreviewElementArgument(string name, JObject elements)
     {
         JObject element = elements?[name] as JObject;
         string prefix = name == "Play Speed Indicator" ? "Speed" : name;
@@ -188,17 +193,17 @@ public class CPHInline
 
     private void AddMessages(RtsUI ui)
     {
-        ui.AddTitle("Clapperboard", "Clapperboard");
-        ui.AddToggleSwitch("Show Branding", "Display the shared branding on the clapperboard.", "Clapperboard", "rts.actionreplay.showClapperBranding", true);
-        ui.AddColorPicker("Board Color", "Clapperboard slate colour.", "Clapperboard", "rts.actionreplay.clapper.boardColor", "#101416");
-        ui.AddColorPicker("Stripe Light", "Clapperstick light stripe colour.", "Clapperboard", "rts.actionreplay.clapper.stripeLight", "#EEEEEE");
-        ui.AddColorPicker("Stripe Dark", "Clapperstick dark stripe colour.", "Clapperboard", "rts.actionreplay.clapper.stripeDark", "#111111");
-        ui.AddColorPicker("Accent Color", "Clapperboard accent colour.", "Clapperboard", "rts.actionreplay.clapper.accent", "#0384CB");
-        ui.AddColorPicker("Text Color", "Message text colour.", "Clapperboard", "rts.actionreplay.clapper.textColor", "#0384CB");
-        ui.AddGoogleFontSelector("Font", "Choose a Google Font.", "Clapperboard", "rts.actionreplay.clapper.font", "Inter");
-        ui.AddSlider("Size (%)", "Overall clapperboard size.", "Clapperboard", "rts.actionreplay.clapper.size", 0, 100, 50);
-        ui.AddSlider("Position X (%)", "Horizontal clapperboard position.", "Clapperboard", "rts.actionreplay.clapper.positionX", 0, 100, 50);
-        ui.AddSlider("Position Y (%)", "Vertical clapperboard position.", "Clapperboard", "rts.actionreplay.clapper.positionY", 0, 100, 50);
+        ui.AddTitle("Messages", "Messages");
+        ui.AddTextbox("Brand Logo URL", "HTTPS URL to a PNG logo, or blank for RTS text.", "Messages", "rts.actionreplay.brandLogoUrl", "", false);
+        ui.AddColorPicker("Board Color", "Clapperboard slate colour.", "Messages", "rts.actionreplay.clapper.boardColor", "#101416");
+        ui.AddColorPicker("Stripe Light", "Clapperstick light stripe colour.", "Messages", "rts.actionreplay.clapper.stripeLight", "#EEEEEE");
+        ui.AddColorPicker("Stripe Dark", "Clapperstick dark stripe colour.", "Messages", "rts.actionreplay.clapper.stripeDark", "#111111");
+        ui.AddColorPicker("Accent Color", "Clapperboard accent colour.", "Messages", "rts.actionreplay.clapper.accent", "#0384CB");
+        ui.AddColorPicker("Text Color", "Message text colour.", "Messages", "rts.actionreplay.clapper.textColor", "#0384CB");
+        ui.AddGoogleFontSelector("Font", "Choose a Google Font.", "Messages", "rts.actionreplay.clapper.font", "Inter");
+        ui.AddSlider("Size (%)", "Overall clapperboard size.", "Messages", "rts.actionreplay.clapper.size", 0, 100, 50);
+        ui.AddSlider("Position X (%)", "Horizontal clapperboard position.", "Messages", "rts.actionreplay.clapper.positionX", 0, 100, 50);
+        ui.AddSlider("Position Y (%)", "Vertical clapperboard position.", "Messages", "rts.actionreplay.clapper.positionY", 0, 100, 50);
         AddMessageSettings(ui, "Save Replay", "Replay saved: %replayTitle%.", "rts.actionreplay.message.save");
         AddMessageSettings(ui, "Name Replay", "Replay #%replayNumber% renamed to %replayTitle%.", "rts.actionreplay.message.name");
         AddMessageSettings(ui, "Play Replay", "Playing replay #%replayNumber%: %replayTitle%.", "rts.actionreplay.message.play");
