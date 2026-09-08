@@ -18,6 +18,10 @@ Stage 1 keeps the replay library and statistics local to Streamer.bot. Replay vi
 - Playback leaderboard.
 - Maximum history enforcement without deleting physical video files.
 - Replay playback confirmation from the browser overlay before incrementing play counts.
+- Skinnable player frame with frame/border styling, playback speed and non-interactive status controls.
+- Named player positions with scale, X/Y placement and X/Y/Z rotation.
+- Streamer.bot-controlled position changes with smooth transitions.
+- Configurable player entrance and exit animations: zoom and directional slides.
 
 ## Stage 2 boundary
 
@@ -32,13 +36,19 @@ Twitch Clip creation is deliberately not part of Stage 1. The replay record is p
 The main public methods are:
 
 - Store: `Initialize`, `AddReplay`, `NameReplay`, `ListPlaylist`, `CreatorLeaderboard`, `PlaybackLeaderboard`
-- Playback: `SaveReplay`, `PlayReplay`, `ConfirmPlayback`
+- Playback: `SaveReplay`, `PlayReplay`, `SetPlayerPosition`, `HidePlayer`, `ConfirmPlayback`
 
-The production import should wire the File/Folder Watcher, commands, custom event and overlay confirmation to these methods. Import code is intentionally not being maintained until the extension functionality is finished.
+The production import should wire the File/Folder Watcher, commands, player movement methods, custom event and overlay confirmation to these methods. Import code is intentionally not being maintained until the extension functionality is finished.
 
 ## Overlay
 
 The production overlay remains hosted by The Road to Somewhere. It subscribes to the Streamer.bot custom event `RTS-Action Replay` and sends a `DoAction` request back to Streamer.bot using the action name `RTS Action Replay - Playback Confirm` after a replay successfully starts.
+
+The browser player has no user controls. Its status bar is visual-only; playback is controlled through Streamer.bot WebSocket events.
+
+## Player positions
+
+`rts.actionreplay.positions` stores named positions as a JSON object. Each position supports `scale`, `x`, `y`, `rotateX`, `rotateY` and `rotateZ`. `Full Screen` is the built-in fallback position.
 
 ## External editor
 
