@@ -3,14 +3,19 @@ const RTS_OVERLAY = {
   port: 8080,
   eventName: 'RTS-Action Replay',
   confirmAction: 'RTS Action Replay - Playback Confirm',
-  reconnectDelay: 3000
+  reconnectDelay: 3000,
+  messageDuration: 5000
 };
 
 const status = document.getElementById('status');
-const messageBox = document.getElementById('message');
+const messageCard = document.getElementById('message-card');
+const messageText = document.getElementById('message-text');
+const brandLogo = document.getElementById('brand-logo');
+const brandFallback = document.getElementById('brand-fallback');
 const video = document.getElementById('video');
 let rtsSocket;
 let reconnectTimer;
+let messageTimer;
 
 function setStatus(text, state = '') {
   status.textContent = text;
@@ -27,6 +32,39 @@ function confirmPlayback(replayId, userId, userName) {
   }));
 }
 
+function showMessage(command) {
+  const text = command.replayMessage || '';
+  if (!text) return;
+
+  messageText.textContent = text;
+  const logoUrl = command.replayLogoUrl || '';
+  if (logoUrl) {
+    brandLogo.onload = () => {
+      brandLogo.style.display = 'block';
+      brandFallback.style.display = 'none';
+    };
+    brandLogo.onerror = () => {
+      brandLogo.style.display = 'none';
+      brandFallback.style.display = 'block';
+    };
+    brandLogo.src = logoUrl;
+  } else {
+    brandLogo.removeAttribute('src');
+    brandLogo.style.display = 'none';
+    brandFallback.style.display = 'block';
+  }
+
+  clearTimeout(messageTimer);
+  messageCard.classList.remove('show');
+  void messageCard.offsetWidth;
+  messageCard.classList.add('show');
+  messageCard.setAttribute('aria-hidden', 'false');
+  messageTimer = setTimeout(() => {
+    messageCard.classList.remove('show');
+    messageCard.setAttribute('aria-hidden', 'true');
+  }, RTS_OVERLAY.messageDuration);
+}
+
 function playReplay(command) {
   video.play().then(() => {
     confirmPlayback(command.replayId, command.replayUserId, command.replayUserName);
@@ -35,7 +73,6 @@ function playReplay(command) {
 
 function loadReplay(command) {
   if (!command.replayUrl) return;
-  messageBox.textContent = `Replay: ${command.replayUrl}`;
   video.src = command.replayUrl;
   video.style.display = 'block';
   video.load();
@@ -45,10 +82,7 @@ function loadReplay(command) {
 }
 
 function handleReplayCommand(command) {
-  if (command.replayCommand === 'message') {
-    messageBox.textContent = command.replayMessage || '';
-    return;
-  }
+  if (command.replayCommand === 'message') showMessage(command);
   if (command.replayCommand === 'load') loadReplay(command);
   if (command.replayCommand === 'play') playReplay(command);
   if (command.replayCommand === 'pause') video.pause();
@@ -63,7 +97,6 @@ function handleEvent(message) {
   if (message?.event?.source !== 'Custom' || message?.event?.type !== 'Event') return;
   const data = message.data;
   if (data?.eventName !== RTS_OVERLAY.eventName || !data.args) return;
-  messageBox.textContent = `Command: ${data.args.replayCommand || 'unknown'}`;
   handleReplayCommand(data.args);
 }
 
@@ -100,4 +133,5 @@ function connect() {
 
 window.rtsOverlay = RTS_OVERLAY;
 window.testReplay = url => loadReplay({ replayUrl: url, replayAutoplay: false });
+window.testMessage = text => showMessage({ replayMessage: text });
 connect();
