@@ -15,10 +15,10 @@ RTSReplayElements.loadFont = (font, id) => {
 
 RTSReplayElements.toRgba = (value, opacity) => {
   const color = String(value || '').trim();
-  const match = color.match(/^#([0-9a-f]{6})$/i);
+  const match = color.match(/^#([0-9a-f]{6}|[0-9a-f]{8})$/i);
   const alpha = Math.max(0, Math.min(1, Number(opacity) / 100));
   if (!match) return color || `rgba(16,20,22,${alpha})`;
-  const hex = match[1];
+  const hex = match[1].length === 8 ? match[1].slice(2) : match[1];
   return `rgba(${parseInt(hex.slice(0, 2), 16)},${parseInt(hex.slice(2, 4), 16)},${parseInt(hex.slice(4, 6), 16)},${alpha})`;
 };
 
