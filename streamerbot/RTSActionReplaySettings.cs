@@ -37,11 +37,11 @@ public class CPHInline
 
         ui.AddTitle("Player Positions", "Positions");
         ui.AddTextbox("Default Position", "Name of the saved position used when a replay loads.", "Positions", "rts.actionreplay.defaultPosition", "Full Screen", false);
-        ui.AddTextbox("Saved Positions", "JSON object of named positions. Full Screen is always available. Example: {\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0},\"Game Corner\":{\"scale\":70,\"x\":30,\"y\":-25,\"rotateX\":0,\"rotateY\":-15,\"rotateZ\":0}}", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", false);
+        ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
 
         ui.AddTitle("Player Animation", "Animation");
         ui.AddDropdown("Animation In", "Entrance animation when the player loads.", "Animation", "rts.actionreplay.animationIn", new[] { "None", "Zoom In", "Slide From Left", "Slide From Right", "Slide From Top", "Slide From Bottom" }, "None");
-        ui.AddDropdown("Animation Out", "Exit animation when Streamer.bot hides the player.", "Animation", "rts.actionreplay.animationOut", new[] { "None", "Zoom Out", "Slide To Left", "Slide To Right", "Slide To Top", "Slide To Bottom" }, "None");
+        ui.AddDropdown("Animation Out", "Exit animation when Streamer.bot hides the player.", "Animation", "Animation", "rts.actionreplay.animationOut", new[] { "None", "Zoom Out", "Slide To Left", "Slide To Right", "Slide To Top", "Slide To Bottom" }, "None");
         ui.AddDecimalTextbox("Animation Duration", "Animation duration in seconds.", "Animation", "rts.actionreplay.animationDuration", 0.5, 0.1, 5.0, 0.1);
         ui.AddDropdown("Animation Easing", "CSS easing used for player movement.", "Animation", "rts.actionreplay.animationEasing", new[] { "linear", "ease", "ease-in", "ease-out", "ease-in-out" }, "ease-in-out");
 
