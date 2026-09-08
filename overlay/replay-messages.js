@@ -1,4 +1,4 @@
-const RTSReplay = window.RTSReplay;
+const RTSReplayMessages = window.RTSReplay;
 
 function clamp(value, min, max, fallback) {
   const number = Number(value);
@@ -6,8 +6,8 @@ function clamp(value, min, max, fallback) {
   return Math.min(max, Math.max(min, number));
 }
 
-RTSReplay.applyMessageStyle = command => {
-  const style = RTSReplay.messageCard.style;
+RTSReplayMessages.applyMessageStyle = command => {
+  const style = RTSReplayMessages.messageCard.style;
   style.setProperty('--board-color', command.replayMessageBoardColor || '#101416');
   style.setProperty('--stripe-light', command.replayMessageStripeLight || '#EEEEEE');
   style.setProperty('--stripe-dark', command.replayMessageStripeDark || '#111111');
@@ -19,36 +19,36 @@ RTSReplay.applyMessageStyle = command => {
   style.top = `${clamp(command.replayMessagePositionY, 0, 100, 50)}%`;
 };
 
-RTSReplay.showMessage = command => {
+RTSReplayMessages.showMessage = command => {
   const text = command.replayMessage || '';
   if (!text) return;
 
-  RTSReplay.applyMessageStyle(command);
-  RTSReplay.messageText.textContent = text;
+  RTSReplayMessages.applyMessageStyle(command);
+  RTSReplayMessages.messageText.textContent = text;
   const logoUrl = command.replayLogoUrl || '';
   if (logoUrl) {
-    RTSReplay.brandLogo.onload = () => {
-      RTSReplay.brandLogo.style.display = 'block';
-      RTSReplay.brandFallback.style.display = 'none';
+    RTSReplayMessages.brandLogo.onload = () => {
+      RTSReplayMessages.brandLogo.style.display = 'block';
+      RTSReplayMessages.brandFallback.style.display = 'none';
     };
-    RTSReplay.brandLogo.onerror = () => {
-      RTSReplay.brandLogo.style.display = 'none';
-      RTSReplay.brandFallback.style.display = 'block';
+    RTSReplayMessages.brandLogo.onerror = () => {
+      RTSReplayMessages.brandLogo.style.display = 'none';
+      RTSReplayMessages.brandFallback.style.display = 'block';
     };
-    RTSReplay.brandLogo.src = logoUrl;
+    RTSReplayMessages.brandLogo.src = logoUrl;
   } else {
-    RTSReplay.brandLogo.removeAttribute('src');
-    RTSReplay.brandLogo.style.display = 'none';
-    RTSReplay.brandFallback.style.display = 'block';
+    RTSReplayMessages.brandLogo.removeAttribute('src');
+    RTSReplayMessages.brandLogo.style.display = 'none';
+    RTSReplayMessages.brandFallback.style.display = 'block';
   }
 
-  clearTimeout(RTSReplay.messageTimer);
-  RTSReplay.messageCard.classList.remove('show');
-  void RTSReplay.messageCard.offsetWidth;
-  RTSReplay.messageCard.classList.add('show');
-  RTSReplay.messageCard.setAttribute('aria-hidden', 'false');
-  RTSReplay.messageTimer = setTimeout(() => {
-    RTSReplay.messageCard.classList.remove('show');
-    RTSReplay.messageCard.setAttribute('aria-hidden', 'true');
-  }, RTSReplay.config.messageDuration);
+  clearTimeout(RTSReplayMessages.messageTimer);
+  RTSReplayMessages.messageCard.classList.remove('show');
+  void RTSReplayMessages.messageCard.offsetWidth;
+  RTSReplayMessages.messageCard.classList.add('show');
+  RTSReplayMessages.messageCard.setAttribute('aria-hidden', 'false');
+  RTSReplayMessages.messageTimer = setTimeout(() => {
+    RTSReplayMessages.messageCard.classList.remove('show');
+    RTSReplayMessages.messageCard.setAttribute('aria-hidden', 'true');
+  }, RTSReplayMessages.config.messageDuration);
 };
