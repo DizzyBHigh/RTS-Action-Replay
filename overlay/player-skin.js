@@ -7,6 +7,12 @@ RTSReplaySkin.loadFont = font => {
   link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family).replace(/%20/g, '+')}:wght@400;600;700&display=swap`;
   RTSReplaySkin.player.style.setProperty('--player-skin-font', `'${family.replace(/'/g, "\\'")}', system-ui, sans-serif`);
 };
+RTSReplaySkin.configureFontSizes = command => {
+  const titleSize = Math.max(1, Number(command.replayTitleFontSize) || 34);
+  const speedSize = Math.max(1, Number(command.replaySpeedFontSize) || 30);
+  RTSReplaySkin.player.style.setProperty('--title-font-size', `${titleSize}px`);
+  RTSReplaySkin.player.style.setProperty('--speed-font-size', `${speedSize}px`);
+};
 RTSReplaySkin.elementDefaults = { Brand: { scale: 100, x: 0, y: 0 }, Title: { scale: 100, x: 0, y: 0 }, 'Play Speed Indicator': { scale: 100, x: 0, y: 0 } };
 RTSReplaySkin.readElements = command => {
   const explicit = {
@@ -40,7 +46,7 @@ RTSReplaySkin.configureFrame = command => {
 RTSReplaySkin.clearSlowMotion = () => { RTSReplaySkin.slowMotion.classList.remove('slow-motion-active', 'slow-motion-flash'); RTSReplaySkin.slowMotion.classList.add('slow-motion-hidden'); };
 RTSReplaySkin.clearSkin = () => { clearTimeout(RTSReplaySkin.titleTimer); RTSReplaySkin.title.textContent = ''; RTSReplaySkin.player.classList.remove('has-title', 'has-speed', 'has-branding'); RTSReplaySkin.speedLabel.textContent = ''; RTSReplaySkin.brand.textContent = ''; RTSReplaySkin.clearSlowMotion(); };
 RTSReplaySkin.configure = command => {
-  RTSReplaySkin.clearSkin(); RTSReplaySkin.configureFrame(command); RTSReplaySkin.configureElements(command); RTSReplaySkin.loadFont(command.replayPlayerFont || 'Inter');
+  RTSReplaySkin.clearSkin(); RTSReplaySkin.configureFrame(command); RTSReplaySkin.configureFontSizes(command); RTSReplaySkin.configureElements(command); RTSReplaySkin.loadFont(command.replayPlayerFont || 'Inter');
   if (command.replayShowBranding !== false) { const logo = String(command.replayLogoUrl || '').trim(); if (logo) RTSReplaySkin.brand.innerHTML = `<img src="${logo.replace(/"/g, '&quot;')}" alt="">`; else RTSReplaySkin.brand.textContent = 'RTS'; RTSReplaySkin.player.classList.add('has-branding'); }
   const title = String(command.replayTitle || '').trim(); if (command.replayShowTitle !== false && title) { RTSReplaySkin.title.textContent = title; RTSReplaySkin.player.classList.add('has-title'); const duration = Number(command.replayTitleDuration); if (Number.isFinite(duration) && duration > 0) RTSReplaySkin.titleTimer = setTimeout(() => RTSReplaySkin.player.classList.remove('has-title'), duration * 1000); }
   const speed = Number(command.replayPlaybackSpeed) || 1; if (speed < 0.999) RTSReplaySkin.showSlowMotion(command); else if (speed > 1.001) { RTSReplaySkin.speedLabel.textContent = RTSReplaySkin.formatSpeed(speed); RTSReplaySkin.player.classList.add('has-speed'); }
