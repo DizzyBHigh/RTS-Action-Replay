@@ -32,10 +32,30 @@ function confirmPlayback(replayId, userId, userName) {
   }));
 }
 
+function applyMessageStyle(command) {
+  const style = messageCard.style;
+  style.setProperty('--board-color', command.replayMessageBoardColor || '#101416');
+  style.setProperty('--stripe-light', command.replayMessageStripeLight || '#EEEEEE');
+  style.setProperty('--stripe-dark', command.replayMessageStripeDark || '#111111');
+  style.setProperty('--accent-color', command.replayMessageAccent || '#0384CB');
+  style.setProperty('--message-color', command.replayMessageTextColor || '#0384CB');
+  style.setProperty('--message-font', command.replayMessageFont || 'Arial, sans-serif');
+  style.left = `${clamp(command.replayMessagePositionX, 0, 100, 50)}%`;
+  style.top = `${clamp(command.replayMessagePositionY, 0, 100, 50)}%`;
+  style.setProperty('--message-size', `${clamp(command.replayMessageSize, 50, 150, 100) / 100}`);
+}
+
+function clamp(value, min, max, fallback) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(max, Math.max(min, number));
+}
+
 function showMessage(command) {
   const text = command.replayMessage || '';
   if (!text) return;
 
+  applyMessageStyle(command);
   messageText.textContent = text;
   const logoUrl = command.replayLogoUrl || '';
   if (logoUrl) {
