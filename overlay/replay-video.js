@@ -20,6 +20,7 @@ RTSReplayVideo.loadReplay = command => {
   RTSReplayVideo.currentCommand = command;
   RTSReplayVideo.player.classList.remove('preview');
   RTSReplayControls.configure(command);
+  RTSReplaySkin.configure(command);
   const endPosition = command.replayEndPosition || 'Full Screen';
   const startPosition = command.replayStartPosition || endPosition;
   RTSReplayVideo.activePosition = RTSReplayVideo.getPosition(endPosition);
@@ -33,12 +34,14 @@ RTSReplayVideo.loadReplay = command => {
 RTSReplayVideo.previewPosition = command => {
   RTSReplayVideo.currentCommand = command;
   RTSReplayControls.configure(command);
+  RTSReplaySkin.clearSkin();
   RTSReplayVideo.activePosition = RTSReplayVideo.getPosition(command.replayPosition || 'Full Screen');
   RTSReplayVideo.player.classList.add('preview', 'show');
   RTSReplayVideo.applyPosition(RTSReplayVideo.activePosition);
 };
 
 RTSReplayVideo.hidePreview = () => {
+  RTSReplaySkin.clearSkin();
   RTSReplayVideo.player.classList.remove('preview', 'show');
 };
 
