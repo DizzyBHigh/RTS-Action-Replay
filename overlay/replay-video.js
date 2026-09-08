@@ -14,7 +14,7 @@ RTSReplayVideo.loadReplay = command => {
   RTSReplayVideo.currentCommand = command;
   RTSReplayVideo.player.classList.remove('preview');
   RTSReplayControls.configure(command);
-  RTSReplaySkin.configure(command);
+  RTSReplayElements.configure(command);
   const endPosition = command.replayEndPosition || 'Full Screen';
   const startPosition = command.replayStartPosition || endPosition;
   RTSReplayVideo.activePosition = RTSReplayVideo.getPosition(endPosition);
@@ -29,7 +29,7 @@ RTSReplayVideo.loadReplay = command => {
 RTSReplayVideo.previewPosition = command => {
   RTSReplayVideo.currentCommand = command;
   RTSReplayControls.configure(command);
-  RTSReplaySkin.configure(command);
+  RTSReplayElements.configure(command);
   RTSReplayVideo.player.classList.add('preview', 'show');
   if (command.replayElementPreview === true) return;
   RTSReplayVideo.activePosition = RTSReplayVideo.getPosition(command.replayPosition || 'Full Screen');
@@ -37,7 +37,7 @@ RTSReplayVideo.previewPosition = command => {
 };
 
 RTSReplayVideo.hidePreview = () => {
-  RTSReplaySkin.clearSkin();
+  RTSReplayElements.clear();
   RTSReplayVideo.player.classList.remove('preview', 'show');
 };
 
@@ -57,7 +57,7 @@ RTSReplayVideo.handleReplayCommand = command => {
   if (command.replayCommand === 'play') RTSReplayVideo.playReplay(command);
   if (command.replayCommand === 'pause') RTSReplayVideo.video.pause();
   if (command.replayCommand === 'move') RTSReplayVideo.moveReplay(command);
-  if (command.replayCommand === 'hide') { RTSReplaySkin.hide(); RTSReplayVideo.animateOut(); }
-  if (command.replayCommand === 'stop') { RTSReplaySkin.hide(); RTSReplayVideo.video.pause(); RTSReplayVideo.video.currentTime = 0; }
+  if (command.replayCommand === 'hide') { RTSReplayElements.hide(); RTSReplayVideo.animateOut(); }
+  if (command.replayCommand === 'stop') { RTSReplayElements.hide(); RTSReplayVideo.video.pause(); RTSReplayVideo.video.currentTime = 0; }
   if (command.replayCommand === 'replay') { RTSReplayVideo.video.currentTime = 0; RTSReplayVideo.playReplay(command); }
 };
