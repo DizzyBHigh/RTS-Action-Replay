@@ -32,8 +32,17 @@ RTSReplayElements.applyPosition = (element, position) => {
   element.style.transform = RTSReplayElements.transformFor(position || {});
 };
 
+RTSReplayElements.loadFont = font => {
+  const family = String(font || 'Inter').trim();
+  if (!family) return;
+  let link = document.getElementById('player-elements-font');
+  if (!link) { link = document.createElement('link'); link.id = 'player-elements-font'; link.rel = 'stylesheet'; document.head.appendChild(link); }
+  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family).replace(/%20/g, '+')}:wght@400;600;700&display=swap`;
+};
+
 RTSReplayElements.configure = command => {
   RTSReplayElements.currentCommand = command;
+  RTSReplayElements.loadFont(command.replayPlayerFont || 'Inter');
   RTSReplayElements.layer.style.setProperty('--frame-color', command.replayFrameColor || '#0384CB');
   RTSReplayElements.layer.style.setProperty('--title-font-size', `${Math.max(1, Number(command.replayTitleFontSize) || 34)}px`);
   RTSReplayElements.layer.style.setProperty('--speed-font-size', `${Math.max(1, Number(command.replaySpeedFontSize) || 30)}px`);
