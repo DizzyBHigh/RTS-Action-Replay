@@ -18,6 +18,7 @@ RTSReplayVideo.playReplay = command => {
 RTSReplayVideo.loadReplay = command => {
   if (!command.replayUrl) return;
   RTSReplayVideo.currentCommand = command;
+  RTSReplayVideo.player.classList.remove('preview');
   RTSReplayControls.configure(command);
   const endPosition = command.replayEndPosition || 'Full Screen';
   const startPosition = command.replayStartPosition || endPosition;
@@ -27,6 +28,18 @@ RTSReplayVideo.loadReplay = command => {
   RTSReplayVideo.video.load();
   RTSReplayVideo.animateIn(RTSReplayVideo.getPosition(startPosition), RTSReplayVideo.getPosition(endPosition));
   if (command.replayAutoplay) RTSReplayVideo.video.addEventListener('canplay', () => RTSReplayVideo.playReplay(command), { once: true });
+};
+
+RTSReplayVideo.previewPosition = command => {
+  RTSReplayVideo.currentCommand = command;
+  RTSReplayControls.configure(command);
+  RTSReplayVideo.activePosition = RTSReplayVideo.getPosition(command.replayPosition || 'Full Screen');
+  RTSReplayVideo.player.classList.add('preview', 'show');
+  RTSReplayVideo.applyPosition(RTSReplayVideo.activePosition);
+};
+
+RTSReplayVideo.hidePreview = () => {
+  RTSReplayVideo.player.classList.remove('preview', 'show');
 };
 
 RTSReplayVideo.moveReplay = command => {
@@ -40,6 +53,8 @@ RTSReplayVideo.moveReplay = command => {
 RTSReplayVideo.handleReplayCommand = command => {
   if (command.replayCommand === 'message') RTSReplayVideo.showMessage(command);
   if (command.replayCommand === 'load') RTSReplayVideo.loadReplay(command);
+  if (command.replayCommand === 'preview') RTSReplayVideo.previewPosition(command);
+  if (command.replayCommand === 'previewHide') RTSReplayVideo.hidePreview();
   if (command.replayCommand === 'play') RTSReplayVideo.playReplay(command);
   if (command.replayCommand === 'pause') RTSReplayVideo.video.pause();
   if (command.replayCommand === 'move') RTSReplayVideo.moveReplay(command);
