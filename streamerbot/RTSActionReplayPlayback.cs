@@ -33,7 +33,6 @@ public class CPHInline
         if (int.TryParse(selector, out var index) && index > 0 && index <= list.Count) replay = (JObject)list[index - 1];
         else replay = list.OfType<JObject>().FirstOrDefault(x => ((bool?)x["customTitle"] ?? false) && string.Equals((string)x["title"], selector, StringComparison.OrdinalIgnoreCase));
         if (replay == null) { CPH.SendMessage("Replay not found."); return false; }
-
         var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true);
         var mapping = CPH.GetGlobalVar<string>("rts.actionreplay.httpMapping", true) ?? "replays";
         var port = CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474;
@@ -112,14 +111,6 @@ public class CPHInline
         CPH.SetArgument("replayTitleBackgroundColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleBackgroundColor", true) ?? "#101416");
         CPH.SetArgument("replayTitleBackgroundOpacity", GetSettingInt("rts.actionreplay.titleBackgroundOpacity", 88));
         CPH.SetArgument("replayTitleAnimationDuration", GetSettingDouble("rts.actionreplay.titleAnimationDuration", .45));
-        CPH.SetArgument("replaySpeedFontSize", GetSettingInt("rts.actionreplay.speedFontSize", 30));
-        CPH.SetArgument("replayPlayerFont", CPH.GetGlobalVar<string>("rts.actionreplay.playerFont", true) ?? "Inter");
-        CPH.SetArgument("replaySlowMotionText", CPH.GetGlobalVar<string>("rts.actionreplay.slowMotionText", true) ?? "Slow Motion");
-        CPH.SetArgument("replaySlowMotionShowSpeed", CPH.GetGlobalVar<bool?>("rts.actionreplay.slowMotionShowSpeed", true) ?? true);
-        CPH.SetArgument("replaySlowMotionFade", CPH.GetGlobalVar<bool?>("rts.actionreplay.slowMotionFade", true) ?? true);
-        CPH.SetArgument("replaySlowMotionFadeDuration", GetSettingDouble("rts.actionreplay.slowMotionFadeDuration", .25));
-        CPH.SetArgument("replaySlowMotionFlash", CPH.GetGlobalVar<bool?>("rts.actionreplay.slowMotionFlash", true) ?? false);
-        CPH.SetArgument("replaySlowMotionFlashInterval", GetSettingDouble("rts.actionreplay.slowMotionFlashInterval", .5));
         CPH.SetArgument("replayFrameColor", CPH.GetGlobalVar<string>("rts.actionreplay.frameColor", true) ?? "#0384CB");
         CPH.SetArgument("replayBorderColor", CPH.GetGlobalVar<string>("rts.actionreplay.borderColor", true) ?? "#FFFFFF");
         CPH.SetArgument("replayBorderWidth", GetSettingInt("rts.actionreplay.borderWidth", 2));
