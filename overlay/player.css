@@ -1,0 +1,102 @@
+#replay-player {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: min(92vw, 1600px);
+  transform: translate(-50%, -50%) translate(0, 0) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  transform-origin: center center;
+  will-change: transform, opacity;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  --frame-color: #0384CB;
+  --border-color: #FFFFFF;
+  --player-duration: 0.5s;
+  --player-easing: ease-in-out;
+}
+
+#replay-player.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+#replay-player.player-transition {
+  transition: transform var(--player-duration) var(--player-easing), opacity var(--player-duration) var(--player-easing);
+}
+
+#player-frame {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+  background: var(--frame-color);
+  box-sizing: border-box;
+}
+
+#player-frame.border-none { border-style: none; }
+#player-frame.border-solid { border-style: solid; }
+#player-frame.border-dashed { border-style: dashed; }
+#player-frame.border-double { border-style: double; }
+
+#video {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 80vh;
+  background: #000;
+}
+
+#player-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 34px;
+  padding: 7px 10px;
+  box-sizing: border-box;
+  background: rgba(8, 12, 15, .94);
+  border-top: 2px solid var(--frame-color);
+  font: 600 13px system-ui, sans-serif;
+  color: #fff;
+}
+
+#player-controls[aria-hidden="true"] { display: none; }
+
+#player-state {
+  width: 22px;
+  text-align: center;
+}
+
+#player-progress {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: rgba(255,255,255,.2);
+}
+
+#player-progress-bar {
+  width: 0;
+  height: 100%;
+  background: var(--frame-color);
+  transform-origin: left center;
+}
+
+#player-time {
+  min-width: 92px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#player-speed {
+  min-width: 42px;
+  text-align: right;
+  color: var(--frame-color);
+}
+
+#replay-player.controls-hidden #player-controls { display: none; }
+#replay-player.progress-hidden #player-progress { display: none; }
+
+@media (max-width: 700px) {
+  #replay-player { width: 96vw; }
+  #player-controls { gap: 7px; padding: 5px 7px; }
+  #player-speed { display: none; }
+}
