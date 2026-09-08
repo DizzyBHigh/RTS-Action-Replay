@@ -17,6 +17,7 @@ public class CPHInline
         ui.AddThemeSelector("Settings Theme", "Choose the RtsUI theme.", "General", "rts.actionreplay.uiTheme", "Dark");
         ui.AddTitle("Replay Source", "General");
         ui.AddFolderPicker("Replay Folder", "Folder containing OBS Replay Buffer files.", "General", "rts.actionreplay.replayFolder", "");
+        ui.AddTextbox("Replay File Types", "File extensions accepted as replays. Separate multiple extensions with commas, for example .mp4, .mkv.", "General", "rts.actionreplay.replayFileTypes", ".mp4, .mkv", false);
         ui.AddTextbox("HTTP Mapping", "Streamer.bot HTTP path mapped to the replay folder, without leading or trailing slashes.", "General", "rts.actionreplay.httpMapping", "replays", false);
         ui.AddNumericTextbox("HTTP Port", "Streamer.bot HTTP Server port used to serve replay files.", "General", "rts.actionreplay.httpPort", 7474, 1, 65535);
 
