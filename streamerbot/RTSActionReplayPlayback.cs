@@ -40,7 +40,7 @@ public class CPHInline
         if (!File.Exists(path)) { CPH.SendMessage($"Replay file is missing: {(string)replay["title"]}"); return false; }
 
         CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName);
-        var url = $"http://127.0.0.1:{port}/{mapping.Trim('/')}/{CPH.UrlEncode((string)replay["file"])}";
+        var url = $"http://localhost:{port}/{mapping.Trim('/')}/{CPH.UrlEncode((string)replay["file"])}";
         CPH.SetArgument("replayCommand", "load"); CPH.SetArgument("replayId", (string)replay["id"]);
         CPH.SetArgument("replayUrl", url); CPH.SetArgument("replayAutoplay", true);
         CPH.SetArgument("replayUserId", userId ?? ""); CPH.SetArgument("replayUserName", userName ?? "");
