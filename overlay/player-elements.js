@@ -38,7 +38,7 @@ RTSReplayElements.configure = command => {
   RTSReplayElements.loadFont(command.replayPlayerFont || 'Inter');
   RTSReplayElements.layer.style.setProperty('--frame-color', command.replayFrameColor || '#0384CB');
   RTSReplayElements.layer.style.setProperty('--title-font-size', `${Math.max(1, Number(command.replayTitleFontSize) || 34)}px`);
-  RTSReplayElements.layer.style.setProperty('--speed-font-size', `${Math.max(1, Number(command.replaySpeedFontSize) || 30}px`);
+  RTSReplayElements.layer.style.setProperty('--speed-font-size', `${Math.max(1, Number(command.replaySpeedFontSize) || 30)}px`);
   RTSReplayElements.layer.style.setProperty('--player-elements-font', `'${String(command.replayPlayerFont || 'Inter').replace(/'/g, "\\'")}', system-ui, sans-serif`);
 
   const positions = RTSReplayElements.getPositions();
