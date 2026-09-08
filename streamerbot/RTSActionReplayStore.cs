@@ -8,6 +8,7 @@ public class CPHInline
     private const string TitleKey = "rts.actionreplay.replayTitle";
     private const string MaxHistoryKey = "rts.actionreplay.maxHistory";
     private const string PendingKey = "rts.actionreplay.pendingSaves";
+    private const string FileTypesKey = "rts.actionreplay.replayFileTypes";
 
     public bool Execute() => Initialize();
 
@@ -23,6 +24,7 @@ public class CPHInline
         if (!(CPH.GetGlobalVar<bool?>("rts.actionreplay.autoAdd", true) ?? true)) return true;
         string path;
         if (!CPH.TryGetArg("fullPath", out path) || string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return false;
+        if (!IsReplayFile(path)) return false;
         var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true);
         if (!string.IsNullOrWhiteSpace(folder) && !Path.GetFullPath(path).StartsWith(Path.GetFullPath(folder).TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase)) return false;
         if (Path.GetExtension(path).Equals(".tmp", StringComparison.OrdinalIgnoreCase) || !Stable(path)) return false;
@@ -160,6 +162,22 @@ public class CPHInline
         else for (int i = 0; i < count; i++) message += (i > 0 ? " | " : "") + "#" + (i + 1) + " " + results[i].Key + " (" + results[i].Value + " plays)";
         CPH.SendMessage(message);
         return true;
+    }
+
+    private bool IsReplayFile(string path)
+    {
+        var extension = Path.GetExtension(path);
+        if (string.IsNullOrWhiteSpace(extension)) return false;
+        var configured = CPH.GetGlobalVar<string>(FileTypesKey, true) ?? ".mp4, .mkv";
+        var types = configured.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 0; i < types.Length; i++)
+        {
+            var type = types[i].Trim();
+            if (type.Length == 0) continue;
+            if (!type.StartsWith(".")) type = "." + type;
+            if (string.Equals(extension, type, StringComparison.OrdinalIgnoreCase)) return true;
+        }
+        return false;
     }
 
     private JObject Load() => JObject.Parse(CPH.GetGlobalVar<string>(DataKey, true) ?? "{\"version\":1,\"replays\":[]}");
