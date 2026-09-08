@@ -19,6 +19,7 @@ public class CPHInline
         ui.AddTextbox("Replay File Types", "Accepted extensions, separated by commas.", "General", "rts.actionreplay.replayFileTypes", ".mp4, .mkv", false);
         ui.AddTextbox("HTTP Mapping", "Streamer.bot HTTP path mapped to the replay folder.", "General", "rts.actionreplay.httpMapping", "replays", false);
         ui.AddNumericTextbox("HTTP Port", "Streamer.bot HTTP Server port used to serve replay files.", "General", "rts.actionreplay.httpPort", 7474, 1, 65535);
+        ui.AddTextbox("Brand Logo URL", "HTTPS URL to the shared branding logo. Leave blank to use the default text branding.", "General", "rts.actionreplay.brandLogoUrl", "", false);
 
         ui.AddTitle("Playlist", "Playlist");
         ui.AddTextbox("Replay Title Template", "Default title for new replays. Streamer.bot variables can be used.", "Playlist", "rts.actionreplay.replayTitle", "%replayName%", false);
@@ -27,6 +28,7 @@ public class CPHInline
         ui.AddToggleSwitch("Auto-play Newest Replay", "Load and play a newly saved replay automatically.", "Playlist", "rts.actionreplay.autoPlay", false);
 
         ui.AddTitle("Player", "Player");
+        ui.AddToggleSwitch("Show Branding", "Display the shared branding on the replay player.", "Player", "rts.actionreplay.showPlayerBranding", true);
         ui.AddToggleSwitch("Show Controls", "Display the visual player status bar. It is not interactive.", "Player", "rts.actionreplay.showControls", false);
         ui.AddToggleSwitch("Show Progress Bar", "Display the non-interactive playback progress bar.", "Player", "rts.actionreplay.showProgress", true);
         ui.AddDecimalTextbox("Default Playback Speed", "Playback speed applied when a replay is loaded. Values below 1x are slow motion.", "Player", "rts.actionreplay.playbackSpeed", 1.0, 0.25, 2.0, 0.25);
@@ -61,11 +63,7 @@ public class CPHInline
         ui.ShowUI();
         if (pendingPositions != null)
         {
-            CPH.LogInfo("[RTS Action Replay] Position JSON from editor (length " + pendingPositions.Length + "): " + pendingPositions);
             CPH.SetGlobalVar("rts.actionreplay.positions", pendingPositions, true);
-            CPH.LogInfo("[RTS Action Replay] SetGlobalVar completed for rts.actionreplay.positions.");
-            string savedPositions = CPH.GetGlobalVar<string>("rts.actionreplay.positions", true);
-            CPH.LogInfo("[RTS Action Replay] Position JSON read back (length " + (savedPositions == null ? 0 : savedPositions.Length) + "): " + (savedPositions ?? "<null>"));
             CPH.LogInfo("[RTS Action Replay] Persisted player positions after settings window closed.");
         }
         return true;
@@ -95,18 +93,17 @@ public class CPHInline
 
     private void AddMessages(RtsUI ui)
     {
-        ui.AddTitle("Messages", "Messages");
-        ui.AddToggleSwitch("Show Clapperboard Branding", "Show the brand area on Action Replay clapperboard messages.", "Messages", "rts.actionreplay.showClapperBranding", true);
-        ui.AddTextbox("Brand Logo URL", "HTTPS URL to a PNG logo, or blank for RTS text.", "Messages", "rts.actionreplay.brandLogoUrl", "", false);
-        ui.AddColorPicker("Board Color", "Clapperboard slate colour.", "Messages", "rts.actionreplay.clapper.boardColor", "#101416");
-        ui.AddColorPicker("Stripe Light", "Clapperstick light stripe colour.", "Messages", "rts.actionreplay.clapper.stripeLight", "#EEEEEE");
-        ui.AddColorPicker("Stripe Dark", "Clapperstick dark stripe colour.", "Messages", "rts.actionreplay.clapper.stripeDark", "#111111");
-        ui.AddColorPicker("Accent Color", "Clapperboard accent colour.", "Messages", "rts.actionreplay.clapper.accent", "#0384CB");
-        ui.AddColorPicker("Text Color", "Message text colour.", "Messages", "rts.actionreplay.clapper.textColor", "#0384CB");
-        ui.AddGoogleFontSelector("Font", "Choose a Google Font.", "Messages", "rts.actionreplay.clapper.font", "Inter");
-        ui.AddSlider("Size (%)", "Overall clapperboard size.", "Messages", "rts.actionreplay.clapper.size", 0, 100, 50);
-        ui.AddSlider("Position X (%)", "Horizontal clapperboard position.", "Messages", "rts.actionreplay.clapper.positionX", 0, 100, 50);
-        ui.AddSlider("Position Y (%)", "Vertical clapperboard position.", "Messages", "rts.actionreplay.clapper.positionY", 0, 100, 50);
+        ui.AddTitle("Clapperboard", "Clapperboard");
+        ui.AddToggleSwitch("Show Branding", "Display the shared branding on the clapperboard.", "Clapperboard", "rts.actionreplay.showClapperBranding", true);
+        ui.AddColorPicker("Board Color", "Clapperboard slate colour.", "Clapperboard", "rts.actionreplay.clapper.boardColor", "#101416");
+        ui.AddColorPicker("Stripe Light", "Clapperstick light stripe colour.", "Clapperboard", "rts.actionreplay.clapper.stripeLight", "#EEEEEE");
+        ui.AddColorPicker("Stripe Dark", "Clapperstick dark stripe colour.", "Clapperboard", "rts.actionreplay.clapper.stripeDark", "#111111");
+        ui.AddColorPicker("Accent Color", "Clapperboard accent colour.", "Clapperboard", "rts.actionreplay.clapper.accent", "#0384CB");
+        ui.AddColorPicker("Text Color", "Message text colour.", "Clapperboard", "rts.actionreplay.clapper.textColor", "#0384CB");
+        ui.AddGoogleFontSelector("Font", "Choose a Google Font.", "Clapperboard", "rts.actionreplay.clapper.font", "Inter");
+        ui.AddSlider("Size (%)", "Overall clapperboard size.", "Clapperboard", "rts.actionreplay.clapper.size", 0, 100, 50);
+        ui.AddSlider("Position X (%)", "Horizontal clapperboard position.", "Clapperboard", "rts.actionreplay.clapper.positionX", 0, 100, 50);
+        ui.AddSlider("Position Y (%)", "Vertical clapperboard position.", "Clapperboard", "rts.actionreplay.clapper.positionY", 0, 100, 50);
         AddMessageSettings(ui, "Save Replay", "Replay saved: %replayTitle%.", "rts.actionreplay.message.save");
         AddMessageSettings(ui, "Name Replay", "Replay #%replayNumber% renamed to %replayTitle%.", "rts.actionreplay.message.name");
         AddMessageSettings(ui, "Play Replay", "Playing replay #%replayNumber%: %replayTitle%.", "rts.actionreplay.message.play");
