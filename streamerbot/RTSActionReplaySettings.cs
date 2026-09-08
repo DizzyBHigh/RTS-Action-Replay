@@ -35,11 +35,7 @@ public class CPHInline
         AddMessages(ui);
 
         ui.ShowUI();
-        if (pendingPositions != null)
-        {
-            CPH.SetGlobalVar("rts.actionreplay.positions", pendingPositions, true);
-            CPH.LogInfo("[RTS Action Replay] Persisted player positions after settings window closed.");
-        }
+        if (pendingPositions != null) CPH.SetGlobalVar("rts.actionreplay.positions", pendingPositions, true);
         return true;
     }
 
@@ -49,7 +45,7 @@ public class CPHInline
         ui.AddToggleSwitch("Show Branding", "Display the shared branding in the top-left corner.", "Player", "rts.actionreplay.showPlayerBranding", true);
         ui.AddToggleSwitch("Show Controls", "Display the visual player status bar. It is not interactive.", "Player", "rts.actionreplay.showControls", false);
         ui.AddToggleSwitch("Show Progress Bar", "Display the non-interactive playback progress bar.", "Player", "rts.actionreplay.showProgress", true);
-        ui.AddDecimalTextbox("Default Playback Speed", "Playback speed applied when a replay is loaded. Values below 1x are slow motion.", "Player", "rts.actionreplay.playbackSpeed", 1.0, 0.25, 2.0, 0.25);
+        ui.AddDecimalTextbox("Default Playback Speed", "Playback speed applied when a replay is loaded.", "Player", "rts.actionreplay.playbackSpeed", 1.0, 0.25, 2.0, 0.25);
         ui.AddToggleSwitch("Show Replay Title", "Display the animated replay title.", "Player", "rts.actionreplay.showTitle", true);
         ui.AddDecimalTextbox("Replay Title Display Duration", "Seconds the title remains visible. Set to 0 to keep it visible for the entire replay.", "Player", "rts.actionreplay.titleDuration", 5.0, 0.0, 60.0, 1.0);
         ui.AddDropdown("Title Position", "Choose whether the title slides in from the top or bottom.", "Player", "rts.actionreplay.titlePosition", new[] { "Top", "Bottom" }, "Top");
@@ -60,14 +56,6 @@ public class CPHInline
         ui.AddColorPicker("Title Background Color", "Replay title background colour.", "Player", "rts.actionreplay.titleBackgroundColor", "#FF101416");
         ui.AddSlider("Title Background Opacity", "Replay title background opacity.", "Player", "rts.actionreplay.titleBackgroundOpacity", 0, 100, 88);
         ui.AddDecimalTextbox("Title Slide Duration", "Seconds used for the title slide-in and slide-out animation.", "Player", "rts.actionreplay.titleAnimationDuration", 0.45, 0.1, 2.0, 0.05);
-        ui.AddNumericTextbox("Speed Font Size", "Font size of the playback-speed and slow-motion indicators in pixels.", "Player", "rts.actionreplay.speedFontSize", 30, 8, 100);
-        ui.AddGoogleFontSelector("Player Element Font", "Font used by the top-left branding fallback and top-right speed indicator.", "Player", "rts.actionreplay.playerFont", "Inter");
-        ui.AddTextbox("Slow Motion Text", "Text shown during slow-motion playback.", "Player", "rts.actionreplay.slowMotionText", "Slow Motion", false);
-        ui.AddToggleSwitch("Show Slow Motion Speed", "Append the current playback speed to the slow-motion text.", "Player", "rts.actionreplay.slowMotionShowSpeed", true);
-        ui.AddToggleSwitch("Fade Slow Motion Indicator", "Fade the slow-motion indicator when it appears and disappears.", "Player", "rts.actionreplay.slowMotionFade", true);
-        ui.AddDecimalTextbox("Slow Motion Fade Duration", "Seconds used for slow-motion indicator fading.", "Player", "rts.actionreplay.slowMotionFadeDuration", 0.25, 0.0, 2.0, 0.05);
-        ui.AddToggleSwitch("Flash Slow Motion Indicator", "Flash the slow-motion indicator on and off repeatedly while slow motion is active.", "Player", "rts.actionreplay.slowMotionFlash", false);
-        ui.AddDecimalTextbox("Slow Motion Flash Interval", "Seconds shown and hidden for each flash phase.", "Player", "rts.actionreplay.slowMotionFlashInterval", 0.5, 0.1, 5.0, 0.1);
     }
 
     private void AddAppearanceSettings(RtsUI ui)
@@ -114,15 +102,7 @@ public class CPHInline
         CPH.SetArgument("replayBorderStyle", CPH.GetGlobalVar<string>("rts.actionreplay.borderStyle", true) ?? "Solid");
         CPH.SetArgument("replayDropShadow", CPH.GetGlobalVar<bool?>("rts.actionreplay.dropShadow", true) ?? false);
         CPH.SetArgument("replayShadowColor", CPH.GetGlobalVar<string>("rts.actionreplay.shadowColor", true) ?? "#80000000");
-        SetElementPreviewArguments();
-        CPH.SetArgument("replayPositions", positionsJson ?? "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
-        CPH.TriggerEvent("RTS-Action Replay", true);
-    }
-
-    private void SetElementPreviewArguments()
-    {
         CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
-        CPH.SetArgument("replayPlayerFont", CPH.GetGlobalVar<string>("rts.actionreplay.playerFont", true) ?? "Inter");
         CPH.SetArgument("replayTitleFont", CPH.GetGlobalVar<string>("rts.actionreplay.titleFont", true) ?? "Inter");
         CPH.SetArgument("replayTitlePosition", CPH.GetGlobalVar<string>("rts.actionreplay.titlePosition", true) ?? "Top");
         CPH.SetArgument("replayTitleFontSize", GetSettingInt("rts.actionreplay.titleFontSize", 34));
@@ -131,11 +111,10 @@ public class CPHInline
         CPH.SetArgument("replayTitleBackgroundColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleBackgroundColor", true) ?? "#101416");
         CPH.SetArgument("replayTitleBackgroundOpacity", GetSettingInt("rts.actionreplay.titleBackgroundOpacity", 88));
         CPH.SetArgument("replayTitleAnimationDuration", GetSettingDouble("rts.actionreplay.titleAnimationDuration", .45));
-        CPH.SetArgument("replaySpeedFontSize", GetSettingInt("rts.actionreplay.speedFontSize", 30));
         CPH.SetArgument("replayPlaybackSpeed", GetSettingDouble("rts.actionreplay.playbackSpeed", 1.0));
-        CPH.SetArgument("replaySlowMotionText", CPH.GetGlobalVar<string>("rts.actionreplay.slowMotionText", true) ?? "Slow Motion");
-        CPH.SetArgument("replaySlowMotionShowSpeed", CPH.GetGlobalVar<bool?>("rts.actionreplay.slowMotionShowSpeed", true) ?? true);
         CPH.SetArgument("replayTitleDuration", GetSettingDouble("rts.actionreplay.titleDuration", 5.0));
+        CPH.SetArgument("replayPositions", positionsJson ?? "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
+        CPH.TriggerEvent("RTS-Action Replay", true);
     }
 
     private void AddMessages(RtsUI ui)
