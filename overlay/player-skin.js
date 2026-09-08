@@ -9,12 +9,16 @@ RTSReplaySkin.loadFont = font => {
 };
 RTSReplaySkin.elementDefaults = { Brand: { scale: 100, x: 0, y: 0 }, Title: { scale: 100, x: 0, y: 0 }, 'Play Speed Indicator': { scale: 100, x: 0, y: 0 } };
 RTSReplaySkin.readElements = command => {
-  let data = {};
-  try { data = JSON.parse(command.replayPlayerElements || '{}'); } catch { }
-  return data;
+  const raw = command && command.replayPlayerElements;
+  if (raw && typeof raw === 'object') return raw;
+  if (typeof raw === 'string' && raw.trim()) {
+    try { return JSON.parse(raw); } catch (error) { console.warn('[RTS Action Replay] Invalid player element JSON', raw, error); }
+  }
+  return {};
 };
 RTSReplaySkin.applyElementPosition = (element, data, defaults) => {
-  const p = data || defaults; const scale = Math.max(0, Number(p.scale) || 0); const x = Math.max(-100, Math.min(100, Number(p.x) || 0)); const y = Math.max(-100, Math.min(100, Number(p.y) || 0));
+  if (!element) return;
+  const p = data || defaults; const scale = Math.max(0, Number(p.scale) || 0); const x = Math.max(-50, Math.min(150, Number(p.x) || 0)); const y = Math.max(-50, Math.min(150, Number(p.y) || 0));
   element.style.left = `${50 + x}%`; element.style.top = `${50 + y}%`; element.style.transform = `translate(-50%, -50%) scale(${scale / 100})`;
 };
 RTSReplaySkin.configureElements = command => {
@@ -22,7 +26,7 @@ RTSReplaySkin.configureElements = command => {
   RTSReplaySkin.applyElementPosition(RTSReplaySkin.brand, elements.Brand, RTSReplaySkin.elementDefaults.Brand);
   RTSReplaySkin.applyElementPosition(RTSReplaySkin.title, elements.Title, RTSReplaySkin.elementDefaults.Title);
   RTSReplaySkin.applyElementPosition(RTSReplaySkin.speedLabel, speed, RTSReplaySkin.elementDefaults['Play Speed Indicator']);
-  const scale = Math.max(0, Number(speed.scale) || 0); const x = Math.max(-100, Math.min(100, Number(speed.x) || 0)); const y = Math.max(-100, Math.min(100, Number(speed.y) || 0));
+  const scale = Math.max(0, Number(speed.scale) || 0); const x = Math.max(-50, Math.min(150, Number(speed.x) || 0)); const y = Math.max(-50, Math.min(150, Number(speed.y) || 0));
   RTSReplaySkin.slowMotion.style.left = `${50 + x}%`; RTSReplaySkin.slowMotion.style.top = `calc(${50 + y}% + ${1.2 * scale / 100}em)`; RTSReplaySkin.slowMotion.style.transform = `translate(-50%, 0) scale(${scale / 100})`;
 };
 RTSReplaySkin.configureFrame = command => {
@@ -34,12 +38,13 @@ RTSReplaySkin.configureFrame = command => {
 };
 RTSReplaySkin.clearSlowMotion = () => { RTSReplaySkin.slowMotion.classList.remove('slow-motion-active', 'slow-motion-flash'); RTSReplaySkin.slowMotion.classList.add('slow-motion-hidden'); };
 RTSReplaySkin.clearSkin = () => {
-  clearTimeout(RTSReplaySkin.titleTimer); RTSReplaySkin.title.textContent = ''; RTSReplaySkin.player.classList.remove('has-title', 'has-speed', 'has-branding'); RTSReplaySkin.speedLabel.textContent = ''; RTSReplaySkin.brand.textContent = ''; RTSReplaySkin.clearSlowMotion();
+  clearTimeout(RTSReplaySkin.titleTimer); RTSReplaySkin.title.textContent = ''; RTSReplaySkin.player.classList.remove('has-title', 'has-speed', 'has-branding'); RTSReplaySkin.speedLabel.textContent = ''; RTSReplaySkin.brand.innerHTML = ''; RTSReplaySkin.clearSlowMotion();
 };
 RTSReplaySkin.configure = command => {
   RTSReplaySkin.clearSkin(); RTSReplaySkin.configureFrame(command); RTSReplaySkin.configureElements(command); RTSReplaySkin.loadFont(command.replayPlayerFont || 'Inter');
-  if (command.replayShowBranding !== false) {
-    const logo = String(command.replayLogoUrl || '').trim();
+  const showBranding = command.replayShowBranding !== false;
+  const logo = String(command.replayLogoUrl || '').trim();
+  if (showBranding) {
     if (logo) RTSReplaySkin.brand.innerHTML = `<img src="${logo.replace(/"/g, '&quot;')}" alt="">`; else RTSReplaySkin.brand.textContent = 'RTS';
     RTSReplaySkin.player.classList.add('has-branding');
   }
