@@ -29,7 +29,9 @@ public class CPHInline
         ui.AddTitle("Player", "Player");
         ui.AddToggleSwitch("Show Controls", "Display the visual player status bar. It is not interactive.", "Player", "rts.actionreplay.showControls", false);
         ui.AddToggleSwitch("Show Progress Bar", "Display the non-interactive playback progress bar.", "Player", "rts.actionreplay.showProgress", true);
-        ui.AddDecimalTextbox("Default Playback Speed", "Playback speed applied when a replay is loaded.", "Player", "rts.actionreplay.playbackSpeed", 1.0, 0.25, 2.0, 0.25);
+        ui.AddDecimalTextbox("Default Playback Speed", "Playback speed applied when a replay is loaded. Values below 1x are slow motion.", "Player", "rts.actionreplay.playbackSpeed", 1.0, 0.25, 2.0, 0.25);
+        ui.AddToggleSwitch("Show Replay Title", "Display the replay title on the player.", "Player", "rts.actionreplay.showTitle", true);
+        ui.AddDecimalTextbox("Replay Title Display Duration", "Seconds the replay title remains visible. Set to 0 to keep it visible for the entire replay.", "Player", "rts.actionreplay.titleDuration", 5.0, 0.0, 60.0, 1.0);
 
         ui.AddTitle("Player Frame", "Appearance");
         ui.AddColorPicker("Frame Color", "Main player frame and progress colour.", "Appearance", "rts.actionreplay.frameColor", "#FF0384CB");
@@ -81,6 +83,7 @@ public class CPHInline
     private void AddMessages(RtsUI ui)
     {
         ui.AddTitle("Messages", "Messages");
+        ui.AddToggleSwitch("Show Clapperboard Branding", "Show the brand area on Action Replay clapperboard messages.", "Messages", "rts.actionreplay.showClapperBranding", true);
         ui.AddTextbox("Brand Logo URL", "HTTPS URL to a PNG logo, or blank for RTS text.", "Messages", "rts.actionreplay.brandLogoUrl", "", false);
         ui.AddColorPicker("Board Color", "Clapperboard slate colour.", "Messages", "rts.actionreplay.clapper.boardColor", "#101416");
         ui.AddColorPicker("Stripe Light", "Clapperstick light stripe colour.", "Messages", "rts.actionreplay.clapper.stripeLight", "#EEEEEE");
