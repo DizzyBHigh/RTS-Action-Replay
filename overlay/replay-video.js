@@ -30,8 +30,9 @@ RTSReplayVideo.previewPosition = command => {
   RTSReplayVideo.currentCommand = command;
   RTSReplayControls.configure(command);
   RTSReplaySkin.configure(command);
-  RTSReplayVideo.activePosition = RTSReplayVideo.getPosition(command.replayPosition || 'Full Screen');
   RTSReplayVideo.player.classList.add('preview', 'show');
+  if (command.replayElementPreview === true) return;
+  RTSReplayVideo.activePosition = RTSReplayVideo.getPosition(command.replayPosition || 'Full Screen');
   RTSReplayVideo.applyPosition(RTSReplayVideo.activePosition);
 };
 
