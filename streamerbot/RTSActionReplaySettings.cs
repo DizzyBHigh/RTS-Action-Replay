@@ -32,11 +32,21 @@ public class CPHInline
         ui.AddDecimalTextbox("Default Playback Speed", "Playback speed applied when a replay is loaded. Values below 1x are slow motion.", "Player", "rts.actionreplay.playbackSpeed", 1.0, 0.25, 2.0, 0.25);
         ui.AddToggleSwitch("Show Replay Title", "Display the replay title on the player.", "Player", "rts.actionreplay.showTitle", true);
         ui.AddDecimalTextbox("Replay Title Display Duration", "Seconds the replay title remains visible. Set to 0 to keep it visible for the entire replay.", "Player", "rts.actionreplay.titleDuration", 5.0, 0.0, 60.0, 1.0);
+        ui.AddGoogleFontSelector("Player Skin Font", "Font used by the replay title and playback-speed indicators.", "Player", "rts.actionreplay.playerFont", "Inter");
+        ui.AddTextbox("Slow Motion Text", "Text shown during slow-motion playback.", "Player", "rts.actionreplay.slowMotionText", "Slow Motion", false);
+        ui.AddToggleSwitch("Show Slow Motion Speed", "Append the current playback speed to the slow-motion text.", "Player", "rts.actionreplay.slowMotionShowSpeed", true);
+        ui.AddToggleSwitch("Fade Slow Motion Indicator", "Fade the slow-motion indicator when it appears and disappears.", "Player", "rts.actionreplay.slowMotionFade", true);
+        ui.AddDecimalTextbox("Slow Motion Fade Duration", "Seconds used for slow-motion indicator fading.", "Player", "rts.actionreplay.slowMotionFadeDuration", 0.25, 0.0, 2.0, 0.05);
+        ui.AddToggleSwitch("Flash Slow Motion Indicator", "Flash the slow-motion indicator on and off repeatedly while slow motion is active.", "Player", "rts.actionreplay.slowMotionFlash", false);
+        ui.AddDecimalTextbox("Slow Motion Flash Interval", "Seconds shown and hidden for each flash phase. 0.5 gives 0.5 seconds on, then 0.5 seconds off.", "Player", "rts.actionreplay.slowMotionFlashInterval", 0.5, 0.1, 5.0, 0.1);
 
         ui.AddTitle("Player Frame", "Appearance");
         ui.AddColorPicker("Frame Color", "Main player frame and progress colour.", "Appearance", "rts.actionreplay.frameColor", "#FF0384CB");
         ui.AddColorPicker("Border Color", "Outer player border colour.", "Appearance", "rts.actionreplay.borderColor", "#FFFFFFFF");
+        ui.AddNumericTextbox("Border Width", "Width of the player border in pixels. Set to 0 for no visible border.", "Appearance", "rts.actionreplay.borderWidth", 2, 0, 20);
         ui.AddDropdown("Border Style", "Visual style of the player border.", "Appearance", "rts.actionreplay.borderStyle", new[] { "None", "Solid", "Dashed", "Double" }, "Solid");
+        ui.AddToggleSwitch("Drop Shadow", "Add a drop shadow around the player frame.", "Appearance", "rts.actionreplay.dropShadow", false);
+        ui.AddColorPicker("Shadow Color", "Base colour of the player drop shadow.", "Appearance", "rts.actionreplay.shadowColor", "#80000000");
 
         ui.AddTitle("Player Positions", "Positions");
         ui.AddPositionSelector("Default Start Position", "Position used when the player starts showing.", "Positions", "rts.actionreplay.defaultStartPosition", "rts.actionreplay.positions", "Full Screen");
@@ -75,7 +85,10 @@ public class CPHInline
         CPH.SetArgument("replayShowProgress", CPH.GetGlobalVar<bool?>("rts.actionreplay.showProgress", true) ?? true);
         CPH.SetArgument("replayFrameColor", CPH.GetGlobalVar<string>("rts.actionreplay.frameColor", true) ?? "#0384CB");
         CPH.SetArgument("replayBorderColor", CPH.GetGlobalVar<string>("rts.actionreplay.borderColor", true) ?? "#FFFFFF");
+        CPH.SetArgument("replayBorderWidth", GetSettingInt("rts.actionreplay.borderWidth", 2));
         CPH.SetArgument("replayBorderStyle", CPH.GetGlobalVar<string>("rts.actionreplay.borderStyle", true) ?? "Solid");
+        CPH.SetArgument("replayDropShadow", CPH.GetGlobalVar<bool?>("rts.actionreplay.dropShadow", true) ?? false);
+        CPH.SetArgument("replayShadowColor", CPH.GetGlobalVar<string>("rts.actionreplay.shadowColor", true) ?? "#80000000");
         CPH.SetArgument("replayPositions", positionsJson ?? "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
         CPH.TriggerEvent("RTS-Action Replay", true);
     }
@@ -107,5 +120,11 @@ public class CPHInline
         ui.AddTextbox(name + " Message", "Message sent when this command completes.", "Messages", key + ".text", message, false);
         ui.AddToggleSwitch(name + " - Chat", "Send this message to Twitch chat.", "Messages", key + ".chat", true);
         ui.AddToggleSwitch(name + " - Overlay", "Send this message to the Action Replay overlay.", "Messages", key + ".overlay", false);
+    }
+
+    private int GetSettingInt(string key, int fallback)
+    {
+        try { return Convert.ToInt32(CPH.GetGlobalVar<object>(key, true), System.Globalization.CultureInfo.InvariantCulture); }
+        catch { return fallback; }
     }
 }
