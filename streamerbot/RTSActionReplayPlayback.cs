@@ -35,10 +35,24 @@ public class CPHInline
     {
         CPH.SetArgument("replayShowControls", CPH.GetGlobalVar<bool?>("rts.actionreplay.showControls", true) ?? false); CPH.SetArgument("replayShowProgress", CPH.GetGlobalVar<bool?>("rts.actionreplay.showProgress", true) ?? true); CPH.SetArgument("replayPlaybackSpeed", GetSettingDouble("rts.actionreplay.playbackSpeed", 1.0)); CPH.SetArgument("replayShowBranding", CPH.GetGlobalVar<bool?>("rts.actionreplay.showPlayerBranding", true) ?? true); CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
         CPH.SetArgument("replayShowTitle", CPH.GetGlobalVar<bool?>("rts.actionreplay.showTitle", true) ?? true); CPH.SetArgument("replayTitleDuration", GetSettingDouble("rts.actionreplay.titleDuration", 5.0)); CPH.SetArgument("replayPlayerFont", CPH.GetGlobalVar<string>("rts.actionreplay.playerFont", true) ?? "Inter"); CPH.SetArgument("replaySlowMotionText", CPH.GetGlobalVar<string>("rts.actionreplay.slowMotionText", true) ?? "Slow Motion"); CPH.SetArgument("replaySlowMotionShowSpeed", CPH.GetGlobalVar<bool?>("rts.actionreplay.slowMotionShowSpeed", true) ?? true); CPH.SetArgument("replaySlowMotionFade", CPH.GetGlobalVar<bool?>("rts.actionreplay.slowMotionFade", true) ?? true); CPH.SetArgument("replaySlowMotionFadeDuration", GetSettingDouble("rts.actionreplay.slowMotionFadeDuration", .25)); CPH.SetArgument("replaySlowMotionFlash", CPH.GetGlobalVar<bool?>("rts.actionreplay.slowMotionFlash", true) ?? false); CPH.SetArgument("replaySlowMotionFlashInterval", GetSettingDouble("rts.actionreplay.slowMotionFlashInterval", .5));
-        CPH.SetArgument("replayPlayerElements", CPH.GetGlobalVar<string>("rts.actionreplay.playerElements", true) ?? "{\"Brand\":{\"name\":\"Brand\",\"scale\":100,\"x\":0,\"y\":0},\"Title\":{\"name\":\"Title\",\"scale\":100,\"x\":0,\"y\":0},\"Play Speed Indicator\":{\"name\":\"Play Speed Indicator\",\"scale\":100,\"x\":0,\"y\":0}}");
+        string elementsJson = CPH.GetGlobalVar<string>("rts.actionreplay.playerElements", true) ?? DefaultElements(); CPH.SetArgument("replayPlayerElements", elementsJson); SetElementArguments(elementsJson);
         CPH.SetArgument("replayFrameColor", CPH.GetGlobalVar<string>("rts.actionreplay.frameColor", true) ?? "#0384CB"); CPH.SetArgument("replayBorderColor", CPH.GetGlobalVar<string>("rts.actionreplay.borderColor", true) ?? "#FFFFFF"); CPH.SetArgument("replayBorderWidth", GetSettingInt("rts.actionreplay.borderWidth", 2)); CPH.SetArgument("replayBorderStyle", CPH.GetGlobalVar<string>("rts.actionreplay.borderStyle", true) ?? "Solid"); CPH.SetArgument("replayDropShadow", CPH.GetGlobalVar<bool?>("rts.actionreplay.dropShadow", true) ?? false); CPH.SetArgument("replayShadowColor", CPH.GetGlobalVar<string>("rts.actionreplay.shadowColor", true) ?? "#80000000");
         CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>("rts.actionreplay.positions", true) ?? "{\"Full Screen\":{\"name\":\"Full Screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}"); CPH.SetArgument("replayStartPosition", CPH.GetGlobalVar<string>("rts.actionreplay.defaultStartPosition", true) ?? "Full Screen"); CPH.SetArgument("replayEndPosition", CPH.GetGlobalVar<string>("rts.actionreplay.defaultEndPosition", true) ?? "Full Screen"); CPH.SetArgument("replayAnimationDuration", GetSettingDouble("rts.actionreplay.animationDuration", .5)); CPH.SetArgument("replayAnimationEasing", CPH.GetGlobalVar<string>("rts.actionreplay.animationEasing", true) ?? "ease-in-out");
     }
+    private void SetElementArguments(string json)
+    {
+        try
+        {
+            var elements = JObject.Parse(json ?? DefaultElements()); SetElementArgument("Brand", elements); SetElementArgument("Title", elements); SetElementArgument("Play Speed Indicator", elements);
+        }
+        catch { SetElementArgument("Brand", null); SetElementArgument("Title", null); SetElementArgument("Play Speed Indicator", null); }
+    }
+    private void SetElementArgument(string name, JObject elements)
+    {
+        JObject element = elements?[name] as JObject; string prefix = name == "Play Speed Indicator" ? "Speed" : name;
+        CPH.SetArgument("replay" + prefix + "Scale", element?["scale"]?.Value<int>() ?? 100); CPH.SetArgument("replay" + prefix + "X", element?["x"]?.Value<int>() ?? 0); CPH.SetArgument("replay" + prefix + "Y", element?["y"]?.Value<int>() ?? 0);
+    }
+    private static string DefaultElements() => "{\"Brand\":{\"name\":\"Brand\",\"scale\":100,\"x\":0,\"y\":0},\"Title\":{\"name\":\"Title\",\"scale\":100,\"x\":0,\"y\":0},\"Play Speed Indicator\":{\"name\":\"Play Speed Indicator\",\"scale\":100,\"x\":0,\"y\":0}}";
     private void SendMessage(string type)
     {
         var key = "rts.actionreplay.message." + type; var text = CPH.GetGlobalVar<string>(key + ".text", true); if (string.IsNullOrWhiteSpace(text)) return; text = CPH.Parse(text); if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) CPH.SendMessage(text); if (!(CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false)) return;
