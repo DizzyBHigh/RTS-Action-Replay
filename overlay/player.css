@@ -12,6 +12,8 @@
   --frame-color: #0384CB;
   --border-primary: #0384CB;
   --border-secondary: #101416;
+  --border-width: 4px;
+  --corner-radius: 0px;
   --player-duration: 0.5s;
   --player-easing: ease-in-out;
 }
@@ -22,16 +24,15 @@
 #player-frame {
   position: relative;
   overflow: hidden;
-  border: 4px solid transparent;
+  border: var(--border-width) solid transparent;
+  border-radius: var(--corner-radius);
   background: linear-gradient(var(--frame-color), var(--frame-color)) padding-box, linear-gradient(135deg, var(--border-primary), var(--border-secondary), var(--border-primary)) border-box;
   box-sizing: border-box;
-  box-shadow: 0 0 0 1px rgba(3,132,203,.35), 0 0 18px rgba(3,132,203,.28);
+  box-shadow: none;
 }
 
-#player-frame.border-none { border-style: none; background: var(--frame-color); box-shadow: none; }
-#player-frame.border-solid { border-style: solid; }
-#player-frame.border-dashed { border-style: dashed; }
-#player-frame.border-double { border-style: double; }
+#player-frame.border-glow { box-shadow: 0 0 0 1px color-mix(in srgb,var(--border-primary) 55%,transparent), 0 0 12px color-mix(in srgb,var(--border-primary) 55%,transparent), 0 0 26px color-mix(in srgb,var(--border-secondary) 45%,transparent); }
+#player-frame.border-none { border-width: 0; background: var(--frame-color); box-shadow: none; }
 
 #video {
   display: block;
