@@ -20,12 +20,19 @@ RTSReplayVideo.loadReplay = command => {
   RTSReplayVideo.currentCommand = command;
   RTSReplayControls.configure(command);
   RTSReplayElements.configure(command);
-  const positionName = command.replayPosition || 'Full Screen';
-  RTSReplayVideo.activePosition = RTSReplayVideo.getPosition(positionName);
+  const startName = command.replayStartPosition || command.replayPosition || 'Full Screen';
+  const endName = command.replayEndPosition || startName;
+  const startPosition = RTSReplayVideo.getPosition(startName);
+  const endPosition = RTSReplayVideo.getPosition(endName);
+  RTSReplayVideo.activePosition = endPosition;
   RTSReplayVideo.video.src = command.replayUrl;
   RTSReplayVideo.video.style.display = 'block';
   RTSReplayVideo.video.load();
-  RTSReplayVideo.animateIn(RTSReplayVideo.activePosition);
+  if (RTSReplayVideo.player.classList.contains('show')) {
+    RTSReplayVideo.applyPosition(endPosition);
+  } else {
+    RTSReplayVideo.animateIn(startPosition, endPosition);
+  }
   if (command.replayAutoplay) RTSReplayVideo.video.addEventListener('canplay', () => RTSReplayVideo.playReplay(command), { once: true });
 };
 
