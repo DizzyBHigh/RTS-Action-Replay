@@ -1,14 +1,13 @@
 // Streamer.bot C# actions for RTS Action Replay Twitch integration.
 //
 // CreateTwitchClip:
-//   Run from the !twitchclip command. Creates a Twitch Clip, downloads it,
-//   adds it to the Catalog + Recent Clips, then immediately plays it.
+//   Creates a Twitch Clip, stores its Twitch metadata/URL in the Catalog,
+//   optionally downloads a local copy, adds it to Recent Clips, then plays it.
 //
 // SyncTwitchClips:
-//   Run on a recurring schedule (recommended: once per hour). Retrieves
-//   Twitch clips, adds only clips not already in the Catalog, and never
-//   queues or plays clips discovered by the reconciliation pass.
+//   Reconciles Twitch clips into the Catalog/Recent Clips without queueing or playing them.
 //
+// Twitch playback mode is Action Replay configuration, not Catalog data.
 // Requires Streamer.bot 1.0.3+ for TwitchGetClipDownloadUrls.
 
 using System;
@@ -24,13 +23,14 @@ public class CPHInline
     private const string CatalogKey = "rts.actionreplay.catalog";
     private const string RecentKey = "rts.actionreplay.recentIds";
     private const string MaxRecentKey = "rts.actionreplay.maxHistory";
+    private const string PlaybackModeKey = "rts.actionreplay.twitch.playbackMode";
+    private const string TwitchFolderKey = "rts.actionreplay.twitch.folder";
 
     public bool Execute() => CreateTwitchClip();
 
     public bool CreateTwitchClip()
     {
-        string rawInput;
-        CPH.TryGetArg("rawInput", out rawInput);
+        CPH.TryGetArg("rawInput", out string rawInput);
         var title = string.IsNullOrWhiteSpace(rawInput) ? null : rawInput.Trim();
         var duration = GetSettingInt("rts.actionreplay.twitch.clipDuration", 30);
         duration = Math.Max(5, Math.Min(60, duration));
@@ -54,7 +54,7 @@ public class CPHInline
         CPH.SetArgument("replayTitle", (string)item["title"] ?? "");
         CPH.SetArgument("replaySource", "Twitch");
 
-        BroadcastReplay(item);
+        if (!BroadcastReplay(item)) return false;
         return true;
     }
 
@@ -62,10 +62,7 @@ public class CPHInline
     {
         InitializeCatalog();
         List<ClipData> clips;
-        try
-        {
-            clips = CPH.GetClips(1000, null);
-        }
+        try { clips = CPH.GetClips(1000, null); }
         catch (Exception ex)
         {
             CPH.LogError("RTS Action Replay: Twitch clip reconciliation failed: " + ex.Message);
@@ -95,20 +92,19 @@ public class CPHInline
         var data = LoadCatalog();
         var catalog = (JArray)data["catalog"];
         var recent = (JArray)data["recentIds"];
-
         var existing = FindTwitchClip(catalog, clip.Id);
         if (existing != null)
         {
-            CPH.LogInfo("RTS Action Replay: Twitch clip already in Catalog: " + clip.Id);
+            // A Catalog item may pre-date the current storage/playback setting.
+            // Do not rewrite its mode; optionally create a missing local copy.
+            EnsureLocalCopyIfConfigured(existing, clip.Id);
             return existing;
         }
 
-        var localPath = DownloadClip(clip.Id);
-        if (string.IsNullOrWhiteSpace(localPath))
-        {
-            CPH.LogWarn("RTS Action Replay: could not download Twitch clip " + clip.Id + "; Catalog entry was not created.");
-            return null;
-        }
+        var mode = GetPlaybackMode();
+        string localPath = null;
+        if (ModeNeedsLocalCopy(mode))
+            localPath = DownloadClip(clip.Id);
 
         var now = DateTime.Now;
         var title = string.IsNullOrWhiteSpace(clip.Title) ? "Twitch Clip" : clip.Title;
@@ -121,16 +117,8 @@ public class CPHInline
             ["customTitle"] = false,
             ["added"] = now.ToString("o"),
             ["captured"] = clip.CreatedAt.ToString("o"),
-            ["creator"] = new JObject
-            {
-                ["id"] = clip.CreatorId.ToString(),
-                ["name"] = clip.CreatorName ?? ""
-            },
-            ["broadcaster"] = new JObject
-            {
-                ["id"] = clip.BroadcasterId,
-                ["name"] = clip.BroadcasterName ?? ""
-            },
+            ["creator"] = new JObject { ["id"] = clip.CreatorId.ToString(), ["name"] = clip.CreatorName ?? "" },
+            ["broadcaster"] = new JObject { ["id"] = clip.BroadcasterId ?? "", ["name"] = clip.BroadcasterName ?? "" },
             ["gameId"] = clip.GameId ?? "",
             ["language"] = clip.Language ?? "",
             ["duration"] = clip.Duration,
@@ -139,13 +127,16 @@ public class CPHInline
             ["externalUrl"] = clip.Url ?? "",
             ["embedUrl"] = clip.EmbedUrl ?? "",
             ["thumbnailUrl"] = clip.ThumbnailUrl ?? "",
-            ["file"] = Path.GetFileName(localPath),
-            ["filePath"] = localPath,
+            ["file"] = string.IsNullOrWhiteSpace(localPath) ? "" : Path.GetFileName(localPath),
+            ["filePath"] = localPath ?? "",
             ["sourceTypeDisplay"] = "Twitch",
             ["acquisitionMethod"] = playAfterAdd ? "TwitchCommand" : "TwitchDiscovery",
             ["plays"] = 0,
             ["users"] = new JObject()
         };
+
+        if (ModeNeedsLocalCopy(mode) && string.IsNullOrWhiteSpace(localPath))
+            CPH.LogWarn("RTS Action Replay: local Twitch copy could not be created for " + clip.Id + ". The Catalog entry retains the Twitch URL.");
 
         catalog.Insert(0, item);
         AddRecent(recent, (string)item["id"]);
@@ -154,106 +145,125 @@ public class CPHInline
         data["recentIds"] = recent;
         data["version"] = 2;
         SaveCatalog(data);
-
-        // Keep the current playback implementation compatible while the Catalog
-        // becomes the long-term source of truth. This legacy projection is only
-        // used by the existing player until its lookup is switched to Catalog.
         AddLegacyReplayProjection(item);
 
         CPH.LogInfo("RTS Action Replay: added Twitch clip to Catalog: " + title + " (" + clip.Id + ")");
         return item;
     }
 
-    private string DownloadClip(string clipId)
+    private string GetPlaybackMode()
     {
-        var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true);
-        if (string.IsNullOrWhiteSpace(folder))
+        var mode = CPH.GetGlobalVar<string>(PlaybackModeKey, true);
+        if (string.Equals(mode, "Twitch URL", StringComparison.OrdinalIgnoreCase)) return "Twitch URL";
+        if (string.Equals(mode, "Both", StringComparison.OrdinalIgnoreCase)) return "Both";
+        return "Download Locally";
+    }
+
+    private bool ModeNeedsLocalCopy(string mode)
+    {
+        return string.Equals(mode, "Download Locally", StringComparison.OrdinalIgnoreCase) || string.Equals(mode, "Both", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void EnsureLocalCopyIfConfigured(JObject item, string clipId)
+    {
+        if (!ModeNeedsLocalCopy(GetPlaybackMode())) return;
+        var current = (string)item["filePath"];
+        if (!string.IsNullOrWhiteSpace(current) && File.Exists(current)) return;
+        var path = DownloadClip(clipId);
+        if (string.IsNullOrWhiteSpace(path)) return;
+        item["file"] = Path.GetFileName(path);
+        item["filePath"] = path;
+        var data = LoadCatalog();
+        var catalog = (JArray)data["catalog"];
+        var target = FindTwitchClip(catalog, clipId);
+        if (target != null)
         {
-            CPH.LogError("RTS Action Replay: Replay Folder is not configured; cannot download Twitch clips.");
-            return null;
+            target["file"] = Path.GetFileName(path);
+            target["filePath"] = path;
+            SaveCatalog(data);
         }
+    }
 
-        var twitchFolder = Path.Combine(folder, "Twitch");
-        Directory.CreateDirectory(twitchFolder);
-        var destination = Path.Combine(twitchFolder, "twitch-" + SanitizeFileName(clipId) + ".mp4");
-
-        if (File.Exists(destination) && new FileInfo(destination).Length > 0)
-            return destination;
-
+    private string GetTwitchMediaUrl(string clipId)
+    {
         for (var attempt = 1; attempt <= 10; attempt++)
         {
             try
             {
                 var urls = CPH.TwitchGetClipDownloadUrls(clipId);
                 var url = urls == null ? null : urls.LandscapeDownloadUrl;
-                if (string.IsNullOrWhiteSpace(url))
-                    url = urls == null ? null : urls.PortraitDownloadUrl;
-
-                if (!string.IsNullOrWhiteSpace(url))
-                {
-                    using (var client = new WebClient())
-                    {
-                        client.DownloadFile(url, destination + ".tmp");
-                    }
-
-                    if (File.Exists(destination + ".tmp") && new FileInfo(destination + ".tmp").Length > 0)
-                    {
-                        if (File.Exists(destination)) File.Delete(destination);
-                        File.Move(destination + ".tmp", destination);
-                        return destination;
-                    }
-                }
+                if (string.IsNullOrWhiteSpace(url)) url = urls == null ? null : urls.PortraitDownloadUrl;
+                if (!string.IsNullOrWhiteSpace(url)) return url;
             }
             catch (Exception ex)
             {
-                CPH.LogWarn("RTS Action Replay: Twitch clip download attempt " + attempt + " failed for " + clipId + ": " + ex.Message);
+                CPH.LogWarn("RTS Action Replay: Twitch media URL attempt " + attempt + " failed for " + clipId + ": " + ex.Message);
             }
-
             if (attempt < 10) CPH.Wait(2000);
         }
+        return null;
+    }
 
+    private string DownloadClip(string clipId)
+    {
+        var folder = CPH.GetGlobalVar<string>(TwitchFolderKey, true);
+        if (string.IsNullOrWhiteSpace(folder))
+        {
+            CPH.LogError("RTS Action Replay: Twitch Clip Folder is not configured; cannot create a local Twitch copy.");
+            return null;
+        }
+
+        var replayFolder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true);
+        if (!string.IsNullOrWhiteSpace(replayFolder) && PathsEqual(folder, replayFolder))
+        {
+            CPH.LogError("RTS Action Replay: Twitch Clip Folder must be different from the OBS Replay Folder.");
+            return null;
+        }
+
+        Directory.CreateDirectory(folder);
+        var destination = Path.Combine(folder, "twitch-" + SanitizeFileName(clipId) + ".mp4");
+        if (File.Exists(destination) && new FileInfo(destination).Length > 0) return destination;
+
+        var url = GetTwitchMediaUrl(clipId);
+        if (string.IsNullOrWhiteSpace(url)) return null;
+
+        try
+        {
+            using (var client = new WebClient()) client.DownloadFile(url, destination + ".tmp");
+            if (File.Exists(destination + ".tmp") && new FileInfo(destination + ".tmp").Length > 0)
+            {
+                if (File.Exists(destination)) File.Delete(destination);
+                File.Move(destination + ".tmp", destination);
+                return destination;
+            }
+        }
+        catch (Exception ex)
+        {
+            CPH.LogWarn("RTS Action Replay: Twitch clip download failed for " + clipId + ": " + ex.Message);
+        }
         try { if (File.Exists(destination + ".tmp")) File.Delete(destination + ".tmp"); } catch { }
         return null;
     }
 
-    private void AddLegacyReplayProjection(JObject item)
+    private bool BroadcastReplay(JObject item)
     {
-        var data = JObject.Parse(CPH.GetGlobalVar<string>(DataKey, true) ?? "{\"version\":1,\"replays\":[]}");
-        var list = (JArray)data["replays"] ?? new JArray();
-        var file = (string)item["file"];
-        for (var i = 0; i < list.Count; i++)
-            if (string.Equals((string)list[i]["file"], file, StringComparison.OrdinalIgnoreCase)) return;
-
-        var replay = new JObject
+        var mode = GetPlaybackMode();
+        var replayUrl = ResolvePlaybackUrl(item, mode);
+        if (string.IsNullOrWhiteSpace(replayUrl))
         {
-            ["id"] = (string)item["id"],
-            ["file"] = file,
-            ["title"] = (string)item["title"],
-            ["customTitle"] = false,
-            ["added"] = (string)item["added"],
-            ["creator"] = item["creator"].DeepClone(),
-            ["plays"] = 0,
-            ["users"] = new JObject(),
-            ["sourceType"] = "Twitch",
-            ["sourceId"] = (string)item["sourceId"]
-        };
-        list.Insert(0, replay);
-        var max = CPH.GetGlobalVar<int?>(MaxRecentKey, true) ?? 20;
-        while (list.Count > Math.Max(1, max)) list.RemoveAt(list.Count - 1);
-        data["replays"] = list;
-        CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
-    }
+            CPH.SendMessage("I couldn't get a playable Twitch clip.");
+            return false;
+        }
 
-    private void BroadcastReplay(JObject item)
-    {
         var mapping = CPH.GetGlobalVar<string>("rts.actionreplay.httpMapping", true) ?? "replays";
         var port = CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474;
         CPH.SetArgument("replayCommand", "load");
         CPH.SetArgument("replayId", (string)item["id"]);
         CPH.SetArgument("replayTitle", (string)item["title"] ?? "Twitch Clip");
-        CPH.SetArgument("replayUrl", "http://localhost:" + port + "/" + mapping.Trim('/') + "/" + CPH.UrlEncode((string)item["file"]));
+        CPH.SetArgument("replayUrl", replayUrl);
         CPH.SetArgument("replayAutoplay", true);
         CPH.SetArgument("replaySource", "Twitch");
+        CPH.SetArgument("replaySourceId", (string)item["sourceId"] ?? "");
         CPH.SetArgument("replayShowControls", CPH.GetGlobalVar<bool?>("rts.actionreplay.showControls", true) ?? false);
         CPH.SetArgument("replayShowProgress", CPH.GetGlobalVar<bool?>("rts.actionreplay.showProgress", true) ?? true);
         CPH.SetArgument("replayPlaybackSpeed", GetSettingDouble("rts.actionreplay.playbackSpeed", 1.0));
@@ -281,12 +291,70 @@ public class CPHInline
         CPH.SetArgument("replayTitlePrimaryColor", CPH.GetGlobalVar<string>("rts.actionreplay.titlePrimaryColor", true) ?? "#0384CBFF");
         CPH.SetArgument("replayTitleSecondaryColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleSecondaryColor", true) ?? "#101416FF");
         CPH.TriggerEvent("RTS-Action Replay", true);
+        return true;
     }
 
-    private bool CatalogContainsTwitchClip(string clipId)
+    private string ResolvePlaybackUrl(JObject item, string mode)
     {
-        return FindTwitchClip(LoadCatalog()["catalog"] as JArray, clipId) != null;
+        if (string.Equals(mode, "Twitch URL", StringComparison.OrdinalIgnoreCase))
+            return GetTwitchMediaUrl((string)item["sourceId"]);
+
+        var localPath = (string)item["filePath"];
+        if (string.IsNullOrWhiteSpace(localPath)) localPath = (string)item["file"];
+        if (!string.IsNullOrWhiteSpace(localPath))
+        {
+            var folder = CPH.GetGlobalVar<string>(TwitchFolderKey, true);
+            var fullPath = Path.IsPathRooted(localPath) ? localPath : Path.Combine(folder ?? "", localPath);
+            if (File.Exists(fullPath))
+            {
+                var mapping = CPH.GetGlobalVar<string>("rts.actionreplay.twitch.httpMapping", true) ?? "twitch";
+                var port = CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474;
+                return "http://localhost:" + port + "/" + mapping.Trim('/') + "/" + CPH.UrlEncode(Path.GetFileName(fullPath));
+            }
+        }
+
+        var path = DownloadClip((string)item["sourceId"]);
+        if (!string.IsNullOrWhiteSpace(path))
+        {
+            item["file"] = Path.GetFileName(path);
+            item["filePath"] = path;
+            return "http://localhost:" + (CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474) + "/" + (CPH.GetGlobalVar<string>("rts.actionreplay.twitch.httpMapping", true) ?? "twitch").Trim('/') + "/" + CPH.UrlEncode(Path.GetFileName(path));
+        }
+
+        // If a local copy is unavailable, retain a usable Twitch playback path.
+        return GetTwitchMediaUrl((string)item["sourceId"]);
     }
+
+    private void AddLegacyReplayProjection(JObject item)
+    {
+        var data = JObject.Parse(CPH.GetGlobalVar<string>(DataKey, true) ?? "{\"version\":1,\"replays\":[]}");
+        var list = (JArray)data["replays"] ?? new JArray();
+        var id = (string)item["id"];
+        for (var i = 0; i < list.Count; i++) if (string.Equals((string)list[i]["id"], id, StringComparison.OrdinalIgnoreCase)) return;
+
+        var replay = new JObject
+        {
+            ["id"] = id,
+            ["file"] = (string)item["file"] ?? "",
+            ["filePath"] = (string)item["filePath"] ?? "",
+            ["title"] = (string)item["title"],
+            ["customTitle"] = false,
+            ["added"] = (string)item["added"],
+            ["creator"] = item["creator"].DeepClone(),
+            ["plays"] = 0,
+            ["users"] = new JObject(),
+            ["sourceType"] = "Twitch",
+            ["sourceId"] = (string)item["sourceId"],
+            ["externalUrl"] = (string)item["externalUrl"] ?? ""
+        };
+        list.Insert(0, replay);
+        var max = CPH.GetGlobalVar<int?>(MaxRecentKey, true) ?? 20;
+        while (list.Count > Math.Max(1, max)) list.RemoveAt(list.Count - 1);
+        data["replays"] = list;
+        CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
+    }
+
+    private bool CatalogContainsTwitchClip(string clipId) => FindTwitchClip(LoadCatalog()["catalog"] as JArray, clipId) != null;
 
     private JObject FindTwitchClip(JArray catalog, string clipId)
     {
@@ -294,8 +362,7 @@ public class CPHInline
         for (var i = 0; i < catalog.Count; i++)
         {
             var item = catalog[i] as JObject;
-            if (item == null) continue;
-            if (string.Equals((string)item["sourceType"], "Twitch", StringComparison.OrdinalIgnoreCase) && string.Equals((string)item["sourceId"], clipId, StringComparison.OrdinalIgnoreCase)) return item;
+            if (item != null && string.Equals((string)item["sourceType"], "Twitch", StringComparison.OrdinalIgnoreCase) && string.Equals((string)item["sourceId"], clipId, StringComparison.OrdinalIgnoreCase)) return item;
         }
         return null;
     }
@@ -336,24 +403,17 @@ public class CPHInline
         return data;
     }
 
-    private void InitializeCatalog()
-    {
-        LoadCatalog();
-    }
+    private void InitializeCatalog() { LoadCatalog(); }
 
     private void SaveCatalog(JObject data)
     {
         CPH.SetGlobalVar(CatalogKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
-        // Keep the canonical state available under the existing data key for
-        // older Action Replay actions until those actions are migrated to the
-        // Catalog lookup.
         CPH.SetGlobalVar(RecentKey, ((JArray)data["recentIds"]).ToString(Newtonsoft.Json.Formatting.None), true);
     }
 
     private void AddRecent(JArray recent, string id)
     {
-        for (var i = recent.Count - 1; i >= 0; i--)
-            if (string.Equals((string)recent[i], id, StringComparison.OrdinalIgnoreCase)) recent.RemoveAt(i);
+        for (var i = recent.Count - 1; i >= 0; i--) if (string.Equals((string)recent[i], id, StringComparison.OrdinalIgnoreCase)) recent.RemoveAt(i);
         recent.Insert(0, id);
     }
 
@@ -363,33 +423,29 @@ public class CPHInline
         while (recent.Count > Math.Max(1, max)) recent.RemoveAt(recent.Count - 1);
     }
 
+    private bool PathsEqual(string a, string b)
+    {
+        try { return string.Equals(Path.GetFullPath(a).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), Path.GetFullPath(b).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), StringComparison.OrdinalIgnoreCase); }
+        catch { return string.Equals(a, b, StringComparison.OrdinalIgnoreCase); }
+    }
+
     private string SanitizeFileName(string value)
     {
         var invalid = Path.GetInvalidFileNameChars();
         var chars = value.ToCharArray();
-        for (var i = 0; i < chars.Length; i++)
-            for (var j = 0; j < invalid.Length; j++)
-                if (chars[i] == invalid[j]) chars[i] = '_';
+        for (var i = 0; i < chars.Length; i++) for (var j = 0; j < invalid.Length; j++) if (chars[i] == invalid[j]) chars[i] = '_';
         return new string(chars);
     }
 
     private int GetSettingInt(string key, int fallback)
     {
-        try
-        {
-            object value = CPH.GetGlobalVar<object>(key, true);
-            return value == null ? fallback : Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture);
-        }
+        try { object value = CPH.GetGlobalVar<object>(key, true); return value == null ? fallback : Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture); }
         catch { return fallback; }
     }
 
     private double GetSettingDouble(string key, double fallback)
     {
-        try
-        {
-            object value = CPH.GetGlobalVar<object>(key, true);
-            return value == null ? fallback : Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
-        }
+        try { object value = CPH.GetGlobalVar<object>(key, true); return value == null ? fallback : Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture); }
         catch { return fallback; }
     }
 }
