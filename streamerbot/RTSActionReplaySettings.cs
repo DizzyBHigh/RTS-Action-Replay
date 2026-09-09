@@ -42,11 +42,8 @@ public class CPHInline
         ui.AddNumericTextbox("Title Font Size", "Replay title font size in pixels.", "Player", "rts.actionreplay.titleFontSize", 34, 12, 96);
         ui.AddColorPicker("Title Font Color", "Replay title text colour.", "Player", "rts.actionreplay.titleTextColor", "#FFFFFFFF");
         ui.AddColorPicker("Title Shadow Color", "Replay title shadow colour.", "Player", "rts.actionreplay.titleShadowColor", "#FF000000");
-        ui.AddColorPicker("Gradient Start Color", "Main title background gradient start colour.", "Player", "rts.actionreplay.titleGradientStart", "#FF05090C");
-        ui.AddColorPicker("Gradient End Color", "Main title background gradient end colour.", "Player", "rts.actionreplay.titleGradientEnd", "#FF16232B");
-        ui.AddColorPicker("Background Color", "Base title background colour.", "Player", "rts.actionreplay.titleBackgroundColor", "#FF05090C");
-        ui.AddColorPicker("Shape Gradient Start", "Start colour for the title's decorative CSS shapes.", "Player", "rts.actionreplay.titleShapeGradientStart", "#FF0384CB");
-        ui.AddColorPicker("Shape Gradient End", "End colour for the title's decorative CSS shapes.", "Player", "rts.actionreplay.titleShapeGradientEnd", "#FF7BD7FF");
+        ui.AddColorPicker("Title Primary Color", "Primary colour used to generate the title background, glow and accent treatment.", "Player", "rts.actionreplay.titlePrimaryColor", "#FF0384CB");
+        ui.AddColorPicker("Title Secondary Color", "Secondary colour used to generate the title background treatment.", "Player", "rts.actionreplay.titleSecondaryColor", "#FF101416");
 
         ui.AddTitle("Player Frame", "Appearance");
         ui.AddColorPicker("Frame Color", "Main player frame and progress colour.", "Appearance", "rts.actionreplay.frameColor", "#FF0384CB");
