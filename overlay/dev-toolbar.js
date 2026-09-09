@@ -48,7 +48,7 @@
     const current = command || RTSReplayVideo?.currentCommand || RTSReplay?.command || {};
     const number = current.replayNumber || 1;
     const title = current.replayTitle || 'FIRST TEST';
-    const director = current.replayUserName || '—';
+    const director = current.replayDirector || '—';
     const played = current.replayPlayedCount ?? '—';
     const length = formatDuration(RTSReplay?.video?.duration);
     const text = document.getElementById('message-text');
