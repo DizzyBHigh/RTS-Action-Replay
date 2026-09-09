@@ -18,6 +18,7 @@ RTSReplayVideo.playReplay = command => {
 RTSReplayVideo.loadReplay = command => {
   if (!command.replayUrl) return;
   RTSReplayVideo.currentCommand = command;
+  RTSDevToolbar?.updateClapper?.(command);
   RTSReplayControls.configure(command);
   RTSReplayElements.configure(command);
   const startName = command.replayStartPosition || command.replayPosition || 'Full Screen';
