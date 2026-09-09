@@ -19,6 +19,7 @@ RTSReplayVideo.loadReplay = command => {
   if (!command.replayUrl) return;
   RTSReplayVideo.currentCommand = command;
   RTSReplayControls.configure(command);
+  RTSReplayElements.configure(command);
   const positionName = command.replayPosition || 'Full Screen';
   RTSReplayVideo.activePosition = RTSReplayVideo.getPosition(positionName);
   RTSReplayVideo.video.src = command.replayUrl;
