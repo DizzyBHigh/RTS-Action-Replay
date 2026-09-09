@@ -30,8 +30,11 @@ public class CPHInline
         ui.AddToggleSwitch("Show Controls", "Display the visual player status bar. It is not interactive.", "Player", "rts.actionreplay.showControls", false);
         ui.AddToggleSwitch("Show Progress Bar", "Display the non-interactive playback progress bar.", "Player", "rts.actionreplay.showProgress", true);
         ui.AddDecimalTextbox("Default Playback Speed", "Playback speed applied when a replay is loaded.", "Player", "rts.actionreplay.playbackSpeed", 1.0, 0.25, 2.0, 0.25);
+        ui.AddToggleSwitch("Show Replay Branding", "Display the player branding above the replay title.", "Player", "rts.actionreplay.showBranding", true);
+        ui.AddTextbox("Branding Logo URL", "Optional HTTPS URL for the branding logo. Leave blank to use the fallback text.", "Player", "rts.actionreplay.brandLogoUrl", "", false);
+        ui.AddTextbox("Branding Fallback Text", "Text displayed when no branding logo is defined or the logo cannot be loaded.", "Player", "rts.actionreplay.brandFallbackText", "RTS", false);
+        ui.AddTextbox("Branding Label", "Text displayed beside the branding logo or fallback.", "Player", "rts.actionreplay.brandLabel", "ACTION REPLAY", false);
         ui.AddToggleSwitch("Show Replay Title", "Display the replay title on the video.", "Player", "rts.actionreplay.showTitle", true);
-        ui.AddToggleSwitch("Show Replay Branding", "Display RTS Action Replay branding with the title.", "Player", "rts.actionreplay.showBranding", true);
         ui.AddDropdown("Title Decoration Position", "Choose whether the title decoration appears before or after the replay title.", "Player", "rts.actionreplay.titleDecorationPosition", new[] { "Prefix", "Suffix" }, "Suffix");
         ui.AddTextbox("Title Decoration", "Optional text added to the replay title on the player only.", "Player", "rts.actionreplay.titleDecoration", " - Replay Capture", false);
         ui.AddDropdown("Title Bar Style", "Choose the visual design used for the replay title.", "Player", "rts.actionreplay.titleBarStyle", new[] { "Broadcast", "Cinematic", "Cut", "Minimal" }, "Broadcast");
@@ -44,8 +47,8 @@ public class CPHInline
         ui.AddNumericTextbox("Title Font Size", "Replay title font size in pixels.", "Player", "rts.actionreplay.titleFontSize", 34, 12, 96);
         ui.AddColorPicker("Title Font Color", "Replay title text colour.", "Player", "rts.actionreplay.titleTextColor", "#FFFFFFFF");
         ui.AddColorPicker("Title Shadow Color", "Replay title shadow colour.", "Player", "rts.actionreplay.titleShadowColor", "#000000FF");
-        ui.AddColorPicker("Title Primary Color", "Primary colour used to generate the title background, glow and accent treatment.", "Player", "rts.actionreplay.titlePrimaryColor", "#0384CBFF");
-        ui.AddColorPicker("Title Secondary Color", "Secondary colour used to generate the title background treatment.", "Player", "rts.actionreplay.titleSecondaryColor", "#101416FF");
+        ui.AddColorPicker("Title Primary Color", "Primary colour used to generate title accents.", "Player", "rts.actionreplay.titlePrimaryColor", "#0384CBFF");
+        ui.AddColorPicker("Title Secondary Color", "Secondary colour used to generate title accents.", "Player", "rts.actionreplay.titleSecondaryColor", "#101416FF");
 
         ui.AddTitle("Player Frame", "Appearance");
         ui.AddColorPicker("Frame Color", "Main player frame and progress colour.", "Appearance", "rts.actionreplay.frameColor", "#0384CBFF");
@@ -69,7 +72,6 @@ public class CPHInline
     private void AddMessages(RtsUI ui)
     {
         ui.AddTitle("Messages", "Messages");
-        ui.AddTextbox("Brand Logo URL", "HTTPS URL to a PNG logo, or blank for RTS text.", "Messages", "rts.actionreplay.brandLogoUrl", "", false);
         ui.AddColorPicker("Board Color", "Clapperboard slate colour.", "Messages", "rts.actionreplay.clapper.boardColor", "#101416");
         ui.AddColorPicker("Stripe Light", "Clapperstick light stripe colour.", "Messages", "rts.actionreplay.clapper.stripeLight", "#EEEEEE");
         ui.AddColorPicker("Stripe Dark", "Clapperstick dark stripe colour.", "Messages", "rts.actionreplay.clapper.stripeDark", "#111111");
