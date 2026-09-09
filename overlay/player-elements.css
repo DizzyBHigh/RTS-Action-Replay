@@ -43,7 +43,7 @@
   letter-spacing:.045em;
   text-align:center;
   text-shadow:0 2px 8px var(--title-shadow-color,#000),0 1px 2px #000;
-  background:var(--title-background,rgba(16,20,22,.88));
+  background:var(--title-background,linear-gradient(90deg,rgba(3,132,203,.94),rgba(16,20,22,.88),rgba(3,132,203,.94)));
   border-top:1px solid rgba(255,255,255,.22);
   border-bottom:1px solid rgba(255,255,255,.16);
   overflow:hidden;
@@ -67,8 +67,8 @@
   right:0;
   bottom:0;
   height:3px;
-  background:linear-gradient(90deg,transparent 0%,var(--frame-color,#0384CB) 18%,var(--frame-color,#0384CB) 82%,transparent 100%);
-  box-shadow:0 0 14px var(--frame-color,#0384CB);
+  background:linear-gradient(90deg,transparent 0%,var(--title-primary,#0384CB) 18%,var(--title-primary,#0384CB) 82%,transparent 100%);
+  box-shadow:0 0 14px var(--title-primary,#0384CB);
 }
 
 #player-title.title-top { top:0; transform:translateY(-105%); }
