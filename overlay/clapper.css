@@ -1,6 +1,6 @@
 .clapper {
   position: relative;
-  width: min(760px, 82vw);
+  width: min(680px, 78vw);
   transform: rotate(-1deg) translateY(12px) scale(calc(.92 * var(--message-scale)));
   filter: drop-shadow(0 22px 28px #000b);
 }
