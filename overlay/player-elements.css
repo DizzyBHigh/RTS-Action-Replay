@@ -20,7 +20,9 @@
 #player-title.title-cut{min-height:96px;padding:18px 17%;border:1px solid rgba(255,255,255,.16);clip-path:polygon(0 0,92% 0,100% 50%,92% 100%,0 100%,4% 50%);letter-spacing:.055em;box-shadow:0 10px 30px rgba(0,0,0,.46)}
 #player-title.title-cut:before{content:"";position:absolute;left:7%;top:9px;width:21%;height:1px;background:var(--title-primary,#0384CB);opacity:.55;animation:cut-header-pulse 9s ease-in-out infinite}
 #player-title.title-cut:after{content:"";position:absolute;left:4%;right:8%;bottom:7px;height:5px;background:transparent;box-shadow:none}
-#player-title.title-cut .cut-bar-track{position:absolute;left:4%;right:8%;bottom:7px;height:5px;overflow:visible;pointer-events:none;will-change:contents}
+#player-title.title-cut .cut-bar-track{position:absolute;left:4%;right:8%;height:5px;overflow:visible;pointer-events:none;will-change:contents}
+#player-title.title-cut .cut-bar-track-bottom{bottom:7px}
+#player-title.title-cut .cut-bar-track-top{top:7px}
 #player-title.title-cut .cut-bar-block{position:absolute;left:0;top:0;display:block;height:5px;will-change:transform}
 #player-title.title-minimal{min-height:82px;padding:15px 14%;letter-spacing:.1em;box-shadow:0 0 38px rgba(0,0,0,.5)}
 #player-title.title-minimal:before{content:"";position:absolute;left:15%;right:15%;top:8px;bottom:8px;border-top:1px solid rgba(255,255,255,.38);border-bottom:1px solid rgba(255,255,255,.16);clip-path:polygon(0 0,96% 0,100% 50%,96% 100%,0 100%,2% 50%);background:linear-gradient(90deg,transparent,var(--title-primary,#0384CB),var(--title-secondary,#101416),var(--title-primary,#0384CB),transparent) 0 0/240% 1px no-repeat,linear-gradient(90deg,transparent,var(--title-primary,#0384CB),var(--title-secondary,#101416),var(--title-primary,#0384CB),transparent) 100% 100%/240% 1px no-repeat;animation:accent-frame 3s ease-in-out infinite}
