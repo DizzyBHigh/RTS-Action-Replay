@@ -53,8 +53,8 @@ public class CPHInline
         ui.AddNumericTextbox("Title Font Size", "Replay title font size in pixels.", "Player", "rts.actionreplay.titleFontSize", 34, 8, 100);
         ui.AddColorPicker("Title Text Color", "Replay title text colour.", "Player", "rts.actionreplay.titleColor", "#FFFFFFFF");
         ui.AddColorPicker("Title Shadow Color", "Replay title text shadow colour.", "Player", "rts.actionreplay.titleShadowColor", "#FF000000");
-        ui.AddColorPicker("Title Background Color", "Replay title background colour.", "Player", "rts.actionreplay.titleBackgroundColor", "#FF101416");
-        ui.AddSlider("Title Background Opacity", "Replay title background opacity.", "Player", "rts.actionreplay.titleBackgroundOpacity", 0, 100, 88);
+        ui.AddColorPicker("Title Primary Color", "Primary colour used to generate the title background, glow and accent treatment.", "Player", "rts.actionreplay.titlePrimaryColor", "#FF0384CB");
+        ui.AddColorPicker("Title Secondary Color", "Secondary colour used to generate the title background treatment.", "Player", "rts.actionreplay.titleSecondaryColor", "#FF101416");
         ui.AddDecimalTextbox("Title Slide Duration", "Seconds used for the title slide-in and slide-out animation.", "Player", "rts.actionreplay.titleAnimationDuration", 0.45, 0.1, 2.0, 0.05);
     }
 
@@ -108,8 +108,8 @@ public class CPHInline
         CPH.SetArgument("replayTitleFontSize", GetSettingInt("rts.actionreplay.titleFontSize", 34));
         CPH.SetArgument("replayTitleColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleColor", true) ?? "#FFFFFF");
         CPH.SetArgument("replayTitleShadowColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleShadowColor", true) ?? "#000000");
-        CPH.SetArgument("replayTitleBackgroundColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleBackgroundColor", true) ?? "#101416");
-        CPH.SetArgument("replayTitleBackgroundOpacity", GetSettingInt("rts.actionreplay.titleBackgroundOpacity", 88));
+        CPH.SetArgument("replayTitlePrimaryColor", CPH.GetGlobalVar<string>("rts.actionreplay.titlePrimaryColor", true) ?? "#0384CB");
+        CPH.SetArgument("replayTitleSecondaryColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleSecondaryColor", true) ?? "#101416");
         CPH.SetArgument("replayTitleAnimationDuration", GetSettingDouble("rts.actionreplay.titleAnimationDuration", .45));
         CPH.SetArgument("replayPlaybackSpeed", GetSettingDouble("rts.actionreplay.playbackSpeed", 1.0));
         CPH.SetArgument("replayTitleDuration", GetSettingDouble("rts.actionreplay.titleDuration", 5.0));
