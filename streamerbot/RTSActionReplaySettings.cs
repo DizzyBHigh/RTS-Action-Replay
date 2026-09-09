@@ -166,26 +166,18 @@ public class CPHInline
             }
         }
         catch { }
-        return string.Join("\n", lines);
+        if (lines.Count == 1) lines.Add("Full Screen  —  full-screen");
+        return string.Join("\n", lines.ToArray());
     }
 
     private string NormalizePositionTag(string value)
     {
         if (string.IsNullOrWhiteSpace(value)) return "";
-        var result = new System.Text.StringBuilder();
-        bool hyphen = false;
+        var result = new System.Text.StringBuilder(); bool hyphen = false;
         foreach (char c in value.Trim().ToLowerInvariant())
         {
-            if (char.IsLetterOrDigit(c))
-            {
-                result.Append(c);
-                hyphen = false;
-            }
-            else if ((char.IsWhiteSpace(c) || c == '-') && result.Length > 0 && !hyphen)
-            {
-                result.Append('-');
-                hyphen = true;
-            }
+            if (char.IsLetterOrDigit(c)) { result.Append(c); hyphen = false; }
+            else if ((char.IsWhiteSpace(c) || c == '-') && result.Length > 0 && !hyphen) { result.Append('-'); hyphen = true; }
         }
         return result.ToString().Trim('-');
     }
@@ -194,24 +186,36 @@ public class CPHInline
     {
         ui.BeginSection("Clapperboard", "Messages");
         ui.BeginRow();
-        ui.AddColorPicker("Clapperboard Accent", "Accent colour for clapperboard messages.", "Messages", "rts.actionreplay.clapperboardAccent", "#0384CBFF");
-        ui.AddColorPicker("Clapperboard Text", "Text colour for clapperboard messages.", "Messages", "rts.actionreplay.clapperboardText", "#FFFFFFFF");
+        ui.AddColorPicker("Board Color", "Clapperboard slate colour.", "Messages", "rts.actionreplay.clapper.boardColor", "#101416");
+        ui.AddColorPicker("Stripe Light", "Clapperstick light stripe colour.", "Messages", "rts.actionreplay.clapper.stripeLight", "#EEEEEE");
+        ui.AddColorPicker("Stripe Dark", "Clapperstick dark stripe colour.", "Messages", "rts.actionreplay.clapper.stripeDark", "#111111");
+        ui.AddColorPicker("Accent Color", "Clapperboard accent colour.", "Messages", "rts.actionreplay.clapper.accent", "#0384CB");
+        ui.AddColorPicker("Text Color", "Message text colour.", "Messages", "rts.actionreplay.clapper.textColor", "#0384CB");
         ui.EndRow();
-        ui.AddGoogleFontSelector("Clapperboard Font", "Font used by clapperboard messages.", "Messages", "rts.actionreplay.clapperboardFont", "Inter");
-        ui.AddNumericTextbox("Clapperboard Size", "Clapperboard message text size.", "Messages", "rts.actionreplay.clapperboardSize", 48, 12, 120);
-        ui.AddDropdown("Clapperboard Position", "Screen position for clapperboard messages.", "Messages", "rts.actionreplay.clapperboardPosition", new[] { "Top Left", "Top Right", "Bottom Left", "Bottom Right", "Center" }, "Center");
+        ui.AddGoogleFontSelector("Font", "Choose a Google Font.", "Messages", "rts.actionreplay.clapper.font", "Inter");
+        ui.BeginRow();
+        ui.AddSlider("Size (%)", "Overall clapperboard size.", "Messages", "rts.actionreplay.clapper.size", 0, 100, 50);
+        ui.AddSlider("Position X (%)", "Horizontal clapperboard position.", "Messages", "rts.actionreplay.clapper.positionX", 0, 100, 50);
+        ui.AddSlider("Position Y (%)", "Vertical clapperboard position.", "Messages", "rts.actionreplay.clapper.positionY", 0, 100, 50);
+        ui.EndRow();
         ui.EndSection();
-        AddMessage("Save Replay", "Save Replay Message", "Save the current replay.");
-        AddMessage("Name Replay", "Name Replay Message", "Prompt for a replay name.");
-        AddMessage("Play Replay", "Play Replay Message", "Play the selected replay.");
-        AddMessage("Playlist", "Playlist Message", "Display playlist information.");
-        AddMessage("Creator Leaderboard", "Creator Leaderboard Message", "Display creator leaderboard information.");
-        AddMessage("Playback Leaderboard", "Playback Leaderboard Message", "Display playback leaderboard information.");
+
+        ui.BeginSection("Message Outputs", "Messages");
+        AddMessageSettings(ui, "Save Replay", "Replay saved: %replayTitle%.", "rts.actionreplay.message.save");
+        AddMessageSettings(ui, "Name Replay", "Replay #%replayNumber% renamed to %replayTitle%.", "rts.actionreplay.message.name");
+        AddMessageSettings(ui, "Play Replay", "Playing replay #%replayNumber%: %replayTitle%.", "rts.actionreplay.message.play");
+        AddMessageSettings(ui, "Playlist", "%replayPlaylist%", "rts.actionreplay.message.playlist");
+        AddMessageSettings(ui, "Creator Leaderboard", "%replayLeaderboard%", "rts.actionreplay.message.creatorLeaderboard");
+        AddMessageSettings(ui, "Playback Leaderboard", "%replayLeaderboard%", "rts.actionreplay.message.playbackLeaderboard");
+        ui.EndSection();
     }
 
-    private void AddMessage(string key, string title, string description)
+    private void AddMessageSettings(RtsUI ui, string name, string message, string key)
     {
-        string prefix = "rts.actionreplay.message." + key.ToLowerInvariant().Replace(" ", "");
-        // Message values are stored individually so they remain independently configurable.
+        ui.BeginRow();
+        ui.AddTextbox(name + " Message", "Message sent when this command completes.", "Messages", key + ".text", message, false);
+        ui.AddToggleSwitch(name + " - Chat", "Send this message to Twitch chat.", "Messages", key + ".chat", true);
+        ui.AddToggleSwitch(name + " - Overlay", "Send this message to the Action Replay overlay.", "Messages", key + ".overlay", false);
+        ui.EndRow();
     }
 }
