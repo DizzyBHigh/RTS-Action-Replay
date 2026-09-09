@@ -4,29 +4,29 @@
 #player-title.title-top{top:0}
 #player-title.title-bottom{bottom:0}
 
-/* Broadcast — layered sports/broadcast lower-third */
-#player-title.title-broadcast{min-height:82px;padding:14px 13%;background:linear-gradient(90deg,rgba(7,10,13,.98),rgba(22,30,36,.96) 42%,rgba(9,13,17,.98));border-top:1px solid rgba(255,255,255,.24);border-bottom:1px solid rgba(255,255,255,.12);letter-spacing:.045em;box-shadow:0 -12px 28px rgba(0,0,0,.28)}
-#player-title.title-broadcast:before{content:"";position:absolute;left:0;top:0;bottom:0;width:9%;background:linear-gradient(135deg,transparent 0 48%,#0384CB 49% 58%,transparent 59%);opacity:.9}
-#player-title.title-broadcast:after{content:"";position:absolute;left:9%;right:0;bottom:0;height:4px;background:linear-gradient(90deg,#0384CB 0 16%,rgba(3,132,203,.45) 16% 72%,transparent 100%);box-shadow:0 0 14px rgba(3,132,203,.7)}
+/* Broadcast — layered network/sports lower third */
+#player-title.title-broadcast{min-height:92px;padding:18px 16% 18px 18%;justify-content:flex-start;background:linear-gradient(90deg,rgba(5,9,12,.99),rgba(18,27,33,.97) 58%,rgba(7,11,14,.96));border-top:1px solid rgba(255,255,255,.28);border-bottom:1px solid rgba(255,255,255,.12);letter-spacing:.035em;box-shadow:0 -14px 34px rgba(0,0,0,.34)}
+#player-title.title-broadcast:before{content:"REPLAY";position:absolute;left:0;top:0;bottom:0;width:15%;display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding-left:2%;background:linear-gradient(135deg,#0384CB 0 72%,transparent 73%);clip-path:polygon(0 0,82% 0,100% 50%,82% 100%,0 100%);color:#fff;font-size:12px;font-weight:800;letter-spacing:.18em;text-shadow:0 1px 3px #000}
+#player-title.title-broadcast:after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:linear-gradient(90deg,#0384CB 0 15%,rgba(3,132,203,.8) 15% 60%,rgba(3,132,203,.2) 60% 86%,transparent 100%);box-shadow:0 0 16px rgba(3,132,203,.7)}
 
-/* Cinematic — wide film-strip treatment with light sweep */
-#player-title.title-cinematic{min-height:96px;padding:18px 15%;background:linear-gradient(90deg,transparent 0,rgba(2,5,8,.15) 8%,rgba(4,7,10,.94) 24%,rgba(4,7,10,.94) 76%,rgba(2,5,8,.15) 92%,transparent);border:0;letter-spacing:.075em;box-shadow:0 0 45px rgba(0,0,0,.5)}
-#player-title.title-cinematic:before{content:"";position:absolute;left:10%;right:10%;top:9px;height:1px;background:linear-gradient(90deg,transparent,#fff 20%,rgba(255,255,255,.18) 50%,#fff 80%,transparent);opacity:.35;box-shadow:0 68px 35px rgba(0,0,0,.8)}
-#player-title.title-cinematic:after{content:"";position:absolute;left:37%;right:37%;bottom:10px;height:2px;background:#0384CB;box-shadow:0 0 16px rgba(3,132,203,.9)}
+/* Cinematic — film-frame composition with split accent geometry */
+#player-title.title-cinematic{min-height:108px;padding:20px 17%;background:linear-gradient(90deg,transparent,rgba(3,6,9,.95) 17%,rgba(5,8,11,.97) 83%,transparent);border:0;letter-spacing:.085em;box-shadow:0 0 55px rgba(0,0,0,.58)}
+#player-title.title-cinematic:before{content:"";position:absolute;left:8%;right:8%;top:11px;height:2px;background:linear-gradient(90deg,transparent 0,#fff 16%,rgba(255,255,255,.16) 16.5% 83.5%,#fff 84%,transparent);opacity:.42;box-shadow:0 83px 42px rgba(0,0,0,.85)}
+#player-title.title-cinematic:after{content:"01  •  ACTION REPLAY";position:absolute;left:8%;bottom:12px;color:rgba(255,255,255,.55);font:600 10px/1 system-ui,sans-serif;letter-spacing:.22em;white-space:pre; text-shadow:none;border-left:3px solid #0384CB;padding-left:10px}
 
-/* Cut — angular technical plate */
-#player-title.title-cut{min-height:86px;padding:15px 15%;background:linear-gradient(90deg,rgba(7,11,14,.98),rgba(16,23,28,.96) 50%,rgba(7,11,14,.98));border:1px solid rgba(255,255,255,.18);clip-path:polygon(0 0,96% 0,100% 50%,96% 100%,0 100%,4% 50%);letter-spacing:.055em;box-shadow:0 8px 24px rgba(0,0,0,.4)}
-#player-title.title-cut:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 0 8%,rgba(3,132,203,.18) 8.2%,transparent 8.6%,transparent 91.4%,rgba(3,132,203,.18) 91.8%,transparent 92%);border-top:2px solid rgba(3,132,203,.75);border-bottom:2px solid rgba(3,132,203,.35)}
-#player-title.title-cut:after{content:"";position:absolute;left:10%;right:10%;bottom:5px;height:3px;background:linear-gradient(90deg,transparent,#0384CB 18%,#0384CB 82%,transparent);box-shadow:0 0 13px rgba(3,132,203,.75)}
+/* Cut — technical HUD plate with multiple angular layers */
+#player-title.title-cut{min-height:94px;padding:17px 16%;background:linear-gradient(90deg,rgba(6,10,13,.99),rgba(17,25,30,.97) 48%,rgba(7,11,14,.99));border:1px solid rgba(255,255,255,.2);clip-path:polygon(0 0,94% 0,100% 50%,94% 100%,0 100%,4% 50%);letter-spacing:.055em;box-shadow:0 10px 30px rgba(0,0,0,.46)}
+#player-title.title-cut:before{content:"PLAYBACK  //  RTS";position:absolute;left:6%;top:9px;color:rgba(255,255,255,.42);font:700 9px/1 system-ui,sans-serif;letter-spacing:.2em;text-shadow:none}
+#player-title.title-cut:after{content:"";position:absolute;left:4%;right:8%;bottom:7px;height:4px;background:linear-gradient(90deg,#0384CB 0 13%,transparent 13% 16%,rgba(3,132,203,.65) 16% 68%,transparent 68% 72%,#0384CB 72% 88%,transparent 88%);box-shadow:0 0 13px rgba(3,132,203,.75)}
 
-/* Minimal — premium restrained title plate */
-#player-title.title-minimal{min-height:72px;padding:13px 12%;background:linear-gradient(90deg,transparent,rgba(0,0,0,.86) 20%,rgba(0,0,0,.86) 80%,transparent);border:0;letter-spacing:.09em;box-shadow:0 0 30px rgba(0,0,0,.45)}
-#player-title.title-minimal:before{content:"";position:absolute;left:25%;right:25%;top:0;height:1px;background:linear-gradient(90deg,transparent,#0384CB 30%,#0384CB 70%,transparent);box-shadow:0 0 11px rgba(3,132,203,.8)}
-#player-title.title-minimal:after{content:"";position:absolute;left:38%;right:38%;bottom:7px;height:1px;background:rgba(255,255,255,.65);box-shadow:0 0 8px rgba(255,255,255,.3)}
+/* Minimal — architectural frame, no heavy filled rectangle */
+#player-title.title-minimal{min-height:82px;padding:15px 14%;background:linear-gradient(90deg,transparent 3%,rgba(0,0,0,.72) 20%,rgba(0,0,0,.84) 50%,rgba(0,0,0,.72) 80%,transparent 97%);border:0;letter-spacing:.1em;box-shadow:0 0 38px rgba(0,0,0,.5)}
+#player-title.title-minimal:before{content:"";position:absolute;left:17%;right:17%;top:9px;bottom:9px;border-top:1px solid rgba(255,255,255,.52);border-bottom:1px solid rgba(255,255,255,.22);clip-path:polygon(0 0,96% 0,100% 50%,96% 100%,0 100%,2% 50%);box-shadow:inset 0 1px rgba(3,132,203,.7)}
+#player-title.title-minimal:after{content:"";position:absolute;left:25%;right:25%;bottom:9px;height:2px;background:linear-gradient(90deg,transparent,#0384CB 20%,#0384CB 80%,transparent);box-shadow:0 0 12px rgba(3,132,203,.85)}
 
-#player-title.title-enter{animation:title-enter .45s cubic-bezier(.16,1,.3,1) forwards}
-#player-title.title-exit{animation:title-exit .35s cubic-bezier(.7,0,.84,0) forwards}
-@keyframes title-enter{from{opacity:0;transform:translateY(var(--title-offset,105%));filter:blur(3px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
-@keyframes title-exit{from{opacity:1;transform:translateY(0);filter:blur(0)}to{opacity:0;transform:translateY(var(--title-offset,105%));filter:blur(2px)}}
+#player-title.title-enter{animation:title-enter .48s cubic-bezier(.16,1,.3,1) forwards}
+#player-title.title-exit{animation:title-exit .38s cubic-bezier(.7,0,.84,0) forwards}
+@keyframes title-enter{from{opacity:0;transform:translateY(var(--title-offset,105%)) scaleX(.96);filter:blur(4px)}65%{opacity:1;filter:blur(0)}to{opacity:1;transform:translateY(0) scaleX(1);filter:blur(0)}}
+@keyframes title-exit{from{opacity:1;transform:translateY(0) scaleX(1);filter:blur(0)}to{opacity:0;transform:translateY(var(--title-offset,105%)) scaleX(.98);filter:blur(2px)}}
 #player-title.title-top.title-enter,#player-title.title-top.title-exit{--title-offset:-105%}
 #player-title.title-bottom.title-enter,#player-title.title-bottom.title-exit{--title-offset:105%}
