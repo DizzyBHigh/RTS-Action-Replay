@@ -113,7 +113,7 @@ public class CPHInline
 
         ui.BeginSection("Player Animation", "Animation");
         ui.BeginRow();
-        ui.AddDecimalTextbox("Animation Duration", "Duration used when moving between the Start and End positions.", "Animation", "rts.actionreplay.animationDuration", 0.5, 0.1, 5.0, 0.1);
+        ui.AddNumericTextbox("Animation Duration", "Duration used when moving between the Start and End positions, in milliseconds.", "Animation", "rts.actionreplay.animationDuration", 0, 100, 20000);
         ui.AddDropdown("Animation Easing", "CSS easing used for player movement.", "Animation", "rts.actionreplay.animationEasing", new[] { "linear", "ease", "ease-in", "ease-out", "ease-in-out" }, "ease-in-out");
         ui.EndRow();
         ui.EndSection();
@@ -134,7 +134,7 @@ public class CPHInline
         CPH.SetArgument("replayCommand", "move");
         CPH.SetArgument("replayPosition", positionName);
         CPH.SetArgument("replayPositions", positionsJson ?? "{}");
-        CPH.SetArgument("replayAnimationDuration", GetSettingDouble("rts.actionreplay.animationDuration", 0.5));
+        CPH.SetArgument("replayAnimationDuration", GetSettingDouble("rts.actionreplay.animationDuration", 0.0));
         CPH.SetArgument("replayAnimationEasing", CPH.GetGlobalVar<string>("rts.actionreplay.animationEasing", true) ?? "ease-in-out");
         CPH.TriggerEvent("RTS-Action Replay", true);
     }
