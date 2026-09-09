@@ -56,9 +56,11 @@ RTSReplayElements.showTitle = command => {
   const title = RTSReplayElements.title;
   if (!title || command.replayShowTitle === false) return;
   const baseText = String(command.replayTitle || '').trim();
-  const suffix = String(command.replayTitleSuffix || '').trim();
+  const decoration = String(command.replayTitleDecoration || '').trim();
+  const mode = String(command.replayTitleDecorationPosition || 'Suffix').toLowerCase();
   if (!baseText) return;
-  const text = suffix && !baseText.toLowerCase().endsWith(suffix.toLowerCase()) ? `${baseText}${suffix}` : baseText;
+  const hasDecoration = decoration && (baseText.toLowerCase().startsWith(decoration.toLowerCase()) || baseText.toLowerCase().endsWith(decoration.toLowerCase()));
+  const text = !decoration || hasDecoration ? baseText : mode === 'prefix' ? `${decoration}${baseText}` : `${baseText}${decoration}`;
 
   RTSReplayElements.clearTitleTimer();
   RTSReplayElements.clearTitleDelay();
