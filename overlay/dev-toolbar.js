@@ -23,20 +23,29 @@
 
   let style = 'broadcast';
   let position = 'bottom';
+  let playerVisible = false;
 
   const showPlayer = () => {
     const player = RTSReplay?.player;
     if (!player) return;
+    playerVisible = true;
     player.classList.add('dev-player', 'show');
+    player.style.opacity = '1';
+    player.style.visibility = 'visible';
     if (RTSReplay.frame) RTSReplay.frame.classList.add('dev-frame');
+    bar.querySelector('[data-action="player"]').textContent = 'Hide Player';
   };
 
   const hidePlayer = () => {
     const player = RTSReplay?.player;
     if (!player) return;
+    playerVisible = false;
     RTSReplay.hideTitle?.();
     player.classList.remove('show', 'dev-player');
+    player.style.opacity = '';
+    player.style.visibility = '';
     RTSReplay.frame?.classList.remove('dev-frame');
+    bar.querySelector('[data-action="player"]').textContent = 'Show Player';
   };
 
   const preview = () => {
@@ -64,10 +73,8 @@
       preview();
     }
     if (button.dataset.action === 'player') {
-      const visible = RTSReplay?.player?.classList.contains('show');
-      visible ? hidePlayer() : showPlayer();
-      button.textContent = visible ? 'Show Player' : 'Hide Player';
-      if (!visible) preview();
+      playerVisible ? hidePlayer() : showPlayer();
+      if (playerVisible) preview();
     }
     if (button.dataset.action === 'show') preview();
     if (button.dataset.action === 'hide') RTSReplay.hideTitle?.();
