@@ -23,12 +23,15 @@ RTSReplayElements.toRgba = (value, opacity = 1) => {
   return `rgba(${parseInt(hex.slice(0, 2), 16)},${parseInt(hex.slice(2, 4), 16)},${parseInt(hex.slice(4, 6), 16)},${Math.max(0, Math.min(1, alpha))})`;
 };
 
-RTSReplayElements.colorWithAlpha = (value, alpha) => {
+RTSReplayElements.toCssHex = value => {
   const color = String(value || '').trim();
   const match = color.match(/^#([0-9a-f]{6}|[0-9a-f]{8})$/i);
   if (!match) return color;
-  const hex = match[1].length === 8 ? match[1].slice(2) : match[1];
-  return `rgba(${parseInt(hex.slice(0, 2), 16)},${parseInt(hex.slice(2, 4), 16)},${parseInt(hex.slice(4, 6), 16)},${Math.max(0, Math.min(1, alpha))})`;
+  return `#${match[1].length === 8 ? match[1].slice(2) : match[1]}`;
+};
+
+RTSReplayElements.colorWithAlpha = (value, alpha) => {
+  return RTSReplayElements.toRgba(value, alpha);
 };
 
 RTSReplayElements.loadFont = font => {
@@ -91,8 +94,8 @@ RTSReplayElements.showTitle = command => {
 
 RTSReplayElements.configure = command => {
   RTSReplayElements.command = command;
-  const primary = command.replayTitlePrimaryColor || '#0384CB';
-  const secondary = command.replayTitleSecondaryColor || '#101416';
+  const primary = RTSReplayElements.toCssHex(command.replayTitlePrimaryColor || '#0384CB');
+  const secondary = RTSReplayElements.toCssHex(command.replayTitleSecondaryColor || '#101416');
   if (RTSReplayElements.speed) RTSReplayElements.speed.textContent = `${Number(command.replayPlaybackSpeed || 1).toFixed(2).replace(/\.00$/, '')}×`;
   if (RTSReplayElements.branding) RTSReplayElements.branding.classList.toggle('visible', command.replayShowBranding !== false);
   if (RTSReplayElements.layer) {
@@ -103,6 +106,7 @@ RTSReplayElements.configure = command => {
   if (command.replayTitle) RTSReplayElements.showTitle(command);
 };
 
+RTSReplayElements.layer = document.getElementById('player-elements');
 RTSReplayElements.title = document.getElementById('player-title');
 RTSReplayElements.branding = document.getElementById('player-branding');
 RTSReplayElements.speed = document.getElementById('player-speed');
