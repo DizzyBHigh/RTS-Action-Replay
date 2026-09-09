@@ -1,6 +1,7 @@
 // Streamer.bot C# action: run this action once per hour to reconcile Twitch clips.
 // It adds missing Twitch clips to the Action Replay Catalog and Recent Clips,
 // but deliberately does not queue or play clips discovered by this scan.
+// Twitch playback mode is configuration; Catalog items store Twitch source data.
 // Requires Streamer.bot 1.0.3+.
 
 using System;
@@ -13,8 +14,9 @@ using Twitch.Common.Models.Api;
 public class CPHInline
 {
     private const string CatalogKey = "rts.actionreplay.catalog";
-    private const string DataKey = "rts.actionreplay.data";
     private const string MaxRecentKey = "rts.actionreplay.maxHistory";
+    private const string PlaybackModeKey = "rts.actionreplay.twitch.playbackMode";
+    private const string TwitchFolderKey = "rts.actionreplay.twitch.folder";
 
     public bool Execute()
     {
@@ -26,10 +28,7 @@ public class CPHInline
         }
 
         List<ClipData> clips;
-        try
-        {
-            clips = CPH.GetClips(1000, null);
-        }
+        try { clips = CPH.GetClips(1000, null); }
         catch (Exception ex)
         {
             CPH.LogError("RTS Action Replay: Twitch reconciliation failed: " + ex.Message);
@@ -44,8 +43,11 @@ public class CPHInline
         foreach (var clip in clips ?? new List<ClipData>())
         {
             if (clip == null || string.IsNullOrWhiteSpace(clip.Id) || Find(catalog, clip.Id) != null) continue;
-            var path = Download(clip.Id);
-            if (string.IsNullOrWhiteSpace(path)) continue;
+
+            var mode = GetPlaybackMode();
+            var path = ModeNeedsLocalCopy(mode) ? Download(clip.Id) : null;
+            if (ModeNeedsLocalCopy(mode) && string.IsNullOrWhiteSpace(path))
+                CPH.LogWarn("RTS Action Replay: sync could not create a local copy for Twitch clip " + clip.Id + "; retaining its Twitch URL in the Catalog.");
 
             var item = new JObject
             {
@@ -66,8 +68,8 @@ public class CPHInline
                 ["externalUrl"] = clip.Url ?? "",
                 ["embedUrl"] = clip.EmbedUrl ?? "",
                 ["thumbnailUrl"] = clip.ThumbnailUrl ?? "",
-                ["file"] = Path.GetFileName(path),
-                ["filePath"] = path,
+                ["file"] = string.IsNullOrWhiteSpace(path) ? "" : Path.GetFileName(path),
+                ["filePath"] = path ?? "",
                 ["acquisitionMethod"] = "TwitchDiscovery",
                 ["plays"] = 0,
                 ["users"] = new JObject()
@@ -83,18 +85,38 @@ public class CPHInline
         data["catalog"] = catalog;
         data["recentIds"] = recent;
         CPH.SetGlobalVar(CatalogKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
+        CPH.SetGlobalVar("rts.actionreplay.recentIds", recent.ToString(Newtonsoft.Json.Formatting.None), true);
 
         CPH.LogInfo("RTS Action Replay: Twitch reconciliation added " + added + " new clip(s) to Catalog/Recent Clips. No discovered clips were played.");
         return true;
     }
 
+    private string GetPlaybackMode()
+    {
+        var mode = CPH.GetGlobalVar<string>(PlaybackModeKey, true);
+        if (string.Equals(mode, "Twitch URL", StringComparison.OrdinalIgnoreCase)) return "Twitch URL";
+        if (string.Equals(mode, "Both", StringComparison.OrdinalIgnoreCase)) return "Both";
+        return "Download Locally";
+    }
+
+    private bool ModeNeedsLocalCopy(string mode)
+    {
+        return string.Equals(mode, "Download Locally", StringComparison.OrdinalIgnoreCase) || string.Equals(mode, "Both", StringComparison.OrdinalIgnoreCase);
+    }
+
     private string Download(string clipId)
     {
-        var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true);
+        var folder = CPH.GetGlobalVar<string>(TwitchFolderKey, true);
+        var replayFolder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true);
         if (string.IsNullOrWhiteSpace(folder)) return null;
-        var twitchFolder = Path.Combine(folder, "Twitch");
-        Directory.CreateDirectory(twitchFolder);
-        var destination = Path.Combine(twitchFolder, "twitch-" + Sanitize(clipId) + ".mp4");
+        if (!string.IsNullOrWhiteSpace(replayFolder) && PathsEqual(folder, replayFolder))
+        {
+            CPH.LogError("RTS Action Replay: Twitch Clip Folder must be different from the OBS Replay Folder.");
+            return null;
+        }
+
+        Directory.CreateDirectory(folder);
+        var destination = Path.Combine(folder, "twitch-" + Sanitize(clipId) + ".mp4");
         if (File.Exists(destination) && new FileInfo(destination).Length > 0) return destination;
 
         for (var attempt = 1; attempt <= 10; attempt++)
@@ -138,8 +160,7 @@ public class CPHInline
 
     private void AddRecent(JArray recent, string id)
     {
-        for (var i = recent.Count - 1; i >= 0; i--)
-            if (string.Equals((string)recent[i], id, StringComparison.OrdinalIgnoreCase)) recent.RemoveAt(i);
+        for (var i = recent.Count - 1; i >= 0; i--) if (string.Equals((string)recent[i], id, StringComparison.OrdinalIgnoreCase)) recent.RemoveAt(i);
         recent.Insert(0, id);
     }
 
@@ -149,13 +170,17 @@ public class CPHInline
         while (recent.Count > Math.Max(1, max)) recent.RemoveAt(recent.Count - 1);
     }
 
+    private bool PathsEqual(string a, string b)
+    {
+        try { return string.Equals(Path.GetFullPath(a).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), Path.GetFullPath(b).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), StringComparison.OrdinalIgnoreCase); }
+        catch { return string.Equals(a, b, StringComparison.OrdinalIgnoreCase); }
+    }
+
     private string Sanitize(string value)
     {
         var chars = value.ToCharArray();
         var invalid = Path.GetInvalidFileNameChars();
-        for (var i = 0; i < chars.Length; i++)
-            for (var j = 0; j < invalid.Length; j++)
-                if (chars[i] == invalid[j]) chars[i] = '_';
+        for (var i = 0; i < chars.Length; i++) for (var j = 0; j < invalid.Length; j++) if (chars[i] == invalid[j]) chars[i] = '_';
         return new string(chars);
     }
 }
