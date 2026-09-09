@@ -4,7 +4,7 @@
 #player-branding b{color:var(--title-primary,#0384CB);font-size:24px}
 #player-branding span{font-size:10px;letter-spacing:.22em;opacity:.72}
 
-#player-title{position:absolute;left:0;right:0;height:auto;display:none;box-sizing:border-box;align-items:center;justify-content:center;color:var(--title-text,#fff);font-family:var(--title-font,Inter),system-ui,sans-serif;font-size:var(--title-size,34px);font-weight:700;line-height:1.15;text-align:center;text-shadow:0 2px 8px var(--title-shadow,rgba(0,0,0,.9));overflow:hidden;z-index:21;background:linear-gradient(90deg,rgba(7,11,14,.94),rgba(18,24,28,.9),rgba(7,11,14,.94));border-top:1px solid rgba(255,255,255,.18);border-bottom:1px solid rgba(255,255,255,.12)}
+#player-title{position:absolute;left:0;right:0;height:auto;display:none;box-sizing:border-box;align-items:center;justify-content:center;color:var(--title-text,#fff);font-family:var(--title-font,Inter),system-ui,sans-serif;font-size:var(--title-size,34px);font-weight:700;line-height:1.15;text-align:center;text-shadow:0 2px 8px var(--title-shadow,rgba(0,0,0,.9));overflow:hidden;z-index:21;background:#101416;border-top:1px solid rgba(255,255,255,.18);border-bottom:1px solid rgba(255,255,255,.12)}
 #player-title.visible{display:flex}
 #player-title.title-top{top:0}
 #player-title.title-bottom{bottom:0}
