@@ -24,14 +24,14 @@
 #player-frame {
   position: relative;
   overflow: hidden;
-  border: var(--border-width) solid transparent;
+  border: var(--border-width) solid var(--frame-color);
   border-radius: var(--corner-radius);
-  background: linear-gradient(var(--frame-color), var(--frame-color)) padding-box, linear-gradient(135deg, var(--border-primary), var(--border-secondary), var(--border-primary)) border-box;
+  background: var(--frame-color);
   box-sizing: border-box;
   box-shadow: none;
 }
 
-#player-frame.border-glow { box-shadow: 0 0 0 1px color-mix(in srgb,var(--border-primary) 55%,transparent), 0 0 12px color-mix(in srgb,var(--border-primary) 55%,transparent), 0 0 26px color-mix(in srgb,var(--border-secondary) 45%,transparent); }
+#player-frame.border-glow { box-shadow: 0 0 0 1px color-mix(in srgb,var(--frame-color) 55%,transparent), 0 0 12px color-mix(in srgb,var(--frame-color) 55%,transparent), 0 0 26px color-mix(in srgb,var(--frame-color) 40%,transparent); }
 #player-frame.border-none { border-width: 0; background: var(--frame-color); box-shadow: none; }
 
 #video {
