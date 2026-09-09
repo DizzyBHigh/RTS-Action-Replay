@@ -30,8 +30,6 @@ RTSReplayElements.loadFont = font => {
   document.head.appendChild(link);
 };
 
-RTSReplayElements.clearTitleTimer = RTSReplayElements.clearTitleTimer;
-
 RTSReplayElements.hideTitle = () => {
   RTSReplayElements.clearTitleTimer();
   const title = RTSReplayElements.title;
