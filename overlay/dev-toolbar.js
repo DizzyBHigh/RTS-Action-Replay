@@ -42,7 +42,7 @@
     RTSReplay.video.playbackRate = speed;
     const command = Object.assign({}, RTSReplay.command || {}, {
       replayPlaybackSpeed: speed,
-      replayPlaybackSpeedVisibility: 'Always'
+      replayPlaybackSpeedVisibility: RTSReplay.command?.replayPlaybackSpeedVisibility || 'Only when greater or less than 1'
     });
     RTSReplay.command = command;
     RTSReplayElements?.configureSpeed?.(command);
