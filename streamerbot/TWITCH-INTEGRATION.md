@@ -4,7 +4,7 @@ This branch uses Twitch as a Catalog source for Action Replay.
 
 ## Streamer.bot requirements
 
-The Twitch C# integration requires Streamer.bot 1.0.3 or newer because Action Replay uses `TwitchGetClipDownloadUrls` to obtain the current Twitch media URL. citeturn0search0
+The Twitch C# integration requires Streamer.bot 1.0.3 or newer because Action Replay uses `TwitchGetClipDownloadUrls` to obtain the current Twitch media URL.
 
 ## Storage and HTTP mappings
 
@@ -45,7 +45,7 @@ The Action Replay setting **Twitch Clip Playback** has three modes:
 
 The playback mode is an Action Replay configuration value. It is deliberately **not stored on Catalog items**, so changing the setting later changes how existing Twitch Catalog items are resolved without rewriting their records.
 
-Twitch media/download URLs are resolved when needed rather than stored permanently in the Catalog. Streamer.bot exposes `TwitchGetClipDownloadUrls(string clipId)` for this purpose. citeturn0search0
+Twitch media/download URLs are resolved when needed rather than stored permanently in the Catalog. Streamer.bot exposes `TwitchGetClipDownloadUrls(string clipId)` for this purpose.
 
 ## Actions
 
@@ -63,7 +63,7 @@ Behaviour:
 
 If a clip with the same Twitch Clip ID already exists, it is not added again.
 
-The command input is used as the clip title. If it is blank, Twitch uses the current stream title. Duration is controlled by `rts.actionreplay.twitch.clipDuration` and is constrained to Twitch's 5–60 second range. citeturn0search3
+The command input is used as the clip title. If it is blank, Twitch uses the current stream title. Duration is controlled by `rts.actionreplay.twitch.clipDuration` and is constrained to Twitch's 5–60 second range.
 
 ### `RTS - Action Replay - Twitch Sync`
 
@@ -80,7 +80,7 @@ Behaviour:
 5. Does **not** add discovered clips to the playback queue.
 6. Does **not** play discovered clips.
 
-This hourly reconciliation catches clips created directly through Twitch and prevents `!twitchclip` clips from being duplicated. `GetClips` can return up to 1,000 clips. citeturn0search4
+This hourly reconciliation catches clips created directly through Twitch and prevents `!twitchclip` clips from being duplicated. `GetClips` can return up to 1,000 clips.
 
 ## Data model
 
