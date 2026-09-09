@@ -30,8 +30,6 @@ RTSReplayElements.toCssHex = value => {
   return `#${match[1].slice(0, 6)}`;
 };
 
-RTSReplayElements.colorWithAlpha = (value, alpha) => RTSReplayElements.toRgba(value, alpha);
-
 RTSReplayElements.loadFont = font => {
   const name = String(font || 'Inter').trim();
   if (!name) return;
@@ -99,7 +97,6 @@ RTSReplayElements.configure = command => {
   if (RTSReplayElements.layer) {
     RTSReplayElements.layer.style.setProperty('--title-primary', primary);
     RTSReplayElements.layer.style.setProperty('--title-secondary', secondary);
-    RTSReplayElements.layer.style.setProperty('--title-background', `linear-gradient(90deg, ${RTSReplayElements.colorWithAlpha(primary,.94)} 0%, ${RTSReplayElements.colorWithAlpha(secondary,.88)} 50%, ${RTSReplayElements.colorWithAlpha(primary,.94)} 100%)`);
   }
   if (command.replayTitle) RTSReplayElements.showTitle(command);
 };
