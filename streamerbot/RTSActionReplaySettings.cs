@@ -41,12 +41,12 @@ public class CPHInline
         ui.AddGoogleFontSelector("Title Font", "Choose the Google Font used by all replay title variants.", "Player", "rts.actionreplay.titleFont", "Inter");
         ui.AddNumericTextbox("Title Font Size", "Replay title font size in pixels.", "Player", "rts.actionreplay.titleFontSize", 34, 12, 96);
         ui.AddColorPicker("Title Font Color", "Replay title text colour.", "Player", "rts.actionreplay.titleTextColor", "#FFFFFFFF");
-        ui.AddColorPicker("Title Shadow Color", "Replay title shadow colour.", "Player", "rts.actionreplay.titleShadowColor", "#FF000000");
-        ui.AddColorPicker("Title Primary Color", "Primary colour used to generate the title background, glow and accent treatment.", "Player", "rts.actionreplay.titlePrimaryColor", "#FF0384CB");
-        ui.AddColorPicker("Title Secondary Color", "Secondary colour used to generate the title background treatment.", "Player", "rts.actionreplay.titleSecondaryColor", "#FF101416");
+        ui.AddColorPicker("Title Shadow Color", "Replay title shadow colour.", "Player", "rts.actionreplay.titleShadowColor", "#000000FF");
+        ui.AddColorPicker("Title Primary Color", "Primary colour used to generate the title background, glow and accent treatment.", "Player", "rts.actionreplay.titlePrimaryColor", "#0384CBFF");
+        ui.AddColorPicker("Title Secondary Color", "Secondary colour used to generate the title background treatment.", "Player", "rts.actionreplay.titleSecondaryColor", "#101416FF");
 
         ui.AddTitle("Player Frame", "Appearance");
-        ui.AddColorPicker("Frame Color", "Main player frame and progress colour.", "Appearance", "rts.actionreplay.frameColor", "#FF0384CB");
+        ui.AddColorPicker("Frame Color", "Main player frame and progress colour.", "Appearance", "rts.actionreplay.frameColor", "#0384CBFF");
         ui.AddColorPicker("Border Color", "Outer player border colour.", "Appearance", "rts.actionreplay.borderColor", "#FFFFFFFF");
         ui.AddDropdown("Border Style", "Visual style of the player border.", "Appearance", "rts.actionreplay.borderStyle", new[] { "None", "Solid", "Dashed", "Double" }, "Solid");
 
