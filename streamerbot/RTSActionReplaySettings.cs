@@ -25,7 +25,7 @@ public class CPHInline
         ui.AddToggleSwitch("Show Replay Branding", "Display the branding area on the replay player.", "Branding", "rts.actionreplay.showBranding", true);
         ui.AddTextbox("Branding Logo URL", "HTTPS URL to a logo. Leave blank to use the fallback text.", "Branding", "rts.actionreplay.brandLogoUrl", "", false);
         ui.BeginRow();
-        ui.AddTextbox("Branding Fallback Text", "Text shown when no branding logo is defined or the logo cannot be loaded.", "Branding", "rts.actionreplay.brandFallbackText", "RTS", false);
+        ui.AddTextbox("Branding Fallback Text", "Text shown when no branding logo is defined.", "Branding", "rts.actionreplay.brandFallbackText", "RTS", false);
         ui.AddColorPicker("Branding Fallback Text Color", "Colour of the branding fallback text.", "Branding", "rts.actionreplay.brandFallbackTextColor", "#0384CBFF");
         ui.EndRow();
         ui.BeginRow();
