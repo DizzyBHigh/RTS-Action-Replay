@@ -12,6 +12,21 @@ public class CPHInline
             (key, value, persisted) => CPH.SetGlobalVar(key, value, persisted),
             message => CPH.LogInfo(message));
 
+        AddGeneralSettings(ui);
+        AddBrandingSettings(ui);
+        AddPlaylistSettings(ui);
+        AddPlayerSettings(ui);
+        AddAppearanceSettings(ui);
+        AddPositionSettings(ui);
+        AddAnimationSettings(ui);
+        AddMessageSettings(ui);
+
+        ui.ShowUI();
+        return true;
+    }
+
+    private void AddGeneralSettings(RtsUI ui)
+    {
         ui.AddThemeSelector("Settings Theme", "Choose the RtsUI theme.", "General", "rts.actionreplay.uiTheme", "Dark");
         ui.BeginSection("Replay Source", "General");
         ui.AddFolderPicker("Replay Folder", "Folder containing OBS Replay Buffer files.", "General", "rts.actionreplay.replayFolder", "");
@@ -19,7 +34,10 @@ public class CPHInline
         ui.AddTextbox("HTTP Mapping", "Streamer.bot HTTP path mapped to the replay folder.", "General", "rts.actionreplay.httpMapping", "replays", false);
         ui.AddNumericTextbox("HTTP Port", "Streamer.bot HTTP Server port used to serve replay files.", "General", "rts.actionreplay.httpPort", 7474, 1, 65535);
         ui.EndSection();
+    }
 
+    private void AddBrandingSettings(RtsUI ui)
+    {
         ui.BeginSection("Branding", "Branding");
         ui.BeginSection("Brand Identity");
         ui.AddToggleSwitch("Show Replay Branding", "Display the branding area on the replay player.", "Branding", "rts.actionreplay.showBranding", true);
@@ -40,7 +58,10 @@ public class CPHInline
         ui.EndRow();
         ui.EndSection();
         ui.EndSection();
+    }
 
+    private void AddPlaylistSettings(RtsUI ui)
+    {
         ui.BeginSection("Replay Defaults", "Playlist");
         ui.AddTextbox("Replay Title Template", "Default title for new replays. Streamer.bot variables can be used.", "Playlist", "rts.actionreplay.replayTitle", "%replayName%", false);
         ui.AddTextbox("New Replay Display Title", "Title shown when a newly discovered replay is automatically played.", "Playlist", "rts.actionreplay.newReplayTitle", "New Replay", false);
@@ -52,7 +73,10 @@ public class CPHInline
         ui.AddToggleSwitch("Auto-play Newest Replay", "Load and play a newly saved replay automatically.", "Playlist", "rts.actionreplay.autoPlay", false);
         ui.EndRow();
         ui.EndSection();
+    }
 
+    private void AddPlayerSettings(RtsUI ui)
+    {
         ui.BeginSection("Playback", "Player");
         ui.BeginRow();
         ui.AddToggleSwitch("Show Controls", "Display the visual player status bar. It is not interactive.", "Player", "rts.actionreplay.showControls", false);
@@ -90,7 +114,10 @@ public class CPHInline
         ui.AddColorPicker("Title Shadow Color", "Replay title shadow colour.", "Player", "rts.actionreplay.titleShadowColor", "#000000FF");
         ui.EndRow();
         ui.EndSection();
+    }
 
+    private void AddAppearanceSettings(RtsUI ui)
+    {
         ui.BeginSection("Player Frame", "Appearance");
         ui.BeginRow();
         ui.AddColorPicker("Frame Color", "Main player frame and progress colour.", "Appearance", "rts.actionreplay.frameColor", "#0384CBFF");
@@ -99,7 +126,10 @@ public class CPHInline
         ui.AddToggleSwitch("Border Glow", "Add a branded glow around the player border.", "Appearance", "rts.actionreplay.borderGlow", true);
         ui.EndRow();
         ui.EndSection();
+    }
 
+    private void AddPositionSettings(RtsUI ui)
+    {
         ui.BeginSection("Default Positions", "Positions");
         ui.BeginRow();
         ui.AddPositionSelector("Default Start Position", "Position used when the player starts showing.", "Positions", "rts.actionreplay.defaultStartPosition", "rts.actionreplay.positions", "Full Screen");
@@ -110,17 +140,53 @@ public class CPHInline
         ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", null, PreviewPosition);
         ui.AddTitle(BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)), "Positions");
         ui.EndSection();
+    }
 
+    private void AddAnimationSettings(RtsUI ui)
+    {
         ui.BeginSection("Player Animation", "Animation");
         ui.BeginRow();
         ui.AddNumericTextbox("Animation Duration", "Duration used when moving between the Start and End positions, in milliseconds.", "Animation", "rts.actionreplay.animationDuration", 0, 100, 20000);
         ui.AddDropdown("Animation Easing", "CSS easing used for player movement.", "Animation", "rts.actionreplay.animationEasing", new[] { "linear", "ease", "ease-in", "ease-out", "ease-in-out" }, "ease-in-out");
         ui.EndRow();
         ui.EndSection();
+    }
 
-        AddMessages(ui);
-        ui.ShowUI();
-        return true;
+    private void AddMessageSettings(RtsUI ui)
+    {
+        ui.BeginSection("Clapperboard", "Messages");
+        ui.BeginRow();
+        ui.AddColorPicker("Board Color", "Clapperboard slate colour.", "Messages", "rts.actionreplay.clapper.boardColor", "#101416");
+        ui.AddColorPicker("Stripe Light", "Clapperstick light stripe colour.", "Messages", "rts.actionreplay.clapper.stripeLight", "#EEEEEE");
+        ui.AddColorPicker("Stripe Dark", "Clapperstick dark stripe colour.", "Messages", "rts.actionreplay.clapper.stripeDark", "#111111");
+        ui.AddColorPicker("Accent Color", "Clapperboard accent colour.", "Messages", "rts.actionreplay.clapper.accent", "#0384CB");
+        ui.AddColorPicker("Text Color", "Message text colour.", "Messages", "rts.actionreplay.clapper.textColor", "#0384CB");
+        ui.EndRow();
+        ui.AddGoogleFontSelector("Font", "Choose a Google Font.", "Messages", "rts.actionreplay.clapper.font", "Inter");
+        ui.BeginRow();
+        ui.AddSlider("Size (%)", "Overall clapperboard size.", "Messages", "rts.actionreplay.clapper.size", 0, 100, 50);
+        ui.AddSlider("Position X (%)", "Horizontal clapperboard position.", "Messages", "rts.actionreplay.clapper.positionX", 0, 100, 50);
+        ui.AddSlider("Position Y (%)", "Vertical clapperboard position.", "Messages", "rts.actionreplay.clapper.positionY", 0, 100, 50);
+        ui.EndRow();
+        ui.EndSection();
+
+        ui.BeginSection("Message Outputs", "Messages");
+        AddMessageOutput(ui, "Save Replay", "Replay saved: %replayTitle%.", "rts.actionreplay.message.save");
+        AddMessageOutput(ui, "Name Replay", "Replay #%replayNumber% renamed to %replayTitle%.", "rts.actionreplay.message.name");
+        AddMessageOutput(ui, "Play Replay", "Playing replay #%replayNumber%: %replayTitle%.", "rts.actionreplay.message.play");
+        AddMessageOutput(ui, "Playlist", "%replayPlaylist%", "rts.actionreplay.message.playlist");
+        AddMessageOutput(ui, "Creator Leaderboard", "%replayLeaderboard%", "rts.actionreplay.message.creatorLeaderboard");
+        AddMessageOutput(ui, "Playback Leaderboard", "%replayLeaderboard%", "rts.actionreplay.message.playbackLeaderboard");
+        ui.EndSection();
+    }
+
+    private void AddMessageOutput(RtsUI ui, string name, string message, string key)
+    {
+        ui.BeginRow();
+        ui.AddTextbox(name + " Message", "Message sent when this command completes.", "Messages", key + ".text", message, false);
+        ui.AddToggleSwitch(name + " - Chat", "Send this message to Twitch chat.", "Messages", key + ".chat", true);
+        ui.AddToggleSwitch(name + " - Overlay", "Send this message to the Action Replay overlay.", "Messages", key + ".overlay", false);
+        ui.EndRow();
     }
 
     private void PreviewPosition(string positionName, string positionsJson)
@@ -180,42 +246,4 @@ public class CPHInline
         }
         return result.ToString().Trim('-');
     }
-
-    private void AddMessages(RtsUI ui)
-    {
-        ui.BeginSection("Clapperboard", "Messages");
-        ui.BeginRow();
-        ui.AddColorPicker("Board Color", "Clapperboard slate colour.", "Messages", "rts.actionreplay.clapper.boardColor", "#101416");
-        ui.AddColorPicker("Stripe Light", "Clapperstick light stripe colour.", "Messages", "rts.actionreplay.clapper.stripeLight", "#EEEEEE");
-        ui.AddColorPicker("Stripe Dark", "Clapperstick dark stripe colour.", "Messages", "rts.actionreplay.clapper.stripeDark", "#111111");
-        ui.AddColorPicker("Accent Color", "Clapperboard accent colour.", "Messages", "rts.actionreplay.clapper.accent", "#0384CB");
-        ui.AddColorPicker("Text Color", "Message text colour.", "Messages", "rts.actionreplay.clapper.textColor", "#0384CB");
-        ui.EndRow();
-        ui.AddGoogleFontSelector("Font", "Choose a Google Font.", "Messages", "rts.actionreplay.clapper.font", "Inter");
-        ui.BeginRow();
-        ui.AddSlider("Size (%)", "Overall clapperboard size.", "Messages", "rts.actionreplay.clapper.size", 0, 100, 50);
-        ui.AddSlider("Position X (%)", "Horizontal clapperboard position.", "Messages", "rts.actionreplay.clapper.positionX", 0, 100, 50);
-        ui.AddSlider("Position Y (%)", "Vertical clapperboard position.", "Messages", "rts.actionreplay.clapper.positionY", 0, 100, 50);
-        ui.EndRow();
-        ui.EndSection();
-
-        ui.BeginSection("Message Outputs", "Messages");
-        AddMessageSettings(ui, "Save Replay", "Replay saved: %replayTitle%.", "rts.actionreplay.message.save");
-        AddMessageSettings(ui, "Name Replay", "Replay #%replayNumber% renamed to %replayTitle%.", "rts.actionreplay.message.name");
-        AddMessageSettings(ui, "Play Replay", "Playing replay #%replayNumber%: %replayTitle%.", "rts.actionreplay.message.play");
-        AddMessageSettings(ui, "Playlist", "%replayPlaylist%", "rts.actionreplay.message.playlist");
-        AddMessageSettings(ui, "Creator Leaderboard", "%replayLeaderboard%", "rts.actionreplay.message.creatorLeaderboard");
-        AddMessageSettings(ui, "Playback Leaderboard", "%replayLeaderboard%", "rts.actionreplay.message.playbackLeaderboard");
-        ui.EndSection();
-    }
-
-    private void AddMessageSettings(RtsUI ui, string name, string message, string key)
-    {
-        ui.BeginRow();
-        ui.AddTextbox(name + " Message", "Message sent when this command completes.", "Messages", key + ".text", message, false);
-        ui.AddToggleSwitch(name + " - Chat", "Send this message to Twitch chat.", "Messages", key + ".chat", true);
-        ui.AddToggleSwitch(name + " - Overlay", "Send this message to the Action Replay overlay.", "Messages", key + ".overlay", false);
-        ui.EndRow();
-    }
-    
 }
