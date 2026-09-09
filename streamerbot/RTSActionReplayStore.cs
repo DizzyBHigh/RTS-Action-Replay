@@ -76,6 +76,7 @@ public class CPHInline
     }
 
     private int GetSettingInt(string key, int fallback) { try { object value = CPH.GetGlobalVar<object>(key, true); if (value == null) return fallback; return Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture); } catch { return fallback; } }
+    private double GetSettingDouble(string key, double fallback) { try { object value = CPH.GetGlobalVar<object>(key, true); if (value == null) return fallback; return Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture); } catch { return fallback; } }
     private bool IsReplayFile(string path) { var extension = Path.GetExtension(path); if (string.IsNullOrWhiteSpace(extension)) return false; var configured = CPH.GetGlobalVar<string>(FileTypesKey, true) ?? ".mp4, .mkv"; var types = configured.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries); for (int i = 0; i < types.Length; i++) { var type = types[i].Trim(); if (type.Length == 0) continue; if (!type.StartsWith(".")) type = "." + type; if (string.Equals(extension, type, StringComparison.OrdinalIgnoreCase)) return true; } return false; }
     private JObject Load() => JObject.Parse(CPH.GetGlobalVar<string>(DataKey, true) ?? "{\"version\":1,\"replays\":[]}");
     private void Save(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
@@ -115,11 +116,9 @@ public class CPHInline
         CPH.SetArgument("replayTitleFontSize", GetSettingInt("rts.actionreplay.titleFontSize", 34));
         CPH.SetArgument("replayTitleTextColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleTextColor", true) ?? "#FFFFFFFF");
         CPH.SetArgument("replayTitleShadowColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleShadowColor", true) ?? "#FF000000");
-        CPH.SetArgument("replayTitleGradientStart", CPH.GetGlobalVar<string>("rts.actionreplay.titleGradientStart", true) ?? "#FF05090C");
-        CPH.SetArgument("replayTitleGradientEnd", CPH.GetGlobalVar<string>("rts.actionreplay.titleGradientEnd", true) ?? "#FF16232B");
-        CPH.SetArgument("replayTitleBackgroundColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleBackgroundColor", true) ?? "#FF05090C");
-        CPH.SetArgument("replayTitleShapeGradientStart", CPH.GetGlobalVar<string>("rts.actionreplay.titleShapeGradientStart", true) ?? "#FF0384CB");
-        CPH.SetArgument("replayTitleShapeGradientEnd", CPH.GetGlobalVar<string>("rts.actionreplay.titleShapeGradientEnd", true) ?? "#FF7BD7FF");
+        CPH.SetArgument("replayTitleBackgroundColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleBackgroundColor", true) ?? "#F005090C");
+        CPH.SetArgument("replayTitleBackgroundOpacity", GetSettingInt("rts.actionreplay.titleBackgroundOpacity", 94));
+        CPH.SetArgument("replayTitleAccentColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleAccentColor", true) ?? "#FF0384CB");
         CPH.TriggerEvent("RTS-Action Replay", true);
     }
 }
