@@ -29,6 +29,11 @@ public class CPHInline
         ui.AddToggleSwitch("Show Controls", "Display the visual player status bar. It is not interactive.", "Player", "rts.actionreplay.showControls", false);
         ui.AddToggleSwitch("Show Progress Bar", "Display the non-interactive playback progress bar.", "Player", "rts.actionreplay.showProgress", true);
         ui.AddDecimalTextbox("Default Playback Speed", "Playback speed applied when a replay is loaded.", "Player", "rts.actionreplay.playbackSpeed", 1.0, 0.25, 2.0, 0.25);
+        ui.AddToggleSwitch("Show Replay Title", "Display the replay title on the video.", "Player", "rts.actionreplay.showTitle", true);
+        ui.AddDropdown("Title Bar Style", "Choose the visual design used for the replay title.", "Player", "rts.actionreplay.titleBarStyle", new[] { "Broadcast", "Cinematic", "Cut", "Minimal" }, "Broadcast");
+        ui.AddDropdown("Title Position", "Place the title bar at the top or bottom of the video.", "Player", "rts.actionreplay.titlePosition", new[] { "Top", "Bottom" }, "Bottom");
+        ui.AddDecimalTextbox("Title Display Duration", "How long the title remains visible, in seconds. Zero keeps it visible.", "Player", "rts.actionreplay.titleDuration", 5.0, 0.0, 30.0, 0.5);
+        ui.AddDecimalTextbox("Title Slide Duration", "Animation duration in seconds.", "Player", "rts.actionreplay.titleAnimationDuration", 0.45, 0.1, 2.0, 0.05);
 
         ui.AddTitle("Player Frame", "Appearance");
         ui.AddColorPicker("Frame Color", "Main player frame and progress colour.", "Appearance", "rts.actionreplay.frameColor", "#FF0384CB");
