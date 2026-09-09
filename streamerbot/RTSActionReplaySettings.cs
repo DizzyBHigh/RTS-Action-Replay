@@ -191,6 +191,9 @@ public class CPHInline
     {
         ui.BeginRow();
         ui.AddTextbox(name + " Message", "Message sent when this command completes.", "Messages", key + ".text", message, false);
+        ui.EndRow();
+
+        ui.BeginRow();
         ui.AddToggleSwitch(name + " - Chat", "Send this message to Twitch chat.", "Messages", key + ".chat", true);
         ui.AddToggleSwitch(name + " - Overlay", "Send this message to the Action Replay overlay.", "Messages", key + ".overlay", false);
         ui.EndRow();
