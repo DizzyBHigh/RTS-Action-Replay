@@ -5,6 +5,11 @@ RTSReplayElements.clearTitleTimer = () => {
   RTSReplayElements.titleTimer = null;
 };
 
+RTSReplayElements.clearTitleDelay = () => {
+  if (RTSReplayElements.titleDelay) clearTimeout(RTSReplayElements.titleDelay);
+  RTSReplayElements.titleDelay = null;
+};
+
 RTSReplayElements.toRgba = (value, opacity = 1) => {
   const color = String(value || '').trim();
   const match = color.match(/^#([0-9a-f]{6}|[0-9a-f]{8})$/i);
@@ -32,6 +37,7 @@ RTSReplayElements.loadFont = font => {
 
 RTSReplayElements.hideTitle = () => {
   RTSReplayElements.clearTitleTimer();
+  RTSReplayElements.clearTitleDelay();
   const title = RTSReplayElements.title;
   if (!title || !title.classList.contains('visible')) return;
   title.classList.remove('title-enter');
@@ -45,27 +51,39 @@ RTSReplayElements.showTitle = command => {
   const text = String(command.replayTitle || '').trim();
   if (!text) return;
 
-  RTSReplayElements.hideTitle();
-  const style = String(command.replayTitleStyle || 'Broadcast').toLowerCase();
-  const position = String(command.replayTitlePosition || 'Bottom').toLowerCase();
-  const animation = String(command.replayTitleAnimation || 'Slide up/down').toLowerCase();
-  const className = ['broadcast', 'cinematic', 'cut', 'minimal'].includes(style) ? style : 'broadcast';
-  const direction = animation === 'left to right' ? 'from-left' : animation === 'right to left' ? 'from-right' : animation === 'fade' ? 'fade' : position === 'top' ? 'from-top' : 'from-bottom';
+  RTSReplayElements.clearTitleTimer();
+  RTSReplayElements.clearTitleDelay();
+  title.classList.remove('visible', 'title-enter', 'title-exit');
 
-  title.className = `title-${className} title-${position === 'top' ? 'top' : 'bottom'} title-${direction}`;
-  title.textContent = text;
-  title.style.setProperty('--title-font', `'${String(command.replayTitleFont || 'Inter').replace(/'/g, '')}', system-ui, sans-serif`);
-  title.style.setProperty('--title-size', `${Math.max(12, Number(command.replayTitleFontSize) || 34)}px`);
-  title.style.setProperty('--title-text', RTSReplayElements.toRgba(command.replayTitleTextColor, 1));
-  title.style.setProperty('--title-shadow', RTSReplayElements.toRgba(command.replayTitleShadowColor, 1));
-  title.style.setProperty('--title-bg', RTSReplayElements.toRgba(command.replayTitleBackgroundColor, Math.max(0, Math.min(1, (Number(command.replayTitleBackgroundOpacity) || 0) / 100))));
-  title.style.setProperty('--title-accent', RTSReplayElements.toRgba(command.replayTitleAccentColor, 1));
-  title.style.setProperty('--title-animation-duration', `${Math.max(0.1, Number(command.replayTitleAnimationDuration) || 0.45)}s`);
-  RTSReplayElements.loadFont(command.replayTitleFont);
-  title.classList.add('visible', 'title-enter');
+  const show = () => {
+    const style = String(command.replayTitleStyle || 'Broadcast').toLowerCase();
+    const position = String(command.replayTitlePosition || 'Bottom').toLowerCase();
+    const animation = String(command.replayTitleAnimation || 'Slide up/down').toLowerCase();
+    const className = ['broadcast', 'cinematic', 'cut', 'minimal'].includes(style) ? style : 'broadcast';
+    const direction = animation === 'left to right' ? 'from-left' : animation === 'right to left' ? 'from-right' : animation === 'fade' ? 'fade' : position === 'top' ? 'from-top' : 'from-bottom';
 
-  const displayDuration = Math.max(0, Number(command.replayTitleDuration) || 0);
-  if (displayDuration > 0) RTSReplayElements.titleTimer = setTimeout(() => RTSReplayElements.hideTitle(), displayDuration * 1000);
+    title.className = `title-${className} title-${position === 'top' ? 'top' : 'bottom'} title-${direction}`;
+    title.textContent = text;
+    title.style.setProperty('--title-font', `'${String(command.replayTitleFont || 'Inter').replace(/'/g, '')}', system-ui, sans-serif`);
+    title.style.setProperty('--title-size', `${Math.max(12, Number(command.replayTitleFontSize) || 34)}px`);
+    title.style.setProperty('--title-text', RTSReplayElements.toRgba(command.replayTitleTextColor, 1));
+    title.style.setProperty('--title-shadow', RTSReplayElements.toRgba(command.replayTitleShadowColor, 1));
+    title.style.setProperty('--title-gradient-start', RTSReplayElements.toRgba(command.replayTitleGradientStart, 1));
+    title.style.setProperty('--title-gradient-end', RTSReplayElements.toRgba(command.replayTitleGradientEnd, 1));
+    title.style.setProperty('--title-bg', RTSReplayElements.toRgba(command.replayTitleBackgroundColor, 1));
+    title.style.setProperty('--shape-gradient-start', RTSReplayElements.toRgba(command.replayTitleShapeGradientStart, 1));
+    title.style.setProperty('--shape-gradient-end', RTSReplayElements.toRgba(command.replayTitleShapeGradientEnd, 1));
+    title.style.setProperty('--title-animation-duration', `${Math.max(0, Number(command.replayTitleAnimationDuration) || 450)}ms`);
+    RTSReplayElements.loadFont(command.replayTitleFont);
+    title.classList.add('visible', 'title-enter');
+
+    const displayDuration = Math.max(0, Number(command.replayTitleDuration) || 0);
+    if (displayDuration > 0) RTSReplayElements.titleTimer = setTimeout(() => RTSReplayElements.hideTitle(), displayDuration);
+  };
+
+  const delay = Math.max(0, Number(command.replayTitleDelay) || 0);
+  if (delay > 0) RTSReplayElements.titleDelay = setTimeout(show, delay);
+  else show();
 };
 
 RTSReplayElements.configure = command => {
