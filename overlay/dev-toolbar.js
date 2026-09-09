@@ -13,6 +13,17 @@
     <button data-style="minimal">Minimal</button>
     <button data-position="top">Top</button>
     <button data-position="bottom">Bottom</button>
+    <label class="dev-speed-label" for="rts-dev-speed">Speed</label>
+    <select id="rts-dev-speed" aria-label="Playback speed">
+      <option value="0.25">0.25×</option>
+      <option value="0.5">0.5×</option>
+      <option value="0.75">0.75×</option>
+      <option value="1" selected>1×</option>
+      <option value="1.25">1.25×</option>
+      <option value="1.5">1.5×</option>
+      <option value="1.75">1.75×</option>
+      <option value="2">2×</option>
+    </select>
     <input id="rts-dev-title" value="FIRST TEST — REPLAY CAPTURE" aria-label="Preview title">
     <button data-action="show">Show Title</button>
     <button data-action="hide">Hide Title</button>
@@ -24,6 +35,18 @@
   let style = 'broadcast';
   let position = 'bottom';
   let playerVisible = false;
+
+  const setSpeed = value => {
+    const speed = Number(value);
+    if (!Number.isFinite(speed) || !RTSReplay?.video) return;
+    RTSReplay.video.playbackRate = speed;
+    const command = Object.assign({}, RTSReplay.command || {}, {
+      replayPlaybackSpeed: speed,
+      replayPlaybackSpeedVisibility: 'Always'
+    });
+    RTSReplay.command = command;
+    RTSReplayElements?.configureSpeed?.(command);
+  };
 
   const showPlayer = () => {
     const player = RTSReplay?.player;
@@ -50,6 +73,7 @@
 
   const preview = () => {
     showPlayer();
+    setSpeed(document.getElementById('rts-dev-speed').value);
     const title = RTSReplay?.title;
     if (!title) return;
     RTSReplay.hideTitle?.();
@@ -80,6 +104,7 @@
     if (button.dataset.action === 'hide') RTSReplay.hideTitle?.();
   });
 
+  bar.querySelector('#rts-dev-speed').addEventListener('change', event => setSpeed(event.target.value));
   bar.querySelector('[data-style="broadcast"]').classList.add('active');
   bar.querySelector('[data-position="bottom"]').classList.add('active');
 })();
