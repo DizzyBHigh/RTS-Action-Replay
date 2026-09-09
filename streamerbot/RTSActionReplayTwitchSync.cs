@@ -39,12 +39,20 @@ public class CPHInline
         var catalog = (JArray)data["catalog"] ?? new JArray();
         var recent = (JArray)data["recentIds"] ?? new JArray();
         var added = 0;
+        var backfilled = 0;
+        var mode = GetPlaybackMode();
 
         foreach (var clip in clips ?? new List<ClipData>())
         {
-            if (clip == null || string.IsNullOrWhiteSpace(clip.Id) || Find(catalog, clip.Id) != null) continue;
+            if (clip == null || string.IsNullOrWhiteSpace(clip.Id)) continue;
 
-            var mode = GetPlaybackMode();
+            var existing = Find(catalog, clip.Id);
+            if (existing != null)
+            {
+                if (ModeNeedsLocalCopy(mode) && EnsureLocalCopy(existing, clip.Id)) backfilled++;
+                continue;
+            }
+
             var path = ModeNeedsLocalCopy(mode) ? Download(clip.Id) : null;
             if (ModeNeedsLocalCopy(mode) && string.IsNullOrWhiteSpace(path))
                 CPH.LogWarn("RTS Action Replay: sync could not create a local copy for Twitch clip " + clip.Id + "; retaining its Twitch URL in the Catalog.");
@@ -87,7 +95,7 @@ public class CPHInline
         CPH.SetGlobalVar(CatalogKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
         CPH.SetGlobalVar("rts.actionreplay.recentIds", recent.ToString(Newtonsoft.Json.Formatting.None), true);
 
-        CPH.LogInfo("RTS Action Replay: Twitch reconciliation added " + added + " new clip(s) to Catalog/Recent Clips. No discovered clips were played.");
+        CPH.LogInfo("RTS Action Replay: Twitch reconciliation added " + added + " new clip(s) and backfilled " + backfilled + " local copy/copies. No discovered clips were played.");
         return true;
     }
 
@@ -102,6 +110,17 @@ public class CPHInline
     private bool ModeNeedsLocalCopy(string mode)
     {
         return string.Equals(mode, "Download Locally", StringComparison.OrdinalIgnoreCase) || string.Equals(mode, "Both", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool EnsureLocalCopy(JObject item, string clipId)
+    {
+        var current = (string)item["filePath"];
+        if (!string.IsNullOrWhiteSpace(current) && File.Exists(current)) return false;
+        var path = Download(clipId);
+        if (string.IsNullOrWhiteSpace(path)) return false;
+        item["file"] = Path.GetFileName(path);
+        item["filePath"] = path;
+        return true;
     }
 
     private string Download(string clipId)
@@ -138,10 +157,7 @@ public class CPHInline
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                CPH.LogWarn("RTS Action Replay: Twitch download attempt " + attempt + " failed for " + clipId + ": " + ex.Message);
-            }
+            catch (Exception ex) { CPH.LogWarn("RTS Action Replay: Twitch download attempt " + attempt + " failed for " + clipId + ": " + ex.Message); }
             if (attempt < 10) CPH.Wait(2000);
         }
         return null;
@@ -178,8 +194,7 @@ public class CPHInline
 
     private string Sanitize(string value)
     {
-        var chars = value.ToCharArray();
-        var invalid = Path.GetInvalidFileNameChars();
+        var chars = value.ToCharArray(); var invalid = Path.GetInvalidFileNameChars();
         for (var i = 0; i < chars.Length; i++) for (var j = 0; j < invalid.Length; j++) if (chars[i] == invalid[j]) chars[i] = '_';
         return new string(chars);
     }
