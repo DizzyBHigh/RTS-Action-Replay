@@ -27,7 +27,8 @@ RTSReplayPlayer.getPosition = name => {
 };
 
 RTSReplayPlayer.configureTransition = () => {
-  const duration = Math.max(.1, Number(RTSReplayPlayer.currentCommand?.replayAnimationDuration) || .5);
+  const rawDuration = Number(RTSReplayPlayer.currentCommand?.replayAnimationDuration);
+  const duration = Math.max(.1, Number.isFinite(rawDuration) ? (rawDuration < 10 ? rawDuration : rawDuration / 1000) : .5);
   RTSReplayPlayer.player.style.setProperty('--player-duration', `${duration}s`);
   RTSReplayPlayer.player.style.setProperty('--player-easing', RTSReplayPlayer.currentCommand?.replayAnimationEasing || 'ease-in-out');
   RTSReplayPlayer.player.classList.add('player-transition');
