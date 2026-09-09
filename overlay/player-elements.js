@@ -22,6 +22,14 @@ RTSReplayElements.toRgba = (value, opacity) => {
   return `rgba(${parseInt(hex.slice(0, 2), 16)},${parseInt(hex.slice(2, 4), 16)},${parseInt(hex.slice(4, 6), 16)},${alpha})`;
 };
 
+RTSReplayElements.colorWithAlpha = (value, alpha) => {
+  const color = String(value || '').trim();
+  const match = color.match(/^#([0-9a-f]{6}|[0-9a-f]{8})$/i);
+  if (!match) return color;
+  const hex = match[1].length === 8 ? match[1].slice(2) : match[1];
+  return `rgba(${parseInt(hex.slice(0, 2), 16)},${parseInt(hex.slice(2, 4), 16)},${parseInt(hex.slice(4, 6), 16)},${Math.max(0, Math.min(1, alpha))})`;
+};
+
 RTSReplayElements.clearTitleTimer = () => {
   if (RTSReplayElements.titleTimer) clearTimeout(RTSReplayElements.titleTimer);
   RTSReplayElements.titleTimer = null;
@@ -53,13 +61,17 @@ RTSReplayElements.showTitle = command => {
 RTSReplayElements.configure = command => {
   RTSReplayElements.currentCommand = command;
   const titleFont = command.replayTitleFont || 'Inter';
+  const primary = command.replayTitlePrimaryColor || '#0384CB';
+  const secondary = command.replayTitleSecondaryColor || '#101416';
   RTSReplayElements.loadFont(titleFont, 'player-title-font');
   RTSReplayElements.layer.style.setProperty('--frame-color', command.replayFrameColor || '#0384CB');
   RTSReplayElements.layer.style.setProperty('--title-font', `'${String(titleFont).replace(/'/g, "\\'")}', system-ui, sans-serif`);
   RTSReplayElements.layer.style.setProperty('--title-font-size', `${Math.max(1, Number(command.replayTitleFontSize) || 34)}px`);
   RTSReplayElements.layer.style.setProperty('--title-color', command.replayTitleColor || '#FFFFFF');
   RTSReplayElements.layer.style.setProperty('--title-shadow-color', command.replayTitleShadowColor || '#000000');
-  RTSReplayElements.layer.style.setProperty('--title-background', RTSReplayElements.toRgba(command.replayTitleBackgroundColor || '#101416', command.replayTitleBackgroundOpacity ?? 88));
+  RTSReplayElements.layer.style.setProperty('--title-primary', primary);
+  RTSReplayElements.layer.style.setProperty('--title-secondary', secondary);
+  RTSReplayElements.layer.style.setProperty('--title-background', `linear-gradient(90deg, ${RTSReplayElements.colorWithAlpha(primary,.94)} 0%, ${RTSReplayElements.colorWithAlpha(secondary,.88)} 50%, ${RTSReplayElements.colorWithAlpha(primary,.94)} 100%)`);
   RTSReplayElements.layer.style.setProperty('--title-animation-duration', `${Math.max(.1, Number(command.replayTitleAnimationDuration) || .45)}s`);
 
   RTSReplayElements.brand.innerHTML = '';
