@@ -5,6 +5,7 @@
 #player-brand-logo.loaded{display:block}
 #player-branding b,#player-brand-fallback{color:var(--branding-fallback,#0384CB);font-size:24px}
 #player-brand-label{color:var(--branding-label,#fff);font-size:10px;letter-spacing:.22em;opacity:.72}
+#player-speed{position:absolute;right:24px;top:22px;display:block;min-width:42px;text-align:right;color:#fff;font:700 13px/1 system-ui,sans-serif;letter-spacing:.06em;text-shadow:0 2px 7px rgba(0,0,0,.8);z-index:22}
 #player-title{position:absolute;left:0;right:0;height:auto;display:none;box-sizing:border-box;align-items:center;justify-content:center;color:var(--title-text,#fff);font-family:var(--title-font,Inter),system-ui,sans-serif;font-size:var(--title-size,34px);font-weight:700;line-height:1.15;text-align:center;text-shadow:0 2px 8px var(--title-shadow,rgba(0,0,0,.9));overflow:hidden;z-index:21;background:rgba(16,20,22,.88);border-top:1px solid rgba(255,255,255,.18);border-bottom:1px solid rgba(255,255,255,.12)}
 #player-title.visible{display:flex}
 #player-title.title-top{top:0}
