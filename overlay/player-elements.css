@@ -4,29 +4,41 @@
 #player-title.title-top{top:0}
 #player-title.title-bottom{bottom:0}
 
-/* Broadcast — layered network/sports lower third */
-#player-title.title-broadcast{min-height:92px;padding:18px 16% 18px 18%;justify-content:flex-start;background:linear-gradient(90deg,rgba(5,9,12,.99),rgba(18,27,33,.97) 58%,rgba(7,11,14,.96));border-top:1px solid rgba(255,255,255,.28);border-bottom:1px solid rgba(255,255,255,.12);letter-spacing:.035em;box-shadow:0 -14px 34px rgba(0,0,0,.34)}
-#player-title.title-broadcast:before{content:"REPLAY";position:absolute;left:0;top:0;bottom:0;width:15%;display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding-left:2%;background:linear-gradient(135deg,#0384CB 0 72%,transparent 73%);clip-path:polygon(0 0,82% 0,100% 50%,82% 100%,0 100%);color:#fff;font-size:12px;font-weight:800;letter-spacing:.18em;text-shadow:0 1px 3px #000}
-#player-title.title-broadcast:after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:linear-gradient(90deg,#0384CB 0 15%,rgba(3,132,203,.8) 15% 60%,rgba(3,132,203,.2) 60% 86%,transparent 100%);box-shadow:0 0 16px rgba(3,132,203,.7)}
+/* Broadcast — layered sports lower-third with independent moving rails */
+#player-title.title-broadcast{min-height:94px;padding:18px 14% 18px 19%;justify-content:flex-start;background:linear-gradient(110deg,#05090c 0%,#16232b 42%,#071015 70%,#101b21 100%);background-size:220% 100%;border-top:1px solid rgba(255,255,255,.24);border-bottom:1px solid rgba(255,255,255,.12);letter-spacing:.035em;box-shadow:0 -14px 34px rgba(0,0,0,.38);animation:broadcast-surface 7s ease-in-out infinite alternate}
+#player-title.title-broadcast:before{content:"REPLAY";position:absolute;left:0;top:0;bottom:0;width:15%;display:flex;align-items:center;justify-content:center;box-sizing:border-box;background:linear-gradient(110deg,#0384CB 0%,#31bfff 42%,#0384CB 75%);background-size:220% 100%;clip-path:polygon(0 0,82% 0,100% 50%,82% 100%,0 100%);color:#fff;font-size:12px;font-weight:800;letter-spacing:.18em;text-shadow:0 1px 3px #000;animation:badge-sweep 3s linear infinite}
+#player-title.title-broadcast:after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:linear-gradient(90deg,transparent 0,#0384CB 12%,#7bd7ff 22%,#0384CB 34%,rgba(3,132,203,.25) 55%,#0384CB 78%,transparent 100%);background-size:220% 100%;box-shadow:0 0 16px rgba(3,132,203,.75);animation:rail-sweep 2.8s linear infinite}
 
-/* Cinematic — film-frame composition with split accent geometry */
-#player-title.title-cinematic{min-height:108px;padding:20px 17%;background:linear-gradient(90deg,transparent,rgba(3,6,9,.95) 17%,rgba(5,8,11,.97) 83%,transparent);border:0;letter-spacing:.085em;box-shadow:0 0 55px rgba(0,0,0,.58)}
-#player-title.title-cinematic:before{content:"";position:absolute;left:8%;right:8%;top:11px;height:2px;background:linear-gradient(90deg,transparent 0,#fff 16%,rgba(255,255,255,.16) 16.5% 83.5%,#fff 84%,transparent);opacity:.42;box-shadow:0 83px 42px rgba(0,0,0,.85)}
-#player-title.title-cinematic:after{content:"01  •  ACTION REPLAY";position:absolute;left:8%;bottom:12px;color:rgba(255,255,255,.55);font:600 10px/1 system-ui,sans-serif;letter-spacing:.22em;white-space:pre; text-shadow:none;border-left:3px solid #0384CB;padding-left:10px}
+/* Cinematic — thin floating frame with a travelling light sweep */
+#player-title.title-cinematic{min-height:88px;padding:18px 18%;background:linear-gradient(90deg,transparent 0,rgba(3,6,9,.9) 20%,rgba(5,8,11,.96) 50%,rgba(3,6,9,.9) 80%,transparent);letter-spacing:.1em;box-shadow:0 0 55px rgba(0,0,0,.58)}
+#player-title.title-cinematic:before{content:"";position:absolute;left:7%;right:7%;top:8px;height:2px;background:linear-gradient(90deg,transparent 0,rgba(255,255,255,.15) 15%,#fff 22%,rgba(3,132,203,.9) 28%,rgba(255,255,255,.18) 42%,rgba(255,255,255,.18) 78%,#0384CB 84%,transparent);background-size:260% 100%;box-shadow:0 78px 30px rgba(0,0,0,.75);animation:cinematic-sweep 3.6s linear infinite}
+#player-title.title-cinematic:after{content:"01  •  ACTION REPLAY";position:absolute;left:8%;bottom:10px;color:rgba(255,255,255,.55);font:600 10px/1 system-ui,sans-serif;letter-spacing:.22em;white-space:pre;text-shadow:none;border-left:3px solid #0384CB;padding-left:10px;animation:micro-pulse 2.5s ease-in-out infinite}
 
-/* Cut — technical HUD plate with multiple angular layers */
-#player-title.title-cut{min-height:94px;padding:17px 16%;background:linear-gradient(90deg,rgba(6,10,13,.99),rgba(17,25,30,.97) 48%,rgba(7,11,14,.99));border:1px solid rgba(255,255,255,.2);clip-path:polygon(0 0,94% 0,100% 50%,94% 100%,0 100%,4% 50%);letter-spacing:.055em;box-shadow:0 10px 30px rgba(0,0,0,.46)}
-#player-title.title-cut:before{content:"PLAYBACK  //  RTS";position:absolute;left:6%;top:9px;color:rgba(255,255,255,.42);font:700 9px/1 system-ui,sans-serif;letter-spacing:.2em;text-shadow:none}
-#player-title.title-cut:after{content:"";position:absolute;left:4%;right:8%;bottom:7px;height:4px;background:linear-gradient(90deg,#0384CB 0 13%,transparent 13% 16%,rgba(3,132,203,.65) 16% 68%,transparent 68% 72%,#0384CB 72% 88%,transparent 88%);box-shadow:0 0 13px rgba(3,132,203,.75)}
+/* Technical — angular HUD plate with scanning segments */
+#player-title.title-cut{min-height:96px;padding:18px 17%;background:linear-gradient(105deg,#050a0d,#17262e 48%,#060b0e);border:1px solid rgba(255,255,255,.18);clip-path:polygon(0 0,92% 0,100% 50%,92% 100%,0 100%,4% 50%);letter-spacing:.055em;box-shadow:0 10px 30px rgba(0,0,0,.46)}
+#player-title.title-cut:before{content:"PLAYBACK  //  RTS";position:absolute;left:7%;top:9px;color:rgba(255,255,255,.42);font:700 9px/1 system-ui,sans-serif;letter-spacing:.2em;text-shadow:none;padding-right:28%;background:linear-gradient(90deg,rgba(255,255,255,.7),rgba(3,132,203,.8),transparent);background-repeat:no-repeat;background-size:18% 1px;background-position:0 16px;animation:hud-line 2.4s ease-in-out infinite alternate}
+#player-title.title-cut:after{content:"";position:absolute;left:4%;right:8%;bottom:7px;height:4px;background:linear-gradient(90deg,#0384CB 0 8%,transparent 8% 12%,#0384CB 12% 18%,transparent 18% 24%,rgba(3,132,203,.35) 24% 65%,transparent 65% 70%,#7bd7ff 70% 74%,#0384CB 74% 88%,transparent 88%);background-size:180% 100%;box-shadow:0 0 13px rgba(3,132,203,.75);animation:rail-sweep 2.1s linear infinite}
 
-/* Minimal — architectural frame, no heavy filled rectangle */
-#player-title.title-minimal{min-height:82px;padding:15px 14%;background:linear-gradient(90deg,transparent 3%,rgba(0,0,0,.72) 20%,rgba(0,0,0,.84) 50%,rgba(0,0,0,.72) 80%,transparent 97%);border:0;letter-spacing:.1em;box-shadow:0 0 38px rgba(0,0,0,.5)}
-#player-title.title-minimal:before{content:"";position:absolute;left:17%;right:17%;top:9px;bottom:9px;border-top:1px solid rgba(255,255,255,.52);border-bottom:1px solid rgba(255,255,255,.22);clip-path:polygon(0 0,96% 0,100% 50%,96% 100%,0 100%,2% 50%);box-shadow:inset 0 1px rgba(3,132,203,.7)}
-#player-title.title-minimal:after{content:"";position:absolute;left:25%;right:25%;bottom:9px;height:2px;background:linear-gradient(90deg,transparent,#0384CB 20%,#0384CB 80%,transparent);box-shadow:0 0 12px rgba(3,132,203,.85)}
+/* Premium — restrained frame with independent moving accent lines */
+#player-title.title-minimal{min-height:82px;padding:15px 14%;background:linear-gradient(90deg,transparent 2%,rgba(0,0,0,.72) 20%,rgba(0,0,0,.86) 50%,rgba(0,0,0,.72) 80%,transparent 98%);letter-spacing:.1em;box-shadow:0 0 38px rgba(0,0,0,.5)}
+#player-title.title-minimal:before{content:"";position:absolute;left:15%;right:15%;top:8px;bottom:8px;border-top:1px solid rgba(255,255,255,.45);border-bottom:1px solid rgba(255,255,255,.18);clip-path:polygon(0 0,96% 0,100% 50%,96% 100%,0 100%,2% 50%);background:linear-gradient(90deg,transparent,#0384CB,rgba(255,255,255,.9),#0384CB,transparent) 0 0/240% 1px no-repeat,linear-gradient(90deg,transparent,#0384CB,rgba(255,255,255,.7),#0384CB,transparent) 100% 100%/240% 1px no-repeat;animation:minimal-lines 4s linear infinite}
+#player-title.title-minimal:after{content:"";position:absolute;left:24%;right:24%;bottom:7px;height:2px;background:linear-gradient(90deg,transparent,#0384CB 18%,#7bd7ff 30%,#0384CB 44%,rgba(3,132,203,.2) 65%,#0384CB 82%,transparent);background-size:220% 100%;box-shadow:0 0 12px rgba(3,132,203,.85);animation:rail-sweep 3.2s linear infinite}
 
+/* Entry / exit motion */
 #player-title.title-enter{animation:title-enter .48s cubic-bezier(.16,1,.3,1) forwards}
 #player-title.title-exit{animation:title-exit .38s cubic-bezier(.7,0,.84,0) forwards}
-@keyframes title-enter{from{opacity:0;transform:translateY(var(--title-offset,105%)) scaleX(.96);filter:blur(4px)}65%{opacity:1;filter:blur(0)}to{opacity:1;transform:translateY(0) scaleX(1);filter:blur(0)}}
+@keyframes title-enter{from{opacity:0;transform:translateY(var(--title-offset,105%)) scaleX(.94);filter:blur(4px)}65%{opacity:1;filter:blur(0)}to{opacity:1;transform:translateY(0) scaleX(1);filter:blur(0)}}
 @keyframes title-exit{from{opacity:1;transform:translateY(0) scaleX(1);filter:blur(0)}to{opacity:0;transform:translateY(var(--title-offset,105%)) scaleX(.98);filter:blur(2px)}}
 #player-title.title-top.title-enter,#player-title.title-top.title-exit{--title-offset:-105%}
 #player-title.title-bottom.title-enter,#player-title.title-bottom.title-exit{--title-offset:105%}
+
+/* Continuous motion inside the title graphics */
+@keyframes broadcast-surface{from{background-position:0 50%}to{background-position:100% 50%}}
+@keyframes badge-sweep{from{background-position:0 50%}to{background-position:100% 50%}}
+@keyframes rail-sweep{from{background-position:0 50%}to{background-position:200% 50%}}
+@keyframes cinematic-sweep{from{background-position:-120% 0}to{background-position:120% 0}}
+@keyframes micro-pulse{0%,100%{opacity:.45;transform:translateX(0)}50%{opacity:.9;transform:translateX(4px)}}
+@keyframes hud-line{from{opacity:.35;background-size:8% 1px}to{opacity:1;background-size:34% 1px}}
+@keyframes minimal-lines{0%{background-position:0 0,100% 100%}50%{background-position:100% 0,0 100%}100%{background-position:0 0,100% 100%}}
+
+@media (prefers-reduced-motion:reduce){#player-title.title-broadcast,#player-title.title-broadcast:before,#player-title.title-broadcast:after,#player-title.title-cinematic:before,#player-title.title-cinematic:after,#player-title.title-cut:before,#player-title.title-cut:after,#player-title.title-minimal:before,#player-title.title-minimal:after{animation:none}}
