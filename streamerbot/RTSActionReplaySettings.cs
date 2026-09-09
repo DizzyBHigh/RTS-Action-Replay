@@ -184,6 +184,9 @@ public class CPHInline
     {
         ui.BeginRow();
         ui.AddTextbox(name + " Message", "Message sent when this command completes.", "Messages", key + ".text", message, false);
+        ui.EndRow();
+
+        ui.BeginRow();
         ui.AddToggleSwitch(name + " - Chat", "Send this message to Twitch chat.", "Messages", key + ".chat", true);
         ui.AddToggleSwitch(name + " - Overlay", "Send this message to the Action Replay overlay.", "Messages", key + ".overlay", false);
         ui.EndRow();
@@ -238,7 +241,8 @@ public class CPHInline
     private string NormalizePositionTag(string value)
     {
         if (string.IsNullOrWhiteSpace(value)) return "";
-        var result = new System.Text.StringBuilder(); bool hyphen = false;
+        var result = new System.Text.StringBuilder();
+        bool hyphen = false;
         foreach (char c in value.Trim().ToLowerInvariant())
         {
             if (char.IsLetterOrDigit(c)) { result.Append(c); hyphen = false; }
