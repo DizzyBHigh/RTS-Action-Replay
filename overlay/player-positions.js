@@ -14,11 +14,21 @@ RTSReplayPlayer.getPositions = () => {
 
 RTSReplayPlayer.getPosition = name => {
   const positions = RTSReplayPlayer.getPositions();
-  return positions[name] || positions['Full Screen'] || RTSReplayPlayer.defaultPositions['Full Screen'];
+  if (positions[name]) return positions[name];
+  const target = String(name || '').trim().toLowerCase();
+  if (target) {
+    const match = Object.keys(positions).find(key => {
+      const position = positions[key];
+      return key.toLowerCase() === target || String(position?.tag || '').trim().toLowerCase() === target;
+    });
+    if (match) return positions[match];
+  }
+  return positions['Full Screen'] || RTSReplayPlayer.defaultPositions['Full Screen'];
 };
 
 RTSReplayPlayer.configureTransition = () => {
-  const duration = Math.max(.1, Number(RTSReplayPlayer.currentCommand?.replayAnimationDuration) || .5);
+  const rawDuration = Number(RTSReplayPlayer.currentCommand?.replayAnimationDuration);
+  const duration = Math.max(.1, Number.isFinite(rawDuration) ? (rawDuration < 10 ? rawDuration : rawDuration / 1000) : .5);
   RTSReplayPlayer.player.style.setProperty('--player-duration', `${duration}s`);
   RTSReplayPlayer.player.style.setProperty('--player-easing', RTSReplayPlayer.currentCommand?.replayAnimationEasing || 'ease-in-out');
   RTSReplayPlayer.player.classList.add('player-transition');

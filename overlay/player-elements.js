@@ -1,107 +1,13 @@
 const RTSReplayElements = window.RTSReplay;
-
-RTSReplayElements.loadFont = (font, id) => {
-  const family = String(font || 'Inter').trim();
-  if (!family) return;
-  let link = document.getElementById(id);
-  if (!link) {
-    link = document.createElement('link');
-    link.id = id;
-    link.rel = 'stylesheet';
-    document.head.appendChild(link);
-  }
-  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family).replace(/%20/g, '+')}:wght@400;600;700&display=swap`;
-};
-
-RTSReplayElements.toRgba = (value, opacity) => {
-  const color = String(value || '').trim();
-  const match = color.match(/^#([0-9a-f]{6}|[0-9a-f]{8})$/i);
-  const alpha = Math.max(0, Math.min(1, Number(opacity) / 100));
-  if (!match) return color || `rgba(16,20,22,${alpha})`;
-  const hex = match[1].length === 8 ? match[1].slice(2) : match[1];
-  return `rgba(${parseInt(hex.slice(0, 2), 16)},${parseInt(hex.slice(2, 4), 16)},${parseInt(hex.slice(4, 6), 16)},${alpha})`;
-};
-
-RTSReplayElements.colorWithAlpha = (value, alpha) => {
-  const color = String(value || '').trim();
-  const match = color.match(/^#([0-9a-f]{6}|[0-9a-f]{8})$/i);
-  if (!match) return color;
-  const hex = match[1].length === 8 ? match[1].slice(2) : match[1];
-  return `rgba(${parseInt(hex.slice(0, 2), 16)},${parseInt(hex.slice(2, 4), 16)},${parseInt(hex.slice(4, 6), 16)},${Math.max(0, Math.min(1, alpha))})`;
-};
-
-RTSReplayElements.clearTitleTimer = () => {
-  if (RTSReplayElements.titleTimer) clearTimeout(RTSReplayElements.titleTimer);
-  RTSReplayElements.titleTimer = null;
-};
-
-RTSReplayElements.hideTitle = () => {
-  RTSReplayElements.clearTitleTimer();
-  RTSReplayElements.title.classList.remove('visible', 'closing', 'title-top', 'title-bottom');
-};
-
-RTSReplayElements.showTitle = command => {
-  RTSReplayElements.hideTitle();
-  const title = String(command.replayTitle || '').trim();
-  if (command.replayShowTitle === false || !title) return;
-  const position = String(command.replayTitlePosition || 'Top').toLowerCase() === 'bottom' ? 'title-bottom' : 'title-top';
-  const duration = Math.max(.1, Number(command.replayTitleAnimationDuration) || .45);
-  const displayDuration = Math.max(0, Number(command.replayTitleDuration) || 0);
-  RTSReplayElements.title.classList.add(position);
-  RTSReplayElements.title.textContent = title;
-  RTSReplayElements.title.classList.add('visible');
-  if (displayDuration > 0) {
-    RTSReplayElements.titleTimer = setTimeout(() => {
-      RTSReplayElements.title.classList.add('closing');
-      RTSReplayElements.titleTimer = setTimeout(RTSReplayElements.hideTitle, duration * 1000);
-    }, displayDuration * 1000);
-  }
-};
-
-RTSReplayElements.configure = command => {
-  RTSReplayElements.currentCommand = command;
-  const titleFont = command.replayTitleFont || 'Inter';
-  const primary = command.replayTitlePrimaryColor || '#0384CB';
-  const secondary = command.replayTitleSecondaryColor || '#101416';
-  RTSReplayElements.loadFont(titleFont, 'player-title-font');
-  RTSReplayElements.layer.style.setProperty('--frame-color', command.replayFrameColor || '#0384CB');
-  RTSReplayElements.layer.style.setProperty('--title-font', `'${String(titleFont).replace(/'/g, "\\'")}', system-ui, sans-serif`);
-  RTSReplayElements.layer.style.setProperty('--title-font-size', `${Math.max(1, Number(command.replayTitleFontSize) || 34)}px`);
-  RTSReplayElements.layer.style.setProperty('--title-color', command.replayTitleColor || '#FFFFFF');
-  RTSReplayElements.layer.style.setProperty('--title-shadow-color', command.replayTitleShadowColor || '#000000');
-  RTSReplayElements.layer.style.setProperty('--title-primary', primary);
-  RTSReplayElements.layer.style.setProperty('--title-secondary', secondary);
-  RTSReplayElements.layer.style.setProperty('--title-background', `linear-gradient(90deg, ${RTSReplayElements.colorWithAlpha(primary,.94)} 0%, ${RTSReplayElements.colorWithAlpha(secondary,.88)} 50%, ${RTSReplayElements.colorWithAlpha(primary,.94)} 100%)`);
-  RTSReplayElements.layer.style.setProperty('--title-animation-duration', `${Math.max(.1, Number(command.replayTitleAnimationDuration) || .45)}s`);
-
-  RTSReplayElements.brand.innerHTML = '';
-  const showBranding = command.replayShowBranding !== false;
-  const logo = String(command.replayLogoUrl || '').trim();
-  RTSReplayElements.brand.classList.toggle('visible', showBranding);
-  if (showBranding) {
-    if (logo) RTSReplayElements.brand.innerHTML = `<img src="${logo.replace(/"/g, '&quot;')}" alt="">`;
-    else RTSReplayElements.brand.textContent = 'RTS';
-  }
-
-  const speedValue = Number(command.replayPlaybackSpeed) || 1;
-  RTSReplayElements.speedLabel.textContent = `${Number(speedValue.toFixed(2))}x`;
-  RTSReplayElements.speedLabel.classList.add('visible');
-  RTSReplayElements.showTitle(command);
-};
-
-RTSReplayElements.clear = () => {
-  RTSReplayElements.clearTitleTimer();
-  RTSReplayElements.brand.innerHTML = '';
-  RTSReplayElements.title.textContent = '';
-  RTSReplayElements.speedLabel.textContent = '';
-  RTSReplayElements.brand.classList.remove('visible');
-  RTSReplayElements.title.classList.remove('visible', 'closing', 'title-top', 'title-bottom');
-  RTSReplayElements.speedLabel.classList.remove('visible');
-};
-
-RTSReplayElements.hide = RTSReplayElements.clear;
-RTSReplayElements.layer = document.getElementById('player-elements');
-RTSReplayElements.brand = document.getElementById('player-branding');
-RTSReplayElements.title = document.getElementById('player-title');
-RTSReplayElements.speedLabel = document.getElementById('player-speed-indicator');
-window.RTSReplayElements = RTSReplayElements;
+RTSReplayElements.clearTitleTimer = () => { if (RTSReplayElements.titleTimer) clearTimeout(RTSReplayElements.titleTimer); RTSReplayElements.titleTimer = null; };
+RTSReplayElements.clearTitleDelay = () => { if (RTSReplayElements.titleDelay) clearTimeout(RTSReplayElements.titleDelay); RTSReplayElements.titleDelay = null; };
+RTSReplayElements.toRgba = (value, opacity = 1) => { const color = String(value || '').trim(), match = color.match(/^#([0-9a-f]{6}|[0-9a-f]{8})$/i); if (!match) return color || `rgba(0,0,0,${opacity})`; let hex = match[1], alpha = opacity; if (hex.length === 8) { alpha *= parseInt(hex.slice(6, 8), 16) / 255; hex = hex.slice(0, 6); } return `rgba(${parseInt(hex.slice(0, 2), 16)},${parseInt(hex.slice(2, 4), 16)},${parseInt(hex.slice(4, 6), 16)},${Math.max(0, Math.min(1, alpha))})`; };
+RTSReplayElements.toCssHex = value => { const color = String(value || '').trim(), match = color.match(/^#([0-9a-f]{6}|[0-9a-f]{8})$/i); return match ? `#${match[1].slice(0, 6)}` : color; };
+RTSReplayElements.loadFont = font => { const name = String(font || 'Inter').trim(); if (!name) return; const id = `rts-font-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`; if (document.getElementById(id)) return; const link = document.createElement('link'); link.id = id; link.rel = 'stylesheet'; link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name).replace(/%20/g, '+')}:wght@400;500;600;700;800&display=swap`; document.head.appendChild(link); };
+RTSReplayElements.configureBranding = command => { const branding = RTSReplayElements.branding; if (!branding) return; branding.classList.toggle('visible', command.replayShowBranding !== false); if (command.replayShowBranding === false) return; const logo = RTSReplayElements.brandLogo, fallback = RTSReplayElements.brandFallback, label = RTSReplayElements.brandLabel; const logoUrl = String(command.replayBrandLogoUrl || '').trim(); fallback.textContent = String(command.replayBrandFallbackText || 'RTS'); label.textContent = String(command.replayBrandLabel || 'ACTION REPLAY'); branding.style.setProperty('--branding-fallback', RTSReplayElements.toRgba(command.replayBrandFallbackTextColor || '#0384CBFF', 1)); branding.style.setProperty('--branding-label', RTSReplayElements.toRgba(command.replayBrandLabelColor || '#FFFFFFFF', 1)); logo.classList.remove('loaded'); logo.removeAttribute('src'); if (!logoUrl) { fallback.style.display = ''; return; } fallback.style.display = 'none'; logo.onload = () => logo.classList.add('loaded'); logo.onerror = () => { logo.classList.remove('loaded'); logo.removeAttribute('src'); fallback.style.display = ''; }; logo.src = logoUrl; };
+RTSReplayElements.configureSpeed = command => { const speed = RTSReplayElements.speed; if (!speed) return; const value = Number(command.replayPlaybackSpeed ?? 1); const mode = String(command.replayPlaybackSpeedVisibility ?? 'Only when greater or less than 1').replace(/\s+/g, ' ').trim().toLowerCase(); speed.textContent = `${value.toFixed(2).replace(/\.00$/, '')}×`; const visible = mode === 'always' || (mode === 'only when greater or less than 1' && Math.abs(value - 1) > 0.0001); speed.classList.toggle('visible', visible); };
+RTSReplayElements.configureFrame = command => { const frame = RTSReplayElements.frame; if (!frame) return; const primary = RTSReplayElements.toCssHex(command.replayTitlePrimaryColor || '#0384CBFF'); const secondary = RTSReplayElements.toCssHex(command.replayTitleSecondaryColor || '#101416FF'); const width = Math.max(0, Math.min(12, Number(command.replayBorderWidth) || 0)); const radius = Math.max(0, Math.min(48, Number(command.replayCornerRadius) || 0)); const glow = command.replayBorderGlow !== false; frame.style.setProperty('--frame-color', RTSReplayElements.toCssHex(command.replayFrameColor || primary)); frame.style.setProperty('--border-primary', primary); frame.style.setProperty('--border-secondary', secondary); frame.style.setProperty('--border-width', `${width}px`); frame.style.setProperty('--corner-radius', `${radius}px`); frame.classList.toggle('border-none', width === 0); frame.classList.toggle('border-glow', glow && width > 0); };
+RTSReplayElements.hideTitle = () => { RTSReplayElements.clearTitleTimer(); RTSReplayElements.clearTitleDelay(); const title = RTSReplayElements.title; if (!title || !title.classList.contains('visible')) return; title.classList.remove('title-enter'); title.classList.add('title-exit'); title.addEventListener('animationend', () => title.classList.remove('visible', 'title-exit'), { once: true }); };
+RTSReplayElements.showTitle = command => { const title = RTSReplayElements.title; if (!title || command.replayShowTitle === false) return; const baseText = String(command.replayTitle || '').trim(), decoration = String(command.replayTitleDecoration || '').trim(); const mode = String(command.replayTitleDecorationPosition || 'Suffix').toLowerCase(); if (!baseText) return; const hasDecoration = decoration && (baseText.toLowerCase().startsWith(decoration.toLowerCase()) || baseText.toLowerCase().endsWith(decoration.toLowerCase())); const text = !decoration || hasDecoration ? baseText : mode === 'prefix' ? `${decoration}${baseText}` : `${baseText}${decoration}`; RTSReplayElements.clearTitleTimer(); RTSReplayElements.clearTitleDelay(); title.classList.remove('visible', 'title-enter', 'title-exit'); const show = () => { const style = String(command.replayTitleStyle || 'Broadcast').toLowerCase(), position = String(command.replayTitlePosition || 'Bottom').toLowerCase(), animation = String(command.replayTitleAnimation || 'Slide up/down').toLowerCase(); const className = ['broadcast', 'cinematic', 'cut', 'minimal'].includes(style) ? style : 'broadcast'; const direction = animation === 'left to right' ? 'from-left' : animation === 'right to left' ? 'from-right' : animation === 'fade' ? 'fade' : position === 'top' ? 'from-top' : 'from-bottom'; title.className = `title-${className} title-${position === 'top' ? 'top' : 'bottom'} title-${direction}`; title.textContent = text; title.style.setProperty('--title-font', `'${String(command.replayTitleFont || 'Inter').replace(/'/g, '')}', system-ui, sans-serif`); title.style.setProperty('--title-size', `${Math.max(12, Number(command.replayTitleFontSize) || 34)}px`); title.style.setProperty('--title-text', RTSReplayElements.toRgba(command.replayTitleTextColor, 1)); title.style.setProperty('--title-shadow', RTSReplayElements.toRgba(command.replayTitleShadowColor, 1)); title.style.setProperty('--title-animation-duration', `${Math.max(0, Number(command.replayTitleAnimationDuration) || 450)}ms`); title.style.removeProperty('--title-background'); RTSReplayElements.loadFont(command.replayTitleFont); title.classList.add('visible', 'title-enter'); const duration = Math.max(0, Number(command.replayTitleDuration) || 0); if (duration > 0) RTSReplayElements.titleTimer = setTimeout(() => RTSReplayElements.hideTitle(), duration); }; const delay = Math.max(0, Number(command.replayTitleDelay) || 0); if (delay > 0) RTSReplayElements.titleDelay = setTimeout(show, delay); else show(); };
+RTSReplayElements.configure = command => { RTSReplayElements.command = command; RTSReplayElements.configureBranding(command); RTSReplayElements.configureSpeed(command); const primary = RTSReplayElements.toCssHex(command.replayTitlePrimaryColor || '#0384CBFF'), secondary = RTSReplayElements.toCssHex(command.replayTitleSecondaryColor || '#101416FF'); if (RTSReplayElements.layer) { RTSReplayElements.layer.style.setProperty('--title-primary', primary); RTSReplayElements.layer.style.setProperty('--title-secondary', secondary); } RTSReplayElements.configureFrame(command); if (command.replayTitle) RTSReplayElements.showTitle(command); };
+RTSReplayElements.layer = document.getElementById('player-elements'); RTSReplayElements.title = document.getElementById('player-title'); RTSReplayElements.frame = document.getElementById('player-frame'); RTSReplayElements.branding = document.getElementById('player-branding'); RTSReplayElements.brandLogo = document.getElementById('player-brand-logo'); RTSReplayElements.brandFallback = document.getElementById('player-brand-fallback'); RTSReplayElements.brandLabel = document.getElementById('player-brand-label'); RTSReplayElements.speed = document.getElementById('player-speed');

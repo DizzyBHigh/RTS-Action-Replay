@@ -72,10 +72,11 @@ public class CPHInline
         CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
         CPH.SetArgument("replayMessageBoardColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.boardColor", true) ?? "#101416"); CPH.SetArgument("replayMessageStripeLight", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeLight", true) ?? "#EEEEEE"); CPH.SetArgument("replayMessageStripeDark", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeDark", true) ?? "#111111"); CPH.SetArgument("replayMessageAccent", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.accent", true) ?? "#0384CB"); CPH.SetArgument("replayMessageTextColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.textColor", true) ?? "#0384CB"); CPH.SetArgument("replayMessageFont", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.font", true) ?? "Arial, sans-serif");
         var size = GetSettingInt("rts.actionreplay.clapper.size", 100); var x = GetSettingInt("rts.actionreplay.clapper.positionX", 50); var y = GetSettingInt("rts.actionreplay.clapper.positionY", 50);
-        CPH.SetArgument("replayMessageSize", size); CPH.SetArgument("replayMessagePositionX", x); CPH.SetArgument("replayMessagePositionY", y); CPH.LogInfo("RTS Action Replay: clapper settings size=" + size + "%, position=" + x + "%," + y + "%");
+        CPH.SetArgument("replayMessageSize", size); CPH.SetArgument("replayMessagePositionX", x); CPH.SetArgument("replayMessagePositionY", y); CPH.LogInfo("RTS Action Replay: clapper settings size=" + size + "%, position=" + x + "," + y + "%");
     }
 
     private int GetSettingInt(string key, int fallback) { try { object value = CPH.GetGlobalVar<object>(key, true); if (value == null) return fallback; return Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture); } catch { return fallback; } }
+    private double GetSettingDouble(string key, double fallback) { try { object value = CPH.GetGlobalVar<object>(key, true); if (value == null) return fallback; return Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture); } catch { return fallback; } }
     private bool IsReplayFile(string path) { var extension = Path.GetExtension(path); if (string.IsNullOrWhiteSpace(extension)) return false; var configured = CPH.GetGlobalVar<string>(FileTypesKey, true) ?? ".mp4, .mkv"; var types = configured.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries); for (int i = 0; i < types.Length; i++) { var type = types[i].Trim(); if (type.Length == 0) continue; if (!type.StartsWith(".")) type = "." + type; if (string.Equals(extension, type, StringComparison.OrdinalIgnoreCase)) return true; } return false; }
     private JObject Load() => JObject.Parse(CPH.GetGlobalVar<string>(DataKey, true) ?? "{\"version\":1,\"replays\":[]}");
     private void Save(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
@@ -83,5 +84,43 @@ public class CPHInline
     private bool Stable(string path) { for (var i = 0; i < 5; i++) { var a = new FileInfo(path).Length; CPH.Wait(500); var b = new FileInfo(path).Length; if (a == b) return true; } return false; }
     private void Trim(JArray list) { var max = CPH.GetGlobalVar<int?>(MaxHistoryKey, true) ?? 20; while (list.Count > Math.Max(1, max)) list.RemoveAt(list.Count - 1); }
     private void ApplyPendingCreator(ref string id, ref string name) { if (!string.IsNullOrWhiteSpace(id)) return; var raw = CPH.GetGlobalVar<string>(PendingKey, false); if (string.IsNullOrWhiteSpace(raw)) return; var queue = JArray.Parse(raw); if (queue.Count == 0) return; var item = (JObject)queue[0]; queue.RemoveAt(0); CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), false); DateTime queued; if (DateTime.TryParse((string)item["queued"], out queued) && DateTime.UtcNow - queued <= TimeSpan.FromSeconds(60)) { id = (string)item["id"] ?? ""; name = (string)item["name"] ?? ""; } }
-    private void BroadcastReplay(JObject replay) { var mapping = CPH.GetGlobalVar<string>("rts.actionreplay.httpMapping", true) ?? "replays"; var port = CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474; CPH.SetArgument("replayCommand", "load"); CPH.SetArgument("replayId", (string)replay["id"]); CPH.SetArgument("replayUrl", $"http://localhost:{port}/{mapping.Trim('/')}/{CPH.UrlEncode((string)replay["file"])}"); CPH.SetArgument("replayAutoplay", true); CPH.TriggerEvent("RTS-Action Replay", true); }
+    private void BroadcastReplay(JObject replay)
+    {
+        var mapping = CPH.GetGlobalVar<string>("rts.actionreplay.httpMapping", true) ?? "replays";
+        var port = CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474;
+        CPH.SetArgument("replayCommand", "load");
+        CPH.SetArgument("replayId", (string)replay["id"]);
+        CPH.SetArgument("replayTitle", CPH.GetGlobalVar<string>("rts.actionreplay.newReplayTitle", true) ?? "New Replay");
+        CPH.SetArgument("replayUrl", $"http://localhost:{port}/{mapping.Trim('/')}/{CPH.UrlEncode((string)replay["file"])}");
+        CPH.SetArgument("replayAutoplay", true);
+        CPH.SetArgument("replayShowControls", CPH.GetGlobalVar<bool?>("rts.actionreplay.showControls", true) ?? false);
+        CPH.SetArgument("replayShowProgress", CPH.GetGlobalVar<bool?>("rts.actionreplay.showProgress", true) ?? true);
+        CPH.SetArgument("replayPlaybackSpeed", GetSettingDouble("rts.actionreplay.playbackSpeed", 1.0));
+        CPH.SetArgument("replayPlaybackSpeedVisibility", CPH.GetGlobalVar<string>("rts.actionreplay.playbackSpeedVisibility", true) ?? "Only when greater or less than 1");
+        CPH.SetArgument("replayFrameColor", CPH.GetGlobalVar<string>("rts.actionreplay.frameColor", true) ?? "#0384CB");
+        CPH.SetArgument("replayBorderColor", CPH.GetGlobalVar<string>("rts.actionreplay.borderColor", true) ?? "#FFFFFF");
+        CPH.SetArgument("replayBorderStyle", CPH.GetGlobalVar<string>("rts.actionreplay.borderStyle", true) ?? "Solid");
+        CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>("rts.actionreplay.positions", true) ?? "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
+        CPH.SetArgument("replayStartPosition", CPH.GetGlobalVar<string>("rts.actionreplay.defaultStartPosition", true) ?? "Full Screen");
+        CPH.SetArgument("replayEndPosition", CPH.GetGlobalVar<string>("rts.actionreplay.defaultEndPosition", true) ?? "Full Screen");
+        CPH.SetArgument("replayAnimationDuration", GetSettingDouble("rts.actionreplay.animationDuration", .5));
+        CPH.SetArgument("replayAnimationEasing", CPH.GetGlobalVar<string>("rts.actionreplay.animationEasing", true) ?? "ease-in-out");
+        CPH.SetArgument("replayShowTitle", CPH.GetGlobalVar<bool?>("rts.actionreplay.showTitle", true) ?? true);
+        CPH.SetArgument("replayShowBranding", CPH.GetGlobalVar<bool?>("rts.actionreplay.showBranding", true) ?? true);
+        CPH.SetArgument("replayTitleDecorationPosition", CPH.GetGlobalVar<string>("rts.actionreplay.titleDecorationPosition", true) ?? "Suffix");
+        CPH.SetArgument("replayTitleDecoration", CPH.GetGlobalVar<string>("rts.actionreplay.titleDecoration", true) ?? " - Replay Capture");
+        CPH.SetArgument("replayTitleStyle", CPH.GetGlobalVar<string>("rts.actionreplay.titleBarStyle", true) ?? "Broadcast");
+        CPH.SetArgument("replayTitlePosition", CPH.GetGlobalVar<string>("rts.actionreplay.titlePosition", true) ?? "Bottom");
+        CPH.SetArgument("replayTitleAnimation", CPH.GetGlobalVar<string>("rts.actionreplay.titleAnimation", true) ?? "Slide up/down");
+        CPH.SetArgument("replayTitleDelay", GetSettingInt("rts.actionreplay.titleDelay", 0));
+        CPH.SetArgument("replayTitleDuration", GetSettingInt("rts.actionreplay.titleDuration", 5000));
+        CPH.SetArgument("replayTitleAnimationDuration", GetSettingInt("rts.actionreplay.titleAnimationDuration", 450));
+        CPH.SetArgument("replayTitleFont", CPH.GetGlobalVar<string>("rts.actionreplay.titleFont", true) ?? "Inter");
+        CPH.SetArgument("replayTitleFontSize", GetSettingInt("rts.actionreplay.titleFontSize", 34));
+        CPH.SetArgument("replayTitleTextColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleTextColor", true) ?? "#FFFFFFFF");
+        CPH.SetArgument("replayTitleShadowColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleShadowColor", true) ?? "#FF000000");
+        CPH.SetArgument("replayTitlePrimaryColor", CPH.GetGlobalVar<string>("rts.actionreplay.titlePrimaryColor", true) ?? "#FF0384CB");
+        CPH.SetArgument("replayTitleSecondaryColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleSecondaryColor", true) ?? "#FF101416");
+        CPH.TriggerEvent("RTS-Action Replay", true);
+    }
 }
