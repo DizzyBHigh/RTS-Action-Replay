@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>RTS Action Replay</title>
   <link rel="stylesheet" href="overlay-base.css">
-  <link rel="stylesheet" href="player.css">
-  <link rel="stylesheet" href="player-elements.css?v=9699a2a">
+  <link rel="stylesheet" href="player.css?v=d2e80187">
+  <link rel="stylesheet" href="player-elements.css?v=777df146">
+  <link rel="stylesheet" href="dev-toolbar.css?v=38d62a43">
   <link rel="stylesheet" href="clapper.css">
   <link rel="stylesheet" href="clapper-content.css">
   <link rel="stylesheet" href="clapper-animation.css">
@@ -19,37 +20,14 @@
       <div id="player-frame" class="border-solid">
         <video id="video" playsinline></video>
         <div id="player-elements" aria-hidden="true">
-          <div id="player-branding"></div>
-          <div id="player-title"></div>
-          <div id="player-speed-indicator"></div>
+          <div id="player-branding"><img id="player-brand-logo" alt=""><b id="player-brand-fallback">RTS</b><span id="player-brand-label">ACTION REPLAY</span></div>
+          <span id="player-speed">1×</span><div id="player-title"></div>
         </div>
-        <div id="player-controls" aria-hidden="true">
-          <span id="player-state">▶</span>
-          <div id="player-progress" aria-hidden="true"><div id="player-progress-bar"></div></div>
-          <span id="player-time">00:00 / 00:00</span>
-          <span id="player-speed">1×</span>
-        </div>
+        <div id="player-controls" aria-hidden="true"><span id="player-state">▶</span><div id="player-progress" aria-hidden="true"><div id="player-progress-bar"></div></div><span id="player-time">00:00 / 00:00</span></div>
       </div>
     </div>
-    <div id="message-card" aria-hidden="true">
-      <div class="clapper">
-        <div class="clapstick" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
-        <div class="hinge" aria-hidden="true"><i></i><i></i></div>
-        <div class="slate">
-          <div class="brand"><img id="brand-logo" alt=""><div id="brand-fallback">RTS</div><small>ACTION REPLAY</small></div>
-          <div class="message-content"><div class="message-kicker">RTS ACTION REPLAY</div><div id="message-text"></div></div>
-          <div class="slate-fields" aria-hidden="true"><div><span>SCENE</span><b>01</b></div><div><span>TAKE</span><b>01</b></div><div><span>ROLL</span><b>∞</b></div></div>
-        </div>
-      </div>
-    </div>
+    <div id="message-card" aria-hidden="true"><div class="clapper"><div class="clapstick" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="hinge" aria-hidden="true"><i></i><i></i></div><div class="slate"><div class="brand"><img id="brand-logo" alt=""><div id="brand-fallback">RTS</div><small>ACTION REPLAY</small></div><div class="message-content"><div class="message-kicker">RTS ACTION REPLAY</div><div id="message-text"></div></div><div class="slate-fields" aria-hidden="true"><div><span>SCENE</span><b>01</b></div><div><span>TAKE</span><b>01</b></div><div><span>ROLL</span><b>∞</b></div></div></div></div></div>
   </div>
-  <script src="replay-config.js"></script>
-  <script src="player-positions.js"></script>
-  <script src="player-controls.js"></script>
-  <script src="player-elements.js"></script>
-  <script src="replay-messages.js"></script>
-  <script src="replay-video.js"></script>
-  <script src="replay-websocket.js"></script>
-  <script src="overlay.js"></script>
+  <script src="replay-config.js"></script><script src="player-positions.js?v=1e2ac0c8"></script><script src="player-controls.js"></script><script src="replay-messages.js"></script><script src="player-elements.js?v=a4404596"></script><script src="cut-title-animation.js?v=87fd3e55"></script><script src="dev-toolbar.js?v=80db6e32"></script><script src="replay-video.js"></script><script src="replay-websocket.js"></script><script src="overlay.js"></script>
 </body>
 </html>
