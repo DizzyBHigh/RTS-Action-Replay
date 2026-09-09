@@ -37,6 +37,16 @@
   color:#fff;
   font:inherit;
 }
+#rts-dev-toolbar select {
+  min-width:72px;
+  padding:7px 8px;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:3px;
+  background:#111519;
+  color:#fff;
+  font:inherit;
+}
+#rts-dev-toolbar .dev-speed-label { opacity:.7; margin-left:2px; }
 #rts-dev-toolbar .spacer { flex:1; }
 #rts-dev-toolbar .hint { opacity:.55; font-weight:400; }
 
