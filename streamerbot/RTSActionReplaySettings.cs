@@ -82,7 +82,7 @@ public class CPHInline
 
         ui.BeginSection("Typography", "Player");
         ui.BeginRow();
-        ui.AddGoogleFontSelector("Title Font", "Choose the Google Font used by all replay title variants.", "Player", "rts.actionreplay.titleFont", "Inter");   
+        ui.AddGoogleFontSelector("Title Font", "Choose the Google Font used by all replay title variants.", "Player", "rts.actionreplay.titleFont", "Inter");
         ui.AddNumericTextbox("Title Font Size", "Replay title font size in pixels.", "Player", "rts.actionreplay.titleFontSize", 34, 12, 96);
         ui.EndRow();
         ui.BeginRow();
@@ -107,7 +107,8 @@ public class CPHInline
         ui.EndRow();
         ui.EndSection();
         ui.BeginSection("Saved Positions", "Positions");
-        ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
+        ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
+        ui.AddTitle(BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)), "Positions");
         ui.EndSection();
 
         ui.BeginSection("Player Animation", "Animation");
@@ -120,6 +121,39 @@ public class CPHInline
         AddMessages(ui);
         ui.ShowUI();
         return true;
+    }
+
+    private string BuildPositionTagList(string json)
+    {
+        var lines = new System.Collections.Generic.List<string> { "Position Tags" };
+        try
+        {
+            var map = new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, object>>>(json ?? "{}");
+            if (map != null)
+            {
+                foreach (var item in map)
+                {
+                    string name = item.Key;
+                    string tag = item.Value != null && item.Value.ContainsKey("tag") ? System.Convert.ToString(item.Value["tag"]) : null;
+                    lines.Add(name + "  —  " + (string.IsNullOrWhiteSpace(tag) ? NormalizePositionTag(name) : NormalizePositionTag(tag)));
+                }
+            }
+        }
+        catch { }
+        if (lines.Count == 1) lines.Add("Full Screen  —  full-screen");
+        return string.Join("\n", lines.ToArray());
+    }
+
+    private string NormalizePositionTag(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "";
+        var result = new System.Text.StringBuilder(); bool hyphen = false;
+        foreach (char c in value.Trim().ToLowerInvariant())
+        {
+            if (char.IsLetterOrDigit(c)) { result.Append(c); hyphen = false; }
+            else if ((char.IsWhiteSpace(c) || c == '-') && result.Length > 0 && !hyphen) { result.Append('-'); hyphen = true; }
+        }
+        return result.ToString().Trim('-');
     }
 
     private void AddMessages(RtsUI ui)
