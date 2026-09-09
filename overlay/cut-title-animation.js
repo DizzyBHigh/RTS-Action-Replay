@@ -12,12 +12,9 @@ RTSReplayCut.startCutBar = () => {
   RTSReplayCut.stopCutBar();
 
   const bottomTrack = document.createElement('div');
-  const topTrack = document.createElement('div');
   bottomTrack.className = 'cut-bar-track cut-bar-track-bottom';
-  topTrack.className = 'cut-bar-track cut-bar-track-top';
-  cutTitle.append(bottomTrack, topTrack);
+  cutTitle.append(bottomTrack);
   RTSReplayCut.cutBar = bottomTrack;
-  RTSReplayCut.cutBarTop = topTrack;
 
   const colour = value => {
     const raw = String(value || '').trim();
@@ -30,15 +27,14 @@ RTSReplayCut.startCutBar = () => {
   const speed = 90;
   const barWidth = cutTitle.clientWidth;
 
-  const createPair = (left, width, colourValue) => {
-    [bottomTrack, topTrack].forEach(track => {
-      const block = document.createElement('span');
-      block.className = 'cut-bar-block';
-      block.style.width = `${width.toFixed(1)}px`;
-      block.style.backgroundColor = colourValue;
-      block.style.left = `${left.toFixed(1)}px`;
-      track.appendChild(block);
-    });
+  const createBlock = (left, width, colourValue) => {
+    const block = document.createElement('span');
+    block.className = 'cut-bar-block';
+    block.style.width = `${width.toFixed(1)}px`;
+    block.style.backgroundColor = colourValue;
+    block.style.left = `${left.toFixed(1)}px`;
+    bottomTrack.appendChild(block);
+    return block;
   };
 
   // Start with the visible bar filled so the animation never begins on an empty strip.
@@ -46,21 +42,19 @@ RTSReplayCut.startCutBar = () => {
   while (seedLeft < barWidth) {
     const width = 70 + Math.random() * 170;
     const colourValue = Math.random() < 0.5 ? primary : secondary;
-    createPair(seedLeft, width, colourValue);
+    createBlock(seedLeft, width, colourValue);
     seedLeft += width;
   }
 
-  [bottomTrack, topTrack].forEach(track => {
-    [...track.children].forEach(block => {
-      const left = parseFloat(block.style.left);
-      const width = parseFloat(block.style.width);
-      const distance = barWidth + 80 + Math.max(0, left) + width;
-      const animation = block.animate(
-        [{ transform: 'translate3d(0,0,0)' }, { transform: `translate3d(-${distance}px,0,0)` }],
-        { duration: (distance / speed) * 1000, easing: 'linear', fill: 'forwards' }
-      );
-      animation.onfinish = () => block.remove();
-    });
+  [...bottomTrack.children].forEach(block => {
+    const left = parseFloat(block.style.left);
+    const width = parseFloat(block.style.width);
+    const distance = barWidth + 80 + Math.max(0, left) + width;
+    const animation = block.animate(
+      [{ transform: 'translate3d(0,0,0)' }, { transform: `translate3d(-${distance}px,0,0)` }],
+      { duration: (distance / speed) * 1000, easing: 'linear', fill: 'forwards' }
+    );
+    animation.onfinish = () => block.remove();
   });
 
   const spawn = () => {
@@ -75,16 +69,12 @@ RTSReplayCut.startCutBar = () => {
     const distance = barWidth + gap + width + gap;
     const duration = (distance / speed) * 1000;
     const colourValue = Math.random() < 0.5 ? primary : secondary;
-    createPair(left, width, colourValue);
-
-    [bottomTrack, topTrack].forEach(track => {
-      const block = track.lastElementChild;
-      const animation = block.animate(
-        [{ transform: 'translate3d(0,0,0)' }, { transform: `translate3d(-${distance}px,0,0)` }],
-        { duration, easing: 'linear', fill: 'forwards' }
-      );
-      animation.onfinish = () => block.remove();
-    });
+    const block = createBlock(left, width, colourValue);
+    const animation = block.animate(
+      [{ transform: 'translate3d(0,0,0)' }, { transform: `translate3d(-${distance}px,0,0)` }],
+      { duration, easing: 'linear', fill: 'forwards' }
+    );
+    animation.onfinish = () => block.remove();
 
     RTSReplayCut.cutSpawnTimer = setTimeout(spawn, ((width + gap) / speed) * 1000);
   };
