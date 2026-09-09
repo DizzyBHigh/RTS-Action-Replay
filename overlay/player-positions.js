@@ -14,7 +14,16 @@ RTSReplayPlayer.getPositions = () => {
 
 RTSReplayPlayer.getPosition = name => {
   const positions = RTSReplayPlayer.getPositions();
-  return positions[name] || positions['Full Screen'] || RTSReplayPlayer.defaultPositions['Full Screen'];
+  if (positions[name]) return positions[name];
+  const target = String(name || '').trim().toLowerCase();
+  if (target) {
+    const match = Object.keys(positions).find(key => {
+      const position = positions[key];
+      return key.toLowerCase() === target || String(position?.tag || '').trim().toLowerCase() === target;
+    });
+    if (match) return positions[match];
+  }
+  return positions['Full Screen'] || RTSReplayPlayer.defaultPositions['Full Screen'];
 };
 
 RTSReplayPlayer.configureTransition = () => {
