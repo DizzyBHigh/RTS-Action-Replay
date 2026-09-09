@@ -26,6 +26,8 @@ public class CPHInline
         ui.AddColorPicker("Branding Fallback Text Color", "Colour of the branding fallback text.", "Branding", "rts.actionreplay.brandFallbackTextColor", "#0384CBFF");
         ui.AddTextbox("Branding Label", "Text displayed beside the logo or fallback text.", "Branding", "rts.actionreplay.brandLabel", "ACTION REPLAY", false);
         ui.AddColorPicker("Branding Label Color", "Colour of the branding label.", "Branding", "rts.actionreplay.brandLabelColor", "#FFFFFFFF");
+        ui.AddColorPicker("Primary Colour", "Primary branding colour used by the replay title accents, including the Cut blocks and Broadcast chevrons.", "Branding", "rts.actionreplay.titlePrimaryColor", "#0384CBFF");
+        ui.AddColorPicker("Secondary Colour", "Secondary branding colour paired with the Primary Colour in replay title accents, including the Cut blocks and Broadcast chevrons.", "Branding", "rts.actionreplay.titleSecondaryColor", "#101416FF");
 
         ui.AddTitle("Playlist", "Playlist");
         ui.AddTextbox("Replay Title Template", "Default title for new replays. Streamer.bot variables can be used.", "Playlist", "rts.actionreplay.replayTitle", "%replayName%", false);
@@ -52,8 +54,6 @@ public class CPHInline
         ui.AddNumericTextbox("Title Font Size", "Replay title font size in pixels.", "Player", "rts.actionreplay.titleFontSize", 34, 12, 96);
         ui.AddColorPicker("Title Font Color", "Replay title text colour.", "Player", "rts.actionreplay.titleTextColor", "#FFFFFFFF");
         ui.AddColorPicker("Title Shadow Color", "Replay title shadow colour.", "Player", "rts.actionreplay.titleShadowColor", "#000000FF");
-        ui.AddColorPicker("Title Primary Color", "Primary colour used to generate title accents.", "Player", "rts.actionreplay.titlePrimaryColor", "#0384CBFF");
-        ui.AddColorPicker("Title Secondary Color", "Secondary colour used to generate title accents.", "Player", "rts.actionreplay.titleSecondaryColor", "#101416FF");
 
         ui.AddTitle("Player Frame", "Appearance");
         ui.AddColorPicker("Frame Color", "Main player frame and progress colour.", "Appearance", "rts.actionreplay.frameColor", "#0384CBFF");
