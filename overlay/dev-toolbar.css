@@ -1,0 +1,41 @@
+#rts-dev-toolbar {
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-height:42px;
+  padding:6px 10px;
+  box-sizing:border-box;
+  background:rgba(10,13,16,.96);
+  border-bottom:1px solid rgba(255,255,255,.16);
+  box-shadow:0 4px 18px rgba(0,0,0,.35);
+  color:#fff;
+  font:600 12px/1 system-ui,sans-serif;
+}
+#rts-dev-toolbar .dev-label { color:#0384CB; letter-spacing:.08em; margin-right:4px; }
+#rts-dev-toolbar button {
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:3px;
+  padding:7px 10px;
+  background:#171c20;
+  color:#fff;
+  font:inherit;
+  cursor:pointer;
+}
+#rts-dev-toolbar button:hover { background:#252d33; }
+#rts-dev-toolbar button.active { border-color:#0384CB; box-shadow:inset 0 -2px #0384CB; }
+#rts-dev-toolbar input {
+  width:180px;
+  padding:7px 9px;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:3px;
+  background:#111519;
+  color:#fff;
+  font:inherit;
+}
+#rts-dev-toolbar .spacer { flex:1; }
+#rts-dev-toolbar .hint { opacity:.55; font-weight:400; }
