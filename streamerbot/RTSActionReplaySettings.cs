@@ -107,7 +107,7 @@ public class CPHInline
         ui.EndRow();
         ui.EndSection();
         ui.BeginSection("Saved Positions", "Positions");
-        ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
+        ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", PreviewPosition, HidePreview);
         ui.AddTitle(BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)), "Positions");
         ui.EndSection();
 
@@ -121,6 +121,34 @@ public class CPHInline
         AddMessages(ui);
         ui.ShowUI();
         return true;
+    }
+
+    private void PreviewPosition(string positionName, string positionsJson)
+    {
+        if (string.IsNullOrWhiteSpace(positionName)) return;
+        CPH.SetArgument("replayCommand", "move");
+        CPH.SetArgument("replayPosition", positionName);
+        CPH.SetArgument("replayPositions", positionsJson ?? "{}");
+        CPH.SetArgument("replayAnimationDuration", GetSettingDouble("rts.actionreplay.animationDuration", 0.5));
+        CPH.SetArgument("replayAnimationEasing", CPH.GetGlobalVar<string>("rts.actionreplay.animationEasing", true) ?? "ease-in-out");
+        CPH.TriggerEvent("RTS-Action Replay", true);
+    }
+
+    private void HidePreview(string positionName, string positionsJson)
+    {
+        CPH.SetArgument("replayCommand", "hide");
+        CPH.TriggerEvent("RTS-Action Replay", true);
+    }
+
+    private double GetSettingDouble(string key, double fallback)
+    {
+        try
+        {
+            object value = CPH.GetGlobalVar<object>(key, true);
+            if (value == null) return fallback;
+            return System.Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
+        }
+        catch { return fallback; }
     }
 
     private string BuildPositionTagList(string json)
