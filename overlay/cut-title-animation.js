@@ -15,28 +15,36 @@ RTSReplayCut.startCutBar = () => {
   cutTitle.appendChild(track);
   RTSReplayCut.cutBar = track;
 
+  const colour = value => {
+    const raw = String(value || '').trim();
+    const match = raw.match(/^#([0-9a-f]{6}|[0-9a-f]{8})$/i);
+    return match ? `#${match[1].slice(0, 6)}` : raw;
+  };
+  const command = RTSReplayCut.command || {};
+  const primary = colour(command.replayTitlePrimaryColor) || '#0384CB';
+  const secondary = colour(command.replayTitleSecondaryColor) || '#FFD400';
+  const speed = 115;
   const spawn = () => {
-    if (!cutTitle.classList.contains('title-cut') || !cutTitle.classList.contains('visible')) {
+    if (!cutTitle.classList.contains('title-cut') || !cutTitle.classList.contains('visible') || track !== RTSReplayCut.cutBar) {
       RTSReplayCut.stopCutBar();
       return;
     }
-    const styles = getComputedStyle(cutTitle);
-    const primary = styles.getPropertyValue('--title-primary').trim() || '#0384CB';
-    const secondary = styles.getPropertyValue('--title-secondary').trim() || '#101416';
     const width = 70 + Math.random() * 230;
-    const gap = 12 + Math.random() * 65;
-    const speed = 65 + Math.random() * 15;
-    const startX = cutTitle.clientWidth + gap;
+    const gap = 18 + Math.random() * 55;
     const block = document.createElement('span');
     block.className = 'cut-bar-block';
     block.style.width = `${width.toFixed(1)}px`;
     block.style.backgroundColor = Math.random() < 0.5 ? primary : secondary;
+    block.style.left = '100%';
     track.appendChild(block);
-    const distance = startX + width + 50;
-    const duration = (distance / speed) * 1000;
+
+    const barWidth = cutTitle.clientWidth;
+    const start = gap;
+    const end = -(barWidth + width + gap);
+    const distance = start - end;
     const animation = block.animate(
-      [{ transform: `translate3d(${startX}px,0,0)` }, { transform: `translate3d(${-width - 50}px,0,0)` }],
-      { duration, easing: 'linear', fill: 'forwards' }
+      [{ transform: `translate3d(${start}px,0,0)` }, { transform: `translate3d(${end}px,0,0)` }],
+      { duration: (distance / speed) * 1000, easing: 'linear', fill: 'forwards' }
     );
     animation.onfinish = () => block.remove();
     RTSReplayCut.cutSpawnTimer = setTimeout(spawn, ((width + gap) / speed) * 1000);
