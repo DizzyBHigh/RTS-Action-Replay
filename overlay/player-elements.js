@@ -76,6 +76,7 @@ RTSReplayElements.showTitle = command => {
     title.style.setProperty('--title-text', RTSReplayElements.toRgba(command.replayTitleTextColor, 1));
     title.style.setProperty('--title-shadow', RTSReplayElements.toRgba(command.replayTitleShadowColor, 1));
     title.style.setProperty('--title-animation-duration', `${Math.max(0, Number(command.replayTitleAnimationDuration) || 450)}ms`);
+    title.style.removeProperty('--title-background');
     RTSReplayElements.loadFont(command.replayTitleFont);
     title.classList.add('visible', 'title-enter');
 
