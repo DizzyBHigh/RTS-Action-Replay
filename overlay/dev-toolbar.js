@@ -6,6 +6,7 @@
   bar.id = 'rts-dev-toolbar';
   bar.innerHTML = `
     <span class="dev-label">RTS DEV</span>
+    <button data-action="player">Show Player</button>
     <button data-style="broadcast">Broadcast</button>
     <button data-style="cinematic">Cinematic</button>
     <button data-style="cut">Cut</button>
@@ -13,8 +14,8 @@
     <button data-position="top">Top</button>
     <button data-position="bottom">Bottom</button>
     <input id="rts-dev-title" value="FIRST TEST — REPLAY CAPTURE" aria-label="Preview title">
-    <button data-action="show">Show</button>
-    <button data-action="hide">Hide</button>
+    <button data-action="show">Show Title</button>
+    <button data-action="hide">Hide Title</button>
     <span class="spacer"></span>
     <span class="hint">?dev=true</span>
   `;
@@ -23,10 +24,26 @@
   let style = 'broadcast';
   let position = 'bottom';
 
+  const showPlayer = () => {
+    const player = RTSReplay?.player;
+    if (!player) return;
+    player.classList.add('dev-player', 'show');
+    if (RTSReplay.frame) RTSReplay.frame.classList.add('dev-frame');
+  };
+
+  const hidePlayer = () => {
+    const player = RTSReplay?.player;
+    if (!player) return;
+    RTSReplay.hideTitle?.();
+    player.classList.remove('show', 'dev-player');
+    RTSReplay.frame?.classList.remove('dev-frame');
+  };
+
   const preview = () => {
+    showPlayer();
     const title = RTSReplay?.title;
     if (!title) return;
-    RTSReplay.hideTitle();
+    RTSReplay.hideTitle?.();
     const text = document.getElementById('rts-dev-title').value.trim() || 'FIRST TEST — REPLAY CAPTURE';
     title.className = `title-${style} title-${position}`;
     title.textContent = text;
@@ -46,8 +63,14 @@
       bar.querySelectorAll('[data-position]').forEach(item => item.classList.toggle('active', item === button));
       preview();
     }
+    if (button.dataset.action === 'player') {
+      const visible = RTSReplay?.player?.classList.contains('show');
+      visible ? hidePlayer() : showPlayer();
+      button.textContent = visible ? 'Show Player' : 'Hide Player';
+      if (!visible) preview();
+    }
     if (button.dataset.action === 'show') preview();
-    if (button.dataset.action === 'hide') RTSReplay.hideTitle();
+    if (button.dataset.action === 'hide') RTSReplay.hideTitle?.();
   });
 
   bar.querySelector('[data-style="broadcast"]').classList.add('active');
