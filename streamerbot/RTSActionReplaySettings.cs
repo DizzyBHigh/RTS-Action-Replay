@@ -113,7 +113,7 @@ public class CPHInline
 
         ui.BeginSection("Player Animation", "Animation");
         ui.BeginRow();
-        ui.AddNumericTextbox("Animation Duration", "Duration used when moving between the Start and End positions, in milliseconds.", "Animation", "rts.actionreplay.animationDuration", 0, 50, 20000);
+        ui.AddNumericTextbox("Animation Duration", "Duration used when moving between the Start and End positions, in milliseconds.", "Animation", "rts.actionreplay.animationDuration", 0, 100, 20000);
         ui.AddDropdown("Animation Easing", "CSS easing used for player movement.", "Animation", "rts.actionreplay.animationEasing", new[] { "linear", "ease", "ease-in", "ease-out", "ease-in-out" }, "ease-in-out");
         ui.EndRow();
         ui.EndSection();
@@ -121,6 +121,64 @@ public class CPHInline
         AddMessages(ui);
         ui.ShowUI();
         return true;
+    }
+
+    private void PreviewPosition(string positionName, string positionsJson)
+    {
+        if (string.IsNullOrWhiteSpace(positionName))
+        {
+            CPH.SetArgument("replayCommand", "hide");
+            CPH.TriggerEvent("RTS-Action Replay", true);
+            return;
+        }
+        CPH.SetArgument("replayCommand", "move");
+        CPH.SetArgument("replayPosition", positionName);
+        CPH.SetArgument("replayPositions", positionsJson ?? "{}");
+        CPH.SetArgument("replayAnimationDuration", GetSettingDouble("rts.actionreplay.animationDuration", 0.0));
+        CPH.SetArgument("replayAnimationEasing", CPH.GetGlobalVar<string>("rts.actionreplay.animationEasing", true) ?? "ease-in-out");
+        CPH.TriggerEvent("RTS-Action Replay", true);
+    }
+
+    private double GetSettingDouble(string key, double fallback)
+    {
+        try
+        {
+            object value = CPH.GetGlobalVar<object>(key, true);
+            if (value == null) return fallback;
+            return System.Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
+        }
+        catch { return fallback; }
+    }
+
+    private string BuildPositionTagList(string json)
+    {
+        var lines = new System.Collections.Generic.List<string> { "Position Tags" };
+        try
+        {
+            var map = Newtonsoft.Json.Linq.JObject.Parse(json ?? "{}");
+            foreach (var item in map)
+            {
+                string name = item.Key;
+                var position = item.Value as Newtonsoft.Json.Linq.JObject;
+                string tag = position == null ? null : (string)position["tag"];
+                lines.Add(name + "  —  " + (string.IsNullOrWhiteSpace(tag) ? NormalizePositionTag(name) : NormalizePositionTag(tag)));
+            }
+        }
+        catch { }
+        if (lines.Count == 1) lines.Add("Full Screen  —  full-screen");
+        return string.Join("\n", lines.ToArray());
+    }
+
+    private string NormalizePositionTag(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "";
+        var result = new System.Text.StringBuilder(); bool hyphen = false;
+        foreach (char c in value.Trim().ToLowerInvariant())
+        {
+            if (char.IsLetterOrDigit(c)) { result.Append(c); hyphen = false; }
+            else if ((char.IsWhiteSpace(c) || c == '-') && result.Length > 0 && !hyphen) { result.Append('-'); hyphen = true; }
+        }
+        return result.ToString().Trim('-');
     }
 
     private void AddMessages(RtsUI ui)
