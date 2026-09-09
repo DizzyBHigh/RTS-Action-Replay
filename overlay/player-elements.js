@@ -23,6 +23,14 @@ RTSReplayElements.toRgba = (value, opacity = 1) => {
   return `rgba(${parseInt(hex.slice(0, 2), 16)},${parseInt(hex.slice(2, 4), 16)},${parseInt(hex.slice(4, 6), 16)},${Math.max(0, Math.min(1, alpha))})`;
 };
 
+RTSReplayElements.colorWithAlpha = (value, alpha) => {
+  const color = String(value || '').trim();
+  const match = color.match(/^#([0-9a-f]{6}|[0-9a-f]{8})$/i);
+  if (!match) return color;
+  const hex = match[1].length === 8 ? match[1].slice(2) : match[1];
+  return `rgba(${parseInt(hex.slice(0, 2), 16)},${parseInt(hex.slice(2, 4), 16)},${parseInt(hex.slice(4, 6), 16)},${Math.max(0, Math.min(1, alpha))})`;
+};
+
 RTSReplayElements.loadFont = font => {
   const name = String(font || 'Inter').trim();
   if (!name) return;
@@ -68,11 +76,6 @@ RTSReplayElements.showTitle = command => {
     title.style.setProperty('--title-size', `${Math.max(12, Number(command.replayTitleFontSize) || 34)}px`);
     title.style.setProperty('--title-text', RTSReplayElements.toRgba(command.replayTitleTextColor, 1));
     title.style.setProperty('--title-shadow', RTSReplayElements.toRgba(command.replayTitleShadowColor, 1));
-    title.style.setProperty('--title-gradient-start', RTSReplayElements.toRgba(command.replayTitleGradientStart, 1));
-    title.style.setProperty('--title-gradient-end', RTSReplayElements.toRgba(command.replayTitleGradientEnd, 1));
-    title.style.setProperty('--title-bg', RTSReplayElements.toRgba(command.replayTitleBackgroundColor, 1));
-    title.style.setProperty('--shape-gradient-start', RTSReplayElements.toRgba(command.replayTitleShapeGradientStart, 1));
-    title.style.setProperty('--shape-gradient-end', RTSReplayElements.toRgba(command.replayTitleShapeGradientEnd, 1));
     title.style.setProperty('--title-animation-duration', `${Math.max(0, Number(command.replayTitleAnimationDuration) || 450)}ms`);
     RTSReplayElements.loadFont(command.replayTitleFont);
     title.classList.add('visible', 'title-enter');
@@ -88,8 +91,15 @@ RTSReplayElements.showTitle = command => {
 
 RTSReplayElements.configure = command => {
   RTSReplayElements.command = command;
+  const primary = command.replayTitlePrimaryColor || '#0384CB';
+  const secondary = command.replayTitleSecondaryColor || '#101416';
   if (RTSReplayElements.speed) RTSReplayElements.speed.textContent = `${Number(command.replayPlaybackSpeed || 1).toFixed(2).replace(/\.00$/, '')}×`;
   if (RTSReplayElements.branding) RTSReplayElements.branding.classList.toggle('visible', command.replayShowBranding !== false);
+  if (RTSReplayElements.layer) {
+    RTSReplayElements.layer.style.setProperty('--title-primary', primary);
+    RTSReplayElements.layer.style.setProperty('--title-secondary', secondary);
+    RTSReplayElements.layer.style.setProperty('--title-background', `linear-gradient(90deg, ${RTSReplayElements.colorWithAlpha(primary,.94)} 0%, ${RTSReplayElements.colorWithAlpha(secondary,.88)} 50%, ${RTSReplayElements.colorWithAlpha(primary,.94)} 100%)`);
+  }
   if (command.replayTitle) RTSReplayElements.showTitle(command);
 };
 
