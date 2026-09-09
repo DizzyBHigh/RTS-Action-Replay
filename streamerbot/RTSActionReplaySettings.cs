@@ -121,11 +121,9 @@ public class CPHInline
         ui.BeginSection("Player Frame", "Appearance");
         ui.BeginRow();
         ui.AddColorPicker("Frame Color", "Main player frame and progress colour.", "Appearance", "rts.actionreplay.frameColor", "#0384CBFF");
-        ui.AddToggleSwitch("Border Glow", "Add a branded glow around the player border.", "Appearance", "rts.actionreplay.borderGlow", true);    
-        ui.EndRow();
-        ui.BeginRow();
         ui.AddSlider("Border Width", "Width of the player border in pixels.", "Appearance", "rts.actionreplay.borderWidth", 0, 12, 4);
         ui.AddSlider("Corner Radius", "Round the player corners in pixels.", "Appearance", "rts.actionreplay.cornerRadius", 0, 48, 0);
+        ui.AddToggleSwitch("Border Glow", "Add a branded glow around the player border.", "Appearance", "rts.actionreplay.borderGlow", true);
         ui.EndRow();
         ui.EndSection();
     }
@@ -170,6 +168,7 @@ public class CPHInline
         ui.AddColorPicker("Text Color", "Message text colour.", "Messages", "rts.actionreplay.clapper.textColor", "#0384CB");
         ui.EndRow();
         ui.EndSection();
+
         ui.BeginSection("Clapperboard Position and Size", "Messages");
         ui.AddSlider("Size (%)", "Overall clapperboard size.", "Messages", "rts.actionreplay.clapper.size", 0, 100, 50);
         ui.BeginRow();
@@ -246,7 +245,8 @@ public class CPHInline
     private string NormalizePositionTag(string value)
     {
         if (string.IsNullOrWhiteSpace(value)) return "";
-        var result = new System.Text.StringBuilder(); bool hyphen = false;
+        var result = new System.Text.StringBuilder();
+        bool hyphen = false;
         foreach (char c in value.Trim().ToLowerInvariant())
         {
             if (char.IsLetterOrDigit(c)) { result.Append(c); hyphen = false; }
