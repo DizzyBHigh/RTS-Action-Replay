@@ -7,6 +7,7 @@
   bar.innerHTML = `
     <span class="dev-label">RTS DEV</span>
     <button data-action="player">Show Player</button>
+    <button data-action="clapper">Show Clapperboard</button>
     <button data-style="broadcast">Broadcast</button>
     <button data-style="cinematic">Cinematic</button>
     <button data-style="cut">Cut</button>
@@ -35,6 +36,48 @@
   let style = 'broadcast';
   let position = 'bottom';
   let playerVisible = false;
+  let clapperVisible = false;
+
+  const formatDuration = seconds => {
+    if (!Number.isFinite(seconds) || seconds < 0) return '—';
+    const total = Math.round(seconds);
+    return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+  };
+
+  const updateClapper = command => {
+    const current = command || RTSReplayVideo?.currentCommand || RTSReplay?.command || {};
+    const number = current.replayNumber || 1;
+    const title = current.replayTitle || 'FIRST TEST';
+    const director = current.replayUserName || '—';
+    const played = current.replayPlayedCount ?? '—';
+    const length = formatDuration(RTSReplay?.video?.duration);
+    const text = document.getElementById('message-text');
+    if (text) text.textContent = `Playing replay #${number}: ${title}.`;
+    document.getElementById('clapper-length').textContent = length;
+    document.getElementById('clapper-director').textContent = director;
+    document.getElementById('clapper-played').textContent = played;
+  };
+
+  window.RTSDevToolbar = { updateClapper };
+
+  const showClapper = () => {
+    const card = RTSReplay?.messageCard;
+    if (!card) return;
+    clapperVisible = true;
+    updateClapper();
+    card.classList.add('show');
+    card.setAttribute('aria-hidden', 'false');
+    bar.querySelector('[data-action="clapper"]').textContent = 'Hide Clapperboard';
+  };
+
+  const hideClapper = () => {
+    const card = RTSReplay?.messageCard;
+    if (!card) return;
+    clapperVisible = false;
+    card.classList.remove('show');
+    card.setAttribute('aria-hidden', 'true');
+    bar.querySelector('[data-action="clapper"]').textContent = 'Show Clapperboard';
+  };
 
   const setSpeed = value => {
     const speed = Number(value);
@@ -100,10 +143,14 @@
       playerVisible ? hidePlayer() : showPlayer();
       if (playerVisible) preview();
     }
+    if (button.dataset.action === 'clapper') clapperVisible ? hideClapper() : showClapper();
     if (button.dataset.action === 'show') preview();
     if (button.dataset.action === 'hide') RTSReplay.hideTitle?.();
   });
 
+  RTSReplay?.video?.addEventListener('loadedmetadata', () => {
+    if (clapperVisible) updateClapper();
+  });
   bar.querySelector('#rts-dev-speed').addEventListener('change', event => setSpeed(event.target.value));
   bar.querySelector('[data-style="broadcast"]').classList.add('active');
   bar.querySelector('[data-position="bottom"]').classList.add('active');
