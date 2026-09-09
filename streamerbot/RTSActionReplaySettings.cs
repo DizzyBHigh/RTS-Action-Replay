@@ -35,15 +35,18 @@ public class CPHInline
         ui.AddDropdown("Title Bar Style", "Choose the visual design used for the replay title.", "Player", "rts.actionreplay.titleBarStyle", new[] { "Broadcast", "Cinematic", "Cut", "Minimal" }, "Broadcast");
         ui.AddDropdown("Title Position", "Place the title bar at the top or bottom of the video.", "Player", "rts.actionreplay.titlePosition", new[] { "Top", "Bottom" }, "Bottom");
         ui.AddDropdown("Title Appearance", "Choose how the title enters and exits.", "Player", "rts.actionreplay.titleAnimation", new[] { "Fade", "Left to right", "Right to left", "Slide up/down" }, "Slide up/down");
-        ui.AddDecimalTextbox("Title Display Duration", "How long the title remains visible, in seconds. Zero keeps it visible.", "Player", "rts.actionreplay.titleDuration", 5.0, 0.0, 30.0, 0.5);
-        ui.AddDecimalTextbox("Title Animation Duration", "Animation duration in seconds.", "Player", "rts.actionreplay.titleAnimationDuration", 0.45, 0.1, 2.0, 0.05);
-        ui.AddGoogleFontSelector("Title Font", "Choose the Google Font used by the replay title.", "Player", "rts.actionreplay.titleFont", "Inter");
+        ui.AddNumericTextbox("Title Show Delay", "Delay before the replay title appears, in milliseconds.", "Player", "rts.actionreplay.titleDelay", 0, 0, 10000);
+        ui.AddNumericTextbox("Title Display Duration", "How long the replay title remains visible, in milliseconds. Zero keeps it visible.", "Player", "rts.actionreplay.titleDuration", 5000, 0, 60000);
+        ui.AddNumericTextbox("Title Animation Duration", "Duration of the title entrance and exit animation, in milliseconds.", "Player", "rts.actionreplay.titleAnimationDuration", 450, 0, 5000);
+        ui.AddGoogleFontSelector("Title Font", "Choose the Google Font used by all replay title variants.", "Player", "rts.actionreplay.titleFont", "Inter");
         ui.AddNumericTextbox("Title Font Size", "Replay title font size in pixels.", "Player", "rts.actionreplay.titleFontSize", 34, 12, 96);
-        ui.AddColorPicker("Title Text Color", "Replay title text colour.", "Player", "rts.actionreplay.titleTextColor", "#FFFFFFFF");
+        ui.AddColorPicker("Title Font Color", "Replay title text colour.", "Player", "rts.actionreplay.titleTextColor", "#FFFFFFFF");
         ui.AddColorPicker("Title Shadow Color", "Replay title shadow colour.", "Player", "rts.actionreplay.titleShadowColor", "#FF000000");
-        ui.AddColorPicker("Title Background Color", "Replay title background colour.", "Player", "rts.actionreplay.titleBackgroundColor", "#F005090C");
-        ui.AddSlider("Title Background Opacity", "Opacity of the replay title background.", "Player", "rts.actionreplay.titleBackgroundOpacity", 0, 100, 94);
-        ui.AddColorPicker("Title Accent Color", "Replay title accent and animated highlight colour.", "Player", "rts.actionreplay.titleAccentColor", "#FF0384CB");
+        ui.AddColorPicker("Gradient Start Color", "Main title background gradient start colour.", "Player", "rts.actionreplay.titleGradientStart", "#FF05090C");
+        ui.AddColorPicker("Gradient End Color", "Main title background gradient end colour.", "Player", "rts.actionreplay.titleGradientEnd", "#FF16232B");
+        ui.AddColorPicker("Background Color", "Base title background colour.", "Player", "rts.actionreplay.titleBackgroundColor", "#FF05090C");
+        ui.AddColorPicker("Shape Gradient Start", "Start colour for the title's decorative CSS shapes.", "Player", "rts.actionreplay.titleShapeGradientStart", "#FF0384CB");
+        ui.AddColorPicker("Shape Gradient End", "End colour for the title's decorative CSS shapes.", "Player", "rts.actionreplay.titleShapeGradientEnd", "#FF7BD7FF");
 
         ui.AddTitle("Player Frame", "Appearance");
         ui.AddColorPicker("Frame Color", "Main player frame and progress colour.", "Appearance", "rts.actionreplay.frameColor", "#FF0384CB");
