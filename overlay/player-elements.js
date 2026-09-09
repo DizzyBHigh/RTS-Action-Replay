@@ -55,8 +55,10 @@ RTSReplayElements.hideTitle = () => {
 RTSReplayElements.showTitle = command => {
   const title = RTSReplayElements.title;
   if (!title || command.replayShowTitle === false) return;
-  const text = String(command.replayTitle || '').trim();
-  if (!text) return;
+  const baseText = String(command.replayTitle || '').trim();
+  const suffix = String(command.replayTitleSuffix || '').trim();
+  if (!baseText) return;
+  const text = suffix && !baseText.toLowerCase().endsWith(suffix.toLowerCase()) ? `${baseText}${suffix}` : baseText;
 
   RTSReplayElements.clearTitleTimer();
   RTSReplayElements.clearTitleDelay();
