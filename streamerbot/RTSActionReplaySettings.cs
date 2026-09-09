@@ -15,6 +15,7 @@ public class CPHInline
         AddGeneralSettings(ui);
         AddBrandingSettings(ui);
         AddPlaylistSettings(ui);
+        AddTwitchSettings(ui);
         AddPlayerSettings(ui);
         AddAppearanceSettings(ui);
         AddPositionSettings(ui);
@@ -29,7 +30,7 @@ public class CPHInline
     {
         ui.AddThemeSelector("Settings Theme", "Choose the RtsUI theme.", "General", "rts.actionreplay.uiTheme", "Dark");
         ui.BeginSection("Replay Source", "General");
-        ui.AddFolderPicker("Replay Folder", "Folder containing OBS Replay Buffer files.", "General", "rts.actionreplay.replayFolder", "");
+        ui.AddFolderPicker("Replay Folder", "Folder containing OBS Replay Buffer files. Twitch clips are stored in a Twitch subfolder.", "General", "rts.actionreplay.replayFolder", "");
         ui.AddTextbox("Replay File Types", "Accepted extensions, separated by commas.", "General", "rts.actionreplay.replayFileTypes", ".mp4, .mkv", false);
         ui.AddTextbox("HTTP Mapping", "Streamer.bot HTTP path mapped to the replay folder.", "General", "rts.actionreplay.httpMapping", "replays", false);
         ui.AddNumericTextbox("HTTP Port", "Streamer.bot HTTP Server port used to serve replay files.", "General", "rts.actionreplay.httpPort", 7474, 1, 65535);
@@ -66,12 +67,20 @@ public class CPHInline
         ui.AddTextbox("Replay Title Template", "Default title for new replays. Streamer.bot variables can be used.", "Playlist", "rts.actionreplay.replayTitle", "%replayName%", false);
         ui.AddTextbox("New Replay Display Title", "Title shown when a newly discovered replay is automatically played.", "Playlist", "rts.actionreplay.newReplayTitle", "New Replay", false);
         ui.EndSection();
-        ui.BeginSection("Automatic Playlist", "Playlist");
-        ui.AddSlider("Maximum History", "Maximum number of saved replays retained.", "Playlist", "rts.actionreplay.maxHistory", 1, 100, 20);
+        ui.BeginSection("Recent Clips", "Playlist");
+        ui.AddSlider("Maximum Recent Clips", "Maximum number of newest Catalog items shown as Recent Clips. Older Catalog items are not deleted.", "Playlist", "rts.actionreplay.maxHistory", 1, 100, 20);
         ui.BeginRow();
-        ui.AddToggleSwitch("Auto-add Saved Replays", "Add each newly saved OBS replay to the playlist.", "Playlist", "rts.actionreplay.autoAdd", true);
-        ui.AddToggleSwitch("Auto-play Newest Replay", "Load and play a newly saved replay automatically.", "Playlist", "rts.actionreplay.autoPlay", false);
+        ui.AddToggleSwitch("Auto-add Saved Replays", "Add each newly saved OBS replay to the Catalog and Recent Clips.", "Playlist", "rts.actionreplay.autoAdd", true);
+        ui.AddToggleSwitch("Auto-play Newest Replay", "Load and play a newly saved OBS replay automatically.", "Playlist", "rts.actionreplay.autoPlay", false);
         ui.EndRow();
+        ui.EndSection();
+    }
+
+    private void AddTwitchSettings(RtsUI ui)
+    {
+        ui.BeginSection("Twitch Clips", "Twitch");
+        ui.AddNumericTextbox("Clip Duration", "Duration used by !twitchclip, in seconds. Twitch allows 5–60 seconds.", "Twitch", "rts.actionreplay.twitch.clipDuration", 30, 5, 60);
+        ui.AddTitle("Twitch integration uses the connected Streamer.bot broadcaster account. The !twitchclip action creates a clip, downloads it into the Replay Folder\\Twitch directory, adds it to the Catalog and Recent Clips, and plays it. A separate hourly SyncTwitchClips action reconciles clips created directly on Twitch without playing them.", "Twitch");
         ui.EndSection();
     }
 
