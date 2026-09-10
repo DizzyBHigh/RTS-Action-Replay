@@ -27,13 +27,15 @@ public class CPHInline
         JObject replay = null;
         if (int.TryParse(selector, out var index) && index > 0 && index <= recentIds.Count)
         {
-            var id = (string)recentIds[index - 1];
+            var id = recentIds[index - 1].ToString();
             replay = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], id, StringComparison.OrdinalIgnoreCase));
         }
         else
         {
             replay = recentIds
-                .Select(id => catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], (string)id, StringComparison.OrdinalIgnoreCase)))
+                .Select(item => item.ToString())
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Select(id => catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], id, StringComparison.OrdinalIgnoreCase)))
                 .FirstOrDefault(x => x != null && string.Equals((string)x["title"], selector, StringComparison.OrdinalIgnoreCase));
         }
 
