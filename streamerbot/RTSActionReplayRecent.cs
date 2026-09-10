@@ -5,7 +5,6 @@ using Newtonsoft.Json.Linq;
 public class CPHInline
 {
     private const string DataKey = "rts.actionreplay.data";
-    private const string RecentIdsKey = "rts.actionreplay.recentIds";
     private const string EventName = "RTS-Action Replay";
 
     public bool Execute() => PlayRecent();
@@ -28,13 +27,13 @@ public class CPHInline
         JObject replay = null;
         if (int.TryParse(selector, out var index) && index > 0 && index <= recentIds.Count)
         {
-            var id = recentIds[index - 1];
+            var id = (string)recentIds[index - 1];
             replay = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], id, StringComparison.OrdinalIgnoreCase));
         }
         else
         {
             replay = recentIds
-                .Select(id => catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], id, StringComparison.OrdinalIgnoreCase)))
+                .Select(id => catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], (string)id, StringComparison.OrdinalIgnoreCase)))
                 .FirstOrDefault(x => x != null && string.Equals((string)x["title"], selector, StringComparison.OrdinalIgnoreCase));
         }
 
@@ -44,13 +43,10 @@ public class CPHInline
             return false;
         }
 
-        CPH.SetArgument("rawInput", FindCatalogIndex(catalog, replay).ToString());
-        // Re-use the existing catalog playback action. It resolves OBS/Twitch media,
-        // applies the player settings and sends the normal load/play event.
-        return new CPHInline().PlayReplayFromCatalog(data, catalog, replay);
+        return PlayReplayFromCatalog(catalog, replay);
     }
 
-    private bool PlayReplayFromCatalog(JObject data, JArray catalog, JObject replay)
+    private bool PlayReplayFromCatalog(JArray catalog, JObject replay)
     {
         var url = ResolveReplayUrl(replay);
         if (string.IsNullOrWhiteSpace(url))
@@ -64,15 +60,15 @@ public class CPHInline
         var creator = replay["creator"] as JObject;
 
         CPH.SetArgument("replayCommand", "load");
-        CPH.SetArgument("replayId", (string)replay["id"]);
+        CPH.SetArgument("replayId", (string)replay["id"] ?? "");
         CPH.SetArgument("replayUrl", url);
         CPH.SetArgument("replayAutoplay", true);
         CPH.SetArgument("replayUserId", userId ?? "");
         CPH.SetArgument("replayUserName", userName ?? "");
         CPH.SetArgument("replayDirector", (string)creator?["name"] ?? "");
-        CPH.SetArgument("replayNumber", FindCatalogIndex(catalog, replay));
+        CPH.SetArgument("replayNumber", FindCatalogIndex(catalog, replay).ToString());
         CPH.SetArgument("replayTitle", (string)replay["title"] ?? "");
-        CPH.SetArgument("replayPlayedCount", ((int?)replay["plays"] ?? 0) + 1);
+        CPH.SetArgument("replayPlayedCount", (((int?)replay["plays"] ?? 0) + 1).ToString());
         CPH.SetArgument("replaySource", (string)replay["sourceType"] ?? "OBS");
         CPH.SetArgument("replaySourceId", (string)replay["sourceId"] ?? "");
         ApplyPlayerSettings();
