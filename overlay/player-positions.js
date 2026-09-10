@@ -51,18 +51,14 @@ RTSReplayPlayer.transformFor = (p, scaleFactor = 1) => {
   const rotateZ = RTSReplayPlayer.numberOr(p?.rotateZ, 0);
   const fov = Math.max(30, Math.min(120, RTSReplayPlayer.numberOr(p?.fov, 90)));
 
-  // Convert camera FOV to the CSS perspective distance for the current viewport.
-  // At 90° FOV, the distance is half the viewport height. The perspective()
-  // function then gives rotateX/rotateY/translateZ their real 3D depth behaviour.
   const viewportHeight = Math.max(1, window.innerHeight || 1080);
   const perspective = Math.max(1, (viewportHeight / 2) / Math.tan((fov * Math.PI / 180) / 2));
 
-  // Position X/Y use the same screen-offset convention as the RtsUI editor:
-  // 0 is centred, positive X is right, positive Y is up, and 100 represents
-  // one complete viewport-width/height offset from centre.
-  // CSS Y grows downward, so Y is inverted when converted to vh.
+  // RtsUI screen coordinates: X=0/Y=0 is centred, +X is right and +Y is down.
+  // The browser's CSS coordinate system also grows downward, so Y is passed
+  // directly to vh. +/-100 represents one complete viewport offset.
   const screenX = x;
-  const screenY = -y;
+  const screenY = y;
 
   return `perspective(${perspective}px) translate(-50%, -50%) translate3d(${screenX}vw, ${screenY}vh, ${z}px) scale3d(${scaleX}, ${scaleY}, 1) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
 };
