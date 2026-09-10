@@ -1,31 +1,29 @@
 // Streamer.bot C# action: run this action once per hour to reconcile Twitch clips.
-// It adds missing Twitch clips to the Action Replay Catalog and Recent Clips,
+// It adds missing Twitch clips to the unified Action Replay Catalog and Recent Clips,
 // but deliberately does not queue or play clips discovered by this scan.
-// Twitch playback mode is configuration; Catalog items store Twitch source data.
 // Requires Streamer.bot 1.0.3+.
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using Twitch.Common.Models.Api;
 
 public class CPHInline
 {
-    private const string CatalogKey = "rts.actionreplay.catalog";
+    private const string DataKey = "rts.actionreplay.data";
+    private const string LegacyCatalogKey = "rts.actionreplay.catalog";
     private const string MaxRecentKey = "rts.actionreplay.maxHistory";
     private const string PlaybackModeKey = "rts.actionreplay.twitch.playbackMode";
     private const string TwitchFolderKey = "rts.actionreplay.twitch.folder";
 
     public bool Execute()
     {
-        var raw = CPH.GetGlobalVar<string>(CatalogKey, true);
-        if (string.IsNullOrWhiteSpace(raw))
-        {
-            CPH.LogInfo("RTS Action Replay: Twitch sync skipped because the Catalog has not been initialized yet.");
-            return true;
-        }
+        var data = Load();
+        var catalog = (JArray)data["catalog"];
+        var recent = (JArray)data["recentIds"];
 
         List<ClipData> clips;
         try { clips = CPH.GetClips(1000, null); }
@@ -35,9 +33,6 @@ public class CPHInline
             return false;
         }
 
-        var data = JObject.Parse(raw);
-        var catalog = (JArray)data["catalog"] ?? new JArray();
-        var recent = (JArray)data["recentIds"] ?? new JArray();
         var added = 0;
         var backfilled = 0;
         var mode = GetPlaybackMode();
@@ -92,10 +87,85 @@ public class CPHInline
         data["version"] = 2;
         data["catalog"] = catalog;
         data["recentIds"] = recent;
-        CPH.SetGlobalVar(CatalogKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
-        CPH.SetGlobalVar("rts.actionreplay.recentIds", recent.ToString(Newtonsoft.Json.Formatting.None), true);
+        Save(data);
 
-        CPH.LogInfo("RTS Action Replay: Twitch reconciliation added " + added + " new clip(s) and backfilled " + backfilled + " local copy/copies. No discovered clips were played.");
+        CPH.LogInfo("RTS Action Replay: Twitch reconciliation added " + added + " new clip(s), backfilled " + backfilled + " local copy/copies, and did not play discovered clips.");
+        return true;
+    }
+
+    private JObject Load()
+    {
+        var raw = CPH.GetGlobalVar<string>(DataKey, true);
+        JObject data;
+        if (string.IsNullOrWhiteSpace(raw)) data = new JObject { ["version"] = 2, ["catalog"] = new JArray(), ["recentIds"] = new JArray() };
+        else { try { data = JObject.Parse(raw); } catch { data = new JObject { ["version"] = 2, ["catalog"] = new JArray(), ["recentIds"] = new JArray() }; } }
+
+        var catalog = data["catalog"] as JArray;
+        var legacy = data["replays"] as JArray;
+        if (catalog == null) catalog = legacy ?? new JArray();
+        else if (legacy != null && legacy.Count > 0) MergeCatalog(catalog, legacy);
+
+        var external = CPH.GetGlobalVar<string>(LegacyCatalogKey, true);
+        if (!string.IsNullOrWhiteSpace(external))
+        {
+            try { var externalData = JObject.Parse(external); var externalCatalog = externalData["catalog"] as JArray; if (externalCatalog != null) MergeCatalog(catalog, externalCatalog); } catch { }
+        }
+
+        data["version"] = 2;
+        data["catalog"] = catalog;
+        data["recentIds"] = data["recentIds"] as JArray ?? new JArray();
+        data.Remove("replays");
+        return data;
+    }
+
+    private void Save(JObject data)
+    {
+        data["version"] = 2;
+        data["catalog"] = data["catalog"] as JArray ?? new JArray();
+        data["recentIds"] = data["recentIds"] as JArray ?? new JArray();
+        data.Remove("replays");
+        CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
+        CPH.SetGlobalVar("rts.actionreplay.recentIds", ((JArray)data["recentIds"]).ToString(Newtonsoft.Json.Formatting.None), true);
+    }
+
+    private void MergeCatalog(JArray target, JArray source)
+    {
+        foreach (var token in source)
+        {
+            var item = token as JObject;
+            if (item == null) continue;
+            var id = (string)item["id"];
+            var sourceType = (string)item["sourceType"] ?? "OBS";
+            var sourceId = (string)item["sourceId"];
+            var exists = target.OfType<JObject>().Any(x =>
+                (!string.IsNullOrWhiteSpace(id) && string.Equals((string)x["id"], id, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrWhiteSpace(sourceId) && string.Equals((string)x["sourceType"] ?? "OBS", sourceType, StringComparison.OrdinalIgnoreCase) && string.Equals((string)x["sourceId"], sourceId, StringComparison.OrdinalIgnoreCase)));
+            if (exists) continue;
+            var clone = (JObject)item.DeepClone();
+            if (string.IsNullOrWhiteSpace((string)clone["sourceType"])) clone["sourceType"] = "OBS";
+            if (string.IsNullOrWhiteSpace((string)clone["sourceId"])) clone["sourceId"] = (string)clone["id"] ?? "";
+            if (clone["plays"] == null) clone["plays"] = 0;
+            if (clone["users"] == null) clone["users"] = new JObject();
+            target.Add(clone);
+        }
+    }
+
+    private JObject Find(JArray catalog, string clipId)
+    {
+        if (catalog == null) return null;
+        return catalog.OfType<JObject>().FirstOrDefault(item =>
+            string.Equals((string)item["sourceType"], "Twitch", StringComparison.OrdinalIgnoreCase) &&
+            string.Equals((string)item["sourceId"], clipId, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private bool EnsureLocalCopy(JObject item, string clipId)
+    {
+        var current = (string)item["filePath"];
+        if (!string.IsNullOrWhiteSpace(current) && File.Exists(current)) return false;
+        var path = Download(clipId);
+        if (string.IsNullOrWhiteSpace(path)) return false;
+        item["file"] = Path.GetFileName(path);
+        item["filePath"] = path;
         return true;
     }
 
@@ -110,17 +180,6 @@ public class CPHInline
     private bool ModeNeedsLocalCopy(string mode)
     {
         return string.Equals(mode, "Download Locally", StringComparison.OrdinalIgnoreCase) || string.Equals(mode, "Both", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private bool EnsureLocalCopy(JObject item, string clipId)
-    {
-        var current = (string)item["filePath"];
-        if (!string.IsNullOrWhiteSpace(current) && File.Exists(current)) return false;
-        var path = Download(clipId);
-        if (string.IsNullOrWhiteSpace(path)) return false;
-        item["file"] = Path.GetFileName(path);
-        item["filePath"] = path;
-        return true;
     }
 
     private string Download(string clipId)
@@ -159,17 +218,6 @@ public class CPHInline
             }
             catch (Exception ex) { CPH.LogWarn("RTS Action Replay: Twitch download attempt " + attempt + " failed for " + clipId + ": " + ex.Message); }
             if (attempt < 10) CPH.Wait(2000);
-        }
-        return null;
-    }
-
-    private JObject Find(JArray catalog, string clipId)
-    {
-        if (catalog == null) return null;
-        foreach (var token in catalog)
-        {
-            var item = token as JObject;
-            if (item != null && string.Equals((string)item["sourceType"], "Twitch", StringComparison.OrdinalIgnoreCase) && string.Equals((string)item["sourceId"], clipId, StringComparison.OrdinalIgnoreCase)) return item;
         }
         return null;
     }
