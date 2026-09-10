@@ -27,16 +27,19 @@ public class CPHInline
         JObject replay = null;
         if (int.TryParse(selector, out var index) && index > 0 && index <= recentIds.Count)
         {
-            var id = recentIds[index - 1].ToString();
-            replay = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], id, StringComparison.OrdinalIgnoreCase));
+            var id = Convert.ToString(recentIds[index - 1]);
+            replay = catalog.OfType<JObject>().FirstOrDefault(x =>
+                string.Equals(Convert.ToString(x["id"]), id, StringComparison.OrdinalIgnoreCase));
         }
         else
         {
             replay = recentIds
-                .Select(item => item.ToString())
+                .Select(item => Convert.ToString(item))
                 .Where(id => !string.IsNullOrWhiteSpace(id))
-                .Select(id => catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], id, StringComparison.OrdinalIgnoreCase)))
-                .FirstOrDefault(x => x != null && string.Equals((string)x["title"], selector, StringComparison.OrdinalIgnoreCase));
+                .Select(id => catalog.OfType<JObject>().FirstOrDefault(x =>
+                    string.Equals(Convert.ToString(x["id"]), id, StringComparison.OrdinalIgnoreCase)))
+                .FirstOrDefault(x => x != null &&
+                    string.Equals(Convert.ToString(x["title"]), selector, StringComparison.OrdinalIgnoreCase));
         }
 
         if (replay == null)
@@ -53,7 +56,7 @@ public class CPHInline
         var url = ResolveReplayUrl(replay);
         if (string.IsNullOrWhiteSpace(url))
         {
-            CPH.SendMessage($"Replay media is unavailable: {(string)replay["title"]}");
+            CPH.SendMessage($"Replay media is unavailable: {Convert.ToString(replay["title"])}");
             return false;
         }
 
@@ -62,17 +65,17 @@ public class CPHInline
         var creator = replay["creator"] as JObject;
 
         CPH.SetArgument("replayCommand", "load");
-        CPH.SetArgument("replayId", (string)replay["id"] ?? "");
+        CPH.SetArgument("replayId", Convert.ToString(replay["id"]));
         CPH.SetArgument("replayUrl", url);
         CPH.SetArgument("replayAutoplay", true);
         CPH.SetArgument("replayUserId", userId ?? "");
         CPH.SetArgument("replayUserName", userName ?? "");
-        CPH.SetArgument("replayDirector", (string)creator?["name"] ?? "");
+        CPH.SetArgument("replayDirector", Convert.ToString(creator?["name"]));
         CPH.SetArgument("replayNumber", FindCatalogIndex(catalog, replay).ToString());
-        CPH.SetArgument("replayTitle", (string)replay["title"] ?? "");
+        CPH.SetArgument("replayTitle", Convert.ToString(replay["title"]));
         CPH.SetArgument("replayPlayedCount", (((int?)replay["plays"] ?? 0) + 1).ToString());
-        CPH.SetArgument("replaySource", (string)replay["sourceType"] ?? "OBS");
-        CPH.SetArgument("replaySourceId", (string)replay["sourceId"] ?? "");
+        CPH.SetArgument("replaySource", Convert.ToString(replay["sourceType"]) ?? "OBS");
+        CPH.SetArgument("replaySourceId", Convert.ToString(replay["sourceId"]));
         ApplyPlayerSettings();
         CPH.TriggerEvent(EventName, true);
         return true;
@@ -80,9 +83,9 @@ public class CPHInline
 
     private string ResolveReplayUrl(JObject replay)
     {
-        if (string.Equals((string)replay["sourceType"], "Twitch", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(Convert.ToString(replay["sourceType"]), "Twitch", StringComparison.OrdinalIgnoreCase))
         {
-            var clipId = (string)replay["sourceId"];
+            var clipId = Convert.ToString(replay["sourceId"]);
             if (string.IsNullOrWhiteSpace(clipId)) return null;
             try
             {
@@ -95,7 +98,7 @@ public class CPHInline
         var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true);
         var mapping = CPH.GetGlobalVar<string>("rts.actionreplay.httpMapping", true) ?? "replays";
         var port = CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474;
-        var file = (string)replay["file"];
+        var file = Convert.ToString(replay["file"]);
         if (string.IsNullOrWhiteSpace(folder) || string.IsNullOrWhiteSpace(file)) return null;
         if (!System.IO.File.Exists(System.IO.Path.Combine(folder, file))) return null;
         return "http://localhost:" + port + "/" + mapping.Trim('/') + "/" + CPH.UrlEncode(file);
@@ -118,15 +121,29 @@ public class CPHInline
     {
         var ids = data["recentIds"] as JArray;
         if (ids != null && ids.Count > 0) return ids;
-        return ((JArray)data["replays"] ?? new JArray()).OfType<JObject>().Select(x => (string)x["id"]).Where(x => !string.IsNullOrWhiteSpace(x)).Take(20).Aggregate(new JArray(), (a, x) => { a.Add(x); return a; });
+        return ((JArray)data["replays"] ?? new JArray()).OfType<JObject>()
+            .Select(x => Convert.ToString(x["id"]))
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Take(20)
+            .Aggregate(new JArray(), (a, x) => { a.Add(x); return a; });
     }
 
     private int FindCatalogIndex(JArray catalog, JObject replay)
     {
-        for (var i = 0; i < catalog.Count; i++) if (ReferenceEquals(catalog[i], replay)) return i + 1;
+        for (var i = 0; i < catalog.Count; i++)
+            if (ReferenceEquals(catalog[i], replay)) return i + 1;
         return 1;
     }
 
     private JObject Load() => JObject.Parse(CPH.GetGlobalVar<string>(DataKey, true) ?? "{\"version\":1,\"replays\":[]}");
-    private double GetDouble(string key, double fallback) { try { object value = CPH.GetGlobalVar<object>(key, true); return value == null ? fallback : Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture); } catch { return fallback; } }
+
+    private double GetDouble(string key, double fallback)
+    {
+        try
+        {
+            object value = CPH.GetGlobalVar<object>(key, true);
+            return value == null ? fallback : Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
+        }
+        catch { return fallback; }
+    }
 }
