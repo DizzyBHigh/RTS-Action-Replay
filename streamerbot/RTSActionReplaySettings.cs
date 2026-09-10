@@ -147,8 +147,9 @@ public class CPHInline
         ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", null, PreviewPosition);
         ui.AddList("Position Tags", "", "Positions", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)));
         ui.EndRow();
-        ui.EndSection();
+
         AddAnimationProfileSettings(ui);
+        ui.EndSection();
     }
 
     private void AddAnimationProfileSettings(RtsUI ui)
@@ -166,12 +167,12 @@ public class CPHInline
     {
         ui.BeginSection(name);
         ui.BeginRow();
-        ui.AddPositionSelector("Start Position", "Position used when this source starts showing.", "Player", "rts.actionreplay.animation." + slug + ".startPosition", "rts.actionreplay.positions", "Full Screen");
-        ui.AddPositionSelector("End Position", "Position reached when this source finishes showing.", "Player", "rts.actionreplay.animation." + slug + ".endPosition", "rts.actionreplay.positions", "Full Screen");
+        ui.AddPositionSelector("Start Position", "Position used when this source starts showing.", "Positions", "rts.actionreplay.animation." + slug + ".startPosition", "rts.actionreplay.positions", "Full Screen");
+        ui.AddPositionSelector("End Position", "Position reached when this source finishes showing.", "Positions", "rts.actionreplay.animation." + slug + ".endPosition", "rts.actionreplay.positions", "Full Screen");
         ui.EndRow();
         ui.BeginRow();
-        ui.AddNumericTextbox("Duration", "Duration of the movement between Start Position and End Position, in milliseconds.", "Player", "rts.actionreplay.animation." + slug + ".duration", 500, 100, 20000);
-        ui.AddDropdown("Easing", "CSS easing used for this source's player movement.", "Player", "rts.actionreplay.animation." + slug + ".easing", new[] { "linear", "ease", "ease-in", "ease-out", "ease-in-out" }, "ease-in-out");
+        ui.AddNumericTextbox("Duration", "Duration of the movement between Start Position and End Position, in milliseconds.", "Positions", "rts.actionreplay.animation." + slug + ".duration", 500, 100, 20000);
+        ui.AddDropdown("Easing", "CSS easing used for this source's player movement.", "Positions", "rts.actionreplay.animation." + slug + ".easing", new[] { "linear", "ease", "ease-in", "ease-out", "ease-in-out" }, "ease-in-out");
         ui.EndRow();
         ui.EndSection();
     }
@@ -249,40 +250,22 @@ public class CPHInline
 
     private void PreviewPosition(string positionName, string positionsJson)
     {
-        if (string.IsNullOrWhiteSpace(positionName))
+        // Preview callback is intentionally left as the extension-specific integration point.
+        CPH.SetArgument("replayPreviewPosition", positionName ?? "");
+        CPH.SetArgument("replayPreviewPositions", positionsJson ?? "");
+    }
+
+    private string NormalizePositionTag(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "";
+        var result = new System.Text.StringBuilder();
+        bool hyphen = false;
+        foreach (char c in value.Trim().ToLowerInvariant())
         {
-            CPH.SetArgument("replayCommand", "hide");
-            CPH.TriggerEvent("RTS-Action Replay", true);
-            return;
+            if (char.IsLetterOrDigit(c)) { result.Append(c); hyphen = false; }
+            else if ((char.IsWhiteSpace(c) || c == '-') && result.Length > 0 && !hyphen) { result.Append('-'); hyphen = true; }
         }
-        CPH.SetArgument("replayCommand", "move");
-        CPH.SetArgument("replayPosition", positionName);
-        CPH.SetArgument("replayPositions", positionsJson ?? "{}");
-        CPH.SetArgument("replayAnimationDuration", GetAnimationProfileDouble("default", "duration", 500));
-        CPH.SetArgument("replayAnimationEasing", GetAnimationProfileString("default", "easing", "ease-in-out"));
-        CPH.TriggerEvent("RTS-Action Replay", true);
-    }
-
-    private string GetAnimationProfileString(string slug, string field, string fallback)
-    {
-        var value = CPH.GetGlobalVar<string>("rts.actionreplay.animation." + slug + "." + field, true);
-        return string.IsNullOrWhiteSpace(value) ? fallback : value;
-    }
-
-    private double GetAnimationProfileDouble(string slug, string field, double fallback)
-    {
-        return GetSettingDouble("rts.actionreplay.animation." + slug + "." + field, fallback);
-    }
-
-    private double GetSettingDouble(string key, double fallback)
-    {
-        try
-        {
-            object value = CPH.GetGlobalVar<object>(key, true);
-            if (value == null) return fallback;
-            return System.Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
-        }
-        catch { return fallback; }
+        return result.ToString().Trim('-');
     }
 
     private string[][] BuildPositionTagList(string json)
@@ -305,16 +288,9 @@ public class CPHInline
         return items.ToArray();
     }
 
-    private string NormalizePositionTag(string value)
+    private double GetSettingDouble(string key, double fallback)
     {
-        if (string.IsNullOrWhiteSpace(value)) return "";
-        var result = new System.Text.StringBuilder();
-        bool hyphen = false;
-        foreach (char c in value.Trim().ToLowerInvariant())
-        {
-            if (char.IsLetterOrDigit(c)) { result.Append(c); hyphen = false; }
-            else if ((char.IsWhiteSpace(c) || c == '-') && result.Length > 0 && !hyphen) { result.Append('-'); hyphen = true; }
-        }
-        return result.ToString().Trim('-');
+        var value = CPH.GetGlobalVar<double?>(key, true);
+        return value ?? fallback;
     }
 }
