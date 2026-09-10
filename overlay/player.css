@@ -3,12 +3,12 @@
   left: 50%;
   top: 50%;
   width: 100vw;
-  transform: perspective(540px) translate(-50%, -50%) translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  transform: perspective(540px) translate(-50%, -50%) translateZ(0) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
   transform-origin: center center;
   transform-style: preserve-3d;
   backface-visibility: visible;
   perspective-origin: center center;
-  will-change: transform, opacity;
+  will-change: left, top, transform, opacity;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -22,7 +22,7 @@
 }
 
 #replay-player.show { opacity: 1; visibility: visible; }
-#replay-player.player-transition { transition: transform var(--player-duration) var(--player-easing), opacity var(--player-duration) var(--player-easing); }
+#replay-player.player-transition { transition: left var(--player-duration) var(--player-easing), top var(--player-duration) var(--player-easing), transform var(--player-duration) var(--player-easing), opacity var(--player-duration) var(--player-easing); }
 
 #player-frame {
   position: relative;
