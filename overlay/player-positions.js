@@ -32,6 +32,7 @@ RTSReplayPlayer.configureTransition = () => {
   RTSReplayPlayer.player.style.setProperty('--player-duration', `${duration}s`);
   RTSReplayPlayer.player.style.setProperty('--player-easing', RTSReplayPlayer.currentCommand?.replayAnimationEasing || 'ease-in-out');
   RTSReplayPlayer.player.classList.add('player-transition');
+  RTSReplayPlayer.stage.classList.add('player-transition');
 };
 
 RTSReplayPlayer.numberOr = (value, fallback) => {
@@ -53,21 +54,26 @@ RTSReplayPlayer.transformFor = (p, scaleFactor = 1) => {
   const rotateZ = -RTSReplayPlayer.numberOr(p?.rotateZ, 0);
   const fov = Math.max(30, Math.min(120, RTSReplayPlayer.numberOr(p?.fov, 90)));
 
-  // RtsUI defines FOV against the horizontal preview dimension. Keep the
-  // overlay's perspective calculation on the same basis.
+  // RtsUI uses a PerspectiveCamera. Its distance is calculated from the
+  // horizontal preview width, so use the same calculation for the browser
+  // stage instead of CSS perspective() on the player itself.
   const viewportWidth = Math.max(1, window.innerWidth || 1920);
   const perspective = Math.max(1, (viewportWidth / 2) / Math.tan((fov * Math.PI / 180) / 2));
+  RTSReplayPlayer.stage.style.perspective = `${perspective}px`;
+  RTSReplayPlayer.stage.style.perspectiveOrigin = 'center center';
 
+  // Screen positioning is kept outside the 3D transform. The stage is the
+  // camera/screen plane and the player is the 3D surface at its center.
   const x = RTSReplayPlayer.numberOr(p?.x, 0);
   const y = RTSReplayPlayer.numberOr(p?.y, 0);
-  RTSReplayPlayer.player.style.left = `calc(50% + ${x}vw)`;
-  RTSReplayPlayer.player.style.top = `calc(50% - ${y}vh)`;
+  RTSReplayPlayer.stage.style.left = `calc(50% + ${x}vw)`;
+  RTSReplayPlayer.stage.style.top = `calc(50% - ${y}vh)`;
 
-  // RtsUI's Transform3DGroup is built as Scale -> RotateX -> RotateY ->
-  // RotateZ -> Translate. CSS transform functions are composed from right
-  // to left, so reverse that order here while retaining the coordinate-axis
-  // conversion above. This keeps the same world-space transform sequence.
-  return `perspective(${perspective}px) translate(-50%, -50%) translateZ(${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX}, ${scaleY}, 1)`;
+  // RtsUI's Transform3DGroup is Scale -> RotateX -> RotateY -> RotateZ ->
+  // Translate. CSS transform functions are composed right-to-left, so the
+  // 3D operations are written in the reverse order here. Screen translation
+  // and camera perspective are handled by the stage rather than this string.
+  return `translate(-50%, -50%) translateZ(${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX}, ${scaleY}, 1)`;
 };
 
 RTSReplayPlayer.positionsEqual = (a, b) => {
@@ -82,13 +88,17 @@ RTSReplayPlayer.positionsEqual = (a, b) => {
 
 RTSReplayPlayer.applyPosition = (position, immediate = false) => {
   const p = position || RTSReplayPlayer.defaultPositions['Full Screen'];
-  if (immediate) RTSReplayPlayer.player.classList.remove('player-transition');
+  if (immediate) {
+    RTSReplayPlayer.player.classList.remove('player-transition');
+    RTSReplayPlayer.stage.classList.remove('player-transition');
+  }
   RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(p);
 };
 
 RTSReplayPlayer.cancelPendingTransition = () => {
   RTSReplayPlayer.transitionToken = (RTSReplayPlayer.transitionToken || 0) + 1;
   RTSReplayPlayer.player.classList.remove('player-transition');
+  RTSReplayPlayer.stage.classList.remove('player-transition');
 };
 
 RTSReplayPlayer.animateIn = (startPosition, endPosition) => {
@@ -97,6 +107,7 @@ RTSReplayPlayer.animateIn = (startPosition, endPosition) => {
   const token = (RTSReplayPlayer.transitionToken || 0) + 1;
   RTSReplayPlayer.transitionToken = token;
   RTSReplayPlayer.player.classList.remove('player-transition');
+  RTSReplayPlayer.stage.classList.remove('player-transition');
   RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(start);
   RTSReplayPlayer.player.classList.add('show');
 
@@ -124,6 +135,7 @@ RTSReplayPlayer.animateOut = () => {
 
   if (RTSReplayPlayer.positionsEqual(start, end)) {
     RTSReplayPlayer.player.classList.remove('player-transition');
+    RTSReplayPlayer.stage.classList.remove('player-transition');
     RTSReplayPlayer.player.classList.remove('show');
     RTSReplayPlayer.activePosition = end;
     return;
@@ -139,6 +151,7 @@ RTSReplayPlayer.animateOut = () => {
     RTSReplayPlayer.player.removeEventListener('transitionend', finish);
     RTSReplayPlayer.player.classList.remove('show');
     RTSReplayPlayer.player.classList.remove('player-transition');
+    RTSReplayPlayer.stage.classList.remove('player-transition');
     RTSReplayPlayer.activePosition = end;
   };
 
@@ -151,3 +164,5 @@ RTSReplayPlayer.animateOut = () => {
     RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(end);
   });
 };
+
+RTSReplayPlayer.stage = document.getElementById('replay-player-stage');
