@@ -44,26 +44,25 @@ RTSReplayPlayer.transformFor = (p, scaleFactor = 1) => {
   const scaleX = RTSReplayPlayer.numberOr(p?.scaleX, legacyScale * 100) / 100 * scaleFactor;
   const scaleY = RTSReplayPlayer.numberOr(p?.scaleY, legacyScale * 100) / 100 * scaleFactor;
   const z = RTSReplayPlayer.numberOr(p?.z, 0);
-  const rotateX = RTSReplayPlayer.numberOr(p?.rotateX, 0);
+
+  // RtsUI uses +Y as up. CSS screen coordinates use +Y down. Convert the
+  // coordinate-system handedness at the overlay boundary so stored position
+  // values remain identical between the editor and the browser.
+  const rotateX = -RTSReplayPlayer.numberOr(p?.rotateX, 0);
   const rotateY = RTSReplayPlayer.numberOr(p?.rotateY, 0);
-  const rotateZ = RTSReplayPlayer.numberOr(p?.rotateZ, 0);
+  const rotateZ = -RTSReplayPlayer.numberOr(p?.rotateZ, 0);
   const fov = Math.max(30, Math.min(120, RTSReplayPlayer.numberOr(p?.fov, 90)));
 
-  const viewportHeight = Math.max(1, window.innerHeight || 1080);
-  const perspective = Math.max(1, (viewportHeight / 2) / Math.tan((fov * Math.PI / 180) / 2));
+  // RtsUI defines FOV against the horizontal preview dimension. Keep the
+  // overlay's perspective calculation on the same basis.
+  const viewportWidth = Math.max(1, window.innerWidth || 1920);
+  const perspective = Math.max(1, (viewportWidth / 2) / Math.tan((fov * Math.PI / 180) / 2));
 
-  // X/Y are screen coordinates, not player-relative coordinates.
-  // Anchor the player's centre directly to the viewport, then apply the
-  // scale/rotation independently. This prevents scaling or rotation from
-  // changing the meaning of X/Y.
   const x = RTSReplayPlayer.numberOr(p?.x, 0);
   const y = RTSReplayPlayer.numberOr(p?.y, 0);
   RTSReplayPlayer.player.style.left = `calc(50% + ${x}vw)`;
-  RTSReplayPlayer.player.style.top = `calc(50% + ${y}vh)`;
+  RTSReplayPlayer.player.style.top = `calc(50% - ${y}vh)`;
 
-  // Position is deliberately handled by left/top. Transform now contains
-  // only the 3D visual transform, so the endpoint positions cannot be
-  // distorted by transform-function ordering.
   return `perspective(${perspective}px) translate(-50%, -50%) translateZ(${z}px) scale3d(${scaleX}, ${scaleY}, 1) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
 };
 
