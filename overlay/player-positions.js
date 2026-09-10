@@ -42,35 +42,80 @@ RTSReplayPlayer.transformFor = (p, scaleFactor = 1) => {
   return `translate(-50%, -50%) translate(${Number.isFinite(x) ? x : 0}%, ${Number.isFinite(y) ? y : 0}%) scale(${scale}) rotateX(${Number.isFinite(rotateX) ? rotateX : 0}deg) rotateY(${Number.isFinite(rotateY) ? rotateY : 0}deg) rotateZ(${Number.isFinite(rotateZ) ? rotateZ : 0}deg)`;
 };
 
+RTSReplayPlayer.positionsEqual = (a, b) => {
+  if (!a || !b) return false;
+  const keys = ['scale', 'x', 'y', 'rotateX', 'rotateY', 'rotateZ'];
+  return keys.every(key => Number(a[key] ?? (key === 'scale' ? 100 : 0)) === Number(b[key] ?? (key === 'scale' ? 100 : 0)));
+};
+
 RTSReplayPlayer.applyPosition = (position, immediate = false) => {
   const p = position || RTSReplayPlayer.defaultPositions['Full Screen'];
   if (immediate) RTSReplayPlayer.player.classList.remove('player-transition');
   RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(p);
-  if (immediate) requestAnimationFrame(RTSReplayPlayer.configureTransition);
+};
+
+RTSReplayPlayer.cancelPendingTransition = () => {
+  RTSReplayPlayer.transitionToken = (RTSReplayPlayer.transitionToken || 0) + 1;
+  RTSReplayPlayer.player.classList.remove('player-transition');
 };
 
 RTSReplayPlayer.animateIn = (startPosition, endPosition) => {
   const start = startPosition || RTSReplayPlayer.defaultPositions['Full Screen'];
   const end = endPosition || start;
-  RTSReplayPlayer.configureTransition();
-  RTSReplayPlayer.player.classList.add('show');
+  const token = (RTSReplayPlayer.transitionToken || 0) + 1;
+  RTSReplayPlayer.transitionToken = token;
+  RTSReplayPlayer.player.classList.remove('player-transition');
   RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(start);
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(end);
+  RTSReplayPlayer.player.classList.add('show');
+
+  if (RTSReplayPlayer.positionsEqual(start, end)) {
     RTSReplayPlayer.activePosition = end;
-  }));
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    if (token !== RTSReplayPlayer.transitionToken) return;
+    RTSReplayPlayer.configureTransition();
+    requestAnimationFrame(() => {
+      if (token !== RTSReplayPlayer.transitionToken) return;
+      RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(end);
+      RTSReplayPlayer.activePosition = end;
+    });
+  });
 };
 
 RTSReplayPlayer.animateOut = () => {
   const start = RTSReplayPlayer.activePosition || RTSReplayPlayer.defaultPositions['Full Screen'];
   const end = RTSReplayPlayer.getPosition(RTSReplayPlayer.currentCommand?.replayStartPosition || 'Full Screen');
+  const token = (RTSReplayPlayer.transitionToken || 0) + 1;
+  RTSReplayPlayer.transitionToken = token;
+
+  if (RTSReplayPlayer.positionsEqual(start, end)) {
+    RTSReplayPlayer.player.classList.remove('player-transition');
+    RTSReplayPlayer.player.classList.remove('show');
+    RTSReplayPlayer.activePosition = end;
+    return;
+  }
+
   RTSReplayPlayer.configureTransition();
   RTSReplayPlayer.player.classList.add('show');
   RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(start);
-  requestAnimationFrame(() => requestAnimationFrame(() => {
+
+  const finish = event => {
+    if (token !== RTSReplayPlayer.transitionToken) return;
+    if (event && event.propertyName !== 'transform') return;
+    RTSReplayPlayer.player.removeEventListener('transitionend', finish);
+    RTSReplayPlayer.player.classList.remove('show');
+    RTSReplayPlayer.player.classList.remove('player-transition');
+    RTSReplayPlayer.activePosition = end;
+  };
+
+  RTSReplayPlayer.player.addEventListener('transitionend', finish);
+  requestAnimationFrame(() => {
+    if (token !== RTSReplayPlayer.transitionToken) {
+      RTSReplayPlayer.player.removeEventListener('transitionend', finish);
+      return;
+    }
     RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(end);
-  }));
-  RTSReplayPlayer.player.addEventListener('transitionend', event => {
-    if (event.propertyName === 'transform') RTSReplayPlayer.player.classList.remove('show');
-  }, { once: true });
+  });
 };
