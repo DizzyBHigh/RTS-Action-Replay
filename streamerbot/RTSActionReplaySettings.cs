@@ -154,7 +154,11 @@ public class CPHInline
 
     private void AddAnimationProfileSettings(RtsUI ui)
     {
-        ui.BeginSection("Animation Profiles");
+        // Use the explicit overload so this section can establish a parent even if
+        // the section stack has been cleared by another UI definition helper.
+        // When Saved Positions is active this remains nested under it; otherwise it
+        // safely becomes a Positions section and the profiles remain nested within it.
+        ui.BeginSection("Animation Profiles", "Positions");
         AddAnimationProfile(ui, "Default", "default");
         AddAnimationProfile(ui, "Twitch Clip", "twitchClip");
         AddAnimationProfile(ui, "OBS Clip", "obsClip");
