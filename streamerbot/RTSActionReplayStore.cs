@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 
 public class CPHInline
@@ -212,12 +213,6 @@ public class CPHInline
     private DateTime ParseDate(string value) { DateTime parsed; return DateTime.TryParse(value, out parsed) ? parsed : DateTime.MinValue; }
     private string Get(string key) { string value; return CPH.TryGetArg(key, out value) ? value ?? "" : ""; }
     private bool Stable(string path) { for (var i = 0; i < 5; i++) { var a = new FileInfo(path).Length; CPH.Wait(500); var b = new FileInfo(path).Length; if (a == b) return true; } return false; }
-
-    private void Trim(JArray list)
-    {
-        var max = CPH.GetGlobalVar<int?>(MaxHistoryKey, true) ?? 20;
-        while (list.Count > Math.Max(1, max)) list.RemoveAt(list.Count - 1);
-    }
 
     private void ApplyPendingCreator(ref string id, ref string name) { if (!string.IsNullOrWhiteSpace(id)) return; var raw = CPH.GetGlobalVar<string>(PendingKey, false); if (string.IsNullOrWhiteSpace(raw)) return; var queue = JArray.Parse(raw); if (queue.Count == 0) return; var item = (JObject)queue[0]; queue.RemoveAt(0); CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), false); DateTime queued; if (DateTime.TryParse((string)item["queued"], out queued) && DateTime.UtcNow - queued <= TimeSpan.FromSeconds(60)) { id = (string)item["id"] ?? ""; name = (string)item["name"] ?? ""; } }
 
