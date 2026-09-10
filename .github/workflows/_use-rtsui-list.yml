@@ -1,0 +1,48 @@
+name: Use reusable RtsUI list component
+
+on:
+  push:
+    paths:
+      - '.github/workflows/_use-rtsui-list.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update position tag list
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('streamerbot/RTSActionReplaySettings.cs')
+          s = p.read_text()
+
+          old = '        ui.AddTitle(BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)), "Positions");'
+          new = '        ui.AddList("Position Tags", "", "Positions", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)));'
+          if old not in s:
+              raise SystemExit('Position tag AddTitle call not found')
+          s = s.replace(old, new, 1)
+
+          pattern = re.compile(r'    private string BuildPositionTagList\(string json\)\n    \{.*?\n    \}\n\n    private string NormalizePositionTag', re.S)
+          replacement = '''    private string[][] BuildPositionTagList(string json)\n    {\n        var items = new System.Collections.Generic.List<string[]>();\n        try\n        {\n            var map = Newtonsoft.Json.Linq.JObject.Parse(json ?? "{}");\n            foreach (var item in map)\n            {\n                string name = item.Key;\n                var position = item.Value as Newtonsoft.Json.Linq.JObject;\n                string tag = position == null ? null : (string)position["tag"];\n                string normalizedTag = string.IsNullOrWhiteSpace(tag) ? NormalizePositionTag(name) : NormalizePositionTag(tag);\n                items.Add(new[] { name, "→  " + normalizedTag });\n            }\n        }\n        catch { }\n        if (items.Count == 0) items.Add(new[] { "Full Screen", "→  full-screen" });\n        return items.ToArray();\n    }\n\n    private string NormalizePositionTag'''
+          s, count = pattern.subn(replacement, s, count=1)
+          if count != 1:
+              raise SystemExit('BuildPositionTagList method not found')
+          p.write_text(s)
+          PY
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add streamerbot/RTSActionReplaySettings.cs
+          git diff --cached --quiet && exit 0
+          git commit -m "Use reusable Position Tags list"
+          git push
