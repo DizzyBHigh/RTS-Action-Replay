@@ -1,7 +1,7 @@
 // Streamer.bot C# actions for RTS Action Replay Twitch integration.
 //
 // CreateTwitchClip:
-//   Creates a Twitch Clip, stores its Twitch metadata/URL in the Catalog,
+//   Creates a Twitch Clip, waits for Twitch to publish it, stores its Twitch metadata/URL in the Catalog,
 //   optionally downloads a local copy, adds it to Recent Clips, then plays it.
 //
 // SyncTwitchClips:
@@ -35,14 +35,79 @@ public class CPHInline
         var duration = GetSettingInt("rts.actionreplay.twitch.clipDuration", 30);
         duration = Math.Max(5, Math.Min(60, duration));
 
-        CPH.LogInfo("RTS Action Replay: creating Twitch Clip.");
-        var clip = CPH.CreateClip(title, duration);
-        if (clip == null || string.IsNullOrWhiteSpace(clip.Id))
+        CPH.LogInfo("RTS Action Replay: creating Twitch Clip (requested duration: " + duration + "s).");
+        ClipData clip;
+        try
         {
-            CPH.LogWarn("RTS Action Replay: Twitch did not return a clip.");
+            clip = CPH.CreateClip(title, duration);
+            CPH.LogInfo("RTS Action Replay: CreateClip returned " + (clip == null ? "null" : "a ClipData object") + ".");
+            if (clip != null)
+                CPH.LogInfo("RTS Action Replay: CreateClip returned clip ID: " + (string.IsNullOrWhiteSpace(clip.Id) ? "<empty>" : clip.Id) + ".");
+        }
+        catch (Exception ex)
+        {
+            CPH.LogError("RTS Action Replay: CreateClip threw an exception: " + ex.Message);
             CPH.SendMessage("I couldn't create a Twitch clip.");
             return false;
         }
+
+        if (clip == null || string.IsNullOrWhiteSpace(clip.Id))
+        {
+            CPH.LogWarn("RTS Action Replay: Twitch did not return a clip ID, so there is nothing to poll. Twitch clip creation failed before publication could be confirmed.");
+            CPH.SendMessage("I couldn't create a Twitch clip.");
+            return false;
+        }
+
+        var createdClipId = clip.Id;
+        CPH.LogInfo("RTS Action Replay: Twitch clip " + createdClipId + " is asynchronous; waiting 5 seconds before checking publication.");
+
+        // Twitch documents Create Clip as asynchronous. A clip may not appear in Get Clips immediately.
+        // Poll for up to 15 seconds, then treat it as failed if Twitch still does not return the clip.
+        ClipData publishedClip = null;
+        for (var attempt = 1; attempt <= 3; attempt++)
+        {
+            CPH.Wait(5000);
+            CPH.LogInfo("RTS Action Replay: checking Twitch clip " + createdClipId + " (publication check " + attempt + "/3).");
+
+            try
+            {
+                var clips = CPH.GetClips(1000, null);
+                if (clips != null)
+                {
+                    for (var i = 0; i < clips.Count; i++)
+                    {
+                        var candidate = clips[i];
+                        if (candidate != null && string.Equals(candidate.Id, createdClipId, StringComparison.OrdinalIgnoreCase))
+                        {
+                            publishedClip = candidate;
+                            break;
+                        }
+                    }
+                }
+
+                if (publishedClip != null)
+                {
+                    CPH.LogInfo("RTS Action Replay: Twitch clip " + createdClipId + " is now published after approximately " + (attempt * 5) + " seconds.");
+                    break;
+                }
+
+                CPH.LogInfo("RTS Action Replay: Twitch clip " + createdClipId + " is not visible in GetClips yet.");
+            }
+            catch (Exception ex)
+            {
+                CPH.LogWarn("RTS Action Replay: Twitch publication check " + attempt + " failed for " + createdClipId + ": " + ex.Message);
+            }
+        }
+
+        if (publishedClip == null)
+        {
+            CPH.LogWarn("RTS Action Replay: Twitch clip " + createdClipId + " was not returned by GetClips after 15 seconds. Treating creation as failed.");
+            CPH.SendMessage("I couldn't confirm the Twitch clip was created.");
+            return false;
+        }
+
+        // Use the published GetClips result for the Catalog because it contains the finished clip metadata.
+        clip = publishedClip;
 
         var item = AddTwitchClip(clip, true);
         if (item == null) return false;
