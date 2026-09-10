@@ -190,10 +190,16 @@ public class CPHInline
         }
     }
 
-    private void SetIfMissing(string key, object value)
+    private void SetIfMissing(string key, string value)
     {
-        var existing = CPH.GetGlobalVar<object>(key, true);
-        if (existing == null || string.IsNullOrWhiteSpace(existing.ToString())) CPH.SetGlobalVar(key, value, true);
+        var existing = CPH.GetGlobalVar<string>(key, true);
+        if (string.IsNullOrWhiteSpace(existing)) CPH.SetGlobalVar(key, value, true);
+    }
+
+    private void SetIfMissing(string key, double value)
+    {
+        var existing = CPH.GetGlobalVar<double?>(key, true);
+        if (!existing.HasValue) CPH.SetGlobalVar(key, value, true);
     }
 
     private void AddMessageSettings(RtsUI ui)
