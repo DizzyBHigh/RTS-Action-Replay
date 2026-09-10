@@ -147,17 +147,13 @@ public class CPHInline
         ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", null, PreviewPosition);
         ui.AddList("Position Tags", "", "Positions", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)));
         ui.EndRow();
+        ui.EndSection();
 
         AddAnimationProfileSettings(ui);
-        ui.EndSection();
     }
 
     private void AddAnimationProfileSettings(RtsUI ui)
     {
-        // Use the explicit overload so this section can establish a parent even if
-        // the section stack has been cleared by another UI definition helper.
-        // When Saved Positions is active this remains nested under it; otherwise it
-        // safely becomes a Positions section and the profiles remain nested within it.
         ui.BeginSection("Animation Profiles", "Positions");
         AddAnimationProfile(ui, "Default", "default");
         AddAnimationProfile(ui, "Twitch Clip", "twitchClip");
@@ -254,7 +250,6 @@ public class CPHInline
 
     private void PreviewPosition(string positionName, string positionsJson)
     {
-        // Preview callback is intentionally left as the extension-specific integration point.
         CPH.SetArgument("replayPreviewPosition", positionName ?? "");
         CPH.SetArgument("replayPreviewPositions", positionsJson ?? "");
     }
