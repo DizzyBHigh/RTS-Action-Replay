@@ -144,7 +144,7 @@ public class CPHInline
     {
         ui.BeginSection("Saved Positions", "Positions");
         ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", null, PreviewPosition);
-        ui.AddTitle(BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)), "Positions");
+        ui.AddList("Position Tags", "", "Positions", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)));
         AddAnimationProfileSettings(ui);
         ui.EndSection();
     }
@@ -283,9 +283,9 @@ public class CPHInline
         catch { return fallback; }
     }
 
-    private string BuildPositionTagList(string json)
+    private string[][] BuildPositionTagList(string json)
     {
-        var lines = new System.Collections.Generic.List<string> { "Position Tags" };
+        var items = new System.Collections.Generic.List<string[]>();
         try
         {
             var map = Newtonsoft.Json.Linq.JObject.Parse(json ?? "{}");
@@ -295,12 +295,12 @@ public class CPHInline
                 var position = item.Value as Newtonsoft.Json.Linq.JObject;
                 string tag = position == null ? null : (string)position["tag"];
                 string normalizedTag = string.IsNullOrWhiteSpace(tag) ? NormalizePositionTag(name) : NormalizePositionTag(tag);
-                lines.Add("•  " + name + "  →  " + normalizedTag);
+                items.Add(new[] { name, "→  " + normalizedTag });
             }
         }
         catch { }
-        if (lines.Count == 1) lines.Add("•  Full Screen  →  full-screen");
-        return string.Join("\n", lines.ToArray());
+        if (items.Count == 0) items.Add(new[] { "Full Screen", "→  full-screen" });
+        return items.ToArray();
     }
 
     private string NormalizePositionTag(string value)
