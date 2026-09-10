@@ -143,10 +143,12 @@ public class CPHInline
     private void AddPositionSettings(RtsUI ui)
     {
         ui.BeginSection("Saved Positions", "Positions");
+        ui.BeginRow();
         ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", null, PreviewPosition);
         ui.AddList("Position Tags", "", "Positions", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)));
-        AddAnimationProfileSettings(ui);
+        ui.EndRow();
         ui.EndSection();
+        AddAnimationProfileSettings(ui);
     }
 
     private void AddAnimationProfileSettings(RtsUI ui)
