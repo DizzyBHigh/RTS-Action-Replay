@@ -51,6 +51,7 @@ RTSReplayPlayer.normalisePosition = p => {
     rotateZ: RTSReplayPlayer.numberOr(p?.rotateZ, 0),
     fov: Math.max(30, Math.min(120, RTSReplayPlayer.numberOr(p?.fov, 90)))
   };
+};
 
 RTSReplayPlayer.easing = value => {
   const easing = String(value || 'ease-in-out').trim().toLowerCase();
