@@ -18,6 +18,9 @@ RTSReplayVideo.playReplay = command => {
 RTSReplayVideo.loadReplay = command => {
   if (!command.replayUrl) return;
 
+  const wasVisible = RTSReplayVideo.player.classList.contains('show');
+  const currentPosition = RTSReplayVideo.activePosition;
+
   RTSReplayVideo.currentCommand = command;
   RTSDevToolbar?.updateClapper?.(command);
   RTSReplayControls.configure(command);
@@ -28,33 +31,48 @@ RTSReplayVideo.loadReplay = command => {
   const startPosition = RTSReplayVideo.getPosition(startName);
   const endPosition = RTSReplayVideo.getPosition(endName);
 
-  RTSReplayVideo.activePosition = startPosition;
   RTSReplayVideo.video.src = command.replayUrl;
   RTSReplayVideo.video.style.display = 'block';
   RTSReplayVideo.video.load();
 
-  // A replay must enter at the configured Start Position, not briefly appear
-  // at the player's default Full Screen transform before the animation begins.
-  // Apply the start position while hidden and with transitions disabled, then
-  // reveal the player and animate to the configured End Position.
-  if (RTSReplayVideo.player.classList.contains('show')) {
-    RTSReplayVideo.applyPosition(startPosition, true);
-    requestAnimationFrame(() => {
-      RTSReplayVideo.configureTransition();
-      RTSReplayVideo.player.style.transform = RTSReplayVideo.transformFor(endPosition);
-      RTSReplayVideo.activePosition = endPosition;
-    });
-  } else {
-    RTSReplayVideo.player.classList.remove('player-transition');
-    RTSReplayVideo.applyPosition(startPosition, true);
+  if (wasVisible && currentPosition) {
+    // The player is already on screen. Do not reset it to this replay's
+    // Start Position. Move directly from the current position to the new
+    // End Position, but only animate when the positions actually differ.
+    RTSReplayVideo.cancelPendingTransition?.();
     RTSReplayVideo.player.classList.add('show');
-    requestAnimationFrame(() => {
+    RTSReplayVideo.activePosition = currentPosition;
+
+    if (RTSReplayVideo.positionsEqual?.(currentPosition, endPosition)) {
+      RTSReplayVideo.applyPosition(endPosition, true);
+      RTSReplayVideo.activePosition = endPosition;
+    } else {
       RTSReplayVideo.configureTransition();
       requestAnimationFrame(() => {
         RTSReplayVideo.player.style.transform = RTSReplayVideo.transformFor(endPosition);
         RTSReplayVideo.activePosition = endPosition;
       });
-    });
+    }
+  } else {
+    // A hidden player must enter at the configured Start Position and then
+    // animate to the configured End Position.
+    RTSReplayVideo.cancelPendingTransition?.();
+    RTSReplayVideo.applyPosition(startPosition, true);
+    RTSReplayVideo.activePosition = startPosition;
+    RTSReplayVideo.player.classList.add('show');
+
+    if (RTSReplayVideo.positionsEqual?.(startPosition, endPosition)) {
+      RTSReplayVideo.applyPosition(endPosition, true);
+      RTSReplayVideo.activePosition = endPosition;
+    } else {
+      requestAnimationFrame(() => {
+        RTSReplayVideo.configureTransition();
+        requestAnimationFrame(() => {
+          RTSReplayVideo.player.style.transform = RTSReplayVideo.transformFor(endPosition);
+          RTSReplayVideo.activePosition = endPosition;
+        });
+      });
+    }
   }
 
   if (command.replayAutoplay) {
@@ -65,6 +83,10 @@ RTSReplayVideo.loadReplay = command => {
 RTSReplayVideo.moveReplay = command => {
   RTSReplayVideo.currentCommand = command;
   const position = RTSReplayVideo.getPosition(command.replayPosition || 'Full Screen');
+  const current = RTSReplayVideo.activePosition;
+
+  if (current && RTSReplayVideo.positionsEqual?.(current, position)) return;
+
   RTSReplayVideo.activePosition = position;
   RTSReplayVideo.applyPosition(position);
   RTSReplayVideo.player.classList.add('show');
@@ -87,9 +109,6 @@ RTSReplayVideo.handleReplayCommand = command => {
   }
 };
 
-// A replay is a complete player lifecycle: load -> enter -> play -> exit.
-// When the video reaches its natural end, return it to the configured Start
-// Position using the same animation duration and easing, then hide it.
 RTSReplayVideo.video.addEventListener('ended', () => {
   if (!RTSReplayVideo.currentCommand) return;
   RTSReplayVideo.animateOut();
