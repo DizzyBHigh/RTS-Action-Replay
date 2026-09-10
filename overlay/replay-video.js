@@ -22,7 +22,7 @@ RTSReplayVideo.loadReplay = command => {
   const currentPosition = RTSReplayVideo.activePosition;
 
   RTSReplayVideo.currentCommand = command;
-  RTSDevToolbar?.updateClapper?.(command);
+  window.RTSDevToolbar?.updateClapper?.(command);
   RTSReplayControls.configure(command);
   RTSReplayElements.configure(command);
 
@@ -36,9 +36,6 @@ RTSReplayVideo.loadReplay = command => {
   RTSReplayVideo.video.load();
 
   if (wasVisible && currentPosition) {
-    // The player is already on screen. Do not reset it to this replay's
-    // Start Position. Move directly from the current position to the new
-    // End Position, but only animate when the positions actually differ.
     RTSReplayVideo.cancelPendingTransition?.();
     RTSReplayVideo.player.classList.add('show');
     RTSReplayVideo.activePosition = currentPosition;
@@ -54,8 +51,6 @@ RTSReplayVideo.loadReplay = command => {
       });
     }
   } else {
-    // A hidden player must enter at the configured Start Position and then
-    // animate to the configured End Position.
     RTSReplayVideo.cancelPendingTransition?.();
     RTSReplayVideo.applyPosition(startPosition, true);
     RTSReplayVideo.activePosition = startPosition;
