@@ -51,10 +51,14 @@ RTSReplayVideo.loadReplay = command => {
       });
     }
   } else {
+    // Establish the configured start position while the player is still hidden.
+    // Force a layout pass before showing it so the browser cannot paint the
+    // CSS default (Full Screen) for a frame before the start transform lands.
     RTSReplayVideo.cancelPendingTransition?.();
     RTSReplayVideo.applyPosition(startPosition, true);
-    RTSReplayVideo.activePosition = startPosition;
+    void RTSReplayVideo.player.offsetWidth;
     RTSReplayVideo.player.classList.add('show');
+    RTSReplayVideo.activePosition = startPosition;
 
     if (RTSReplayVideo.positionsEqual?.(startPosition, endPosition)) {
       RTSReplayVideo.applyPosition(endPosition, true);
