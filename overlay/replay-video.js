@@ -32,30 +32,12 @@ RTSReplayVideo.loadReplay = command => {
   RTSReplayVideo.video.style.display = 'block';
   RTSReplayVideo.video.load();
 
-  // Every LOAD is a new animation cycle. Do not reuse the previous visible
-  // position here: doing so caused a profile configured as Hidden -> Mini to
-  // appear at Mini and then animate back to Hidden when the clip ended.
-  // Reset the player to the configured start position while hidden, then show
-  // it and animate from start -> end.
-  RTSReplayVideo.cancelPendingTransition?.();
-  RTSReplayVideo.player.classList.remove('show');
-  RTSReplayVideo.applyPosition(startPosition, true);
-  void RTSReplayVideo.player.offsetWidth;
-  RTSReplayVideo.player.classList.add('show');
-  RTSReplayVideo.activePosition = startPosition;
-
-  if (RTSReplayVideo.positionsEqual?.(startPosition, endPosition)) {
-    RTSReplayVideo.applyPosition(endPosition, true);
-    RTSReplayVideo.activePosition = endPosition;
-  } else {
-    requestAnimationFrame(() => {
-      RTSReplayVideo.configureTransition();
-      requestAnimationFrame(() => {
-        RTSReplayVideo.player.style.transform = RTSReplayVideo.transformFor(endPosition);
-        RTSReplayVideo.activePosition = endPosition;
-      });
-    });
-  }
+  // Every LOAD is a new animation cycle. The position animator is responsible
+  // for setting the exact start state and explicitly interpolating all position
+  // properties to the end state. Do not use CSS transition setup here: that
+  // would bypass the stage/camera position animation and can make the intro
+  // jump straight to the end position.
+  RTSReplayVideo.animateIn(startPosition, endPosition);
 
   if (command.replayAutoplay) {
     RTSReplayVideo.video.addEventListener('canplay', () => RTSReplayVideo.playReplay(command), { once: true });
