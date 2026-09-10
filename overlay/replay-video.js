@@ -18,9 +18,6 @@ RTSReplayVideo.playReplay = command => {
 RTSReplayVideo.loadReplay = command => {
   if (!command.replayUrl) return;
 
-  const wasVisible = RTSReplayVideo.player.classList.contains('show');
-  const currentPosition = RTSReplayVideo.activePosition;
-
   RTSReplayVideo.currentCommand = command;
   window.RTSDevToolbar?.updateClapper?.(command);
   RTSReplayControls.configure(command);
@@ -35,43 +32,29 @@ RTSReplayVideo.loadReplay = command => {
   RTSReplayVideo.video.style.display = 'block';
   RTSReplayVideo.video.load();
 
-  if (wasVisible && currentPosition) {
-    RTSReplayVideo.cancelPendingTransition?.();
-    RTSReplayVideo.player.classList.add('show');
-    RTSReplayVideo.activePosition = currentPosition;
+  // Every LOAD is a new animation cycle. Do not reuse the previous visible
+  // position here: doing so caused a profile configured as Hidden -> Mini to
+  // appear at Mini and then animate back to Hidden when the clip ended.
+  // Reset the player to the configured start position while hidden, then show
+  // it and animate from start -> end.
+  RTSReplayVideo.cancelPendingTransition?.();
+  RTSReplayVideo.player.classList.remove('show');
+  RTSReplayVideo.applyPosition(startPosition, true);
+  void RTSReplayVideo.player.offsetWidth;
+  RTSReplayVideo.player.classList.add('show');
+  RTSReplayVideo.activePosition = startPosition;
 
-    if (RTSReplayVideo.positionsEqual?.(currentPosition, endPosition)) {
-      RTSReplayVideo.applyPosition(endPosition, true);
-      RTSReplayVideo.activePosition = endPosition;
-    } else {
+  if (RTSReplayVideo.positionsEqual?.(startPosition, endPosition)) {
+    RTSReplayVideo.applyPosition(endPosition, true);
+    RTSReplayVideo.activePosition = endPosition;
+  } else {
+    requestAnimationFrame(() => {
       RTSReplayVideo.configureTransition();
       requestAnimationFrame(() => {
         RTSReplayVideo.player.style.transform = RTSReplayVideo.transformFor(endPosition);
         RTSReplayVideo.activePosition = endPosition;
       });
-    }
-  } else {
-    // Establish the configured start position while the player is still hidden.
-    // Force a layout pass before showing it so the browser cannot paint the
-    // CSS default (Full Screen) for a frame before the start transform lands.
-    RTSReplayVideo.cancelPendingTransition?.();
-    RTSReplayVideo.applyPosition(startPosition, true);
-    void RTSReplayVideo.player.offsetWidth;
-    RTSReplayVideo.player.classList.add('show');
-    RTSReplayVideo.activePosition = startPosition;
-
-    if (RTSReplayVideo.positionsEqual?.(startPosition, endPosition)) {
-      RTSReplayVideo.applyPosition(endPosition, true);
-      RTSReplayVideo.activePosition = endPosition;
-    } else {
-      requestAnimationFrame(() => {
-        RTSReplayVideo.configureTransition();
-        requestAnimationFrame(() => {
-          RTSReplayVideo.player.style.transform = RTSReplayVideo.transformFor(endPosition);
-          RTSReplayVideo.activePosition = endPosition;
-        });
-      });
-    }
+    });
   }
 
   if (command.replayAutoplay) {
