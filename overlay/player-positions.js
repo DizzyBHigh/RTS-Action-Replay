@@ -57,7 +57,13 @@ RTSReplayPlayer.transformFor = (p, scaleFactor = 1) => {
   const viewportHeight = Math.max(1, window.innerHeight || 1080);
   const perspective = Math.max(1, (viewportHeight / 2) / Math.tan((fov * Math.PI / 180) / 2));
 
-  return `perspective(${perspective}px) translate(-50%, -50%) translate3d(${x}%, ${y}%, ${z}px) scale3d(${scaleX}, ${scaleY}, 1) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
+  // Position X/Y are stored as -50..+50 offsets from centre. Using viewport
+  // units here makes 100 in the editor equal one full screen-width/height
+  // offset, rather than a percentage of the player's own dimensions.
+  const screenX = x * 2;
+  const screenY = y * 2;
+
+  return `perspective(${perspective}px) translate(-50%, -50%) translate3d(${screenX}vw, ${screenY}vh, ${z}px) scale3d(${scaleX}, ${scaleY}, 1) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
 };
 
 RTSReplayPlayer.positionsEqual = (a, b) => {
