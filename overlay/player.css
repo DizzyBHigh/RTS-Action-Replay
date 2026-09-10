@@ -1,14 +1,28 @@
-#replay-player {
+#replay-player-stage {
   position: fixed;
   left: 50%;
   top: 50%;
   width: 100vw;
-  transform: perspective(540px) translate(-50%, -50%) translateZ(0) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  height: 100vh;
+  transform: translate(-50%, -50%);
+  transform-style: preserve-3d;
+  perspective: 960px;
+  perspective-origin: center center;
+  overflow: visible;
+  pointer-events: none;
+  will-change: left, top;
+}
+
+#replay-player {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100vw;
+  transform: translate(-50%, -50%) translateZ(0) rotateZ(0deg) rotateY(0deg) rotateX(0deg) scale3d(1, 1, 1);
   transform-origin: center center;
   transform-style: preserve-3d;
   backface-visibility: visible;
-  perspective-origin: center center;
-  will-change: left, top, transform, opacity;
+  will-change: transform, opacity;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -22,7 +36,8 @@
 }
 
 #replay-player.show { opacity: 1; visibility: visible; }
-#replay-player.player-transition { transition: left var(--player-duration) var(--player-easing), top var(--player-duration) var(--player-easing), transform var(--player-duration) var(--player-easing), opacity var(--player-duration) var(--player-easing); }
+#replay-player.player-transition { transition: transform var(--player-duration) var(--player-easing), opacity var(--player-duration) var(--player-easing); }
+#replay-player-stage.player-transition { transition: left var(--player-duration) var(--player-easing), top var(--player-duration) var(--player-easing); }
 
 #player-frame {
   position: relative;
@@ -69,6 +84,7 @@
 #replay-player.progress-hidden #player-progress { display: none; }
 
 @media (max-width: 700px) {
+  #replay-player-stage { width: 100vw; height: 100vh; }
   #replay-player { width: 100vw; }
   #player-controls { gap: 7px; padding: 5px 7px; }
   #player-speed { display: none; }
