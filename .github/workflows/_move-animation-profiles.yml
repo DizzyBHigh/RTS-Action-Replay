@@ -1,0 +1,51 @@
+name: Move animation profiles into Positions tab
+
+on:
+  push:
+    branches:
+      - catalog/twitch-integration
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: "!contains(github.event.head_commit.message, 'Move animation profiles into Positions tab [skip ci]')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: ${{ github.ref_name }}
+
+      - name: Move animation profiles
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          path = Path('streamerbot/RTSActionReplaySettings.cs')
+          text = path.read_text(encoding='utf-8')
+
+          old_execute = '''        AddPositionSettings(ui);\n        EnsureAnimationProfiles();\n        AddAnimationProfileSettings(ui);\n        AddMessageSettings(ui);'''
+          new_execute = '''        EnsureAnimationProfiles();\n        AddPositionSettings(ui);\n        AddMessageSettings(ui);'''
+          if text.count(old_execute) != 1:
+              raise RuntimeError(f'Execute block: expected 1 match, found {text.count(old_execute)}')
+          text = text.replace(old_execute, new_execute, 1)
+
+          old_position_end = '''        ui.AddTitle(BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)), "Positions");\n        ui.EndSection();\n    }\n\n    private void AddAnimationProfileSettings(RtsUI ui)\n    {\n        ui.BeginSection("Animation Profiles", "Player");\n        AddAnimationProfile(ui, "Default", "default");\n        AddAnimationProfile(ui, "Twitch Clip", "twitchClip");\n        AddAnimationProfile(ui, "OBS Clip", "obsClip");\n        AddAnimationProfile(ui, "Playlist", "playlist");\n        AddAnimationProfile(ui, "Recent", "recent");\n        ui.EndSection();\n    }'''
+          new_position_end = '''        ui.AddTitle(BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)), "Positions");\n        AddAnimationProfileSettings(ui);\n        ui.EndSection();\n    }\n\n    private void AddAnimationProfileSettings(RtsUI ui)\n    {\n        ui.BeginSection("Animation Profiles");\n        AddAnimationProfile(ui, "Default", "default");\n        AddAnimationProfile(ui, "Twitch Clip", "twitchClip");\n        AddAnimationProfile(ui, "OBS Clip", "obsClip");\n        AddAnimationProfile(ui, "Playlist", "playlist");\n        AddAnimationProfile(ui, "Recent", "recent");\n        ui.EndSection();\n    }'''
+          if text.count(old_position_end) != 1:
+              raise RuntimeError(f'Position block: expected 1 match, found {text.count(old_position_end)}')
+          text = text.replace(old_position_end, new_position_end, 1)
+
+          path.write_text(text, encoding='utf-8', newline='')
+          PY
+
+      - name: Commit change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add streamerbot/RTSActionReplaySettings.cs
+          git diff --cached --quiet && exit 0
+          git commit -m "Move animation profiles into Positions tab [skip ci]"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
