@@ -57,11 +57,12 @@ RTSReplayPlayer.transformFor = (p, scaleFactor = 1) => {
   const viewportHeight = Math.max(1, window.innerHeight || 1080);
   const perspective = Math.max(1, (viewportHeight / 2) / Math.tan((fov * Math.PI / 180) / 2));
 
-  // Position X/Y are stored as -50..+50 offsets from centre. Using viewport
-  // units here makes 100 in the editor equal one full screen-width/height
-  // offset, rather than a percentage of the player's own dimensions.
-  const screenX = x * 2;
-  const screenY = y * 2;
+  // Position X/Y use the same screen-offset convention as the RtsUI editor:
+  // 0 is centred, positive X is right, positive Y is up, and 100 represents
+  // one complete viewport-width/height offset from centre.
+  // CSS Y grows downward, so Y is inverted when converted to vh.
+  const screenX = x;
+  const screenY = -y;
 
   return `perspective(${perspective}px) translate(-50%, -50%) translate3d(${screenX}vw, ${screenY}vh, ${z}px) scale3d(${scaleX}, ${scaleY}, 1) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
 };
