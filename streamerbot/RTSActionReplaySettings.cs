@@ -1,5 +1,9 @@
 // Streamer.bot C# action: open the Action Replay settings window.
 // Requires RtsUI.dll 0.2.0 or newer as a custom assembly reference.
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
+
 public class CPHInline
 {
     public bool Execute()
@@ -144,7 +148,7 @@ public class CPHInline
     {
         ui.BeginSection("Saved Positions", "Positions");
         ui.BeginRow(3, 2);
-        ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", "Edit Positions", null, "scale,x,y,rotateX,rotateY,rotateZ", null, PreviewPosition);
+        ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", "Edit Positions", null, "scale,x,y,rotateX,rotateY,rotateZ", null, null);
         ui.AddList("Position Tags", "", "Positions", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)));
         ui.EndRow();
         ui.EndSection();
@@ -223,17 +227,15 @@ public class CPHInline
 
     private string[][] BuildPositionTagList(string positionsJson)
     {
-        var result = new System.Collections.Generic.List<string[]>();
+        var result = new List<string[]>();
         if (string.IsNullOrWhiteSpace(positionsJson)) return result.ToArray();
         try
         {
-            var map = new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<System.Collections.Generic.Dictionary<string, object>>(positionsJson);
-            if (map == null) return result.ToArray();
-            foreach (var entry in map)
+            var map = JObject.Parse(positionsJson);
+            foreach (var entry in map.Properties())
             {
-                var position = entry.Value as System.Collections.Generic.Dictionary<string, object>;
-                var tag = position != null && position.ContainsKey("tag") ? System.Convert.ToString(position["tag"]) : "";
-                result.Add(new[] { entry.Key, tag });
+                var tag = entry.Value?["tag"]?.ToString() ?? "";
+                result.Add(new[] { entry.Name, tag });
             }
         }
         catch { }
