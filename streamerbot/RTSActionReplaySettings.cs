@@ -19,7 +19,8 @@ public class CPHInline
         AddPlayerSettings(ui);
         AddAppearanceSettings(ui);
         AddPositionSettings(ui);
-        AddAnimationSettings(ui);
+        EnsureAnimationProfiles();
+        AddAnimationProfileSettings(ui);
         AddMessageSettings(ui);
 
         ui.ShowUI();
@@ -142,26 +143,57 @@ public class CPHInline
 
     private void AddPositionSettings(RtsUI ui)
     {
-        ui.BeginSection("Default Positions", "Positions");
-        ui.BeginRow();
-        ui.AddPositionSelector("Default Start Position", "Position used when the player starts showing.", "Positions", "rts.actionreplay.defaultStartPosition", "rts.actionreplay.positions", "Full Screen");
-        ui.AddPositionSelector("Default End Position", "Position used when the player has finished showing.", "Positions", "rts.actionreplay.defaultEndPosition", "rts.actionreplay.positions", "Full Screen");
-        ui.EndRow();
-        ui.EndSection();
         ui.BeginSection("Saved Positions", "Positions");
         ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", null, PreviewPosition);
         ui.AddTitle(BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)), "Positions");
         ui.EndSection();
     }
 
-    private void AddAnimationSettings(RtsUI ui)
+    private void AddAnimationProfileSettings(RtsUI ui)
     {
-        ui.BeginSection("Player Animation", "Animation");
+        ui.BeginSection("Animation Profiles", "Player");
+        AddAnimationProfile(ui, "Default", "default");
+        AddAnimationProfile(ui, "Twitch Clip", "twitchClip");
+        AddAnimationProfile(ui, "OBS Clip", "obsClip");
+        AddAnimationProfile(ui, "Playlist", "playlist");
+        AddAnimationProfile(ui, "Recent", "recent");
+        ui.EndSection();
+    }
+
+    private void AddAnimationProfile(RtsUI ui, string name, string slug)
+    {
+        ui.BeginSection(name);
         ui.BeginRow();
-        ui.AddNumericTextbox("Animation Duration", "Duration used when moving between the Start and End positions, in milliseconds.", "Animation", "rts.actionreplay.animationDuration", 0, 100, 20000);
-        ui.AddDropdown("Animation Easing", "CSS easing used for player movement.", "Animation", "rts.actionreplay.animationEasing", new[] { "linear", "ease", "ease-in", "ease-out", "ease-in-out" }, "ease-in-out");
+        ui.AddPositionSelector("Start Position", "Position used when this source starts showing.", "Player", "rts.actionreplay.animation." + slug + ".startPosition", "rts.actionreplay.positions", "Full Screen");
+        ui.AddPositionSelector("End Position", "Position reached when this source finishes showing.", "Player", "rts.actionreplay.animation." + slug + ".endPosition", "rts.actionreplay.positions", "Full Screen");
+        ui.EndRow();
+        ui.BeginRow();
+        ui.AddNumericTextbox("Duration", "Duration of the movement between Start Position and End Position, in milliseconds.", "Player", "rts.actionreplay.animation." + slug + ".duration", 500, 100, 20000);
+        ui.AddDropdown("Easing", "CSS easing used for this source's player movement.", "Player", "rts.actionreplay.animation." + slug + ".easing", new[] { "linear", "ease", "ease-in", "ease-out", "ease-in-out" }, "ease-in-out");
         ui.EndRow();
         ui.EndSection();
+    }
+
+    private void EnsureAnimationProfiles()
+    {
+        var start = CPH.GetGlobalVar<string>("rts.actionreplay.defaultStartPosition", true) ?? "Full Screen";
+        var end = CPH.GetGlobalVar<string>("rts.actionreplay.defaultEndPosition", true) ?? "Full Screen";
+        var duration = GetSettingDouble("rts.actionreplay.animationDuration", 500);
+        var easing = CPH.GetGlobalVar<string>("rts.actionreplay.animationEasing", true) ?? "ease-in-out";
+        var profiles = new[] { "default", "twitchClip", "obsClip", "playlist", "recent" };
+        foreach (var slug in profiles)
+        {
+            SetIfMissing("rts.actionreplay.animation." + slug + ".startPosition", start);
+            SetIfMissing("rts.actionreplay.animation." + slug + ".endPosition", end);
+            SetIfMissing("rts.actionreplay.animation." + slug + ".duration", duration);
+            SetIfMissing("rts.actionreplay.animation." + slug + ".easing", easing);
+        }
+    }
+
+    private void SetIfMissing(string key, object value)
+    {
+        var existing = CPH.GetGlobalVar<object>(key, true);
+        if (existing == null || string.IsNullOrWhiteSpace(existing.ToString())) CPH.SetGlobalVar(key, value, true);
     }
 
     private void AddMessageSettings(RtsUI ui)
@@ -218,9 +250,20 @@ public class CPHInline
         CPH.SetArgument("replayCommand", "move");
         CPH.SetArgument("replayPosition", positionName);
         CPH.SetArgument("replayPositions", positionsJson ?? "{}");
-        CPH.SetArgument("replayAnimationDuration", GetSettingDouble("rts.actionreplay.animationDuration", 0.0));
-        CPH.SetArgument("replayAnimationEasing", CPH.GetGlobalVar<string>("rts.actionreplay.animationEasing", true) ?? "ease-in-out");
+        CPH.SetArgument("replayAnimationDuration", GetAnimationProfileDouble("default", "duration", 500));
+        CPH.SetArgument("replayAnimationEasing", GetAnimationProfileString("default", "easing", "ease-in-out"));
         CPH.TriggerEvent("RTS-Action Replay", true);
+    }
+
+    private string GetAnimationProfileString(string slug, string field, string fallback)
+    {
+        var value = CPH.GetGlobalVar<string>("rts.actionreplay.animation." + slug + "." + field, true);
+        return string.IsNullOrWhiteSpace(value) ? fallback : value;
+    }
+
+    private double GetAnimationProfileDouble(string slug, string field, double fallback)
+    {
+        return GetSettingDouble("rts.actionreplay.animation." + slug + "." + field, fallback);
     }
 
     private double GetSettingDouble(string key, double fallback)

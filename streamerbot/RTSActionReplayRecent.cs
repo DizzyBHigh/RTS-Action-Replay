@@ -76,7 +76,7 @@ public class CPHInline
         CPH.SetArgument("replayPlayedCount", (((int?)replay["plays"] ?? 0) + 1).ToString());
         CPH.SetArgument("replaySource", Convert.ToString(replay["sourceType"]) ?? "OBS");
         CPH.SetArgument("replaySourceId", Convert.ToString(replay["sourceId"]));
-        ApplyPlayerSettings();
+        ApplyPlayerSettings("recent");
         CPH.TriggerEvent(EventName, true);
         return true;
     }
@@ -104,17 +104,23 @@ public class CPHInline
         return "http://localhost:" + port + "/" + mapping.Trim('/') + "/" + CPH.UrlEncode(file);
     }
 
-    private void ApplyPlayerSettings()
+    private void ApplyPlayerSettings(string profile)
     {
         CPH.SetArgument("replayShowControls", CPH.GetGlobalVar<bool?>("rts.actionreplay.showControls", true) ?? false);
         CPH.SetArgument("replayShowProgress", CPH.GetGlobalVar<bool?>("rts.actionreplay.showProgress", true) ?? true);
         CPH.SetArgument("replayPlaybackSpeed", GetDouble("rts.actionreplay.playbackSpeed", 1.0));
         CPH.SetArgument("replayPlaybackSpeedVisibility", CPH.GetGlobalVar<string>("rts.actionreplay.playbackSpeedVisibility", true) ?? "Only when greater or less than 1");
         CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>("rts.actionreplay.positions", true) ?? "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
-        CPH.SetArgument("replayStartPosition", CPH.GetGlobalVar<string>("rts.actionreplay.defaultStartPosition", true) ?? "Full Screen");
-        CPH.SetArgument("replayEndPosition", CPH.GetGlobalVar<string>("rts.actionreplay.defaultEndPosition", true) ?? "Full Screen");
-        CPH.SetArgument("replayAnimationDuration", GetDouble("rts.actionreplay.animationDuration", .5));
-        CPH.SetArgument("replayAnimationEasing", CPH.GetGlobalVar<string>("rts.actionreplay.animationEasing", true) ?? "ease-in-out");
+        CPH.SetArgument("replayStartPosition", GetAnimationProfileString(profile, "startPosition", "Full Screen"));
+        CPH.SetArgument("replayEndPosition", GetAnimationProfileString(profile, "endPosition", "Full Screen"));
+        CPH.SetArgument("replayAnimationDuration", GetDouble("rts.actionreplay.animation." + profile + ".duration", .5));
+        CPH.SetArgument("replayAnimationEasing", GetAnimationProfileString(profile, "easing", "ease-in-out"));
+    }
+
+    private string GetAnimationProfileString(string profile, string field, string fallback)
+    {
+        var value = CPH.GetGlobalVar<string>("rts.actionreplay.animation." + profile + "." + field, true);
+        return string.IsNullOrWhiteSpace(value) ? fallback : value;
     }
 
     private JArray LoadRecentIds(JObject data)

@@ -502,10 +502,10 @@ public class CPHInline
         CPH.SetArgument("replayPlaybackSpeedVisibility", CPH.GetGlobalVar<string>("rts.actionreplay.playbackSpeedVisibility", true) ?? "Only when greater or less than 1");
         CPH.SetArgument("replayFrameColor", CPH.GetGlobalVar<string>("rts.actionreplay.frameColor", true) ?? "#0384CBFF");
         CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>("rts.actionreplay.positions", true) ?? "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
-        CPH.SetArgument("replayStartPosition", CPH.GetGlobalVar<string>("rts.actionreplay.defaultStartPosition", true) ?? "Full Screen");
-        CPH.SetArgument("replayEndPosition", CPH.GetGlobalVar<string>("rts.actionreplay.defaultEndPosition", true) ?? "Full Screen");
-        CPH.SetArgument("replayAnimationDuration", GetSettingDouble("rts.actionreplay.animationDuration", .5));
-        CPH.SetArgument("replayAnimationEasing", CPH.GetGlobalVar<string>("rts.actionreplay.animationEasing", true) ?? "ease-in-out");
+        CPH.SetArgument("replayStartPosition", GetAnimationProfileString("twitchClip", "startPosition", "Full Screen"));
+        CPH.SetArgument("replayEndPosition", GetAnimationProfileString("twitchClip", "endPosition", "Full Screen"));
+        CPH.SetArgument("replayAnimationDuration", GetAnimationProfileDouble("twitchClip", "duration", .5));
+        CPH.SetArgument("replayAnimationEasing", GetAnimationProfileString("twitchClip", "easing", "ease-in-out"));
         CPH.SetArgument("replayShowTitle", CPH.GetGlobalVar<bool?>("rts.actionreplay.showTitle", true) ?? true);
         CPH.SetArgument("replayShowBranding", CPH.GetGlobalVar<bool?>("rts.actionreplay.showBranding", true) ?? true);
         CPH.SetArgument("replayTitleDecorationPosition", CPH.GetGlobalVar<string>("rts.actionreplay.titleDecorationPosition", true) ?? "Suffix");
@@ -524,6 +524,17 @@ public class CPHInline
         CPH.SetArgument("replayTitleSecondaryColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleSecondaryColor", true) ?? "#101416FF");
         CPH.TriggerEvent("RTS-Action Replay", true);
         return true;
+    }
+
+    private string GetAnimationProfileString(string profile, string field, string fallback)
+    {
+        var value = CPH.GetGlobalVar<string>("rts.actionreplay.animation." + profile + "." + field, true);
+        return string.IsNullOrWhiteSpace(value) ? fallback : value;
+    }
+
+    private double GetAnimationProfileDouble(string profile, string field, double fallback)
+    {
+        return GetSettingDouble("rts.actionreplay.animation." + profile + "." + field, fallback);
     }
 
     private string ResolvePlaybackUrl(JObject item, string mode)
