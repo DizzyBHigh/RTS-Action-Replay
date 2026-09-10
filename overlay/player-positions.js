@@ -43,8 +43,6 @@ RTSReplayPlayer.transformFor = (p, scaleFactor = 1) => {
   const legacyScale = RTSReplayPlayer.numberOr(p?.scale, 100) / 100;
   const scaleX = RTSReplayPlayer.numberOr(p?.scaleX, legacyScale * 100) / 100 * scaleFactor;
   const scaleY = RTSReplayPlayer.numberOr(p?.scaleY, legacyScale * 100) / 100 * scaleFactor;
-  const x = RTSReplayPlayer.numberOr(p?.x, 0);
-  const y = RTSReplayPlayer.numberOr(p?.y, 0);
   const z = RTSReplayPlayer.numberOr(p?.z, 0);
   const rotateX = RTSReplayPlayer.numberOr(p?.rotateX, 0);
   const rotateY = RTSReplayPlayer.numberOr(p?.rotateY, 0);
@@ -54,13 +52,19 @@ RTSReplayPlayer.transformFor = (p, scaleFactor = 1) => {
   const viewportHeight = Math.max(1, window.innerHeight || 1080);
   const perspective = Math.max(1, (viewportHeight / 2) / Math.tan((fov * Math.PI / 180) / 2));
 
-  // RtsUI screen coordinates: X=0/Y=0 is centred, +X is right and +Y is down.
-  // The browser's CSS coordinate system also grows downward, so Y is passed
-  // directly to vh. +/-100 represents one complete viewport offset.
-  const screenX = x;
-  const screenY = y;
+  // X/Y are screen coordinates, not player-relative coordinates.
+  // Anchor the player's centre directly to the viewport, then apply the
+  // scale/rotation independently. This prevents scaling or rotation from
+  // changing the meaning of X/Y.
+  const x = RTSReplayPlayer.numberOr(p?.x, 0);
+  const y = RTSReplayPlayer.numberOr(p?.y, 0);
+  RTSReplayPlayer.player.style.left = `calc(50% + ${x}vw)`;
+  RTSReplayPlayer.player.style.top = `calc(50% + ${y}vh)`;
 
-  return `perspective(${perspective}px) translate(-50%, -50%) translate3d(${screenX}vw, ${screenY}vh, ${z}px) scale3d(${scaleX}, ${scaleY}, 1) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
+  // Position is deliberately handled by left/top. Transform now contains
+  // only the 3D visual transform, so the endpoint positions cannot be
+  // distorted by transform-function ordering.
+  return `perspective(${perspective}px) translate(-50%, -50%) translateZ(${z}px) scale3d(${scaleX}, ${scaleY}, 1) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
 };
 
 RTSReplayPlayer.positionsEqual = (a, b) => {
@@ -128,7 +132,7 @@ RTSReplayPlayer.animateOut = () => {
 
   const finish = event => {
     if (token !== RTSReplayPlayer.transitionToken) return;
-    if (event && event.propertyName !== 'transform') return;
+    if (event && event.propertyName !== 'transform' && event.propertyName !== 'left' && event.propertyName !== 'top') return;
     RTSReplayPlayer.player.removeEventListener('transitionend', finish);
     RTSReplayPlayer.player.classList.remove('show');
     RTSReplayPlayer.player.classList.remove('player-transition');
