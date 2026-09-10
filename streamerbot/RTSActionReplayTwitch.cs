@@ -31,98 +31,265 @@ public class CPHInline
     public bool CreateTwitchClip()
     {
         CPH.TryGetArg("rawInput", out string rawInput);
-        var title = string.IsNullOrWhiteSpace(rawInput) ? null : rawInput.Trim();
+        rawInput = rawInput == null ? "" : rawInput.Trim();
+    
         var duration = GetSettingInt("rts.actionreplay.twitch.clipDuration", 30);
         duration = Math.Max(5, Math.Min(60, duration));
-
-        CPH.LogInfo("RTS Action Replay: creating Twitch Clip (requested duration: " + duration + "s).");
+    
+        string title = null;
+    
+        // Command syntax:
+        //
+        // !clip
+        // !clip 30
+        // !clip "My clip title"
+        // !clip 30 "My clip title"
+        //
+        // Titles MUST be surrounded by double quotes.
+        // This means numbers inside a quoted title can never be confused with duration.
+    
+        if (!string.IsNullOrWhiteSpace(rawInput))
+        {
+            var remaining = rawInput;
+    
+            // If the first character is not a quote, the first token must be a duration.
+            if (remaining[0] != '"')
+            {
+                var firstSpace = remaining.IndexOf(' ');
+                string durationText;
+                string afterDuration;
+    
+                if (firstSpace < 0)
+                {
+                    durationText = remaining;
+                    afterDuration = "";
+                }
+                else
+                {
+                    durationText = remaining.Substring(0, firstSpace).Trim();
+                    afterDuration = remaining.Substring(firstSpace).Trim();
+                }
+    
+                int requestedDuration;
+    
+                if (!int.TryParse(durationText, out requestedDuration))
+                {
+                    CPH.LogWarn("RTS Action Replay: invalid Twitch Clip command. Titles must be surrounded by double quotes.");
+                    CPH.SendMessage("Usage: !clip [5-60] [\"title\"]");
+                    return false;
+                }
+    
+                duration = Math.Max(5, Math.Min(60, requestedDuration));
+                remaining = afterDuration;
+    
+                // A duration may be supplied without a title.
+                if (string.IsNullOrWhiteSpace(remaining))
+                {
+                    title = null;
+                }
+            }
+    
+            // If there is remaining input, it MUST be a quoted title.
+            if (!string.IsNullOrWhiteSpace(remaining))
+            {
+                if (remaining[0] != '"')
+                {
+                    CPH.LogWarn("RTS Action Replay: invalid Twitch Clip title. Titles must be surrounded by double quotes.");
+                    CPH.SendMessage("Usage: !clip [5-60] [\"title\"]");
+                    return false;
+                }
+    
+                // Find the closing quote.
+                var closingQuote = remaining.IndexOf('"', 1);
+    
+                if (closingQuote < 0)
+                {
+                    CPH.LogWarn("RTS Action Replay: invalid Twitch Clip title. Missing closing double quote.");
+                    CPH.SendMessage("Usage: !clip [5-60] [\"title\"]");
+                    return false;
+                }
+    
+                title = remaining.Substring(1, closingQuote - 1);
+    
+                // Anything after the closing quote is invalid.
+                var trailing = remaining.Substring(closingQuote + 1).Trim();
+    
+                if (!string.IsNullOrWhiteSpace(trailing))
+                {
+                    CPH.LogWarn("RTS Action Replay: invalid Twitch Clip command. Nothing is allowed after the quoted title.");
+                    CPH.SendMessage("Usage: !clip [5-60] [\"title\"]");
+                    return false;
+                }
+    
+                // Don't send an empty title to Twitch.
+                if (string.IsNullOrWhiteSpace(title))
+                    title = null;
+            }
+        }
+    
+        CPH.LogInfo(
+            "RTS Action Replay: creating Twitch Clip (requested duration: "
+            + duration
+            + "s, title: "
+            + (title ?? "<stream title>")
+            + ")."
+        );
+    
         ClipData clip;
+    
         try
         {
             clip = CPH.CreateClip(title, duration);
-            CPH.LogInfo("RTS Action Replay: CreateClip returned " + (clip == null ? "null" : "a ClipData object") + ".");
+    
+            CPH.LogInfo(
+                "RTS Action Replay: CreateClip returned "
+                + (clip == null ? "null" : "a ClipData object")
+                + "."
+            );
+    
             if (clip != null)
-                CPH.LogInfo("RTS Action Replay: CreateClip returned clip ID: " + (string.IsNullOrWhiteSpace(clip.Id) ? "<empty>" : clip.Id) + ".");
+            {
+                CPH.LogInfo(
+                    "RTS Action Replay: CreateClip returned clip ID: "
+                    + (string.IsNullOrWhiteSpace(clip.Id) ? "<empty>" : clip.Id)
+                    + "."
+                );
+            }
         }
         catch (Exception ex)
         {
-            CPH.LogError("RTS Action Replay: CreateClip threw an exception: " + ex.Message);
+            CPH.LogError(
+                "RTS Action Replay: CreateClip threw an exception: "
+                + ex.Message
+            );
+    
             CPH.SendMessage("I couldn't create a Twitch clip.");
             return false;
         }
-
+    
         if (clip == null || string.IsNullOrWhiteSpace(clip.Id))
         {
-            CPH.LogWarn("RTS Action Replay: Twitch did not return a clip ID, so there is nothing to poll. Twitch clip creation failed before publication could be confirmed.");
+            CPH.LogWarn(
+                "RTS Action Replay: Twitch did not return a clip ID, so there is nothing to poll. "
+                + "Twitch clip creation failed before publication could be confirmed."
+            );
+    
             CPH.SendMessage("I couldn't create a Twitch clip.");
             return false;
         }
-
+    
         var createdClipId = clip.Id;
-        CPH.LogInfo("RTS Action Replay: Twitch clip " + createdClipId + " is asynchronous; waiting 5 seconds before checking publication.");
-
-        // Twitch documents Create Clip as asynchronous. A clip may not appear in Get Clips immediately.
-        // Poll for up to 15 seconds, then treat it as failed if Twitch still does not return the clip.
+    
+        CPH.LogInfo(
+            "RTS Action Replay: Twitch clip "
+            + createdClipId
+            + " is asynchronous; waiting 5 seconds before checking publication."
+        );
+    
+        // Twitch documents Create Clip as asynchronous.
+        // A clip may not appear in Get Clips immediately.
+        // Poll for up to 20 seconds, then treat it as failed if Twitch still does not return the clip.
         ClipData publishedClip = null;
-        for (var attempt = 1; attempt <= 3; attempt++)
+    
+        for (var attempt = 1; attempt <= 4; attempt++)
         {
             CPH.Wait(5000);
-            CPH.LogInfo("RTS Action Replay: checking Twitch clip " + createdClipId + " (publication check " + attempt + "/3).");
-
+    
+            CPH.LogInfo(
+                "RTS Action Replay: checking Twitch clip "
+                + createdClipId
+                + " (publication check "
+                + attempt
+                + "/3)."
+            );
+    
             try
             {
                 var clips = CPH.GetClips(1000, null);
+    
                 if (clips != null)
                 {
                     for (var i = 0; i < clips.Count; i++)
                     {
                         var candidate = clips[i];
-                        if (candidate != null && string.Equals(candidate.Id, createdClipId, StringComparison.OrdinalIgnoreCase))
+    
+                        if (candidate != null &&
+                            string.Equals(
+                                candidate.Id,
+                                createdClipId,
+                                StringComparison.OrdinalIgnoreCase))
                         {
                             publishedClip = candidate;
                             break;
                         }
                     }
                 }
-
+    
                 if (publishedClip != null)
                 {
-                    CPH.LogInfo("RTS Action Replay: Twitch clip " + createdClipId + " is now published after approximately " + (attempt * 5) + " seconds.");
+                    CPH.LogInfo(
+                        "RTS Action Replay: Twitch clip "
+                        + createdClipId
+                        + " is now published after approximately "
+                        + (attempt * 5)
+                        + " seconds."
+                    );
+    
                     break;
                 }
-
-                CPH.LogInfo("RTS Action Replay: Twitch clip " + createdClipId + " is not visible in GetClips yet.");
+    
+                CPH.LogInfo(
+                    "RTS Action Replay: Twitch clip "
+                    + createdClipId
+                    + " is not visible in GetClips yet."
+                );
             }
             catch (Exception ex)
             {
-                CPH.LogWarn("RTS Action Replay: Twitch publication check " + attempt + " failed for " + createdClipId + ": " + ex.Message);
+                CPH.LogWarn(
+                    "RTS Action Replay: Twitch publication check "
+                    + attempt
+                    + " failed for "
+                    + createdClipId
+                    + ": "
+                    + ex.Message
+                );
             }
         }
-
+    
         if (publishedClip == null)
         {
-            CPH.LogWarn("RTS Action Replay: Twitch clip " + createdClipId + " was not returned by GetClips after 15 seconds. Treating creation as failed.");
+            CPH.LogWarn(
+                "RTS Action Replay: Twitch clip "
+                + createdClipId
+                + " was not returned by GetClips after 15 seconds. Treating creation as failed."
+            );
+    
             CPH.SendMessage("I couldn't confirm the Twitch clip was created.");
             return false;
         }
-
-        // Use the published GetClips result for the Catalog because it contains the finished clip metadata.
+    
+        // Use the published GetClips result for the Catalog because it contains
+        // the finished clip metadata.
         clip = publishedClip;
-
+    
         var item = AddTwitchClip(clip, true);
-        if (item == null) return false;
-
+    
+        if (item == null)
+            return false;
+    
         CPH.SetArgument("twitchClipId", clip.Id);
         CPH.SetArgument("twitchClipUrl", clip.Url ?? "");
         CPH.SetArgument("twitchClipTitle", (string)item["title"] ?? "");
         CPH.SetArgument("replayId", (string)item["id"] ?? "");
         CPH.SetArgument("replayTitle", (string)item["title"] ?? "");
         CPH.SetArgument("replaySource", "Twitch");
-
-        if (!BroadcastReplay(item)) return false;
+    
+        if (!BroadcastReplay(item))
+            return false;    
         return true;
     }
-
+    
     public bool SyncTwitchClips()
     {
         InitializeCatalog();
