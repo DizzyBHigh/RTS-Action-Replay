@@ -3,8 +3,11 @@
   left: 50%;
   top: 50%;
   width: 100vw;
-  transform: translate(-50%, -50%) translate(0, 0) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  transform: perspective(540px) translate(-50%, -50%) translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
   transform-origin: center center;
+  transform-style: preserve-3d;
+  backface-visibility: visible;
+  perspective-origin: center center;
   will-change: transform, opacity;
   opacity: 0;
   visibility: hidden;
