@@ -1,7 +1,7 @@
 const RTSReplayPlayer = window.RTSReplay;
 
 RTSReplayPlayer.defaultPositions = {
-  "Full Screen": { scale: 100, x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0 }
+  "Full Screen": { scale: 100, scaleX: 100, scaleY: 100, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, fov: 90 }
 };
 
 RTSReplayPlayer.getPositions = () => {
@@ -34,18 +34,40 @@ RTSReplayPlayer.configureTransition = () => {
   RTSReplayPlayer.player.classList.add('player-transition');
 };
 
+RTSReplayPlayer.numberOr = (value, fallback) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+};
+
 RTSReplayPlayer.transformFor = (p, scaleFactor = 1) => {
-  const rawScale = Number(p?.scale);
-  const scale = (Number.isFinite(rawScale) ? rawScale : 100) / 100 * scaleFactor;
-  const x = Number(p?.x), y = Number(p?.y);
-  const rotateX = Number(p?.rotateX), rotateY = Number(p?.rotateY), rotateZ = Number(p?.rotateZ);
-  return `translate(-50%, -50%) translate(${Number.isFinite(x) ? x : 0}%, ${Number.isFinite(y) ? y : 0}%) scale(${scale}) rotateX(${Number.isFinite(rotateX) ? rotateX : 0}deg) rotateY(${Number.isFinite(rotateY) ? rotateY : 0}deg) rotateZ(${Number.isFinite(rotateZ) ? rotateZ : 0}deg)`;
+  const legacyScale = RTSReplayPlayer.numberOr(p?.scale, 100) / 100;
+  const scaleX = RTSReplayPlayer.numberOr(p?.scaleX, legacyScale * 100) / 100 * scaleFactor;
+  const scaleY = RTSReplayPlayer.numberOr(p?.scaleY, legacyScale * 100) / 100 * scaleFactor;
+  const x = RTSReplayPlayer.numberOr(p?.x, 0);
+  const y = RTSReplayPlayer.numberOr(p?.y, 0);
+  const z = RTSReplayPlayer.numberOr(p?.z, 0);
+  const rotateX = RTSReplayPlayer.numberOr(p?.rotateX, 0);
+  const rotateY = RTSReplayPlayer.numberOr(p?.rotateY, 0);
+  const rotateZ = RTSReplayPlayer.numberOr(p?.rotateZ, 0);
+  const fov = Math.max(30, Math.min(120, RTSReplayPlayer.numberOr(p?.fov, 90)));
+
+  // Convert camera FOV to the CSS perspective distance for the current viewport.
+  // At 90° FOV, the distance is half the viewport height. The perspective()
+  // function then gives rotateX/rotateY/translateZ their real 3D depth behaviour.
+  const viewportHeight = Math.max(1, window.innerHeight || 1080);
+  const perspective = Math.max(1, (viewportHeight / 2) / Math.tan((fov * Math.PI / 180) / 2));
+
+  return `perspective(${perspective}px) translate(-50%, -50%) translate3d(${x}%, ${y}%, ${z}px) scale3d(${scaleX}, ${scaleY}, 1) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
 };
 
 RTSReplayPlayer.positionsEqual = (a, b) => {
   if (!a || !b) return false;
-  const keys = ['scale', 'x', 'y', 'rotateX', 'rotateY', 'rotateZ'];
-  return keys.every(key => Number(a[key] ?? (key === 'scale' ? 100 : 0)) === Number(b[key] ?? (key === 'scale' ? 100 : 0)));
+  const defaults = { scale: 100, scaleX: null, scaleY: null, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, fov: 90 };
+  const get = (p, key) => {
+    if (key === 'scaleX' || key === 'scaleY') return Number(p[key] ?? p.scale ?? 100);
+    return Number(p[key] ?? defaults[key]);
+  };
+  return ['scaleX', 'scaleY', 'x', 'y', 'z', 'rotateX', 'rotateY', 'rotateZ', 'fov'].every(key => get(a, key) === get(b, key));
 };
 
 RTSReplayPlayer.applyPosition = (position, immediate = false) => {
