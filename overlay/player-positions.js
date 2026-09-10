@@ -63,7 +63,11 @@ RTSReplayPlayer.transformFor = (p, scaleFactor = 1) => {
   RTSReplayPlayer.player.style.left = `calc(50% + ${x}vw)`;
   RTSReplayPlayer.player.style.top = `calc(50% - ${y}vh)`;
 
-  return `perspective(${perspective}px) translate(-50%, -50%) translateZ(${z}px) scale3d(${scaleX}, ${scaleY}, 1) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
+  // RtsUI's Transform3DGroup is built as Scale -> RotateX -> RotateY ->
+  // RotateZ -> Translate. CSS transform functions are composed from right
+  // to left, so reverse that order here while retaining the coordinate-axis
+  // conversion above. This keeps the same world-space transform sequence.
+  return `perspective(${perspective}px) translate(-50%, -50%) translateZ(${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX}, ${scaleY}, 1)`;
 };
 
 RTSReplayPlayer.positionsEqual = (a, b) => {
