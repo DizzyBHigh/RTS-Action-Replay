@@ -144,7 +144,7 @@ public class CPHInline
     {
         ui.BeginSection("Saved Positions", "Positions");
         ui.BeginRow(3, 2);
-        ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", null, PreviewPosition);
+        ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", "Edit Positions", null, "scale,x,y,rotateX,rotateY,rotateZ", null, PreviewPosition);
         ui.AddList("Position Tags", "", "Positions", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)));
         ui.EndRow();
         ui.EndSection();
@@ -214,82 +214,39 @@ public class CPHInline
         ui.EndRow();
         ui.BeginRow();
         ui.AddColorPicker("Stripe Light", "Clapperstick light stripe colour.", "Messages", "rts.actionreplay.clapper.stripeLight", "#EEEEEE");
-        ui.AddColorPicker("Stripe Dark", "Clapperstick dark stripe colour.", "Messages", "rts.actionreplay.clapper.stripeDark", "#111111");
+        ui.AddColorPicker("Stripe Dark", "Clapperstick dark stripe colour.", "Messages", "rts.actionreplay.clapper.stripeDark", "#444444");
         ui.EndRow();
-        ui.BeginRow();
-        ui.AddGoogleFontSelector("Font", "Choose a Google Font.", "Messages", "rts.actionreplay.clapper.font", "Inter");
-        ui.AddColorPicker("Text Color", "Message text colour.", "Messages", "rts.actionreplay.clapper.textColor", "#0384CB");
-        ui.EndRow();
-        ui.AddSlider("Size (%)", "Overall clapperboard size.", "Messages", "rts.actionreplay.clapper.size", 0, 100, 50);
-        ui.BeginRow();
-        ui.AddSlider("Position X (%)", "Horizontal clapperboard position.", "Messages", "rts.actionreplay.clapper.positionX", 0, 100, 50);
-        ui.AddSlider("Position Y (%)", "Vertical clapperboard position.", "Messages", "rts.actionreplay.clapper.positionY", 0, 100, 50);
-        ui.EndRow();
-        ui.EndSection();
-
-        ui.BeginSection("Message Outputs", "Messages");
-        AddMessageOutput(ui, "Save Replay", "Replay saved: %replayTitle%.", "rts.actionreplay.message.save");
-        AddMessageOutput(ui, "Name Replay", "Replay #%replayNumber% renamed to %replayTitle%.", "rts.actionreplay.message.name");
-        AddMessageOutput(ui, "Play Replay", "Playing replay #%replayNumber%: %replayTitle%.", "rts.actionreplay.message.play");
-        AddMessageOutput(ui, "Playlist", "%replayPlaylist%", "rts.actionreplay.message.playlist");
-        AddMessageOutput(ui, "Creator Leaderboard", "%replayLeaderboard%", "rts.actionreplay.message.creatorLeaderboard");
-        AddMessageOutput(ui, "Playback Leaderboard", "%replayLeaderboard%", "rts.actionreplay.message.playbackLeaderboard");
+        ui.AddColorPicker("Text Color", "Clapperboard text colour.", "Messages", "rts.actionreplay.clapper.textColor", "#FFFFFFFF");
+        ui.AddTextbox("Template", "Template used for the clapperboard message. Streamer.bot variables can be used.", "Messages", "rts.actionreplay.clapper.template", "ACTION REPLAY - %replayName%", false);
         ui.EndSection();
     }
 
-    private void AddMessageOutput(RtsUI ui, string name, string message, string key)
+    private string[][] BuildPositionTagList(string positionsJson)
     {
-        ui.BeginRow();
-        ui.AddTextbox(name + " Message", "Message sent when this command completes.", "Messages", key + ".text", message, false);
-        ui.EndRow();
-        ui.BeginRow();
-        ui.AddToggleSwitch(name + " - Chat", "Send this message to Twitch chat.", "Messages", key + ".chat", true);
-        ui.AddToggleSwitch(name + " - Overlay", "Send this message to the Action Replay overlay.", "Messages", key + ".overlay", false);
-        ui.EndRow();
-    }
-
-    private void PreviewPosition(string positionName, string positionsJson)
-    {
-        CPH.SetArgument("replayPreviewPosition", positionName ?? "");
-        CPH.SetArgument("replayPreviewPositions", positionsJson ?? "");
-    }
-
-    private string NormalizePositionTag(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value)) return "";
-        var result = new System.Text.StringBuilder();
-        bool hyphen = false;
-        foreach (char c in value.Trim().ToLowerInvariant())
-        {
-            if (char.IsLetterOrDigit(c)) { result.Append(c); hyphen = false; }
-            else if ((char.IsWhiteSpace(c) || c == '-') && result.Length > 0 && !hyphen) { result.Append('-'); hyphen = true; }
-        }
-        return result.ToString().Trim('-');
-    }
-
-    private string[][] BuildPositionTagList(string json)
-    {
-        var items = new System.Collections.Generic.List<string[]>();
+        var result = new System.Collections.Generic.List<string[]>();
+        if (string.IsNullOrWhiteSpace(positionsJson)) return result.ToArray();
         try
         {
-            var map = Newtonsoft.Json.Linq.JObject.Parse(json ?? "{}");
-            foreach (var item in map)
+            var map = new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<System.Collections.Generic.Dictionary<string, object>>(positionsJson);
+            if (map == null) return result.ToArray();
+            foreach (var entry in map)
             {
-                string name = item.Key;
-                var position = item.Value as Newtonsoft.Json.Linq.JObject;
-                string tag = position == null ? null : (string)position["tag"];
-                string normalizedTag = string.IsNullOrWhiteSpace(tag) ? NormalizePositionTag(name) : NormalizePositionTag(tag);
-                items.Add(new[] { name, "→  " + normalizedTag });
+                var position = entry.Value as System.Collections.Generic.Dictionary<string, object>;
+                var tag = position != null && position.ContainsKey("tag") ? System.Convert.ToString(position["tag"]) : "";
+                result.Add(new[] { entry.Key, tag });
             }
         }
         catch { }
-        if (items.Count == 0) items.Add(new[] { "Full Screen", "→  full-screen" });
-        return items.ToArray();
+        return result.ToArray();
     }
 
     private double GetSettingDouble(string key, double fallback)
     {
-        var value = CPH.GetGlobalVar<double?>(key, true);
-        return value ?? fallback;
+        try
+        {
+            var value = CPH.GetGlobalVar<double?>(key, true);
+            return value.HasValue ? value.Value : fallback;
+        }
+        catch { return fallback; }
     }
 }
