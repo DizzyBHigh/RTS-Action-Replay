@@ -288,11 +288,12 @@ public class CPHInline
                 string name = item.Key;
                 var position = item.Value as Newtonsoft.Json.Linq.JObject;
                 string tag = position == null ? null : (string)position["tag"];
-                lines.Add(name + "  —  " + (string.IsNullOrWhiteSpace(tag) ? NormalizePositionTag(name) : NormalizePositionTag(tag)));
+                string normalizedTag = string.IsNullOrWhiteSpace(tag) ? NormalizePositionTag(name) : NormalizePositionTag(tag);
+                lines.Add("•  " + name + "  →  " + normalizedTag);
             }
         }
         catch { }
-        if (lines.Count == 1) lines.Add("Full Screen  —  full-screen");
+        if (lines.Count == 1) lines.Add("•  Full Screen  →  full-screen");
         return string.Join("\n", lines.ToArray());
     }
 
