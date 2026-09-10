@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 public class CPHInline
 {
     private const string DataKey = "rts.actionreplay.data";
+    private const string LegacyCatalogKey = "rts.actionreplay.catalog";
     private const string PendingKey = "rts.actionreplay.pendingSaves";
     private const string EventName = "RTS-Action Replay";
     private const string TwitchFolderKey = "rts.actionreplay.twitch.folder";
@@ -25,7 +26,7 @@ public class CPHInline
 
     public bool PlayReplay()
     {
-        var data = Load(); var list = (JArray)data["replays"];
+        var data = Load(); var list = GetCatalog(data);
         if (!CPH.TryGetArg("rawInput", out string selector) || string.IsNullOrWhiteSpace(selector)) return false;
         selector = selector.Trim(); JObject replay = null;
         if (int.TryParse(selector, out var index) && index > 0 && index <= list.Count) replay = (JObject)list[index - 1];
@@ -76,8 +77,7 @@ public class CPHInline
         var clipId = (string)replay["sourceId"];
         if (string.IsNullOrWhiteSpace(clipId)) return null;
 
-        if (string.Equals(mode, "Twitch URL", StringComparison.OrdinalIgnoreCase))
-            return GetTwitchMediaUrl(clipId);
+        if (string.Equals(mode, "Twitch URL", StringComparison.OrdinalIgnoreCase)) return GetTwitchMediaUrl(clipId);
 
         var folder = CPH.GetGlobalVar<string>(TwitchFolderKey, true);
         var localPath = (string)replay["filePath"];
@@ -96,7 +96,6 @@ public class CPHInline
             return BuildTwitchHttpUrl(Path.GetFileName(downloaded));
         }
 
-        // Local modes can still play if the temporary Twitch media URL is available.
         return GetTwitchMediaUrl(clipId);
     }
 
@@ -160,7 +159,8 @@ public class CPHInline
 
     public bool ConfirmPlayback()
     {
-        if (!CPH.TryGetArg("replayId", out string replayId)) return false; var data = Load(); var replay = ((JArray)data["replays"]).OfType<JObject>().FirstOrDefault(x => (string)x["id"] == replayId); if (replay == null) return false;
+        if (!CPH.TryGetArg("replayId", out string replayId)) return false;
+        var data = Load(); var replay = GetCatalog(data).OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase)); if (replay == null) return false;
         replay["plays"] = ((int?)replay["plays"] ?? 0) + 1;
         if (CPH.TryGetArg("userId", out string userId) && !string.IsNullOrWhiteSpace(userId)) { var name = CPH.TryGetArg("userName", out string userName) ? userName : userId; var users = (JObject)(replay["users"] ?? new JObject()); replay["users"] = users; var user = (JObject)(users[userId] ?? new JObject { ["name"] = name, ["plays"] = 0 }); user["name"] = string.IsNullOrWhiteSpace(name) ? (string)user["name"] : name; user["plays"] = ((int?)user["plays"] ?? 0) + 1; users[userId] = user; }
         Save(data); return true;
@@ -205,10 +205,7 @@ public class CPHInline
         return string.IsNullOrWhiteSpace(value) ? fallback : value;
     }
 
-    private double GetAnimationProfileDouble(string profile, string field, double fallback)
-    {
-        return GetSettingDouble("rts.actionreplay.animation." + profile + "." + field, fallback);
-    }
+    private double GetAnimationProfileDouble(string profile, string field, double fallback) { return GetSettingDouble("rts.actionreplay.animation." + profile + "." + field, fallback); }
 
     private void SendMessage(string type)
     {
@@ -216,8 +213,51 @@ public class CPHInline
         CPH.SetArgument("replayCommand", "message"); CPH.SetArgument("replayMessage", text); CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? ""); CPH.SetArgument("replayMessageBoardColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.boardColor", true) ?? "#101416"); CPH.SetArgument("replayMessageStripeLight", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeLight", true) ?? "#EEEEEE"); CPH.SetArgument("replayMessageStripeDark", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeDark", true) ?? "#111111"); CPH.SetArgument("replayMessageAccent", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.accent", true) ?? "#0384CB"); CPH.SetArgument("replayMessageTextColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.textColor", true) ?? "#0384CB"); CPH.SetArgument("replayMessageFont", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.font", true) ?? "Arial, sans-serif"); CPH.SetArgument("replayMessageSize", GetSettingInt("rts.actionreplay.clapper.size", 100)); CPH.SetArgument("replayMessagePositionX", GetSettingInt("rts.actionreplay.clapper.positionX", 50)); CPH.SetArgument("replayMessagePositionY", GetSettingInt("rts.actionreplay.clapper.positionY", 50)); CPH.TriggerEvent(EventName, true);
     }
 
-    private int GetSettingInt(string key, int fallback) { try { return Convert.ToInt32(CPH.GetGlobalVar<object>(key, true), System.Globalization.CultureInfo.InvariantCulture); } catch { return fallback; } }
-    private double GetSettingDouble(string key, double fallback) { try { return Convert.ToDouble(CPH.GetGlobalVar<object>(key, true), System.Globalization.CultureInfo.InvariantCulture); } catch { return fallback; } }
-    private JObject Load() => JObject.Parse(CPH.GetGlobalVar<string>(DataKey, true) ?? "{\"version\":1,\"replays\":[]}");
-    private void Save(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
+    private int GetSettingInt(string key, int fallback) { try { object value = CPH.GetGlobalVar<object>(key, true); if (value == null) return fallback; return Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture); } catch { return fallback; } }
+    private double GetSettingDouble(string key, double fallback) { try { object value = CPH.GetGlobalVar<object>(key, true); if (value == null) return fallback; return Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture); } catch { return fallback; } }
+
+    private JObject Load()
+    {
+        var raw = CPH.GetGlobalVar<string>(DataKey, true);
+        JObject data;
+        if (string.IsNullOrWhiteSpace(raw)) data = new JObject { ["version"] = 2, ["catalog"] = new JArray(), ["recentIds"] = new JArray() };
+        else { try { data = JObject.Parse(raw); } catch { data = new JObject { ["version"] = 2, ["catalog"] = new JArray(), ["recentIds"] = new JArray() }; } }
+
+        var catalog = data["catalog"] as JArray;
+        var legacy = data["replays"] as JArray;
+        if (catalog == null) catalog = legacy ?? new JArray();
+        else if (legacy != null && legacy.Count > 0) MergeCatalog(catalog, legacy);
+
+        var external = CPH.GetGlobalVar<string>(LegacyCatalogKey, true);
+        if (!string.IsNullOrWhiteSpace(external))
+        {
+            try { var externalData = JObject.Parse(external); var externalCatalog = externalData["catalog"] as JArray; if (externalCatalog != null) MergeCatalog(catalog, externalCatalog); } catch { }
+        }
+
+        data["version"] = 2; data["catalog"] = catalog;
+        if (data["recentIds"] == null) data["recentIds"] = new JArray();
+        data.Remove("replays");
+        return data;
+    }
+
+    private JArray GetCatalog(JObject data) => (JArray)data["catalog"] ?? new JArray();
+
+    private void Save(JObject data)
+    {
+        data["version"] = 2; if (data["catalog"] == null) data["catalog"] = new JArray(); if (data["recentIds"] == null) data["recentIds"] = new JArray(); data.Remove("replays");
+        CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
+        CPH.SetGlobalVar("rts.actionreplay.recentIds", ((JArray)data["recentIds"]).ToString(Newtonsoft.Json.Formatting.None), true);
+    }
+
+    private void MergeCatalog(JArray target, JArray source)
+    {
+        foreach (var token in source)
+        {
+            var item = token as JObject; if (item == null) continue;
+            var id = (string)item["id"]; var sourceType = (string)item["sourceType"] ?? "OBS"; var sourceId = (string)item["sourceId"];
+            var exists = target.OfType<JObject>().FirstOrDefault(x => (!string.IsNullOrWhiteSpace(id) && string.Equals((string)x["id"], id, StringComparison.OrdinalIgnoreCase)) || (!string.IsNullOrWhiteSpace(sourceId) && string.Equals((string)x["sourceType"] ?? "OBS", sourceType, StringComparison.OrdinalIgnoreCase) && string.Equals((string)x["sourceId"], sourceId, StringComparison.OrdinalIgnoreCase)));
+            if (exists != null) continue;
+            var clone = (JObject)item.DeepClone(); if (string.IsNullOrWhiteSpace((string)clone["sourceType"])) clone["sourceType"] = "OBS"; if (string.IsNullOrWhiteSpace((string)clone["sourceId"])) clone["sourceId"] = (string)clone["id"] ?? ""; if (clone["plays"] == null) clone["plays"] = 0; if (clone["users"] == null) clone["users"] = new JObject(); target.Add(clone);
+        }
+    }
 }
