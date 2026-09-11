@@ -54,6 +54,7 @@ public class CPHInline
         SetString("replayTitlePrimaryColor", "rts.actionreplay.titlePrimaryColor", "#0384CBFF");
         SetString("replayTitleSecondaryColor", "rts.actionreplay.titleSecondaryColor", "#101416FF");
 
+        SetBool("replayBroadcastOverrideColours", "rts.actionreplay.broadcast.overrideColours", false);
         SetString("replayBroadcastPrimaryColor", "rts.actionreplay.broadcast.primaryColor", "#0384CBFF");
         SetString("replayBroadcastSecondaryColor", "rts.actionreplay.broadcast.secondaryColor", "#FFD400FF");
         SetInt("replayBroadcastChevronHeight", "rts.actionreplay.broadcast.chevronHeight", 42);
@@ -66,6 +67,7 @@ public class CPHInline
         SetString("replayBroadcastDecorationColor", "rts.actionreplay.broadcast.decorationColor", "#0384CBFF");
         SetString("replayBroadcastTitleColor", "rts.actionreplay.broadcast.titleColor", "#FFFFFFFF");
 
+        SetBool("replayCutOverrideColours", "rts.actionreplay.cut.overrideColours", false);
         SetString("replayCutPrimaryColor", "rts.actionreplay.cut.primaryColor", "#0384CBFF");
         SetString("replayCutSecondaryColor", "rts.actionreplay.cut.secondaryColor", "#FFD400FF");
         SetInt("replayCutBlockWidth", "rts.actionreplay.cut.blockWidth", 170);
