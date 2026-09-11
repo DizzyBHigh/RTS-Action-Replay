@@ -3,11 +3,14 @@ using Newtonsoft.Json.Linq;
 
 // Animation-profile defaults and sequence helpers.
 // Profiles are presentation presets and are intentionally source-independent.
-public static class RTSActionReplayAnimationProfiles
+public class CPHInline
 {
     private const string DefaultEasingKey = "rts.actionreplay.animation.default.easing";
+    private const string ActionName = "RTS Action Replay Animation Profiles";
 
-    public static void EnsureProfiles()
+    public bool Execute() => EnsureProfiles();
+
+    public bool EnsureProfiles()
     {
         EnsureProfile("default", "Mini Player", true);
         EnsureProfile("fullScreen", "Full Screen", false);
@@ -16,43 +19,52 @@ public static class RTSActionReplayAnimationProfiles
         EnsureProfile("obsClip", "Mini Player", false);
         EnsureProfile("playlist", "Mini Player", false);
         EnsureProfile("recent", "Mini Player", false);
+        return true;
     }
 
-    public static string BuildProfile(string profile)
+    public bool ApplyProfile()
     {
-        var key = "rts.actionreplay.animation." + profile + ".";
+        if (!CPH.TryGetArg("profileId", out string profile) || string.IsNullOrWhiteSpace(profile)) return false;
+        var key = "rts.actionreplay.animation." + profile.Trim() + ".";
         var start = ReadSequence(key + "startSequence");
         var end = ReadSequence(key + "endSequence");
         if (start.Count == 0)
             start.Add(new JObject { ["position"] = GetProfileString(profile, "startPosition", "Full Screen"), ["duration"] = 0, ["delay"] = 0, ["easing"] = GetProfileString(profile, "easing", "ease-in-out") });
         if (end.Count == 0)
             end.Add(new JObject { ["position"] = GetProfileString(profile, "endPosition", "Full Screen"), ["duration"] = (int)Math.Round(GetProfileDouble(profile, "duration", .5) * 1000), ["delay"] = 0, ["easing"] = GetProfileString(profile, "easing", "ease-in-out") });
-        return new JObject
+        CPH.SetArgument("replayAnimationProfile", new JObject
         {
             ["name"] = CPH.GetGlobalVar<string>(key + "name", true) ?? profile,
             ["start"] = start,
             ["end"] = end
-        }.ToString(Newtonsoft.Json.Formatting.None);
+        }.ToString(Newtonsoft.Json.Formatting.None));
+        CPH.SetArgument("replayStartPosition", GetProfileString(profile, "startPosition", "Full Screen"));
+        CPH.SetArgument("replayEndPosition", GetProfileString(profile, "endPosition", "Full Screen"));
+        CPH.SetArgument("replayAnimationDuration", GetProfileDouble(profile, "duration", .5));
+        CPH.SetArgument("replayAnimationEasing", GetProfileString(profile, "easing", GetEasing()));
+        return true;
     }
 
-    public static string GetProfileString(string profile, string field, string fallback)
+    public bool GetProfile() => ApplyProfile();
+
+    private string GetEasing()
+    {
+        return CPH.GetGlobalVar<string>(DefaultEasingKey, true) ?? "ease-in-out";
+    }
+
+    private string GetProfileString(string profile, string field, string fallback)
     {
         var value = CPH.GetGlobalVar<string>("rts.actionreplay.animation." + profile + "." + field, true);
         return string.IsNullOrWhiteSpace(value) ? fallback : value;
     }
 
-    public static double GetProfileDouble(string profile, string field, double fallback)
+    private double GetProfileDouble(string profile, string field, double fallback)
     {
         var value = CPH.GetGlobalVar<double?>("rts.actionreplay.animation." + profile + "." + field, true);
         return value ?? fallback;
     }
 
-    public static string GetEasing()
-    {
-        return CPH.GetGlobalVar<string>(DefaultEasingKey, true) ?? "ease-in-out";
-    }
-
-    private static void EnsureProfile(string profile, string name, bool miniStart)
+    private void EnsureProfile(string profile, string name, bool miniStart)
     {
         SetDefault("rts.actionreplay.animation." + profile + ".name", name);
         var start = miniStart
@@ -62,17 +74,12 @@ public static class RTSActionReplayAnimationProfiles
         SetDefault("rts.actionreplay.animation." + profile + ".endSequence", "[{\"position\":\"Mini Hidden\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]");
     }
 
-    private static void SetDefault(string key, object value)
+    private void SetDefault(string key, string value)
     {
-        if (value is string)
-        {
-            if (CPH.GetGlobalVar<string>(key, true) == null) CPH.SetGlobalVar(key, value, true);
-            return;
-        }
-        CPH.SetGlobalVar(key, value, true);
+        if (CPH.GetGlobalVar<string>(key, true) == null) CPH.SetGlobalVar(key, value, true);
     }
 
-    private static JArray ReadSequence(string key)
+    private JArray ReadSequence(string key)
     {
         var raw = CPH.GetGlobalVar<string>(key, true);
         if (string.IsNullOrWhiteSpace(raw)) return new JArray();
