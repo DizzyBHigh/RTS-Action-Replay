@@ -42,20 +42,19 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const pitch = (width, height, spacing) => Math.max(1, visualSize(width, height) + spacing);
 
   const createChevron = (left, width, height, index) => {
+    const size = visualSize(width, height);
     const mover = document.createElement('span');
     mover.className = 'broadcast-chevron-mover';
     mover.style.left = `${left.toFixed(2)}px`;
+    mover.style.width = `${size.toFixed(2)}px`;
     const chevron = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     chevron.classList.add('broadcast-chevron');
     chevron.setAttribute('viewBox', '0 0 100 100');
-    chevron.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-    chevron.setAttribute('width', width.toFixed(2));
-    chevron.setAttribute('height', height.toFixed(2));
-    chevron.style.setProperty('--chevron-width', `${width.toFixed(2)}px`);
-    chevron.style.setProperty('--chevron-height', `${height.toFixed(2)}px`);
+    chevron.setAttribute('width', size.toFixed(2));
+    chevron.setAttribute('height', size.toFixed(2));
     chevron.style.setProperty('--chevron-color', index % 2 ? secondary : primary);
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-    path.setAttribute('points', '10,10 90,50 10,90');
+    path.setAttribute('points', '12,8 88,50 12,92');
     path.setAttribute('fill', 'none');
     path.setAttribute('stroke', 'currentColor');
     path.setAttribute('stroke-width', '9');
