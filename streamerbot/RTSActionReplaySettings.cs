@@ -148,7 +148,7 @@ public class CPHInline
         ui.AddColorPicker("Secondary Colour", "Secondary colour for Broadcast chevrons and accents.", "Appearance", "rts.actionreplay.broadcast.secondaryColor", "#FFD400FF");
         ui.EndRow();
         ui.BeginRow();
-        ui.AddNumericTextbox("Chevron Height", "Height of each Broadcast chevron in pixels. The chevron width is derived from this height.", "Appearance", "rts.actionreplay.broadcast.chevronHeight", 42, 1, 200);
+        ui.AddNumericTextbox("Chevron Height", "Height of each Broadcast chevron in pixels. Maximum is limited to the Broadcast clipping area.", "Appearance", "rts.actionreplay.broadcast.chevronHeight", 42, 1, 94);
         ui.AddToggleSwitch("Random", "Randomize each Broadcast chevron height between 1 and the configured height.", "Appearance", "rts.actionreplay.broadcast.randomHeight", false);
         ui.AddNumericTextbox("Chevron Spacing", "Visible gap between Broadcast chevrons in pixels. Zero means the chevrons touch with no dark gap.", "Appearance", "rts.actionreplay.broadcast.chevronSpacing", 0, 0, 200);
         ui.AddToggleSwitch("Random", "Randomize each Broadcast chevron gap between 0 and the configured spacing.", "Appearance", "rts.actionreplay.broadcast.randomSpacing", false);
@@ -200,77 +200,62 @@ public class CPHInline
         ui.EndSection();
     }
 
-    private void AddAnimationProfile(RtsUI ui, string name, string slug)
+    private void AddAnimationProfile(RtsUI ui, string title, string profile)
     {
-        ui.BeginSection(name);
+        ui.BeginSection(title);
         ui.BeginRow();
-        ui.AddPositionSelector("Start Position", "Position used at the start of this playback animation.", "Positions", "rts.actionreplay.animation." + slug + ".startPosition", "rts.actionreplay.positions", "Full Screen");
-        ui.AddPositionSelector("End Position", "Position used at the end of this playback animation.", "Positions", "rts.actionreplay.animation." + slug + ".endPosition", "rts.actionreplay.positions", "Full Screen");
+        ui.AddPositionSelector("Start Position", "Position used when the replay enters.", "Positions", "rts.actionreplay.animation." + profile + ".startPosition", "rts.actionreplay.positions", "Full Screen");
+        ui.AddPositionSelector("End Position", "Position used when the replay exits.", "Positions", "rts.actionreplay.animation." + profile + ".endPosition", "rts.actionreplay.positions", "Full Screen");
         ui.EndRow();
         ui.BeginRow();
-        ui.AddDecimalTextbox("Duration", "Animation duration in seconds.", "Positions", "rts.actionreplay.animation." + slug + ".duration", .5, .1, 10, .1);
-        ui.AddDropdown("Easing", "Position animation easing.", "Positions", "rts.actionreplay.animation." + slug + ".easing", new[] { "linear", "ease-in", "ease-out", "ease-in-out", "ease" }, "ease-in-out");
+        ui.AddDecimalTextbox("Duration", "Animation duration in seconds.", "Positions", "rts.actionreplay.animation." + profile + ".duration", .5, 0, 10, .1);
+        ui.AddDropdown("Easing", "Transition easing.", "Positions", "rts.actionreplay.animation." + profile + ".easing", new[] { "linear", "ease", "ease-in", "ease-out", "ease-in-out" }, "ease-in-out");
         ui.EndRow();
         ui.EndSection();
-    }
-
-    private void EnsureAnimationProfiles()
-    {
-        SetDefaultString("rts.actionreplay.animation.default.startPosition", "Full Screen");
-        SetDefaultString("rts.actionreplay.animation.default.endPosition", "Full Screen");
-        SetDefaultDouble("rts.actionreplay.animation.default.duration", .5);
-        SetDefaultString("rts.actionreplay.animation.default.easing", "ease-in-out");
-        SetDefaultString("rts.actionreplay.animation.twitchClip.startPosition", "Mini Right Hidden");
-        SetDefaultString("rts.actionreplay.animation.twitchClip.endPosition", "Mini Right Angled");
-        SetDefaultDouble("rts.actionreplay.animation.twitchClip.duration", 1.0);
-        SetDefaultString("rts.actionreplay.animation.twitchClip.easing", "ease-in-out");
-        SetDefaultString("rts.actionreplay.animation.obsClip.startPosition", "Mini Right Off Screen");
-        SetDefaultString("rts.actionreplay.animation.obsClip.endPosition", "Mini Right");
-        SetDefaultDouble("rts.actionreplay.animation.obsClip.duration", 1.0);
-        SetDefaultString("rts.actionreplay.animation.obsClip.easing", "ease-in-out");
-        SetDefaultString("rts.actionreplay.animation.playlist.startPosition", "Center Hidden");
-        SetDefaultString("rts.actionreplay.animation.playlist.endPosition", "Center Large");
-        SetDefaultDouble("rts.actionreplay.animation.playlist.duration", 1.0);
-        SetDefaultString("rts.actionreplay.animation.playlist.easing", "ease-in-out");
-        SetDefaultString("rts.actionreplay.animation.recent.startPosition", "Mini Right Hidden");
-        SetDefaultString("rts.actionreplay.animation.recent.endPosition", "Full Screen");
-        SetDefaultDouble("rts.actionreplay.animation.recent.duration", 1.0);
-        SetDefaultString("rts.actionreplay.animation.recent.easing", "ease-in-out");
-    }
-
-    private void SetDefaultString(string key, string value)
-    {
-        if (CPH.GetGlobalVar<string>(key, true) == null) CPH.SetGlobalVar(key, value, true);
-    }
-
-    private void SetDefaultDouble(string key, double value)
-    {
-        if (CPH.GetGlobalVar<double?>(key, true) == null) CPH.SetGlobalVar(key, value, true);
-    }
-
-    private string[][] BuildPositionTagList(string raw)
-    {
-        var result = new List<string[]>();
-        if (string.IsNullOrWhiteSpace(raw)) return result.ToArray();
-        try
-        {
-            var positions = JObject.Parse(raw);
-            foreach (var item in positions.Properties())
-            {
-                var tag = (string)item.Value["tag"];
-                if (!string.IsNullOrWhiteSpace(tag)) result.Add(new[] { item.Name, tag });
-            }
-        }
-        catch { }
-        return result.ToArray();
     }
 
     private void AddMessageSettings(RtsUI ui)
     {
         ui.BeginSection("Messages", "Messages");
-        ui.AddTextbox("Save Confirmation", "Chat message after a replay is saved.", "Messages", "rts.actionreplay.message.save", "Replay saved.", false);
-        ui.AddTextbox("Playback Confirmation", "Chat message after a replay starts playing.", "Messages", "rts.actionreplay.message.play", "Playing replay.", false);
-        ui.AddTextbox("Hide Confirmation", "Chat message after the replay player is hidden.", "Messages", "rts.actionreplay.message.hide", "Replay hidden.", false);
+        ui.AddTextbox("Message Text", "Default message text used by the message display.", "Messages", "rts.actionreplay.messageText", "ACTION REPLAY", false);
         ui.EndSection();
+    }
+
+    private string[][] BuildPositionTagList(string json)
+    {
+        var positions = ParsePositions(json);
+        var rows = new List<string[]>();
+        foreach (var item in positions)
+        {
+            var tag = (string)item["tag"] ?? "";
+            var name = (string)item["name"] ?? "";
+            rows.Add(new[] { tag, name });
+        }
+        return rows.ToArray();
+    }
+
+    private JObject ParsePositions(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return new JObject();
+        try { return JObject.Parse(json); }
+        catch { return new JObject(); }
+    }
+
+    private void EnsureAnimationProfiles()
+    {
+        var profiles = new[] { "default", "twitchClip", "obsClip", "playlist", "recent" };
+        foreach (var profile in profiles)
+        {
+            SetDefault("rts.actionreplay.animation." + profile + ".startPosition", "Full Screen");
+            SetDefault("rts.actionreplay.animation." + profile + ".endPosition", "Full Screen");
+            SetDefault("rts.actionreplay.animation." + profile + ".duration", .5);
+            SetDefault("rts.actionreplay.animation." + profile + ".easing", "ease-in-out");
+        }
+    }
+
+    private void SetDefault(string key, object value)
+    {
+        var existing = CPH.GetGlobalVar<object>(key, true);
+        if (existing == null) CPH.SetGlobalVar(key, value, true);
     }
 }
