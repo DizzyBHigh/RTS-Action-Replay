@@ -20,7 +20,7 @@ public class CPHInline
         AddTwitchSettings(ui);
         AddPlayerSettings(ui);
         AddAppearanceSettings(ui);
-        EnsureAnimationProfiles();
+        RTSActionReplayAnimationProfiles.EnsureProfiles();
         AddPositionSettings(ui);
         AddMessageSettings(ui);
 
@@ -243,46 +243,5 @@ public class CPHInline
         if (string.IsNullOrWhiteSpace(json)) return new JObject();
         try { return JObject.Parse(json); }
         catch { return new JObject(); }
-    }
-
-    private void EnsureAnimationProfiles()
-    {
-        EnsureProfile("default", "Mini Player");
-        EnsureProfile("fullScreen", "Full Screen");
-        EnsureProfile("halfScreen", "Half Screen");
-        EnsureProfile("twitchClip", "Mini Player");
-        EnsureProfile("obsClip", "Mini Player");
-        EnsureProfile("playlist", "Mini Player");
-        EnsureProfile("recent", "Mini Player");
-    }
-
-    private void EnsureProfile(string profile, string name)
-    {
-        SetDefault("rts.actionreplay.animation." + profile + ".name", name);
-        var start = profile == "default"
-            ? "[{\"position\":\"Mini Hidden\",\"duration\":0,\"delay\":0,\"easing\":\"ease-in-out\"},{\"position\":\"Mini Angled\",\"duration\":1000,\"delay\":3000,\"easing\":\"ease-in-out\"},{\"position\":\"Mini\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]"
-            : "[{\"position\":\"Full Screen\",\"duration\":0,\"delay\":0,\"easing\":\"ease-in-out\"}]";
-        SetDefault("rts.actionreplay.animation." + profile + ".startSequence", start);
-        SetDefault("rts.actionreplay.animation." + profile + ".endSequence", "[{\"position\":\"Mini Hidden\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]");
-    }
-
-    private void SetDefault(string key, object value)
-    {
-        if (value is string)
-        {
-            if (CPH.GetGlobalVar<string>(key, true) == null) CPH.SetGlobalVar(key, value, true);
-            return;
-        }
-        if (value is double)
-        {
-            if (CPH.GetGlobalVar<double?>(key, true) == null) CPH.SetGlobalVar(key, value, true);
-            return;
-        }
-        if (value is int)
-        {
-            if (CPH.GetGlobalVar<int?>(key, true) == null) CPH.SetGlobalVar(key, value, true);
-            return;
-        }
-        CPH.SetGlobalVar(key, value, true);
     }
 }
