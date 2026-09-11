@@ -26,27 +26,25 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const styles = getComputedStyle(broadcastTitle);
   const primary = colour(styles.getPropertyValue('--title-primary')) || '#0384CB';
   const secondary = colour(styles.getPropertyValue('--title-secondary')) || '#FFD400';
-  const widthSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronWidth, 1, 200, 42);
-  const spacingSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronSpacing, 0, 200, 13);
-  const randomWidth = RTSReplayBroadcast.command?.replayBroadcastRandomWidth === true;
+  const heightSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronHeight, 1, 200, 42);
+  const spacingSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronSpacing, 0, 200, 0);
+  const randomHeight = RTSReplayBroadcast.command?.replayBroadcastRandomHeight === true;
   const randomSpacing = RTSReplayBroadcast.command?.replayBroadcastRandomSpacing === true;
-  const speed = 95;
+  const speed = number(RTSReplayBroadcast.command?.replayBroadcastChevronSpeed, 10, 500, 95);
   const seedLeft = -90;
   const trackWidth = track.clientWidth;
-
-  const getWidth = () => randomWidth ? randomValue(widthSetting, 1) : widthSetting;
+  const getHeight = () => randomHeight ? randomValue(heightSetting, 1) : heightSetting;
   const getSpacing = () => randomSpacing ? randomValue(spacingSetting, 0) : spacingSetting;
-  const pitch = (currentWidth, nextWidth, spacing) =>
-    currentWidth * (1 + 1 / Math.SQRT2) + nextWidth * (1 / Math.SQRT2 - 0.5) + spacing;
+  const visualWidth = height => height * Math.SQRT2;
+  const pitch = height => Math.max(0, visualWidth(height) - 1 + getSpacing());
 
-  const createChevron = (left, width, index) => {
+  const createChevron = (left, height, index) => {
     const mover = document.createElement('span');
     mover.className = 'broadcast-chevron-mover';
     mover.style.left = `${left.toFixed(2)}px`;
-
     const chevron = document.createElement('span');
     chevron.className = 'broadcast-chevron';
-    chevron.style.setProperty('--chevron-size', `${width.toFixed(2)}px`);
+    chevron.style.setProperty('--chevron-size', `${height.toFixed(2)}px`);
     chevron.style.setProperty('--chevron-color', index % 2 ? secondary : primary);
     mover.append(chevron);
     track.append(mover);
@@ -64,47 +62,31 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
 
   let index = 0;
   let left = seedLeft;
-  let width = getWidth();
-  let nextWidth = getWidth();
-  let spacing = getSpacing();
+  let height = getHeight();
   while (left < trackWidth) {
-    const mover = createChevron(left, width, index++);
-    animate(mover, left);
-    left += pitch(width, nextWidth, spacing);
-    width = nextWidth;
-    nextWidth = getWidth();
-    spacing = getSpacing();
+    createChevron(left, height, index++);
+    animate(track.lastElementChild, left);
+    left += pitch(height);
+    height = getHeight();
   }
 
-  let pendingWidth = width;
-  let pendingNextWidth = nextWidth;
-  let pendingSpacing = spacing;
-
+  let pendingHeight = height;
+  let pendingSpacing = getSpacing();
   const spawn = () => {
     if (!broadcastTitle.classList.contains('title-broadcast') || !broadcastTitle.classList.contains('visible') || track !== RTSReplayBroadcast.broadcastChevronTrack) {
       RTSReplayBroadcast.stopBroadcastChevrons();
       return;
     }
-
-    const currentWidth = pendingWidth;
-    const nextWidth = pendingNextWidth;
-    const spacing = pendingSpacing;
-    const mover = createChevron(seedLeft, currentWidth, index++);
+    const currentHeight = pendingHeight;
+    const mover = createChevron(seedLeft, currentHeight, index++);
     animate(mover, seedLeft);
-
-    pendingWidth = nextWidth;
-    pendingNextWidth = getWidth();
+    pendingHeight = getHeight();
+    const delay = Math.max(0, (visualWidth(currentHeight) - 1 + pendingSpacing) / speed * 1000);
     pendingSpacing = getSpacing();
-    const delay = (pitch(currentWidth, nextWidth, spacing) / speed) * 1000;
     RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(spawn, delay);
   };
 
-  const firstNextWidth = getWidth();
-  RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(
-    spawn,
-    (pitch(pendingWidth, firstNextWidth, pendingSpacing) / speed) * 1000
-  );
-  pendingNextWidth = firstNextWidth;
+  RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(spawn, Math.max(0, (visualWidth(pendingHeight) - 1 + pendingSpacing) / speed * 1000));
 };
 
 RTSReplayBroadcast.observeBroadcastChevrons = () => {
