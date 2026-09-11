@@ -54,13 +54,16 @@ public class CPHInline
         CPH.SetArgument("replayPlayedCount", ((int?)replay["plays"] ?? 0) + 1);
         CPH.SetArgument("replaySource", (string)replay["sourceType"] ?? "OBS");
         CPH.SetArgument("replaySourceId", (string)replay["sourceId"] ?? "");
-        ApplyPlayerSettings(GetPlaybackProfile(replay)); CPH.TriggerEvent(EventName, true); SendMessage("play"); return true;
+        var profile = CPH.TryGetArg("replayAnimationProfileId", out string requestedProfile) && !string.IsNullOrWhiteSpace(requestedProfile)
+            ? requestedProfile.Trim() : GetPlaybackProfile(replay);
+        ApplyPlayerSettings(profile);
+        CPH.TriggerEvent(EventName, true); SendMessage("play"); return true;
     }
 
     private string GetPlaybackProfile(JObject replay)
     {
         if (string.Equals((string)replay["sourceType"], "Twitch", StringComparison.OrdinalIgnoreCase)) return "twitchClip";
-        return "playlist";
+        return "default";
     }
 
     private string ResolveReplayUrl(JObject replay)
@@ -82,7 +85,6 @@ public class CPHInline
         var mode = GetTwitchPlaybackMode();
         var clipId = (string)replay["sourceId"];
         if (string.IsNullOrWhiteSpace(clipId)) return null;
-
         if (string.Equals(mode, "Twitch URL", StringComparison.OrdinalIgnoreCase)) return GetTwitchMediaUrl(clipId);
 
         var folder = CPH.GetGlobalVar<string>(TwitchFolderKey, true);
@@ -101,7 +103,6 @@ public class CPHInline
             replay["filePath"] = downloaded;
             return BuildTwitchHttpUrl(Path.GetFileName(downloaded));
         }
-
         return GetTwitchMediaUrl(clipId);
     }
 
@@ -160,7 +161,21 @@ public class CPHInline
         return null;
     }
 
-    public bool SetPlayerPosition() { if (!CPH.TryGetArg("rawInput", out string position) || string.IsNullOrWhiteSpace(position)) return false; ApplyPlayerSettings("default"); CPH.SetArgument("replayCommand", "move"); CPH.SetArgument("replayPosition", position.Trim()); CPH.TriggerEvent(EventName, true); return true; }
+    public bool SetPlayerPosition()
+    {
+        if (!CPH.TryGetArg("rawInput", out string input) || string.IsNullOrWhiteSpace(input)) return false;
+        var parts = input.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return false;
+        var position = parts[0];
+        var duration = 1000;
+        if (parts.Length > 1 && int.TryParse(parts[1], out var requested) && requested >= 0) duration = requested;
+        ApplyPlayerSettings("default");
+        CPH.SetArgument("replayCommand", "move");
+        CPH.SetArgument("replayPosition", position);
+        CPH.SetArgument("replayAnimationDuration", duration);
+        CPH.TriggerEvent(EventName, true); return true;
+    }
+
     public bool HidePlayer() { ApplyPlayerSettings("default"); CPH.SetArgument("replayCommand", "hide"); CPH.TriggerEvent(EventName, true); return true; }
 
     public bool ConfirmPlayback()
@@ -197,7 +212,9 @@ public class CPHInline
     {
         CPH.SetArgument("replayShowControls", CPH.GetGlobalVar<bool?>("rts.actionreplay.showControls", true) ?? false); CPH.SetArgument("replayShowProgress", CPH.GetGlobalVar<bool?>("rts.actionreplay.showProgress", true) ?? true); CPH.SetArgument("replayPlaybackSpeed", GetSettingDouble("rts.actionreplay.playbackSpeed", 1.0)); CPH.SetArgument("replayPlaybackSpeedVisibility", CPH.GetGlobalVar<string>("rts.actionreplay.playbackSpeedVisibility", true) ?? "Only when greater or less than 1");
         CPH.SetArgument("replayFrameColor", CPH.GetGlobalVar<string>("rts.actionreplay.frameColor", true) ?? "#0384CBFF"); CPH.SetArgument("replayBorderWidth", GetSettingInt("rts.actionreplay.borderWidth", 4)); CPH.SetArgument("replayCornerRadius", GetSettingInt("rts.actionreplay.cornerRadius", 0)); CPH.SetArgument("replayBorderGlow", CPH.GetGlobalVar<bool?>("rts.actionreplay.borderGlow", true) ?? true);
-        CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>("rts.actionreplay.positions", true) ?? "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}"); CPH.SetArgument("replayStartPosition", GetAnimationProfileString(profile, "startPosition", "Full Screen")); CPH.SetArgument("replayEndPosition", GetAnimationProfileString(profile, "endPosition", "Full Screen"));
+        CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>("rts.actionreplay.positions", true) ?? "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
+        CPH.SetArgument("replayAnimationProfile", BuildAnimationProfile(profile));
+        CPH.SetArgument("replayStartPosition", GetAnimationProfileString(profile, "startPosition", "Full Screen")); CPH.SetArgument("replayEndPosition", GetAnimationProfileString(profile, "endPosition", "Full Screen"));
         CPH.SetArgument("replayAnimationDuration", GetAnimationProfileDouble(profile, "duration", .5)); CPH.SetArgument("replayAnimationEasing", GetAnimationProfileString(profile, "easing", "ease-in-out"));
         CPH.SetArgument("replayShowBranding", CPH.GetGlobalVar<bool?>("rts.actionreplay.showBranding", true) ?? true); CPH.SetArgument("replayBrandLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? ""); CPH.SetArgument("replayBrandFallbackText", CPH.GetGlobalVar<string>("rts.actionreplay.brandFallbackText", true) ?? "RTS"); CPH.SetArgument("replayBrandFallbackTextColor", CPH.GetGlobalVar<string>("rts.actionreplay.brandFallbackTextColor", true) ?? "#0384CBFF"); CPH.SetArgument("replayBrandLabel", CPH.GetGlobalVar<string>("rts.actionreplay.brandLabel", true) ?? "ACTION REPLAY"); CPH.SetArgument("replayBrandLabelColor", CPH.GetGlobalVar<string>("rts.actionreplay.brandLabelColor", true) ?? "#FFFFFFFF");
         CPH.SetArgument("replayShowTitle", CPH.GetGlobalVar<bool?>("rts.actionreplay.showTitle", true) ?? true); CPH.SetArgument("replayTitleDecorationPosition", CPH.GetGlobalVar<string>("rts.actionreplay.titleDecorationPosition", true) ?? "Suffix"); CPH.SetArgument("replayTitleDecoration", CPH.GetGlobalVar<string>("rts.actionreplay.titleDecoration", true) ?? " - Replay Capture"); CPH.SetArgument("replayTitleStyle", CPH.GetGlobalVar<string>("rts.actionreplay.titleBarStyle", true) ?? "Broadcast"); CPH.SetArgument("replayTitlePosition", CPH.GetGlobalVar<string>("rts.actionreplay.titlePosition", true) ?? "Bottom");
@@ -205,6 +222,23 @@ public class CPHInline
         CPH.SetArgument("replayTitleFont", CPH.GetGlobalVar<string>("rts.actionreplay.titleFont", true) ?? "Inter"); CPH.SetArgument("replayTitleFontSize", GetSettingInt("rts.actionreplay.titleFontSize", 34)); CPH.SetArgument("replayTitleTextColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleTextColor", true) ?? "#FFFFFFFF"); CPH.SetArgument("replayTitleShadowColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleShadowColor", true) ?? "#000000FF"); CPH.SetArgument("replayTitlePrimaryColor", CPH.GetGlobalVar<string>("rts.actionreplay.titlePrimaryColor", true) ?? "#0384CBFF"); CPH.SetArgument("replayTitleSecondaryColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleSecondaryColor", true) ?? "#101416FF");
         CPH.SetArgument("replayBroadcastOverrideColours", CPH.GetGlobalVar<bool?>("rts.actionreplay.broadcast.overrideColours", true) ?? false); CPH.SetArgument("replayBroadcastPrimaryColor", CPH.GetGlobalVar<string>("rts.actionreplay.broadcast.primaryColor", true) ?? "#0384CBFF"); CPH.SetArgument("replayBroadcastSecondaryColor", CPH.GetGlobalVar<string>("rts.actionreplay.broadcast.secondaryColor", true) ?? "#FFD400FF"); CPH.SetArgument("replayBroadcastChevronHeight", GetSettingInt("rts.actionreplay.broadcast.chevronHeight", GetSettingInt("rts.actionreplay.broadcast.chevronWidth", 42))); CPH.SetArgument("replayBroadcastRandomHeight", CPH.GetGlobalVar<bool?>("rts.actionreplay.broadcast.randomHeight", true) ?? false); CPH.SetArgument("replayBroadcastChevronWidth", GetSettingInt("rts.actionreplay.broadcast.chevronWidth", GetSettingInt("rts.actionreplay.broadcast.chevronHeight", 42))); CPH.SetArgument("replayBroadcastRandomWidth", CPH.GetGlobalVar<bool?>("rts.actionreplay.broadcast.randomWidth", true) ?? false); CPH.SetArgument("replayBroadcastChevronSpacing", GetSettingInt("rts.actionreplay.broadcast.chevronSpacing", 0)); CPH.SetArgument("replayBroadcastRandomSpacing", CPH.GetGlobalVar<bool?>("rts.actionreplay.broadcast.randomSpacing", true) ?? false); CPH.SetArgument("replayBroadcastChevronSpeed", GetSettingInt("rts.actionreplay.broadcast.chevronSpeed", 95)); CPH.SetArgument("replayBroadcastDecorationColor", CPH.GetGlobalVar<string>("rts.actionreplay.broadcast.decorationColor", true) ?? "#0384CBFF"); CPH.SetArgument("replayBroadcastTitleColor", CPH.GetGlobalVar<string>("rts.actionreplay.broadcast.titleColor", true) ?? "#FFFFFFFF");
         CPH.SetArgument("replayCutOverrideColours", CPH.GetGlobalVar<bool?>("rts.actionreplay.cut.overrideColours", true) ?? false); CPH.SetArgument("replayCutPrimaryColor", CPH.GetGlobalVar<string>("rts.actionreplay.cut.primaryColor", true) ?? "#0384CBFF"); CPH.SetArgument("replayCutSecondaryColor", CPH.GetGlobalVar<string>("rts.actionreplay.cut.secondaryColor", true) ?? "#FFD400FF"); CPH.SetArgument("replayCutBlockWidth", GetSettingInt("rts.actionreplay.cut.blockWidth", 170)); CPH.SetArgument("replayCutRandomWidth", CPH.GetGlobalVar<bool?>("rts.actionreplay.cut.randomWidth", true) ?? true); CPH.SetArgument("replayCutBarHeight", GetSettingInt("rts.actionreplay.cut.barHeight", 5)); CPH.SetArgument("replayCutDecorationColor", CPH.GetGlobalVar<string>("rts.actionreplay.cut.decorationColor", true) ?? "#0384CBFF"); CPH.SetArgument("replayCutTitleColor", CPH.GetGlobalVar<string>("rts.actionreplay.cut.titleColor", true) ?? "#FFFFFFFF");
+    }
+
+    private string BuildAnimationProfile(string profile)
+    {
+        var key = "rts.actionreplay.animation." + profile + ".";
+        var start = ReadSequence(key + "startSequence");
+        var end = ReadSequence(key + "endSequence");
+        if (start.Count == 0) start.Add(new JObject { ["position"] = GetAnimationProfileString(profile, "startPosition", "Full Screen"), ["duration"] = 0, ["delay"] = 0, ["easing"] = GetAnimationProfileString(profile, "easing", "ease-in-out") });
+        if (end.Count == 0) end.Add(new JObject { ["position"] = GetAnimationProfileString(profile, "endPosition", "Full Screen"), ["duration"] = (int)Math.Round(GetAnimationProfileDouble(profile, "duration", .5) * 1000), ["delay"] = 0, ["easing"] = GetAnimationProfileString(profile, "easing", "ease-in-out") });
+        return new JObject { ["name"] = profile, ["start"] = start, ["end"] = end }.ToString(Newtonsoft.Json.Formatting.None);
+    }
+
+    private JArray ReadSequence(string key)
+    {
+        var raw = CPH.GetGlobalVar<string>(key, true);
+        if (string.IsNullOrWhiteSpace(raw)) return new JArray();
+        try { return JArray.Parse(raw); } catch { return new JArray(); }
     }
 
     private string GetAnimationProfileString(string profile, string field, string fallback)
