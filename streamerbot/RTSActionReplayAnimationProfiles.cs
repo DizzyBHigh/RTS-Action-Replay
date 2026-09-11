@@ -6,7 +6,6 @@ using Newtonsoft.Json.Linq;
 public class CPHInline
 {
     private const string DefaultEasingKey = "rts.actionreplay.animation.default.easing";
-    private const string ActionName = "RTS Action Replay Animation Profiles";
 
     public bool Execute() => EnsureProfiles();
 
@@ -25,7 +24,8 @@ public class CPHInline
     public bool ApplyProfile()
     {
         if (!CPH.TryGetArg("profileId", out string profile) || string.IsNullOrWhiteSpace(profile)) return false;
-        var key = "rts.actionreplay.animation." + profile.Trim() + ".";
+        profile = profile.Trim();
+        var key = "rts.actionreplay.animation." + profile + ".";
         var start = ReadSequence(key + "startSequence");
         var end = ReadSequence(key + "endSequence");
         if (start.Count == 0)
