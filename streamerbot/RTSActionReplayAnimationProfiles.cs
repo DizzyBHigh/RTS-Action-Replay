@@ -15,7 +15,7 @@ public class CPHInline
         EnsureDefaultProfile();
         EnsureProfileRegistry();
         var selected = CPH.GetGlobalVar<string>(SelectedProfileKey, true);
-        if (!ProfileExists(selected)) CPH.SetGlobalVar(SelectedProfileKey, "default", true);
+        if (string.IsNullOrWhiteSpace(ResolveProfileId(selected))) CPH.SetGlobalVar(SelectedProfileKey, "Default", true);
         return true;
     }
 
@@ -39,7 +39,7 @@ public class CPHInline
         for (var i = profiles.Count - 1; i >= 0; i--)
             if (string.Equals((string)profiles[i]["id"], id, StringComparison.Ordinal)) profiles.RemoveAt(i);
         WriteProfiles(profiles);
-        if (string.Equals(CPH.GetGlobalVar<string>(SelectedProfileKey, true), id, StringComparison.Ordinal)) CPH.SetGlobalVar(SelectedProfileKey, "default", true);
+        if (string.Equals(ResolveProfileId(CPH.GetGlobalVar<string>(SelectedProfileKey, true)), id, StringComparison.Ordinal)) CPH.SetGlobalVar(SelectedProfileKey, "Default", true);
         RemoveProfileData(id);
         return true;
     }
@@ -48,7 +48,8 @@ public class CPHInline
     {
         string profile = null;
         if (CPH.TryGetArg("replayAnimationProfileId", out string explicitProfile) && !string.IsNullOrWhiteSpace(explicitProfile)) profile = explicitProfile.Trim();
-        if (string.IsNullOrWhiteSpace(profile)) profile = CPH.GetGlobalVar<string>(SelectedProfileKey, true) ?? "default";
+        if (string.IsNullOrWhiteSpace(profile)) profile = ResolveProfileId(CPH.GetGlobalVar<string>(SelectedProfileKey, true));
+        if (string.IsNullOrWhiteSpace(profile)) profile = "default";
         if (!ProfileExists(profile)) profile = "default";
 
         var key = "rts.actionreplay.animation." + profile + ".";
@@ -104,7 +105,7 @@ public class CPHInline
                 continue;
             }
             if (id == "fullScreen" || id == "halfScreen" || id == "twitchClip" || id == "obsClip" || id == "playlist" || id == "recent") continue;
-            var name = (string)item["name"];
+            var name = CPH.GetGlobalVar<string>("rts.actionreplay.animation." + id + ".name", true) ?? (string)item["name"];
             if (string.IsNullOrWhiteSpace(name)) name = "New Profile";
             cleaned.Add(new JObject { ["id"] = id, ["name"] = name });
             EnsureProfile(id, name);
@@ -112,6 +113,15 @@ public class CPHInline
         if (!hasDefault) cleaned.Insert(0, new JObject { ["id"] = "default", ["name"] = "Default" });
         WriteProfiles(cleaned);
         RemoveLegacyProfileData();
+    }
+
+    private string ResolveProfileId(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        if (ProfileExists(value)) return value;
+        foreach (var item in ReadProfiles())
+            if (string.Equals((string)item["name"], value, StringComparison.OrdinalIgnoreCase)) return (string)item["id"];
+        return null;
     }
 
     private bool ProfileExists(string id)
@@ -144,7 +154,6 @@ public class CPHInline
     }
 
     private void WriteProfiles(JArray profiles) => CPH.SetGlobalVar(ProfilesKey, profiles.ToString(Newtonsoft.Json.Formatting.None), true);
-
     private string GetEasing() => CPH.GetGlobalVar<string>(DefaultEasingKey, true) ?? "ease-in-out";
 
     private string GetProfileString(string profile, string field, string fallback)
