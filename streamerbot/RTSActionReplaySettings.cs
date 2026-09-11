@@ -20,7 +20,7 @@ public class CPHInline
         AddTwitchSettings(ui);
         AddPlayerSettings(ui);
         AddAppearanceSettings(ui);
-        CPH.ExecuteMethod("RTS Action Replay Animation Profiles", "EnsureProfiles");
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "EnsureProfiles");
         AddPositionSettings(ui);
         AddMessageSettings(ui);
 
