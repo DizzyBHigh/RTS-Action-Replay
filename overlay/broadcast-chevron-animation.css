@@ -36,7 +36,7 @@
   overflow: visible;
   color: var(--chevron-color, #0384CB);
   transform: translateY(-50%);
-  opacity: .72;
+  opacity: 1;
 }
 
 @media(prefers-reduced-motion:reduce){
