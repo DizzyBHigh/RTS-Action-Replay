@@ -1,8 +1,7 @@
 using System;
 using Newtonsoft.Json.Linq;
 
-// Animation-profile defaults and sequence helpers.
-// Profiles are presentation presets and are intentionally source-independent.
+// User-managed animation profiles. Default is permanent; all other profiles are user-created.
 public class CPHInline
 {
     private const string DefaultEasingKey = "rts.actionreplay.animation.default.easing";
@@ -12,26 +11,21 @@ public class CPHInline
 
     public bool EnsureProfiles()
     {
-        EnsureProfile("default", "Mini Player", true);
-        EnsureProfile("fullScreen", "Full Screen", false);
-        EnsureProfile("halfScreen", "Half Screen", false);
-        EnsureProfile("twitchClip", "Mini Player", false);
-        EnsureProfile("obsClip", "Mini Player", false);
-        EnsureProfile("playlist", "Mini Player", false);
-        EnsureProfile("recent", "Mini Player", false);
+        EnsureDefaultProfile();
         EnsureProfileRegistry();
         return true;
     }
 
     public bool AddProfile()
     {
-        if (!CPH.TryGetArg("profileName", out string name) || string.IsNullOrWhiteSpace(name)) return false;
-        name = name.Trim();
-        JArray profiles = ReadProfiles();
-        string id = Guid.NewGuid().ToString("N");
+        var name = CPH.TryGetArg("profileName", out string requested) && !string.IsNullOrWhiteSpace(requested)
+            ? requested.Trim()
+            : "New Profile";
+        var profiles = ReadProfiles();
+        var id = Guid.NewGuid().ToString("N");
         profiles.Add(new JObject { ["id"] = id, ["name"] = name });
         WriteProfiles(profiles);
-        EnsureProfile(id, name, false);
+        EnsureProfile(id, name);
         return true;
     }
 
@@ -40,8 +34,8 @@ public class CPHInline
         if (!CPH.TryGetArg("profileId", out string id) || string.IsNullOrWhiteSpace(id)) return false;
         id = id.Trim();
         if (id == "default") return false;
-        JArray profiles = ReadProfiles();
-        for (int i = profiles.Count - 1; i >= 0; i--)
+        var profiles = ReadProfiles();
+        for (var i = profiles.Count - 1; i >= 0; i--)
             if (string.Equals((string)profiles[i]["id"], id, StringComparison.Ordinal)) profiles.RemoveAt(i);
         WriteProfiles(profiles);
         return true;
@@ -54,10 +48,8 @@ public class CPHInline
         var key = "rts.actionreplay.animation." + profile + ".";
         var start = ReadSequence(key + "startSequence");
         var end = ReadSequence(key + "endSequence");
-        if (start.Count == 0)
-            start.Add(new JObject { ["position"] = GetProfileString(profile, "startPosition", "Full Screen"), ["duration"] = 0, ["delay"] = 0, ["easing"] = GetProfileString(profile, "easing", "ease-in-out") });
-        if (end.Count == 0)
-            end.Add(new JObject { ["position"] = GetProfileString(profile, "endPosition", "Full Screen"), ["duration"] = (int)Math.Round(GetProfileDouble(profile, "duration", .5) * 1000), ["delay"] = 0, ["easing"] = GetProfileString(profile, "easing", "ease-in-out") });
+        if (start.Count == 0) start.Add(new JObject { ["position"] = GetProfileString(profile, "startPosition", "Full Screen"), ["duration"] = 0, ["delay"] = 0, ["easing"] = GetProfileString(profile, "easing", GetEasing()) });
+        if (end.Count == 0) end.Add(new JObject { ["position"] = GetProfileString(profile, "endPosition", "Full Screen"), ["duration"] = (int)Math.Round(GetProfileDouble(profile, "duration", .5) * 1000), ["delay"] = 0, ["easing"] = GetProfileString(profile, "easing", GetEasing()) });
         CPH.SetArgument("replayAnimationProfile", new JObject
         {
             ["name"] = CPH.GetGlobalVar<string>(key + "name", true) ?? profile,
@@ -73,10 +65,69 @@ public class CPHInline
 
     public bool GetProfile() => ApplyProfile();
 
-    private string GetEasing()
+    private void EnsureDefaultProfile()
     {
-        return CPH.GetGlobalVar<string>(DefaultEasingKey, true) ?? "ease-in-out";
+        SetDefault("rts.actionreplay.animation.default.name", "Default");
+        SetDefault("rts.actionreplay.animation.default.startSequence", "[{\"position\":\"Mini Hidden\",\"duration\":0,\"delay\":0,\"easing\":\"ease-in-out\"},{\"position\":\"Mini Angled\",\"duration\":1000,\"delay\":3000,\"easing\":\"ease-in-out\"},{\"position\":\"Mini\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]");
+        SetDefault("rts.actionreplay.animation.default.endSequence", "[{\"position\":\"Mini Hidden\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]");
     }
+
+    private void EnsureProfile(string profile, string name)
+    {
+        SetDefault("rts.actionreplay.animation." + profile + ".name", name);
+        SetDefault("rts.actionreplay.animation." + profile + ".startSequence", "[{\"position\":\"Full Screen\",\"duration\":0,\"delay\":0,\"easing\":\"ease-in-out\"}]");
+        SetDefault("rts.actionreplay.animation." + profile + ".endSequence", "[{\"position\":\"Mini Hidden\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]");
+    }
+
+    private void EnsureProfileRegistry()
+    {
+        var profiles = ReadProfiles();
+        var cleaned = new JArray();
+        var hasDefault = false;
+        foreach (var item in profiles)
+        {
+            var id = (string)item["id"];
+            if (string.IsNullOrWhiteSpace(id)) continue;
+            if (id == "default")
+            {
+                if (hasDefault) continue;
+                hasDefault = true;
+                cleaned.Add(new JObject { ["id"] = "default", ["name"] = "Default" });
+                continue;
+            }
+            if (id == "fullScreen" || id == "halfScreen" || id == "twitchClip" || id == "obsClip" || id == "playlist" || id == "recent") continue;
+            var name = (string)item["name"];
+            if (string.IsNullOrWhiteSpace(name)) name = "New Profile";
+            cleaned.Add(new JObject { ["id"] = id, ["name"] = name });
+            EnsureProfile(id, name);
+        }
+        if (!hasDefault) cleaned.Insert(0, new JObject { ["id"] = "default", ["name"] = "Default" });
+        WriteProfiles(cleaned);
+        RemoveLegacyProfileData();
+    }
+
+    private void RemoveLegacyProfileData()
+    {
+        var legacy = new[] { "fullScreen", "halfScreen", "twitchClip", "obsClip", "playlist", "recent" };
+        foreach (var id in legacy)
+        {
+            CPH.UnsetGlobalVar("rts.actionreplay.animation." + id + ".name", true);
+            CPH.UnsetGlobalVar("rts.actionreplay.animation." + id + ".startSequence", true);
+            CPH.UnsetGlobalVar("rts.actionreplay.animation." + id + ".endSequence", true);
+        }
+    }
+
+    private JArray ReadProfiles()
+    {
+        var raw = CPH.GetGlobalVar<string>(ProfilesKey, true);
+        if (string.IsNullOrWhiteSpace(raw)) return new JArray();
+        try { return JArray.Parse(raw); }
+        catch { return new JArray(); }
+    }
+
+    private void WriteProfiles(JArray profiles) => CPH.SetGlobalVar(ProfilesKey, profiles.ToString(Newtonsoft.Json.Formatting.None), true);
+
+    private string GetEasing() => CPH.GetGlobalVar<string>(DefaultEasingKey, true) ?? "ease-in-out";
 
     private string GetProfileString(string profile, string field, string fallback)
     {
@@ -88,40 +139,6 @@ public class CPHInline
     {
         var value = CPH.GetGlobalVar<double?>("rts.actionreplay.animation." + profile + "." + field, true);
         return value ?? fallback;
-    }
-
-    private void EnsureProfile(string profile, string name, bool miniStart)
-    {
-        SetDefault("rts.actionreplay.animation." + profile + ".name", name);
-        var start = miniStart
-            ? "[{\"position\":\"Mini Hidden\",\"duration\":0,\"delay\":0,\"easing\":\"ease-in-out\"},{\"position\":\"Mini Angled\",\"duration\":1000,\"delay\":3000,\"easing\":\"ease-in-out\"},{\"position\":\"Mini\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]"
-            : "[{\"position\":\"Full Screen\",\"duration\":0,\"delay\":0,\"easing\":\"ease-in-out\"}]";
-        SetDefault("rts.actionreplay.animation." + profile + ".startSequence", start);
-        SetDefault("rts.actionreplay.animation." + profile + ".endSequence", "[{\"position\":\"Mini Hidden\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]");
-    }
-
-    private void EnsureProfileRegistry()
-    {
-        if (CPH.GetGlobalVar<string>(ProfilesKey, true) != null) return;
-        WriteProfiles(new JArray
-        {
-            new JObject { ["id"] = "default", ["name"] = "Mini Player" },
-            new JObject { ["id"] = "fullScreen", ["name"] = "Full Screen" },
-            new JObject { ["id"] = "halfScreen", ["name"] = "Half Screen" }
-        });
-    }
-
-    private JArray ReadProfiles()
-    {
-        string raw = CPH.GetGlobalVar<string>(ProfilesKey, true);
-        if (string.IsNullOrWhiteSpace(raw)) return new JArray();
-        try { return JArray.Parse(raw); }
-        catch { return new JArray(); }
-    }
-
-    private void WriteProfiles(JArray profiles)
-    {
-        CPH.SetGlobalVar(ProfilesKey, profiles.ToString(Newtonsoft.Json.Formatting.None), true);
     }
 
     private void SetDefault(string key, string value)
