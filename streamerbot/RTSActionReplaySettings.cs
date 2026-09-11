@@ -200,10 +200,10 @@ public class CPHInline
     {
         ui.BeginSection("Animation Profiles", "Positions");
         AddAnimationProfile(ui, "Default", "default");
-        AddAnimationProfile(ui, "Slide Left", "slide-left");
-        AddAnimationProfile(ui, "Slide Right", "slide-right");
-        AddAnimationProfile(ui, "Slide Up", "slide-up");
-        AddAnimationProfile(ui, "Slide Down", "slide-down");
+        AddAnimationProfile(ui, "Twitch Clip", "twitchClip");
+        AddAnimationProfile(ui, "OBS Clip", "obsClip");
+        AddAnimationProfile(ui, "Playlist", "playlist");
+        AddAnimationProfile(ui, "Recent", "recent");
         ui.EndSection();
     }
 
@@ -211,40 +211,80 @@ public class CPHInline
     {
         ui.BeginSection(title);
         ui.BeginRow();
-        ui.AddList("Start Position", "", "Positions", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)));
-        ui.AddList("End Position", "", "Positions", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)));
+        ui.AddPositionSelector("Start Position", "Position used when the replay enters.", "Positions", "rts.actionreplay.animation." + profile + ".startPosition", "rts.actionreplay.positions", "Full Screen");
+        ui.AddPositionSelector("End Position", "Position used when the replay exits.", "Positions", "rts.actionreplay.animation." + profile + ".endPosition", "rts.actionreplay.positions", "Full Screen");
         ui.EndRow();
-        ui.AddDecimalTextbox("Duration", "Animation duration in seconds.", "Positions", "rts.actionreplay.animation." + profile + ".duration", .5, 0, 10, .05);
-        ui.AddDropdown("Easing", "Animation easing function.", "Positions", "rts.actionreplay.animation." + profile + ".easing", new[] { "linear", "ease-in", "ease-out", "ease-in-out" }, "ease-in-out");
+        ui.BeginRow();
+        ui.AddDecimalTextbox("Duration", "Animation duration in seconds.", "Positions", "rts.actionreplay.animation." + profile + ".duration", .5, 0, 10, .1);
+        ui.AddDropdown("Easing", "Transition easing.", "Positions", "rts.actionreplay.animation." + profile + ".easing", new[] { "linear", "ease", "ease-in", "ease-out", "ease-in-out" }, "ease-in-out");
+        ui.EndRow();
         ui.EndSection();
     }
 
     private void AddMessageSettings(RtsUI ui)
     {
         ui.BeginSection("Messages", "Messages");
-        ui.AddTextbox("Replay Event Name", "Streamer.bot event name used by Action Replay.", "Messages", "rts.actionreplay.eventName", "RTS-Action Replay", false);
+        ui.AddTextbox("Message Text", "Default message text used by the message display.", "Messages", "rts.actionreplay.messageText", "ACTION REPLAY", false);
         ui.EndSection();
+    }
+
+    private string[][] BuildPositionTagList(string json)
+    {
+        var positions = ParsePositions(json);
+        var rows = new List<string[]>();
+        foreach (var item in positions)
+        {
+            var position = item.Value as JObject;
+            if (position == null) continue;
+            var tag = (string)position["tag"] ?? "";
+            var name = (string)position["name"] ?? "";
+            rows.Add(new string[] { tag, name });
+        }
+        return rows.ToArray();
+    }
+
+    private JObject ParsePositions(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return new JObject();
+        try { return JObject.Parse(json); }
+        catch { return new JObject(); }
     }
 
     private void EnsureAnimationProfiles()
     {
-        var positions = CPH.GetGlobalVar<string>("rts.actionreplay.positions", true);
-        if (string.IsNullOrWhiteSpace(positions))
-            CPH.SetGlobalVar("rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", true);
+        var profiles = new[] { "default", "twitchClip", "obsClip", "playlist", "recent" };
+        foreach (var profile in profiles)
+        {
+            SetDefault("rts.actionreplay.animation." + profile + ".startPosition", "Full Screen");
+            SetDefault("rts.actionreplay.animation." + profile + ".endPosition", "Full Screen");
+            SetDefault("rts.actionreplay.animation." + profile + ".duration", .5);
+            SetDefault("rts.actionreplay.animation." + profile + ".easing", "ease-in-out");
+        }
     }
 
-    private string BuildPositionTagList(string json)
+    private void SetDefault(string key, object value)
     {
-        try
+        if (value is string)
         {
-            var root = JObject.Parse(json ?? "{}");
-            var names = new List<string>();
-            foreach (var property in root.Properties()) names.Add(property.Name);
-            return string.Join("|", names);
+            if (CPH.GetGlobalVar<string>(key, true) == null)
+                CPH.SetGlobalVar(key, value, true);
+            return;
         }
-        catch
+
+        if (value is double)
         {
-            return "Full Screen";
+            if (CPH.GetGlobalVar<double?>(key, true) == null)
+                CPH.SetGlobalVar(key, value, true);
+            return;
         }
+
+        if (value is int)
+        {
+            if (CPH.GetGlobalVar<int?>(key, true) == null)
+                CPH.SetGlobalVar(key, value, true);
+            return;
+        }
+
+        CPH.SetGlobalVar(key, value, true);
     }
 }
