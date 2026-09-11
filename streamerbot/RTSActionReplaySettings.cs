@@ -216,31 +216,36 @@ public class CPHInline
 
     private void EnsureAnimationProfiles()
     {
-        SetDefault("rts.actionreplay.animation.default.startPosition", "Full Screen");
-        SetDefault("rts.actionreplay.animation.default.endPosition", "Full Screen");
-        SetDefault("rts.actionreplay.animation.default.duration", .5);
-        SetDefault("rts.actionreplay.animation.default.easing", "ease-in-out");
-        SetDefault("rts.actionreplay.animation.twitchClip.startPosition", "Mini Right Hidden");
-        SetDefault("rts.actionreplay.animation.twitchClip.endPosition", "Mini Right Angled");
-        SetDefault("rts.actionreplay.animation.twitchClip.duration", 1.0);
-        SetDefault("rts.actionreplay.animation.twitchClip.easing", "ease-in-out");
-        SetDefault("rts.actionreplay.animation.obsClip.startPosition", "Mini Right Off Screen");
-        SetDefault("rts.actionreplay.animation.obsClip.endPosition", "Mini Right");
-        SetDefault("rts.actionreplay.animation.obsClip.duration", 1.0);
-        SetDefault("rts.actionreplay.animation.obsClip.easing", "ease-in-out");
-        SetDefault("rts.actionreplay.animation.playlist.startPosition", "Center Hidden");
-        SetDefault("rts.actionreplay.animation.playlist.endPosition", "Center Large");
-        SetDefault("rts.actionreplay.animation.playlist.duration", 1.0);
-        SetDefault("rts.actionreplay.animation.playlist.easing", "ease-in-out");
-        SetDefault("rts.actionreplay.animation.recent.startPosition", "Mini Right Hidden");
-        SetDefault("rts.actionreplay.animation.recent.endPosition", "Full Screen");
-        SetDefault("rts.actionreplay.animation.recent.duration", 1.0);
-        SetDefault("rts.actionreplay.animation.recent.easing", "ease-in-out");
+        SetDefaultString("rts.actionreplay.animation.default.startPosition", "Full Screen");
+        SetDefaultString("rts.actionreplay.animation.default.endPosition", "Full Screen");
+        SetDefaultDouble("rts.actionreplay.animation.default.duration", .5);
+        SetDefaultString("rts.actionreplay.animation.default.easing", "ease-in-out");
+        SetDefaultString("rts.actionreplay.animation.twitchClip.startPosition", "Mini Right Hidden");
+        SetDefaultString("rts.actionreplay.animation.twitchClip.endPosition", "Mini Right Angled");
+        SetDefaultDouble("rts.actionreplay.animation.twitchClip.duration", 1.0);
+        SetDefaultString("rts.actionreplay.animation.twitchClip.easing", "ease-in-out");
+        SetDefaultString("rts.actionreplay.animation.obsClip.startPosition", "Mini Right Off Screen");
+        SetDefaultString("rts.actionreplay.animation.obsClip.endPosition", "Mini Right");
+        SetDefaultDouble("rts.actionreplay.animation.obsClip.duration", 1.0);
+        SetDefaultString("rts.actionreplay.animation.obsClip.easing", "ease-in-out");
+        SetDefaultString("rts.actionreplay.animation.playlist.startPosition", "Center Hidden");
+        SetDefaultString("rts.actionreplay.animation.playlist.endPosition", "Center Large");
+        SetDefaultDouble("rts.actionreplay.animation.playlist.duration", 1.0);
+        SetDefaultString("rts.actionreplay.animation.playlist.easing", "ease-in-out");
+        SetDefaultString("rts.actionreplay.animation.recent.startPosition", "Mini Right Hidden");
+        SetDefaultString("rts.actionreplay.animation.recent.endPosition", "Full Screen");
+        SetDefaultDouble("rts.actionreplay.animation.recent.duration", 1.0);
+        SetDefaultString("rts.actionreplay.animation.recent.easing", "ease-in-out");
     }
 
-    private void SetDefault(string key, object value)
+    private void SetDefaultString(string key, string value)
     {
-        if (CPH.GetGlobalVar<object>(key, true) == null) CPH.SetGlobalVar(key, value, true);
+        if (CPH.GetGlobalVar<string>(key, true) == null) CPH.SetGlobalVar(key, value, true);
+    }
+
+    private void SetDefaultDouble(string key, double value)
+    {
+        if (CPH.GetGlobalVar<double?>(key, true) == null) CPH.SetGlobalVar(key, value, true);
     }
 
     private string[][] BuildPositionTagList(string raw)
