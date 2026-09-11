@@ -27,7 +27,7 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const primary = colour(styles.getPropertyValue('--title-primary')) || '#0384CB';
   const secondary = colour(styles.getPropertyValue('--title-secondary')) || '#FFD400';
   const heightSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronHeight, 1, track.clientHeight, 42);
-  const widthSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronWidth, 1, 100, 4);
+  const widthSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronWidth, 1, 300, 90);
   const spacingSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronSpacing, 0, 200, 0);
   const randomHeight = RTSReplayBroadcast.command?.replayBroadcastRandomHeight === true;
   const randomWidth = RTSReplayBroadcast.command?.replayBroadcastRandomWidth === true;
@@ -38,10 +38,10 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const getHeight = () => randomHeight ? randomValue(heightSetting, 1) : heightSetting;
   const getWidth = () => randomWidth ? randomValue(widthSetting, 1) : widthSetting;
   const getSpacing = () => randomSpacing ? randomValue(spacingSetting, 0) : spacingSetting;
-  const dimensions = (width, height) => ({ width: Math.max(height * 0.5 + width, width), height });
+  const dimensions = (width, height) => ({ width, height, strokeWidth: Math.max(6, Math.min(20, height * 0.18)) });
   const travelDelay = (width, height, spacing) => {
     const size = dimensions(width, height);
-    return Math.max(0, (size.width + spacing) / speed * 1000);
+    return Math.max(0, (size.width + size.strokeWidth + spacing) / speed * 1000);
   };
 
   const createChevron = (left, width, height, index) => {
@@ -60,10 +60,10 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     const chevronColor = index % 2 ? secondary : primary;
     chevron.style.setProperty('--chevron-color', chevronColor);
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-    path.setAttribute('points', '3,3 47,50 3,97');
+    path.setAttribute('points', '0,3 50,50 0,97');
     path.setAttribute('fill', 'none');
     path.setAttribute('stroke', 'currentColor');
-    path.setAttribute('stroke-width', String(width));
+    path.setAttribute('stroke-width', String(size.strokeWidth));
     path.setAttribute('vector-effect', 'non-scaling-stroke');
     path.setAttribute('stroke-linecap', 'butt');
     path.setAttribute('stroke-linejoin', 'miter');
