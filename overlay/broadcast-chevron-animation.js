@@ -38,26 +38,29 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const getHeight = () => randomHeight ? randomValue(heightSetting, 1) : heightSetting;
   const getWidth = () => randomWidth ? randomValue(widthSetting, 1) : widthSetting;
   const getSpacing = () => randomSpacing ? randomValue(spacingSetting, 0) : spacingSetting;
-  const visualSize = (width, height) => Math.min(width, height);
-  const pitch = (width, height, spacing) => Math.max(1, visualSize(width, height) + spacing);
+  const dimensions = (width, height) => {
+    const scale = Math.min(width / 50, height / 100);
+    return { width: 50 * scale, height: 100 * scale };
+  };
+  const pitch = (width, height, spacing) => Math.max(1, dimensions(width, height).width + spacing);
 
   const createChevron = (left, width, height, index) => {
-    const size = visualSize(width, height);
+    const size = dimensions(width, height);
     const mover = document.createElement('span');
     mover.className = 'broadcast-chevron-mover';
     mover.style.left = `${left.toFixed(2)}px`;
-    mover.style.width = `${size.toFixed(2)}px`;
+    mover.style.width = `${size.width.toFixed(2)}px`;
     const chevron = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     chevron.classList.add('broadcast-chevron');
-    chevron.setAttribute('viewBox', '0 0 100 100');
-    chevron.setAttribute('width', size.toFixed(2));
-    chevron.setAttribute('height', size.toFixed(2));
+    chevron.setAttribute('viewBox', '0 0 50 100');
+    chevron.setAttribute('width', size.width.toFixed(2));
+    chevron.setAttribute('height', size.height.toFixed(2));
     chevron.style.setProperty('--chevron-color', index % 2 ? secondary : primary);
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-    path.setAttribute('points', '12,8 88,50 12,92');
+    path.setAttribute('points', '3,3 47,50 3,97');
     path.setAttribute('fill', 'none');
     path.setAttribute('stroke', 'currentColor');
-    path.setAttribute('stroke-width', '9');
+    path.setAttribute('stroke-width', '7');
     path.setAttribute('stroke-linecap', 'round');
     path.setAttribute('stroke-linejoin', 'round');
     chevron.append(path);
