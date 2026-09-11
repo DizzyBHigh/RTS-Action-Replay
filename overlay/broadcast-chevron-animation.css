@@ -14,9 +14,19 @@
   z-index: 1;
 }
 
+#player-title.title-broadcast .broadcast-chevron-mover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 24px;
+  height: 100%;
+  will-change: transform;
+}
+
 #player-title.title-broadcast .broadcast-chevron {
   position: absolute;
   top: 50%;
+  left: 0;
   width: 24px;
   height: 24px;
   box-sizing: border-box;
@@ -25,7 +35,6 @@
   transform: translateY(-50%) rotate(-45deg);
   filter: drop-shadow(0 0 5px color-mix(in srgb, var(--chevron-color, #0384CB) 45%, transparent));
   opacity: .72;
-  will-change: transform;
 }
 
 @media(prefers-reduced-motion:reduce){
