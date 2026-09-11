@@ -7,7 +7,7 @@
   position: absolute;
   left: 0;
   top: 0;
-  bottom: 0;
+  bottom: 5px;
   width: 15%;
   overflow: hidden;
   pointer-events: none;
