@@ -250,6 +250,11 @@ public class CPHInline
         EnsureProfile("miniPlayer", "Mini Player");
         EnsureProfile("fullScreen", "Full Screen");
         EnsureProfile("halfScreen", "Half Screen");
+        EnsureProfile("default", "Mini Player");
+        EnsureProfile("twitchClip", "Mini Player");
+        EnsureProfile("obsClip", "Mini Player");
+        EnsureProfile("playlist", "Mini Player");
+        EnsureProfile("recent", "Mini Player");
     }
 
     private void EnsureProfile(string profile, string name)
