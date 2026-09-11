@@ -36,7 +36,7 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const getHeight = () => randomHeight ? randomValue(heightSetting, 1) : heightSetting;
   const getSpacing = () => randomSpacing ? randomValue(spacingSetting, 0) : spacingSetting;
   const visualWidth = height => height * Math.SQRT2;
-  const pitch = height => Math.max(0, visualWidth(height) - 1 + getSpacing());
+  const pitch = height => Math.max(0, height + getSpacing());
 
   const createChevron = (left, height, index) => {
     const mover = document.createElement('span');
@@ -81,12 +81,12 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     const mover = createChevron(seedLeft, currentHeight, index++);
     animate(mover, seedLeft);
     pendingHeight = getHeight();
-    const delay = Math.max(0, (visualWidth(currentHeight) - 1 + pendingSpacing) / speed * 1000);
+    const delay = Math.max(0, (currentHeight + pendingSpacing) / speed * 1000);
     pendingSpacing = getSpacing();
     RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(spawn, delay);
   };
 
-  RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(spawn, Math.max(0, (visualWidth(pendingHeight) - 1 + pendingSpacing) / speed * 1000));
+  RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(spawn, Math.max(0, (pendingHeight + pendingSpacing) / speed * 1000));
 };
 
 RTSReplayBroadcast.observeBroadcastChevrons = () => {
