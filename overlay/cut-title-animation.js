@@ -28,10 +28,11 @@ RTSReplayCut.startCutBar = () => {
   const secondary = colour(styles.getPropertyValue('--title-secondary')) || '#FFD400';
   const blockWidth = number(RTSReplayCut.command?.replayCutBlockWidth, 1, 1000, 170);
   const randomWidth = RTSReplayCut.command?.replayCutRandomWidth === true;
-  const barHeight = number(RTSReplayCut.command?.replayCutBarHeight, 1, 30, 5);
+  const barHeight = number(RTSReplayCut.command?.replayCutBarHeight, 1, 50, 5);
   const speed = 90;
   const barWidth = cutTitle.clientWidth;
   cutTitle.style.setProperty('--cut-bar-height', `${barHeight}px`);
+  cutTitle.style.setProperty('--cut-title-bottom-space', `${barHeight + 14}px`);
 
   const getWidth = () => randomWidth ? randomValue(blockWidth) : blockWidth;
   const createBlock = (left, width, colourValue) => {
