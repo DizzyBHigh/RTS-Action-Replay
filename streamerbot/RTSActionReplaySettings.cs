@@ -150,6 +150,7 @@ public class CPHInline
         ui.BeginRow();
         ui.AddNumericTextbox("Chevron Height", "Height of each Broadcast chevron in pixels. Maximum is limited to the Broadcast clipping area.", "Appearance", "rts.actionreplay.broadcast.chevronHeight", 42, 1, 89);
         ui.AddToggleSwitch("Random", "Randomize each Broadcast chevron height between 1 and the configured height.", "Appearance", "rts.actionreplay.broadcast.randomHeight", false);
+        ui.AddNumericTextbox("Chevron Thickness", "Stroke thickness of each Broadcast chevron in pixels.", "Appearance", "rts.actionreplay.broadcast.chevronThickness", 4, 1, 20);
         ui.AddNumericTextbox("Chevron Spacing", "Visible gap between Broadcast chevrons in pixels. Zero means the chevrons touch with no dark gap.", "Appearance", "rts.actionreplay.broadcast.chevronSpacing", 0, 0, 200);
         ui.AddToggleSwitch("Random", "Randomize each Broadcast chevron gap between 0 and the configured spacing.", "Appearance", "rts.actionreplay.broadcast.randomSpacing", false);
         ui.EndRow();
