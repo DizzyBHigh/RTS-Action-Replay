@@ -31,12 +31,6 @@ RTSReplayVideo.loadReplay = command => {
   RTSReplayVideo.video.src = command.replayUrl;
   RTSReplayVideo.video.style.display = 'block';
   RTSReplayVideo.video.load();
-
-  // Every LOAD is a new animation cycle. The position animator is responsible
-  // for setting the exact start state and explicitly interpolating all position
-  // properties to the end state. Do not use CSS transition setup here: that
-  // would bypass the stage/camera position animation and can make the intro
-  // jump straight to the end position.
   RTSReplayVideo.animateIn(startPosition, endPosition);
 
   if (command.replayAutoplay) {
@@ -55,15 +49,14 @@ RTSReplayVideo.testTitle = command => {
   RTSReplayVideo.player.style.opacity = '1';
   RTSReplayVideo.player.style.visibility = 'visible';
   RTSReplayVideo.frame?.classList.add('dev-frame');
+  window.RTSDevToolbar?.refreshPositions?.();
 };
 
 RTSReplayVideo.moveReplay = command => {
   RTSReplayVideo.currentCommand = command;
   const position = RTSReplayVideo.getPosition(command.replayPosition || 'Full Screen');
   const current = RTSReplayVideo.activePosition;
-
   if (current && RTSReplayVideo.positionsEqual?.(current, position)) return;
-
   RTSReplayVideo.activePosition = position;
   RTSReplayVideo.applyPosition(position);
   RTSReplayVideo.player.classList.add('show');
