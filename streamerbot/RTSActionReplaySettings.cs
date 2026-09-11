@@ -148,11 +148,12 @@ public class CPHInline
         ui.AddColorPicker("Secondary Colour", "Secondary colour for Broadcast chevrons and accents.", "Appearance", "rts.actionreplay.broadcast.secondaryColor", "#FFD400FF");
         ui.EndRow();
         ui.BeginRow();
-        ui.AddNumericTextbox("Chevron Width", "Broadcast chevron width in pixels.", "Appearance", "rts.actionreplay.broadcast.chevronWidth", 42, 1, 200);
-        ui.AddToggleSwitch("Random", "Randomize each Broadcast chevron width between 1 and the configured width.", "Appearance", "rts.actionreplay.broadcast.randomWidth", false);
-        ui.AddNumericTextbox("Chevron Spacing", "Gap between Broadcast chevrons in pixels.", "Appearance", "rts.actionreplay.broadcast.chevronSpacing", 13, 0, 200);
+        ui.AddNumericTextbox("Chevron Height", "Height of each Broadcast chevron in pixels. The chevron width is derived from this height.", "Appearance", "rts.actionreplay.broadcast.chevronHeight", 42, 1, 200);
+        ui.AddToggleSwitch("Random", "Randomize each Broadcast chevron height between 1 and the configured height.", "Appearance", "rts.actionreplay.broadcast.randomHeight", false);
+        ui.AddNumericTextbox("Chevron Spacing", "Visible gap between Broadcast chevrons in pixels. Zero means the chevrons touch with no dark gap.", "Appearance", "rts.actionreplay.broadcast.chevronSpacing", 0, 0, 200);
         ui.AddToggleSwitch("Random", "Randomize each Broadcast chevron gap between 0 and the configured spacing.", "Appearance", "rts.actionreplay.broadcast.randomSpacing", false);
         ui.EndRow();
+        ui.AddNumericTextbox("Chevron Speed", "Broadcast chevron movement speed in pixels per second.", "Appearance", "rts.actionreplay.broadcast.chevronSpeed", 95, 10, 500);
         ui.BeginRow();
         ui.AddColorPicker("Title Prefix / Suffix Colour", "Colour of the Broadcast title decoration.", "Appearance", "rts.actionreplay.broadcast.decorationColor", "#0384CBFF");
         ui.AddColorPicker("Title Colour", "Colour of the Broadcast title text.", "Appearance", "rts.actionreplay.broadcast.titleColor", "#FFFFFFFF");
