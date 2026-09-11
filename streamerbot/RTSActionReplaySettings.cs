@@ -55,7 +55,7 @@ public class CPHInline
         ui.EndRow();
         ui.EndSection();
         ui.BeginSection("Accent Colours");
-        ui.AddTitle("Primary and Secondary colours form the default Action Replay palette used throughout the player, including gradients, accents and title styles. Broadcast and Cut can override these colours in their settings.", "Branding");
+        ui.AddTitle("Primary and Secondary colours form the default Action Replay palette used throughout the player, including gradients, accents and the brand. Broadcast and Cut use their own title colour settings.", "Branding");
         ui.BeginRow();
         ui.AddColorPicker("Primary Colour", "Main Action Replay accent colour used throughout the player.", "Branding", "rts.actionreplay.titlePrimaryColor", "#0384CBFF");
         ui.AddColorPicker("Secondary Colour", "Supporting Action Replay accent colour used throughout the player.", "Branding", "rts.actionreplay.titleSecondaryColor", "#101416FF");
@@ -144,10 +144,9 @@ public class CPHInline
 
         ui.BeginSection("Title Settings", "Appearance");
         ui.BeginSection("Broadcast");
-        ui.AddToggleSwitch("Override Branding Colours", "Use custom Broadcast Primary and Secondary colours instead of the Branding palette.", "Appearance", "rts.actionreplay.broadcast.overrideColours", false);
         ui.BeginRow();
-        ui.AddColorPicker("Primary Colour", "Broadcast Primary colour. Used only when Override Branding Colours is enabled.", "Appearance", "rts.actionreplay.broadcast.primaryColor", "#0384CBFF");
-        ui.AddColorPicker("Secondary Colour", "Broadcast Secondary colour. Used only when Override Branding Colours is enabled.", "Appearance", "rts.actionreplay.broadcast.secondaryColor", "#FFD400FF");
+        ui.AddColorPicker("Primary Colour", "Broadcast Primary colour.", "Appearance", "rts.actionreplay.broadcast.primaryColor", "#0384CBFF");
+        ui.AddColorPicker("Secondary Colour", "Broadcast Secondary colour.", "Appearance", "rts.actionreplay.broadcast.secondaryColor", "#FFD400FF");
         ui.EndRow();
         ui.BeginRow();
         ui.AddNumericTextbox("Chevron Height", "Height of each Broadcast chevron in pixels. Maximum is limited to the Broadcast clipping area.", "Appearance", "rts.actionreplay.broadcast.chevronHeight", 42, 1, 89);
@@ -167,10 +166,9 @@ public class CPHInline
         ui.EndSection();
 
         ui.BeginSection("Cut");
-        ui.AddToggleSwitch("Override Branding Colours", "Use custom Cut Primary and Secondary colours instead of the Branding palette.", "Appearance", "rts.actionreplay.cut.overrideColours", false);
         ui.BeginRow();
-        ui.AddColorPicker("Primary Colour", "Cut Primary colour. Used only when Override Branding Colours is enabled.", "Appearance", "rts.actionreplay.cut.primaryColor", "#0384CBFF");
-        ui.AddColorPicker("Secondary Colour", "Cut Secondary colour. Used only when Override Branding Colours is enabled.", "Appearance", "rts.actionreplay.cut.secondaryColor", "#FFD400FF");
+        ui.AddColorPicker("Primary Colour", "Cut Primary colour.", "Appearance", "rts.actionreplay.cut.primaryColor", "#0384CBFF");
+        ui.AddColorPicker("Secondary Colour", "Cut Secondary colour.", "Appearance", "rts.actionreplay.cut.secondaryColor", "#FFD400FF");
         ui.EndRow();
         ui.BeginRow();
         ui.AddNumericTextbox("Block Width", "Cut block width in pixels.", "Appearance", "rts.actionreplay.cut.blockWidth", 170, 1, 1000);
