@@ -94,7 +94,13 @@ public class CPHInline
         ui.AddDropdown("Default Animation Profile", "Animation profile used for normal replay playback. A specific replay/action can still explicitly override this profile.", "Positions", "rts.actionreplay.animation.selectedProfile", BuildAnimationProfileOptions(), "Default");
         ui.AddClickableButton("Add Profile", "Create a new animation profile.", "Add Profile", "blue", "Positions", delegate
         {
-            if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "AddProfile")) ui.RebuildUI(BuildSettings);
+            if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "AddProfile"))
+            {
+                ui.RebuildUI(delegate(RtsUI rebuiltUi)
+                {
+                    BuildSettings(rebuiltUi);
+                });
+            }
         });
 
         foreach (var item in ReadAnimationProfiles())
@@ -119,7 +125,13 @@ public class CPHInline
             ui.AddClickableButton("Remove Profile", "Delete this animation profile.", "Remove Profile", "red", "Positions", delegate
             {
                 CPH.SetArgument("profileId", profile);
-                if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "RemoveProfile")) ui.RebuildUI(BuildSettings);
+                if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "RemoveProfile"))
+                {
+                    ui.RebuildUI(delegate(RtsUI rebuiltUi)
+                    {
+                        BuildSettings(rebuiltUi);
+                    });
+                }
             });
         }
         AddAnimationSequence(ui, "Start Sequence", "The positions and transitions used when the replay starts.", "rts.actionreplay.animation." + profile + ".startSequence", GetStartDefaults(profile));
