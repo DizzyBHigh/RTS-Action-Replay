@@ -31,6 +31,7 @@ RTSReplayCut.startCutBar = () => {
   const barHeight = number(RTSReplayCut.command?.replayCutBarHeight, 1, 50, 5);
   const speed = 90;
   const barWidth = cutTitle.clientWidth;
+  const overlap = 2;
   cutTitle.style.setProperty('--cut-bar-height', `${barHeight}px`);
   cutTitle.style.setProperty('--cut-title-bottom-space', `${barHeight + 14}px`);
 
@@ -38,7 +39,7 @@ RTSReplayCut.startCutBar = () => {
   const createBlock = (left, width, colourValue) => {
     const block = document.createElement('span');
     block.className = 'cut-bar-block';
-    block.style.width = `${width.toFixed(1)}px`;
+    block.style.width = `${(width + overlap).toFixed(1)}px`;
     block.style.backgroundColor = colourValue;
     block.style.left = `${left.toFixed(1)}px`;
     bottomTrack.appendChild(block);
