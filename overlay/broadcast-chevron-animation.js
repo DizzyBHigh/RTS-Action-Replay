@@ -26,7 +26,7 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const styles = getComputedStyle(broadcastTitle);
   const primary = colour(styles.getPropertyValue('--title-primary')) || '#0384CB';
   const secondary = colour(styles.getPropertyValue('--title-secondary')) || '#FFD400';
-  const heightSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronHeight, 1, 200, 42);
+  const heightSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronHeight, 1, track.clientHeight, 42);
   const widthSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronWidth, 1, 200, heightSetting);
   const spacingSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronSpacing, 0, 200, 0);
   const randomHeight = RTSReplayBroadcast.command?.replayBroadcastRandomHeight === true;
