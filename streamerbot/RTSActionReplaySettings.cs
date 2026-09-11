@@ -18,9 +18,9 @@ public class CPHInline
         AddBrandingSettings(ui);
         AddPlaylistSettings(ui);
         AddTwitchSettings(ui);
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "EnsureProfiles");
         AddPlayerSettings(ui);
         AddAppearanceSettings(ui);
-        CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "EnsureProfiles");
         AddPositionSettings(ui);
         AddMessageSettings(ui);
 
@@ -201,18 +201,56 @@ public class CPHInline
     private void AddAnimationProfileSettings(RtsUI ui)
     {
         ui.AddTitle("Animation Profiles", "Positions");
-        AddAnimationProfile(ui, "Mini Player", "default");
-        AddAnimationProfile(ui, "Full Screen", "fullScreen");
-        AddAnimationProfile(ui, "Half Screen", "halfScreen");
+        ui.AddDropdown("Default Animation Profile", "Animation profile used for normal replay playback. A specific replay/action can still explicitly override this profile.", "Positions", "rts.actionreplay.animation.selectedProfile", BuildAnimationProfileOptions(), "Default");
+        ui.AddClickableButton("Add Profile", "Create a new animation profile. The new profile is created as 'New Profile'; reopen the settings window to edit it.", "Add Profile", "blue", "Positions", delegate { CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "AddProfile"); });
+
+        foreach (var item in ReadAnimationProfiles())
+        {
+            var id = (string)item["id"];
+            if (string.IsNullOrWhiteSpace(id)) continue;
+            var name = CPH.GetGlobalVar<string>("rts.actionreplay.animation." + id + ".name", true) ?? (string)item["name"] ?? "New Profile";
+            AddAnimationProfile(ui, name, id);
+        }
     }
 
     private void AddAnimationProfile(RtsUI ui, string title, string profile)
     {
         ui.BeginSection(title, "Positions");
-        ui.AddTextbox("Profile Name", "Display name for this animation profile. The internal profile ID remains stable when renamed.", "Positions", "rts.actionreplay.animation." + profile + ".name", title, false);
+        if (profile == "default")
+            ui.AddTitle("Default profile is permanent and cannot be renamed or deleted. Its animation sequences can be edited.", "Positions");
+        else
+        {
+            ui.AddTextbox("Profile Name", "Display name for this animation profile.", "Positions", "rts.actionreplay.animation." + profile + ".name", title, false);
+            ui.AddClickableButton("Remove Profile", "Delete this animation profile. Reopen the settings window after removing it.", "Remove Profile", "red", "Positions", delegate
+            {
+                CPH.SetArgument("profileId", profile);
+                CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "RemoveProfile");
+            });
+        }
         AddAnimationSequence(ui, "Start Sequence", "The positions and transitions used when the replay starts.", "rts.actionreplay.animation." + profile + ".startSequence", GetStartDefaults(profile));
         AddAnimationSequence(ui, "End Sequence", "The positions and transitions used when the replay ends.", "rts.actionreplay.animation." + profile + ".endSequence", GetEndDefaults());
         ui.EndSection();
+    }
+
+    private string[] BuildAnimationProfileOptions()
+    {
+        var options = new List<string>();
+        foreach (var item in ReadAnimationProfiles())
+        {
+            var id = (string)item["id"];
+            var name = CPH.GetGlobalVar<string>("rts.actionreplay.animation." + id + ".name", true) ?? (string)item["name"];
+            if (!string.IsNullOrWhiteSpace(name)) options.Add(name);
+        }
+        if (options.Count == 0) options.Add("Default");
+        return options.ToArray();
+    }
+
+    private JArray ReadAnimationProfiles()
+    {
+        var raw = CPH.GetGlobalVar<string>("rts.actionreplay.animation.profiles", true);
+        if (string.IsNullOrWhiteSpace(raw)) return new JArray(new JObject { ["id"] = "default", ["name"] = "Default" });
+        try { return JArray.Parse(raw); }
+        catch { return new JArray(new JObject { ["id"] = "default", ["name"] = "Default" }); }
     }
 
     private void AddAnimationSequence(RtsUI ui, string title, string description, string key, string defaultPosition)
@@ -226,16 +264,8 @@ public class CPHInline
         });
     }
 
-    private string GetStartDefaults(string profile)
-    {
-        if (profile == "default") return "Mini Hidden";
-        return "Full Screen";
-    }
-
-    private string GetEndDefaults()
-    {
-        return "Mini Hidden";
-    }
+    private string GetStartDefaults(string profile) => profile == "default" ? "Mini Hidden" : "Full Screen";
+    private string GetEndDefaults() => "Mini Hidden";
 
     private string[] BuildPositionOptions()
     {
