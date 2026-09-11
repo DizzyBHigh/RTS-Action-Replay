@@ -204,8 +204,8 @@ public class CPHInline
     {
         ui.BeginSection(name);
         ui.BeginRow();
-        ui.AddPositionSelector("Start Position", "Position used at the start of this playback animation.", "Positions", "rts.actionreplay.animation." + slug + ".startPosition", "Full Screen");
-        ui.AddPositionSelector("End Position", "Position used at the end of this playback animation.", "Positions", "rts.actionreplay.animation." + slug + ".endPosition", "Full Screen");
+        ui.AddPositionSelector("Start Position", "Position used at the start of this playback animation.", "Positions", "rts.actionreplay.animation." + slug + ".startPosition", "rts.actionreplay.positions", "Full Screen");
+        ui.AddPositionSelector("End Position", "Position used at the end of this playback animation.", "Positions", "rts.actionreplay.animation." + slug + ".endPosition", "rts.actionreplay.positions", "Full Screen");
         ui.EndRow();
         ui.BeginRow();
         ui.AddDecimalTextbox("Duration", "Animation duration in seconds.", "Positions", "rts.actionreplay.animation." + slug + ".duration", .5, .1, 10, .1);
@@ -243,21 +243,21 @@ public class CPHInline
         if (CPH.GetGlobalVar<object>(key, true) == null) CPH.SetGlobalVar(key, value, true);
     }
 
-    private List<string> BuildPositionTagList(string raw)
+    private string[][] BuildPositionTagList(string raw)
     {
-        var result = new List<string>();
-        if (string.IsNullOrWhiteSpace(raw)) return result;
+        var result = new List<string[]>();
+        if (string.IsNullOrWhiteSpace(raw)) return result.ToArray();
         try
         {
             var positions = JObject.Parse(raw);
             foreach (var item in positions.Properties())
             {
                 var tag = (string)item.Value["tag"];
-                if (!string.IsNullOrWhiteSpace(tag)) result.Add(item.Name + " → " + tag);
+                if (!string.IsNullOrWhiteSpace(tag)) result.Add(new[] { item.Name, tag });
             }
         }
         catch { }
-        return result;
+        return result.ToArray();
     }
 
     private void AddMessageSettings(RtsUI ui)
