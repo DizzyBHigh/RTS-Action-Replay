@@ -21,12 +21,19 @@ RTSReplayCut.startCutBar = () => {
     const match = raw.match(/^#([0-9a-f]{6}|[0-9a-f]{8})$/i);
     return match ? `#${match[1].slice(0, 6)}` : raw;
   };
+  const number = (value, min, max, fallback) => Math.max(min, Math.min(max, Number(value) || fallback));
+  const randomValue = max => 1 + Math.random() * Math.max(0, max - 1);
   const styles = getComputedStyle(cutTitle);
   const primary = colour(styles.getPropertyValue('--title-primary')) || '#0384CB';
   const secondary = colour(styles.getPropertyValue('--title-secondary')) || '#FFD400';
+  const blockWidth = number(RTSReplayCut.command?.replayCutBlockWidth, 1, 1000, 170);
+  const randomWidth = RTSReplayCut.command?.replayCutRandomWidth === true;
+  const barHeight = number(RTSReplayCut.command?.replayCutBarHeight, 1, 30, 5);
   const speed = 90;
   const barWidth = cutTitle.clientWidth;
+  cutTitle.style.setProperty('--cut-bar-height', `${barHeight}px`);
 
+  const getWidth = () => randomWidth ? randomValue(blockWidth) : blockWidth;
   const createBlock = (left, width, colourValue) => {
     const block = document.createElement('span');
     block.className = 'cut-bar-block';
@@ -37,10 +44,9 @@ RTSReplayCut.startCutBar = () => {
     return block;
   };
 
-  // Build a contiguous stream of primary/secondary blocks with no dark gaps.
   let seedLeft = -40;
   while (seedLeft < barWidth) {
-    const width = 70 + Math.random() * 170;
+    const width = getWidth();
     const colourValue = Math.random() < 0.5 ? primary : secondary;
     createBlock(seedLeft, width, colourValue);
     seedLeft += width;
@@ -63,19 +69,17 @@ RTSReplayCut.startCutBar = () => {
       return;
     }
 
-    const width = 80 + Math.random() * 220;
-    // Start the next block exactly at the right edge so the strip stays filled.
+    const width = getWidth();
+    const colourValue = Math.random() < 0.5 ? primary : secondary;
     const left = barWidth;
     const distance = barWidth + width;
     const duration = (distance / speed) * 1000;
-    const colourValue = Math.random() < 0.5 ? primary : secondary;
     const block = createBlock(left, width, colourValue);
     const animation = block.animate(
       [{ transform: 'translate3d(0,0,0)' }, { transform: `translate3d(-${distance}px,0,0)` }],
       { duration, easing: 'linear', fill: 'forwards' }
     );
     animation.onfinish = () => block.remove();
-
     RTSReplayCut.cutSpawnTimer = setTimeout(spawn, (width / speed) * 1000);
   };
 
