@@ -44,7 +44,32 @@ The Playlist is a current queue, separate from Catalog and Recent Clips.
 - `HidePlayer` — pauses the current video before hiding it without resetting its position.
 - `ShowPlayer` — shows the existing player and resumes the current video.
 
-These controls are independent of Playlist pause/resume.
+`RTSActionReplayPlayback.cs` also exposes `SetPlayerPosition`, which is intended for `!set-pos <name> [duration]`. The default transition is 1000ms; supplying a duration overrides it for that command only. Position changes do not alter Playlist state or replay identity.
+
+## Animation profiles
+
+Animation Profiles are presentation presets, separate from the Playlist. Positions remain reusable layouts; profiles describe how the player moves through those positions.
+
+The initial presets are `Mini Player`, `Full Screen` and `Half Screen`. Their display names can be changed without changing their internal IDs.
+
+Each profile has independent `Start Sequence` and `End Sequence` JSON arrays. A sequence step contains:
+
+- `position` — saved position name or tag.
+- `duration` — transition time into this position, in milliseconds.
+- `delay` — time to wait after arriving before the next step, in milliseconds.
+- `easing` — `linear`, `ease`, `ease-in`, `ease-out` or `ease-in-out`.
+
+For example:
+
+```json
+[
+  {"position":"Mini Hidden","duration":0,"delay":0,"easing":"ease-in-out"},
+  {"position":"Mini Angled","duration":1000,"delay":3000,"easing":"ease-in-out"},
+  {"position":"Full Screen","duration":1000,"delay":0,"easing":"ease-in-out"}
+]
+```
+
+The first Start Sequence step establishes the initial position. Later steps transition to their target. End Sequence steps transition from the current position when the player is hidden. A queued replay that replaces an already-visible player skips the Start animation so the player does not disappear between queue items.
 
 ## Streamer.bot code modules
 
@@ -73,7 +98,7 @@ These controls are independent of Playlist pause/resume.
 
 When a request creates or selects a replay for playback, the request action should execute `RTS Action Replay Playlist -> EnqueueCurrentReplay` instead of directly playing the replay. The OBS replay watcher should execute the same method after `RTS Action Replay Store -> AddReplay`.
 
-The existing `RTS Action Replay Playback -> PlayReplay` method remains the actual playback path. Playlist playback supplies the catalog position for the queued replay, so all existing URL resolution, player settings and playback confirmation remain centralized there.
+The existing `RTS Action Replay Playback -> PlayReplay` method remains the actual playback path. Playlist playback supplies the catalog position for the queued replay, so URL resolution, player settings and playback confirmation remain centralized there.
 
 ## Overlay
 
@@ -83,7 +108,7 @@ The browser player has no user controls. Its status bar is visual-only; playback
 
 ## Player positions
 
-`rts.actionreplay.positions` stores named positions as a JSON object. Each position supports `scale`, `x`, `y`, `rotateX`, `rotateY` and `rotateZ`. `Full Screen` is the built-in fallback position.
+`rts.actionreplay.positions` stores named positions as a JSON object. Each position supports `scale`, `x`, `y`, `rotateX`, `rotateY`, `rotateZ` and `fov`. `Full Screen` is the built-in fallback position.
 
 ## External editor
 
