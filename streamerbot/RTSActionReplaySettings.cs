@@ -14,11 +14,16 @@ public class CPHInline
             (key, value, persisted) => CPH.SetGlobalVar(key, value, persisted),
             message => CPH.LogInfo(message));
 
+        BuildSettings(ui);
+        ui.ShowUI();
+        return true;
+    }
+
+    private void BuildSettings(RtsUI ui)
+    {
         AddGeneralSettings(ui); AddBrandingSettings(ui); AddPlaylistSettings(ui); AddTwitchSettings(ui);
         CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "EnsureProfiles");
         AddPlayerSettings(ui); AddAppearanceSettings(ui); AddPositionSettings(ui); AddMessageSettings(ui);
-        ui.ShowUI();
-        return true;
     }
 
     private void AddGeneralSettings(RtsUI ui)
@@ -89,7 +94,7 @@ public class CPHInline
         ui.AddDropdown("Default Animation Profile", "Animation profile used for normal replay playback. A specific replay/action can still explicitly override this profile.", "Positions", "rts.actionreplay.animation.selectedProfile", BuildAnimationProfileOptions(), "Default");
         ui.AddClickableButton("Add Profile", "Create a new animation profile.", "Add Profile", "blue", "Positions", delegate
         {
-            if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "AddProfile")) ui.RefreshUI();
+            if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "AddProfile")) ui.RebuildUI(BuildSettings);
         });
 
         foreach (var item in ReadAnimationProfiles())
@@ -114,7 +119,7 @@ public class CPHInline
             ui.AddClickableButton("Remove Profile", "Delete this animation profile.", "Remove Profile", "red", "Positions", delegate
             {
                 CPH.SetArgument("profileId", profile);
-                if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "RemoveProfile")) ui.RefreshUI();
+                if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "RemoveProfile")) ui.RebuildUI(BuildSettings);
             });
         }
         AddAnimationSequence(ui, "Start Sequence", "The positions and transitions used when the replay starts.", "rts.actionreplay.animation." + profile + ".startSequence", GetStartDefaults(profile));
