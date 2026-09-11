@@ -27,7 +27,7 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const primary = colour(styles.getPropertyValue('--title-primary')) || '#0384CB';
   const secondary = colour(styles.getPropertyValue('--title-secondary')) || '#FFD400';
   const heightSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronHeight, 1, track.clientHeight, 42);
-  const widthSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronWidth, 1, 300, 90);
+  const widthSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronWidth, 1, 200, 50);
   const spacingSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronSpacing, 0, 200, 0);
   const randomHeight = RTSReplayBroadcast.command?.replayBroadcastRandomHeight === true;
   const randomWidth = RTSReplayBroadcast.command?.replayBroadcastRandomWidth === true;
@@ -38,11 +38,8 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const getHeight = () => randomHeight ? randomValue(heightSetting, 1) : heightSetting;
   const getWidth = () => randomWidth ? randomValue(widthSetting, 1) : widthSetting;
   const getSpacing = () => randomSpacing ? randomValue(spacingSetting, 0) : spacingSetting;
-  const dimensions = (width, height) => ({ width, height, strokeWidth: Math.max(6, Math.min(20, height * 0.18)) });
-  const travelDelay = (width, height, spacing) => {
-    const size = dimensions(width, height);
-    return Math.max(0, (size.width + size.strokeWidth + spacing) / speed * 1000);
-  };
+  const dimensions = (width, height) => ({ width, height });
+  const travelDelay = (width, spacing) => Math.max(0, (width + spacing) / speed * 1000);
 
   const createChevron = (left, width, height, index) => {
     const size = dimensions(width, height);
@@ -52,22 +49,26 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     mover.style.width = `${size.width.toFixed(2)}px`;
     const chevron = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     chevron.classList.add('broadcast-chevron');
-    chevron.setAttribute('viewBox', '0 0 50 100');
+    chevron.setAttribute('viewBox', `0 0 ${size.width} ${size.height}`);
     chevron.setAttribute('width', size.width.toFixed(2));
     chevron.setAttribute('height', size.height.toFixed(2));
     chevron.style.setProperty('--chevron-width', `${size.width.toFixed(2)}px`);
     chevron.style.setProperty('--chevron-height', `${size.height.toFixed(2)}px`);
     const chevronColor = index % 2 ? secondary : primary;
     chevron.style.setProperty('--chevron-color', chevronColor);
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-    path.setAttribute('points', '0,3 50,50 0,97');
-    path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', 'currentColor');
-    path.setAttribute('stroke-width', String(size.strokeWidth));
-    path.setAttribute('vector-effect', 'non-scaling-stroke');
-    path.setAttribute('stroke-linecap', 'butt');
-    path.setAttribute('stroke-linejoin', 'miter');
-    chevron.append(path);
+
+    const arm = Math.min(size.height * 0.42, size.width * 0.45);
+    const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    polygon.setAttribute('points', [
+      `0,0`,
+      `${size.width - arm},0`,
+      `${size.width},${size.height / 2}`,
+      `${size.width - arm},${size.height}`,
+      `0,${size.height}`,
+      `${arm},${size.height / 2}`
+    ].join(' '));
+    polygon.setAttribute('fill', 'currentColor');
+    chevron.append(polygon);
     mover.append(chevron);
     track.append(mover);
     return mover;
@@ -100,7 +101,7 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     pendingWidth = getWidth();
     pendingHeight = getHeight();
     pendingSpacing = getSpacing();
-    RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(spawn, travelDelay(width, height, spacing));
+    RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(spawn, travelDelay(width, spacing));
   };
 
   spawn();
