@@ -47,9 +47,14 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     const size = dimensions(width, height);
     return Math.max(1, size.width - thicknessSetting + spacing);
   };
+  const glow = spacing => ({
+    radius: Math.min(5, 1.5 + spacing * 0.35),
+    alpha: Math.min(45, 22 + spacing * 2.3)
+  });
 
-  const createChevron = (left, width, height, index) => {
+  const createChevron = (left, width, height, spacing, index) => {
     const size = dimensions(width, height);
+    const glowSetting = glow(spacing);
     const mover = document.createElement('span');
     mover.className = 'broadcast-chevron-mover';
     mover.style.left = `${left.toFixed(2)}px`;
@@ -62,6 +67,8 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     chevron.style.setProperty('--chevron-width', `${size.width.toFixed(2)}px`);
     chevron.style.setProperty('--chevron-height', `${size.height.toFixed(2)}px`);
     chevron.style.setProperty('--chevron-color', index % 2 ? secondary : primary);
+    chevron.style.setProperty('--chevron-glow-radius', `${glowSetting.radius.toFixed(2)}px`);
+    chevron.style.setProperty('--chevron-glow-alpha', `${glowSetting.alpha.toFixed(0)}%`);
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
     path.setAttribute('points', '3,3 47,50 3,97');
     path.setAttribute('fill', 'none');
@@ -91,7 +98,7 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   let height = getHeight();
   let spacing = getSpacing();
   while (left < trackWidth) {
-    createChevron(left, width, height, index++);
+    createChevron(left, width, height, spacing, index++);
     animate(track.lastElementChild, left);
     left += pitch(width, height, spacing);
     width = getWidth();
@@ -110,7 +117,7 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     const currentWidth = pendingWidth;
     const currentHeight = pendingHeight;
     const currentSpacing = pendingSpacing;
-    const mover = createChevron(seedLeft, currentWidth, currentHeight, index++);
+    const mover = createChevron(seedLeft, currentWidth, currentHeight, currentSpacing, index++);
     animate(mover, seedLeft);
     pendingWidth = getWidth();
     pendingHeight = getHeight();
