@@ -201,7 +201,7 @@ public class CPHInline
     private void AddAnimationProfileSettings(RtsUI ui)
     {
         ui.BeginSection("Animation Profiles", "Positions");
-        AddAnimationProfile(ui, "Mini Player", "miniPlayer");
+        AddAnimationProfile(ui, "Mini Player", "default");
         AddAnimationProfile(ui, "Full Screen", "fullScreen");
         AddAnimationProfile(ui, "Half Screen", "halfScreen");
         ui.EndSection();
@@ -211,8 +211,8 @@ public class CPHInline
     {
         ui.BeginSection(title);
         ui.AddTextbox("Profile Name", "Display name for this animation profile. The internal profile ID remains stable when renamed.", "Positions", "rts.actionreplay.animation." + profile + ".name", title, false);
-        ui.AddTextbox("Start Sequence", "JSON array of steps. First step is the initial position; each later step uses duration/delay/easing. Example: [{\"position\":\"Mini Hidden\",\"duration\":0,\"delay\":0},{\"position\":\"Mini Angled\",\"duration\":1000,\"delay\":3000},{\"position\":\"Full Screen\",\"duration\":1000,\"delay\":0}]", "Positions", "rts.actionreplay.animation." + profile + ".startSequence", "[{\"position\":\"Full Screen\",\"duration\":0,\"delay\":0,\"easing\":\"ease-in-out\"}]", false);
-        ui.AddTextbox("End Sequence", "JSON array of steps. Each step is a target position with transition duration, delay after arrival and easing.", "Positions", "rts.actionreplay.animation." + profile + ".endSequence", "[{\"position\":\"Full Screen\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]", false);
+        ui.AddTextbox("Start Sequence", "JSON array of steps. First step is the initial position; each later step uses duration/delay/easing. Example: [{\"position\":\"Mini Hidden\",\"duration\":0,\"delay\":0},{\"position\":\"Mini Angled\",\"duration\":1000,\"delay\":3000},{\"position\":\"Full Screen\",\"duration\":1000,\"delay\":0}]", "Positions", "rts.actionreplay.animation." + profile + ".startSequence", "[{\"position\":\"Mini Hidden\",\"duration\":0,\"delay\":0,\"easing\":\"ease-in-out\"},{\"position\":\"Mini Angled\",\"duration\":1000,\"delay\":3000,\"easing\":\"ease-in-out\"},{\"position\":\"Mini\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]", false);
+        ui.AddTextbox("End Sequence", "JSON array of steps. Each step is a target position with transition duration, delay after arrival and easing.", "Positions", "rts.actionreplay.animation." + profile + ".endSequence", "[{\"position\":\"Mini Hidden\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]", false);
         ui.EndSection();
     }
 
@@ -247,10 +247,9 @@ public class CPHInline
 
     private void EnsureAnimationProfiles()
     {
-        EnsureProfile("miniPlayer", "Mini Player");
+        EnsureProfile("default", "Mini Player");
         EnsureProfile("fullScreen", "Full Screen");
         EnsureProfile("halfScreen", "Half Screen");
-        EnsureProfile("default", "Mini Player");
         EnsureProfile("twitchClip", "Mini Player");
         EnsureProfile("obsClip", "Mini Player");
         EnsureProfile("playlist", "Mini Player");
@@ -260,8 +259,11 @@ public class CPHInline
     private void EnsureProfile(string profile, string name)
     {
         SetDefault("rts.actionreplay.animation." + profile + ".name", name);
-        SetDefault("rts.actionreplay.animation." + profile + ".startSequence", "[{\"position\":\"Full Screen\",\"duration\":0,\"delay\":0,\"easing\":\"ease-in-out\"}]");
-        SetDefault("rts.actionreplay.animation." + profile + ".endSequence", "[{\"position\":\"Full Screen\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]");
+        var start = profile == "default"
+            ? "[{\"position\":\"Mini Hidden\",\"duration\":0,\"delay\":0,\"easing\":\"ease-in-out\"},{\"position\":\"Mini Angled\",\"duration\":1000,\"delay\":3000,\"easing\":\"ease-in-out\"},{\"position\":\"Mini\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]"
+            : "[{\"position\":\"Full Screen\",\"duration\":0,\"delay\":0,\"easing\":\"ease-in-out\"}]";
+        SetDefault("rts.actionreplay.animation." + profile + ".startSequence", start);
+        SetDefault("rts.actionreplay.animation." + profile + ".endSequence", "[{\"position\":\"Mini Hidden\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]");
     }
 
     private void SetDefault(string key, object value)
