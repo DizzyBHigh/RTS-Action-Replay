@@ -33,7 +33,7 @@ public class CPHInline
         ui.AddThemeSelector("Settings Theme", "Choose the RtsUI theme.", "General", "rts.actionreplay.uiTheme", "Dark");
         ui.BeginSection("Replay Source", "General");
         ui.AddFolderPicker("Replay Folder", "Folder containing OBS Replay Buffer files. Twitch clips use a separate folder and are never written here.", "General", "rts.actionreplay.replayFolder", "");
-        ui.AddTextbox("Replay File Types", "Accepted extensions, separated by commas.", "General", "rts.actionreplay.replayFileTypes", ".mp4, .mkv", false);
+        ui.AddTextbox("Replay File Types", "Accepted extensions, separated by commas. e.g .mp4, .mov", "General", "rts.actionreplay.replayFileTypes", ".mp4, .mkv", false);
         ui.AddTextbox("HTTP Mapping", "Streamer.bot HTTP path mapped to the OBS replay folder.", "General", "rts.actionreplay.httpMapping", "replays", false);
         ui.AddNumericTextbox("HTTP Port", "Streamer.bot HTTP Server port used to serve replay files.", "General", "rts.actionreplay.httpPort", 7474, 1, 65535);
         ui.EndSection();
@@ -43,7 +43,7 @@ public class CPHInline
     {
         ui.BeginSection("Branding", "Branding");
         ui.BeginSection("Brand Identity");
-        ui.AddToggleSwitch("Show Replay Branding", "Display the branding area on the replay player.", "Branding", "rts.actionreplay.showBranding", true);
+        ui.AddToggleSwitch("Show Replay Branding", "Display the branding on the top left of the replay screen.", "Branding", "rts.actionreplay.showBranding", true);
         ui.AddTextbox("Branding Logo URL", "HTTPS URL to a logo. Leave blank to use the fallback text.", "Branding", "rts.actionreplay.brandLogoUrl", "", false);
         ui.BeginRow();
         ui.AddTextbox("Branding Fallback Text", "Text shown when no branding logo is defined.", "Branding", "rts.actionreplay.brandFallbackText", "RTS", false);
@@ -55,10 +55,9 @@ public class CPHInline
         ui.EndRow();
         ui.EndSection();
         ui.BeginSection("Accent Colours");
-        ui.AddTitle("Primary and Secondary colours form the default Action Replay palette used throughout the player, including gradients, accents and the brand. Broadcast and Cut use their own title colour settings.", "Branding");
         ui.BeginRow();
         ui.AddColorPicker("Primary Colour", "Main Action Replay accent colour used throughout the player.", "Branding", "rts.actionreplay.titlePrimaryColor", "#0384CBFF");
-        ui.AddColorPicker("Secondary Colour", "Supporting Action Replay accent colour used throughout the player.", "Branding", "rts.actionreplay.titleSecondaryColor", "#101416FF");
+        ui.AddColorPicker("Secondary Colour", "Secondary Action Replay accent colour used throughout the player.", "Branding", "rts.actionreplay.titleSecondaryColor", "#101416FF");
         ui.EndRow();
         ui.EndSection();
         ui.EndSection();
@@ -85,7 +84,7 @@ public class CPHInline
         ui.AddDropdown("Twitch Clip Playback", "How Action Replay obtains Twitch media when a Twitch Catalog item is played. The Catalog always stores the Twitch Clip URL and ID. Both stores a local copy and plays the local copy.", "Twitch", "rts.actionreplay.twitch.playbackMode", new[] { "Twitch URL", "Download Locally", "Both" }, "Download Locally");
         ui.AddFolderPicker("Twitch Clip Folder", "Folder used only for downloaded Twitch Clips. It must be separate from the OBS Replay Folder so Twitch downloads cannot trigger the OBS replay watcher.", "Twitch", "rts.actionreplay.twitch.folder", "");
         ui.AddTextbox("Twitch HTTP Mapping", "Streamer.bot HTTP path mapped to the Twitch Clip Folder. Add this mapping separately in Streamer.bot's HTTP Server settings.", "Twitch", "rts.actionreplay.twitch.httpMapping", "twitch", false);
-        ui.AddNumericTextbox("Clip Duration", "Duration used by !twitchclip, in seconds. Twitch allows 5–60 seconds.", "Twitch", "rts.actionreplay.twitch.clipDuration", 30, 5, 60);
+        ui.AddNumericTextbox("Clip Duration", "Default duration used by !twitchclip, in seconds. Twitch allows 5–60 seconds.", "Twitch", "rts.actionreplay.twitch.clipDuration", 30, 5, 60);
         ui.AddTitle("Twitch Clip URLs are always retained in the Catalog. Twitch URL playback uses a fresh Twitch media URL at playback time. Download Locally and Both use the separate Twitch Clip Folder served through the Twitch HTTP Mapping. The hourly SyncTwitchClips action follows the same storage rules but never plays newly discovered clips.", "Twitch");
         ui.EndSection();
     }
@@ -136,17 +135,19 @@ public class CPHInline
         ui.BeginSection("Player Frame", "Appearance");
         ui.BeginRow();
         ui.AddColorPicker("Frame Color", "Main player frame and progress colour.", "Appearance", "rts.actionreplay.frameColor", "#0384CBFF");
+        ui.AddToggleSwitch("Border Glow", "Add a branded glow around the player border.", "Appearance", "rts.actionreplay.borderGlow", true);
+        ui.EndRow();
+        ui.BeginRow();
         ui.AddSlider("Border Width", "Width of the player border in pixels.", "Appearance", "rts.actionreplay.borderWidth", 0, 12, 4);
         ui.AddSlider("Corner Radius", "Round the player corners in pixels.", "Appearance", "rts.actionreplay.cornerRadius", 0, 48, 0);
-        ui.AddToggleSwitch("Border Glow", "Add a branded glow around the player border.", "Appearance", "rts.actionreplay.borderGlow", true);
         ui.EndRow();
         ui.EndSection();
 
         ui.BeginSection("Title Settings", "Appearance");
         ui.BeginSection("Broadcast");
         ui.BeginRow();
-        ui.AddColorPicker("Primary Colour", "Broadcast Primary colour.", "Appearance", "rts.actionreplay.broadcast.primaryColor", "#0384CBFF");
-        ui.AddColorPicker("Secondary Colour", "Broadcast Secondary colour.", "Appearance", "rts.actionreplay.broadcast.secondaryColor", "#FFD400FF");
+        ui.AddColorPicker("Primary Chevron Colour", "Broadcast Primary colour.", "Appearance", "rts.actionreplay.broadcast.primaryColor", "#0384CBFF");
+        ui.AddColorPicker("Secondary Chevron Colour", "Broadcast Secondary colour.", "Appearance", "rts.actionreplay.broadcast.secondaryColor", "#FFD400FF");
         ui.EndRow();
         ui.BeginRow();
         ui.AddNumericTextbox("Chevron Height", "Height of each Broadcast chevron in pixels. Maximum is limited to the Broadcast clipping area.", "Appearance", "rts.actionreplay.broadcast.chevronHeight", 42, 1, 89);
