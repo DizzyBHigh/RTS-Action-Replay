@@ -37,7 +37,7 @@ RTSReplayCut.startCutBar = () => {
     return block;
   };
 
-  // Start with the visible bar filled so the animation never begins on an empty strip.
+  // Build a contiguous stream of primary/secondary blocks with no dark gaps.
   let seedLeft = -40;
   while (seedLeft < barWidth) {
     const width = 70 + Math.random() * 170;
@@ -64,9 +64,9 @@ RTSReplayCut.startCutBar = () => {
     }
 
     const width = 80 + Math.random() * 220;
-    const gap = 20 + Math.random() * 60;
-    const left = barWidth + gap;
-    const distance = barWidth + gap + width + gap;
+    // Start the next block exactly at the right edge so the strip stays filled.
+    const left = barWidth;
+    const distance = barWidth + width;
     const duration = (distance / speed) * 1000;
     const colourValue = Math.random() < 0.5 ? primary : secondary;
     const block = createBlock(left, width, colourValue);
@@ -76,7 +76,7 @@ RTSReplayCut.startCutBar = () => {
     );
     animation.onfinish = () => block.remove();
 
-    RTSReplayCut.cutSpawnTimer = setTimeout(spawn, ((width + gap) / speed) * 1000);
+    RTSReplayCut.cutSpawnTimer = setTimeout(spawn, (width / speed) * 1000);
   };
 
   RTSReplayCut.cutSpawnTimer = setTimeout(spawn, 300);
