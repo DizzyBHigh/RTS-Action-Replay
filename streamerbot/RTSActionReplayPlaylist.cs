@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Newtonsoft.Json.Linq;
 
 public class CPHInline
@@ -16,7 +15,7 @@ public class CPHInline
     {
         if (!CPH.TryGetArg("replayId", out string replayId) || string.IsNullOrWhiteSpace(replayId)) return false;
         var data = Load();
-        var replay = Catalog(data).OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase));
+        var replay = FindReplay(Catalog(data), replayId);
         if (replay == null) return false;
         CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName);
         var creator = replay["creator"] as JObject;
@@ -31,8 +30,17 @@ public class CPHInline
     public bool View()
     {
         var queue = LoadQueue();
-        var message = queue.Count == 0 ? "Playlist is empty." : string.Join(" | ", queue.Select((x, i) => "#" + (i + 1) + " " + (string)x["title"] + " — " + (string)x["requesterName"]));
-        CPH.SetArgument("replayPlaylist", message); CPH.SendMessage(message); return true;
+        if (queue.Count == 0) { CPH.SendMessage("Playlist is empty."); return true; }
+        var lines = "";
+        for (var i = 0; i < queue.Count; i++)
+        {
+            var item = queue[i] as JObject;
+            if (item == null) continue;
+            var requester = (string)item["requesterName"];
+            if (string.IsNullOrWhiteSpace(requester)) requester = "Created automatically";
+            lines += (lines.Length == 0 ? "" : " | ") + "#" + (i + 1) + " " + (string)item["title"] + " — " + requester;
+        }
+        CPH.SetArgument("replayPlaylist", lines); CPH.SendMessage(lines); return true;
     }
 
     public bool Remove()
@@ -59,7 +67,14 @@ public class CPHInline
         if (!CPH.TryGetArg("replayId", out string replayId)) return false;
         CPH.TryGetArg("replayQueueEntryId", out string entryId);
         var queue = LoadQueue();
-        var current = queue.FirstOrDefault(x => string.Equals((string)x["replayId"], replayId, StringComparison.OrdinalIgnoreCase) && (string.IsNullOrWhiteSpace(entryId) || string.Equals((string)x["entryId"], entryId, StringComparison.OrdinalIgnoreCase)));
+        JObject current = null;
+        for (var i = 0; i < queue.Count; i++)
+        {
+            var item = queue[i] as JObject;
+            if (item != null && string.Equals((string)item["replayId"], replayId, StringComparison.OrdinalIgnoreCase) &&
+                (string.IsNullOrWhiteSpace(entryId) || string.Equals((string)item["entryId"], entryId, StringComparison.OrdinalIgnoreCase)))
+            { current = item; break; }
+        }
         if (current == null || !string.Equals((string)current["entryId"], ActiveId(), StringComparison.OrdinalIgnoreCase)) return false;
         queue.Remove(current); SaveQueue(queue); CPH.SetGlobalVar(ActiveKey, "", false);
         if (IsPaused()) return true;
@@ -69,15 +84,31 @@ public class CPHInline
 
     private bool PlayNext(JArray queue)
     {
-        var item = queue.FirstOrDefault(); if (item == null) return true;
+        if (queue.Count == 0) return true;
+        var item = queue[0] as JObject; if (item == null) return false;
         var catalog = Catalog(Load());
-        var replay = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], (string)item["replayId"], StringComparison.OrdinalIgnoreCase));
-        var index = replay == null ? -1 : catalog.IndexOf(replay);
+        var index = -1;
+        for (var i = 0; i < catalog.Count; i++)
+        {
+            var replay = catalog[i] as JObject;
+            if (replay != null && string.Equals((string)replay["id"], (string)item["replayId"], StringComparison.OrdinalIgnoreCase))
+            { index = i; break; }
+        }
         if (index < 0) return false;
         CPH.SetArgument("rawInput", (index + 1).ToString()); CPH.SetArgument("replayQueueEntryId", (string)item["entryId"]);
         var started = CPH.ExecuteMethod(PlaybackCode, "PlayReplay");
         if (started) CPH.SetGlobalVar(ActiveKey, (string)item["entryId"], false);
         return started;
+    }
+
+    private JObject FindReplay(JArray catalog, string replayId)
+    {
+        for (var i = 0; i < catalog.Count; i++)
+        {
+            var replay = catalog[i] as JObject;
+            if (replay != null && string.Equals((string)replay["id"], replayId, StringComparison.OrdinalIgnoreCase)) return replay;
+        }
+        return null;
     }
 
     private string ActiveId() => CPH.GetGlobalVar<string>(ActiveKey, false);
