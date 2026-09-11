@@ -6,6 +6,7 @@ public class CPHInline
 {
     private const string DefaultEasingKey = "rts.actionreplay.animation.default.easing";
     private const string ProfilesKey = "rts.actionreplay.animation.profiles";
+    private const string SelectedProfileKey = "rts.actionreplay.animation.selectedProfile";
 
     public bool Execute() => EnsureProfiles();
 
@@ -13,14 +14,14 @@ public class CPHInline
     {
         EnsureDefaultProfile();
         EnsureProfileRegistry();
+        var selected = CPH.GetGlobalVar<string>(SelectedProfileKey, true);
+        if (!ProfileExists(selected)) CPH.SetGlobalVar(SelectedProfileKey, "default", true);
         return true;
     }
 
     public bool AddProfile()
     {
-        var name = CPH.TryGetArg("profileName", out string requested) && !string.IsNullOrWhiteSpace(requested)
-            ? requested.Trim()
-            : "New Profile";
+        var name = CPH.TryGetArg("profileName", out string requested) && !string.IsNullOrWhiteSpace(requested) ? requested.Trim() : "New Profile";
         var profiles = ReadProfiles();
         var id = Guid.NewGuid().ToString("N");
         profiles.Add(new JObject { ["id"] = id, ["name"] = name });
@@ -38,20 +39,27 @@ public class CPHInline
         for (var i = profiles.Count - 1; i >= 0; i--)
             if (string.Equals((string)profiles[i]["id"], id, StringComparison.Ordinal)) profiles.RemoveAt(i);
         WriteProfiles(profiles);
+        if (string.Equals(CPH.GetGlobalVar<string>(SelectedProfileKey, true), id, StringComparison.Ordinal)) CPH.SetGlobalVar(SelectedProfileKey, "default", true);
+        RemoveProfileData(id);
         return true;
     }
 
     public bool ApplyProfile()
     {
-        if (!CPH.TryGetArg("profileId", out string profile) || string.IsNullOrWhiteSpace(profile)) return false;
-        profile = profile.Trim();
+        string profile = null;
+        if (CPH.TryGetArg("replayAnimationProfileId", out string explicitProfile) && !string.IsNullOrWhiteSpace(explicitProfile)) profile = explicitProfile.Trim();
+        if (string.IsNullOrWhiteSpace(profile)) profile = CPH.GetGlobalVar<string>(SelectedProfileKey, true) ?? "default";
+        if (!ProfileExists(profile)) profile = "default";
+
         var key = "rts.actionreplay.animation." + profile + ".";
         var start = ReadSequence(key + "startSequence");
         var end = ReadSequence(key + "endSequence");
         if (start.Count == 0) start.Add(new JObject { ["position"] = GetProfileString(profile, "startPosition", "Full Screen"), ["duration"] = 0, ["delay"] = 0, ["easing"] = GetProfileString(profile, "easing", GetEasing()) });
         if (end.Count == 0) end.Add(new JObject { ["position"] = GetProfileString(profile, "endPosition", "Full Screen"), ["duration"] = (int)Math.Round(GetProfileDouble(profile, "duration", .5) * 1000), ["delay"] = 0, ["easing"] = GetProfileString(profile, "easing", GetEasing()) });
+        CPH.SetArgument("profileId", profile);
         CPH.SetArgument("replayAnimationProfile", new JObject
         {
+            ["id"] = profile,
             ["name"] = CPH.GetGlobalVar<string>(key + "name", true) ?? profile,
             ["start"] = start,
             ["end"] = end
@@ -106,15 +114,25 @@ public class CPHInline
         RemoveLegacyProfileData();
     }
 
+    private bool ProfileExists(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id)) return false;
+        foreach (var item in ReadProfiles()) if (string.Equals((string)item["id"], id, StringComparison.Ordinal)) return true;
+        return false;
+    }
+
     private void RemoveLegacyProfileData()
     {
         var legacy = new[] { "fullScreen", "halfScreen", "twitchClip", "obsClip", "playlist", "recent" };
-        foreach (var id in legacy)
-        {
-            CPH.UnsetGlobalVar("rts.actionreplay.animation." + id + ".name", true);
-            CPH.UnsetGlobalVar("rts.actionreplay.animation." + id + ".startSequence", true);
-            CPH.UnsetGlobalVar("rts.actionreplay.animation." + id + ".endSequence", true);
-        }
+        foreach (var id in legacy) RemoveProfileData(id);
+    }
+
+    private void RemoveProfileData(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id) || id == "default") return;
+        CPH.UnsetGlobalVar("rts.actionreplay.animation." + id + ".name", true);
+        CPH.UnsetGlobalVar("rts.actionreplay.animation." + id + ".startSequence", true);
+        CPH.UnsetGlobalVar("rts.actionreplay.animation." + id + ".endSequence", true);
     }
 
     private JArray ReadProfiles()
