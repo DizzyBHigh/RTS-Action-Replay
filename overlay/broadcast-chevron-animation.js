@@ -27,20 +27,22 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const primary = colour(styles.getPropertyValue('--title-primary')) || '#0384CB';
   const secondary = colour(styles.getPropertyValue('--title-secondary')) || '#FFD400';
   const heightSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronHeight, 1, track.clientHeight, 42);
-  const widthSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronWidth, 1, 300, 90);
+  const widthSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronWidth, 1, 100, 4);
   const spacingSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronSpacing, 0, 200, 0);
   const randomHeight = RTSReplayBroadcast.command?.replayBroadcastRandomHeight === true;
   const randomWidth = RTSReplayBroadcast.command?.replayBroadcastRandomWidth === true;
   const randomSpacing = RTSReplayBroadcast.command?.replayBroadcastRandomSpacing === true;
   const speed = number(RTSReplayBroadcast.command?.replayBroadcastChevronSpeed, 10, 500, 95);
-  const strokeWidth = 4;
   const seedLeft = -90;
   const trackWidth = track.clientWidth;
   const getHeight = () => randomHeight ? randomValue(heightSetting, 1) : heightSetting;
   const getWidth = () => randomWidth ? randomValue(widthSetting, 1) : widthSetting;
   const getSpacing = () => randomSpacing ? randomValue(spacingSetting, 0) : spacingSetting;
-  const dimensions = (width, height) => ({ width, height });
-  const pitch = (width, height, spacing) => Math.max(1, dimensions(width, height).width - strokeWidth + spacing);
+  const dimensions = (width, height) => ({ width: Math.max(height * 0.5 + width, width), height });
+  const pitch = (width, height, spacing) => {
+    const size = dimensions(width, height);
+    return Math.max(1, size.width - width + spacing);
+  };
 
   const createChevron = (left, width, height, spacing, index) => {
     const size = dimensions(width, height);
@@ -61,7 +63,7 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     path.setAttribute('points', '3,3 47,50 3,97');
     path.setAttribute('fill', 'none');
     path.setAttribute('stroke', 'currentColor');
-    path.setAttribute('stroke-width', String(strokeWidth));
+    path.setAttribute('stroke-width', String(width));
     path.setAttribute('vector-effect', 'non-scaling-stroke');
     path.setAttribute('stroke-linecap', 'butt');
     path.setAttribute('stroke-linejoin', 'miter');
