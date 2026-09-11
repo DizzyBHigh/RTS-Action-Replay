@@ -39,7 +39,11 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const getWidth = () => randomWidth ? randomValue(widthSetting, 1) : widthSetting;
   const getSpacing = () => randomSpacing ? randomValue(spacingSetting, 0) : spacingSetting;
   const dimensions = (width, height) => ({ width, height });
-  const travelDelay = (width, spacing) => Math.max(0, (width + spacing) / speed * 1000);
+  const chevronArm = (width, height) => Math.min(height * 0.42, width * 0.45);
+  const travelDelay = (width, height, spacing) => {
+    const pitch = Math.max(1, width - chevronArm(width, height) + spacing);
+    return (pitch / speed) * 1000;
+  };
 
   const createChevron = (left, width, height, index) => {
     const size = dimensions(width, height);
@@ -57,7 +61,7 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     const chevronColor = index % 2 ? secondary : primary;
     chevron.style.setProperty('--chevron-color', chevronColor);
 
-    const arm = Math.min(size.height * 0.42, size.width * 0.45);
+    const arm = chevronArm(size.width, size.height);
     const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
     polygon.setAttribute('points', [
       `0,0`,
@@ -101,7 +105,7 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     pendingWidth = getWidth();
     pendingHeight = getHeight();
     pendingSpacing = getSpacing();
-    RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(spawn, travelDelay(width, spacing));
+    RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(spawn, travelDelay(width, height, spacing));
   };
 
   spawn();
