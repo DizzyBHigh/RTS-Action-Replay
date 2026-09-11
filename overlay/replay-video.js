@@ -44,6 +44,19 @@ RTSReplayVideo.loadReplay = command => {
   }
 };
 
+RTSReplayVideo.testTitle = command => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('dev') !== 'true') return;
+
+  RTSReplayVideo.currentCommand = command;
+  RTSReplayControls.configure(command);
+  RTSReplayElements.configure(command);
+  RTSReplayVideo.player.classList.add('dev-player', 'show');
+  RTSReplayVideo.player.style.opacity = '1';
+  RTSReplayVideo.player.style.visibility = 'visible';
+  RTSReplayVideo.frame?.classList.add('dev-frame');
+};
+
 RTSReplayVideo.moveReplay = command => {
   RTSReplayVideo.currentCommand = command;
   const position = RTSReplayVideo.getPosition(command.replayPosition || 'Full Screen');
@@ -59,6 +72,7 @@ RTSReplayVideo.moveReplay = command => {
 RTSReplayVideo.handleReplayCommand = command => {
   if (command.replayCommand === 'message') RTSReplayVideo.showMessage(command);
   if (command.replayCommand === 'load') RTSReplayVideo.loadReplay(command);
+  if (command.replayCommand === 'title-test') RTSReplayVideo.testTitle(command);
   if (command.replayCommand === 'play') RTSReplayVideo.playReplay(command);
   if (command.replayCommand === 'pause') RTSReplayVideo.video.pause();
   if (command.replayCommand === 'move') RTSReplayVideo.moveReplay(command);
