@@ -35,9 +35,8 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const trackWidth = track.clientWidth;
   const getHeight = () => randomHeight ? randomValue(heightSetting, 1) : heightSetting;
   const getSpacing = () => randomSpacing ? randomValue(spacingSetting, 0) : spacingSetting;
-  const chevronBorderRatio = 0.357142857;
-  const visualWidth = height => (height + height * chevronBorderRatio) / Math.SQRT2;
-  const pitch = height => Math.max(0, visualWidth(height) + getSpacing());
+  const visualWidth = height => height / Math.SQRT2;
+  const pitch = (height, spacing) => Math.max(0, visualWidth(height) + spacing);
 
   const createChevron = (left, height, index) => {
     const mover = document.createElement('span');
@@ -64,30 +63,33 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   let index = 0;
   let left = seedLeft;
   let height = getHeight();
+  let spacing = getSpacing();
   while (left < trackWidth) {
     createChevron(left, height, index++);
     animate(track.lastElementChild, left);
-    left += pitch(height);
+    left += pitch(height, spacing);
     height = getHeight();
+    spacing = getSpacing();
   }
 
   let pendingHeight = height;
-  let pendingSpacing = getSpacing();
+  let pendingSpacing = spacing;
   const spawn = () => {
     if (!broadcastTitle.classList.contains('title-broadcast') || !broadcastTitle.classList.contains('visible') || track !== RTSReplayBroadcast.broadcastChevronTrack) {
       RTSReplayBroadcast.stopBroadcastChevrons();
       return;
     }
     const currentHeight = pendingHeight;
+    const currentSpacing = pendingSpacing;
     const mover = createChevron(seedLeft, currentHeight, index++);
     animate(mover, seedLeft);
     pendingHeight = getHeight();
-    const delay = Math.max(0, (visualWidth(currentHeight) + pendingSpacing) / speed * 1000);
     pendingSpacing = getSpacing();
+    const delay = Math.max(0, pitch(currentHeight, currentSpacing) / speed * 1000);
     RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(spawn, delay);
   };
 
-  RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(spawn, Math.max(0, (visualWidth(pendingHeight) + pendingSpacing) / speed * 1000));
+  RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(spawn, Math.max(0, pitch(pendingHeight, pendingSpacing) / speed * 1000));
 };
 
 RTSReplayBroadcast.observeBroadcastChevrons = () => {
