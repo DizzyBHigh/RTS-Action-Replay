@@ -36,7 +36,7 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const getHeight = () => randomHeight ? randomValue(heightSetting, 1) : heightSetting;
   const getSpacing = () => randomSpacing ? randomValue(spacingSetting, 0) : spacingSetting;
   const visualWidth = height => height / Math.SQRT2;
-  const pitch = (height, spacing) => Math.max(0, visualWidth(height) + spacing);
+  const pitch = (height, spacing) => Math.max(0, visualWidth(height) - height * 0.12 + spacing);
 
   const createChevron = (left, height, index) => {
     const mover = document.createElement('span');
