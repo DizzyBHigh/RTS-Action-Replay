@@ -227,9 +227,9 @@ public class CPHInline
         var rows = new List<string[]>();
         foreach (var item in positions)
         {
-            var tag = (string)item["tag"] ?? "";
-            var name = (string)item["name"] ?? "";
-            rows.Add(new[] { tag, name });
+            var tag = (string)item.Value["tag"] ?? "";
+            var name = (string)item.Value["name"] ?? "";
+            rows.Add(new string[] { tag, name });
         }
         return rows.ToArray();
     }
