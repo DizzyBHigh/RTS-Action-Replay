@@ -33,7 +33,7 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const randomWidth = RTSReplayBroadcast.command?.replayBroadcastRandomWidth === true;
   const randomSpacing = RTSReplayBroadcast.command?.replayBroadcastRandomSpacing === true;
   const speed = number(RTSReplayBroadcast.command?.replayBroadcastChevronSpeed, 10, 500, 95);
-  const seedLeft = -90;
+  const seedLeft = -120;
   const trackWidth = track.clientWidth;
   const getHeight = () => randomHeight ? randomValue(heightSetting, 1) : heightSetting;
   const getWidth = () => randomWidth ? randomValue(widthSetting, 1) : widthSetting;
