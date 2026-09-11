@@ -13,7 +13,7 @@ public class CPHInline
     private const string TwitchFolderKey = "rts.actionreplay.twitch.folder";
     private const string TwitchMappingKey = "rts.actionreplay.twitch.httpMapping";
     private const string TwitchModeKey = "rts.actionreplay.twitch.playbackMode";
-    private const string AnimationAction = "RTS Action Replay Animation Profiles";
+    private const string AnimationAction = "RTS - Action Replay - Core - Animation";
 
     public bool Execute() => PlayReplay();
 
