@@ -9,6 +9,15 @@ RTSReplayVideo.confirmPlayback = (replayId, userId, userName) => {
   }));
 };
 
+RTSReplayVideo.notifyPlaybackEnded = command => {
+  if (!command?.replayId || !RTSReplayVideo.socket || RTSReplayVideo.socket.readyState !== WebSocket.OPEN) return;
+  RTSReplayVideo.socket.send(JSON.stringify({
+    request: 'DoAction', id: `rts-replay-ended-${Date.now()}`,
+    action: { name: RTSReplayVideo.config.endedAction },
+    args: { replayId: command.replayId, replayQueueEntryId: command.replayQueueEntryId || '' }
+  }));
+};
+
 RTSReplayVideo.playReplay = command => {
   RTSReplayVideo.video.play().then(() => {
     RTSReplayVideo.confirmPlayback(command.replayId, command.replayUserId, command.replayUserName);
@@ -17,7 +26,6 @@ RTSReplayVideo.playReplay = command => {
 
 RTSReplayVideo.loadReplay = command => {
   if (!command.replayUrl) return;
-
   RTSReplayVideo.currentCommand = command;
   window.RTSDevToolbar?.updateClapper?.(command);
   RTSReplayControls.configure(command);
@@ -30,8 +38,16 @@ RTSReplayVideo.loadReplay = command => {
 
   RTSReplayVideo.video.src = command.replayUrl;
   RTSReplayVideo.video.style.display = 'block';
+  RTSReplayVideo.visiblePosition = endPosition;
+  const alreadyVisible = RTSReplayVideo.player.classList.contains('show');
   RTSReplayVideo.video.load();
-  RTSReplayVideo.animateIn(startPosition, endPosition);
+  if (alreadyVisible) {
+    RTSReplayVideo.cancelPendingTransition();
+    RTSReplayVideo.applyPosition(endPosition, true);
+    RTSReplayVideo.activePosition = endPosition;
+  } else {
+    RTSReplayVideo.animateIn(startPosition, endPosition);
+  }
 
   if (command.replayAutoplay) {
     RTSReplayVideo.video.addEventListener('canplay', () => RTSReplayVideo.playReplay(command), { once: true });
@@ -41,7 +57,6 @@ RTSReplayVideo.loadReplay = command => {
 RTSReplayVideo.testTitle = command => {
   const params = new URLSearchParams(window.location.search);
   if (params.get('dev') !== 'true') return;
-
   RTSReplayVideo.currentCommand = command;
   RTSReplayControls.configure(command);
   RTSReplayElements.configure(command);
@@ -62,14 +77,32 @@ RTSReplayVideo.moveReplay = command => {
   RTSReplayVideo.player.classList.add('show');
 };
 
+RTSReplayVideo.showPlayer = () => {
+  const target = RTSReplayVideo.visiblePosition || RTSReplayVideo.activePosition || RTSReplayVideo.getPosition('Full Screen');
+  RTSReplayVideo.video.style.display = 'block';
+  RTSReplayVideo.player.classList.add('show');
+  RTSReplayVideo.applyPosition(target, true);
+  RTSReplayVideo.activePosition = target;
+  RTSReplayVideo.playReplay(RTSReplayVideo.currentCommand || {});
+};
+
 RTSReplayVideo.handleReplayCommand = command => {
   if (command.replayCommand === 'message') RTSReplayVideo.showMessage(command);
   if (command.replayCommand === 'load') RTSReplayVideo.loadReplay(command);
   if (command.replayCommand === 'title-test') RTSReplayVideo.testTitle(command);
   if (command.replayCommand === 'play') RTSReplayVideo.playReplay(command);
   if (command.replayCommand === 'pause') RTSReplayVideo.video.pause();
+  if (command.replayCommand === 'speed') {
+    const speed = Math.max(0.25, Math.min(4, Number(command.replayPlaybackSpeed) || 1));
+    RTSReplayVideo.video.playbackRate = speed;
+  }
   if (command.replayCommand === 'move') RTSReplayVideo.moveReplay(command);
-  if (command.replayCommand === 'hide') RTSReplayVideo.animateOut();
+  if (command.replayCommand === 'hide') {
+    RTSReplayVideo.video.pause();
+    RTSReplayVideo.visiblePosition = RTSReplayVideo.activePosition;
+    RTSReplayVideo.animateOut();
+  }
+  if (command.replayCommand === 'show') RTSReplayVideo.showPlayer();
   if (command.replayCommand === 'stop') {
     RTSReplayVideo.video.pause();
     RTSReplayVideo.video.currentTime = 0;
@@ -81,6 +114,6 @@ RTSReplayVideo.handleReplayCommand = command => {
 };
 
 RTSReplayVideo.video.addEventListener('ended', () => {
-  if (!RTSReplayVideo.currentCommand) return;
-  RTSReplayVideo.animateOut();
+  const command = RTSReplayVideo.currentCommand;
+  if (command) RTSReplayVideo.notifyPlaybackEnded(command);
 });
