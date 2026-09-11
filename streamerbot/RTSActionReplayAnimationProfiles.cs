@@ -14,8 +14,8 @@ public class CPHInline
     {
         EnsureDefaultProfile();
         EnsureProfileRegistry();
-        var selected = CPH.GetGlobalVar<string>(SelectedProfileKey, true);
-        if (string.IsNullOrWhiteSpace(ResolveProfileId(selected))) CPH.SetGlobalVar(SelectedProfileKey, "Default", true);
+        var selectedId = ResolveProfileId(CPH.GetGlobalVar<string>(SelectedProfileKey, true));
+        CPH.SetGlobalVar(SelectedProfileKey, selectedId == null ? "Default" : GetProfileName(selectedId), true);
         return true;
     }
 
@@ -61,7 +61,7 @@ public class CPHInline
         CPH.SetArgument("replayAnimationProfile", new JObject
         {
             ["id"] = profile,
-            ["name"] = CPH.GetGlobalVar<string>(key + "name", true) ?? profile,
+            ["name"] = GetProfileName(profile),
             ["start"] = start,
             ["end"] = end
         }.ToString(Newtonsoft.Json.Formatting.None));
@@ -119,9 +119,17 @@ public class CPHInline
     {
         if (string.IsNullOrWhiteSpace(value)) return null;
         if (ProfileExists(value)) return value;
-        foreach (var item in ReadProfiles())
-            if (string.Equals((string)item["name"], value, StringComparison.OrdinalIgnoreCase)) return (string)item["id"];
+        foreach (var item in ReadProfiles()) if (string.Equals((string)item["name"], value, StringComparison.OrdinalIgnoreCase)) return (string)item["id"];
         return null;
+    }
+
+    private string GetProfileName(string id)
+    {
+        if (id == "default") return "Default";
+        var value = CPH.GetGlobalVar<string>("rts.actionreplay.animation." + id + ".name", true);
+        if (!string.IsNullOrWhiteSpace(value)) return value;
+        foreach (var item in ReadProfiles()) if (string.Equals((string)item["id"], id, StringComparison.Ordinal)) return (string)item["name"] ?? "New Profile";
+        return "New Profile";
     }
 
     private bool ProfileExists(string id)
