@@ -205,7 +205,7 @@ public class CPHInline
         ui.BeginSection(title);
         ui.BeginRow();
         ui.AddPositionSelector("Start Position", "Position used when the replay enters.", "Positions", "rts.actionreplay.animation." + profile + ".startPosition", "rts.actionreplay.positions", "Full Screen");
-        ui.AddPositionSelector("End Position", "Position used when the replay exits.", "Positions", "rts.actionreplay.positions", "Full Screen");
+        ui.AddPositionSelector("End Position", "Position used when the replay exits.", "Positions", "rts.actionreplay.animation." + profile + ".endPosition", "rts.actionreplay.positions", "Full Screen");
         ui.EndRow();
         ui.BeginRow();
         ui.AddDecimalTextbox("Duration", "Animation duration in seconds.", "Positions", "rts.actionreplay.animation." + profile + ".duration", .5, 0, 10, .1);
