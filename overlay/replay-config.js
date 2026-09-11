@@ -5,6 +5,7 @@ RTSReplay.config = {
   port: 8080,
   eventName: 'RTS-Action Replay',
   confirmAction: 'RTS Action Replay - Playback Confirm',
+  endedAction: 'RTS Action Replay - Playback Ended',
   reconnectDelay: 3000,
   messageDuration: 5000
 };
@@ -28,5 +29,6 @@ RTSReplay.reconnectTimer = null;
 RTSReplay.messageTimer = null;
 RTSReplay.currentCommand = null;
 RTSReplay.activePosition = null;
+RTSReplay.visiblePosition = null;
 
 window.RTSReplay = RTSReplay;
