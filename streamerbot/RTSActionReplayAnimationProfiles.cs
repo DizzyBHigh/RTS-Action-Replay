@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 public class CPHInline
 {
     private const string DefaultEasingKey = "rts.actionreplay.animation.default.easing";
+    private const string ProfilesKey = "rts.actionreplay.animation.profiles";
 
     public bool Execute() => EnsureProfiles();
 
@@ -18,6 +19,31 @@ public class CPHInline
         EnsureProfile("obsClip", "Mini Player", false);
         EnsureProfile("playlist", "Mini Player", false);
         EnsureProfile("recent", "Mini Player", false);
+        EnsureProfileRegistry();
+        return true;
+    }
+
+    public bool AddProfile()
+    {
+        if (!CPH.TryGetArg("profileName", out string name) || string.IsNullOrWhiteSpace(name)) return false;
+        name = name.Trim();
+        JArray profiles = ReadProfiles();
+        string id = Guid.NewGuid().ToString("N");
+        profiles.Add(new JObject { ["id"] = id, ["name"] = name });
+        WriteProfiles(profiles);
+        EnsureProfile(id, name, false);
+        return true;
+    }
+
+    public bool RemoveProfile()
+    {
+        if (!CPH.TryGetArg("profileId", out string id) || string.IsNullOrWhiteSpace(id)) return false;
+        id = id.Trim();
+        if (id == "default") return false;
+        JArray profiles = ReadProfiles();
+        for (int i = profiles.Count - 1; i >= 0; i--)
+            if (string.Equals((string)profiles[i]["id"], id, StringComparison.Ordinal)) profiles.RemoveAt(i);
+        WriteProfiles(profiles);
         return true;
     }
 
@@ -72,6 +98,30 @@ public class CPHInline
             : "[{\"position\":\"Full Screen\",\"duration\":0,\"delay\":0,\"easing\":\"ease-in-out\"}]";
         SetDefault("rts.actionreplay.animation." + profile + ".startSequence", start);
         SetDefault("rts.actionreplay.animation." + profile + ".endSequence", "[{\"position\":\"Mini Hidden\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]");
+    }
+
+    private void EnsureProfileRegistry()
+    {
+        if (CPH.GetGlobalVar<string>(ProfilesKey, true) != null) return;
+        WriteProfiles(new JArray
+        {
+            new JObject { ["id"] = "default", ["name"] = "Mini Player" },
+            new JObject { ["id"] = "fullScreen", ["name"] = "Full Screen" },
+            new JObject { ["id"] = "halfScreen", ["name"] = "Half Screen" }
+        });
+    }
+
+    private JArray ReadProfiles()
+    {
+        string raw = CPH.GetGlobalVar<string>(ProfilesKey, true);
+        if (string.IsNullOrWhiteSpace(raw)) return new JArray();
+        try { return JArray.Parse(raw); }
+        catch { return new JArray(); }
+    }
+
+    private void WriteProfiles(JArray profiles)
+    {
+        CPH.SetGlobalVar(ProfilesKey, profiles.ToString(Newtonsoft.Json.Formatting.None), true);
     }
 
     private void SetDefault(string key, string value)
