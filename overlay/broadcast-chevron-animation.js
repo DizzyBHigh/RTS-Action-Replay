@@ -63,16 +63,17 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
 
   let index = 0;
   let left = seedLeft;
-  let firstPitch = widthSetting * Math.SQRT2 + spacingSetting;
   while (left < trackWidth) {
     const width = getWidth();
     const spacing = getSpacing();
     const pitch = visualWidth(width) + spacing;
-    if (index === 0) firstPitch = pitch;
     const mover = createChevron(left, width, index++);
     animate(mover, left);
     left += pitch;
   }
+
+  let pendingWidth = getWidth();
+  let pendingSpacing = getSpacing();
 
   const spawn = () => {
     if (!broadcastTitle.classList.contains('title-broadcast') || !broadcastTitle.classList.contains('visible') || track !== RTSReplayBroadcast.broadcastChevronTrack) {
@@ -80,14 +81,19 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
       return;
     }
 
-    const width = getWidth();
-    const spacing = getSpacing();
+    const width = pendingWidth;
+    const spacing = pendingSpacing;
     const pitch = visualWidth(width) + spacing;
     const mover = createChevron(seedLeft, width, index++);
     animate(mover, seedLeft);
-    RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(spawn, (pitch / speed) * 1000);
+
+    pendingWidth = getWidth();
+    pendingSpacing = getSpacing();
+    const nextPitch = visualWidth(pendingWidth) + pendingSpacing;
+    RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(spawn, (nextPitch / speed) * 1000);
   };
 
+  const firstPitch = visualWidth(pendingWidth) + pendingSpacing;
   RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(spawn, (firstPitch / speed) * 1000);
 };
 
