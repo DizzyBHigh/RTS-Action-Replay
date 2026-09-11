@@ -38,8 +38,9 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const getHeight = () => randomHeight ? randomValue(heightSetting, 1) : heightSetting;
   const getWidth = () => randomWidth ? randomValue(widthSetting, 1) : widthSetting;
   const getSpacing = () => randomSpacing ? randomValue(spacingSetting, 0) : spacingSetting;
-  const visualWidth = (width, height) => ((width + height) * 0.5) / Math.SQRT2;
-  const pitch = (width, height, spacing) => Math.max(0, visualWidth(width, height) - Math.min(width, height) * 0.22 + spacing);
+  const visualExtent = (width, height) => (width + height) / Math.SQRT2;
+  const chevronScale = (width, height) => Math.min(1, height / visualExtent(width, height));
+  const pitch = (width, height, spacing) => Math.max(0, (visualExtent(width, height) - Math.min(width, height) * 0.22) * chevronScale(width, height) + spacing);
 
   const createChevron = (left, width, height, index) => {
     const mover = document.createElement('span');
@@ -49,6 +50,7 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     chevron.className = 'broadcast-chevron';
     chevron.style.setProperty('--chevron-width', `${width.toFixed(2)}px`);
     chevron.style.setProperty('--chevron-height', `${height.toFixed(2)}px`);
+    chevron.style.setProperty('--chevron-scale', chevronScale(width, height).toFixed(4));
     chevron.style.setProperty('--chevron-color', index % 2 ? secondary : primary);
     mover.append(chevron);
     track.append(mover);
