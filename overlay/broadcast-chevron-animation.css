@@ -30,10 +30,9 @@
   left: 0;
   width: var(--chevron-width,42px);
   height: var(--chevron-height,42px);
-  box-sizing: border-box;
-  border-right: max(1px,calc(var(--chevron-height,42px) * .357142857)) solid var(--chevron-color, #0384CB);
-  border-bottom: max(1px,calc(var(--chevron-height,42px) * .357142857)) solid var(--chevron-color, #0384CB);
-  transform: translateY(-50%) rotate(-45deg) scale(var(--chevron-scale, 1));
+  overflow: visible;
+  color: var(--chevron-color, #0384CB);
+  transform: translateY(-50%);
   filter: drop-shadow(0 0 5px color-mix(in srgb, var(--chevron-color, #0384CB) 45%, transparent));
   opacity: .72;
 }
