@@ -211,9 +211,46 @@ public class CPHInline
     {
         ui.BeginSection(title);
         ui.AddTextbox("Profile Name", "Display name for this animation profile. The internal profile ID remains stable when renamed.", "Positions", "rts.actionreplay.animation." + profile + ".name", title, false);
-        ui.AddTextbox("Start Sequence", "JSON array of steps. First step is the initial position; each later step uses duration/delay/easing. Example: [{\"position\":\"Mini Hidden\",\"duration\":0,\"delay\":0},{\"position\":\"Mini Angled\",\"duration\":1000,\"delay\":3000},{\"position\":\"Full Screen\",\"duration\":1000,\"delay\":0}]", "Positions", "rts.actionreplay.animation." + profile + ".startSequence", "[{\"position\":\"Mini Hidden\",\"duration\":0,\"delay\":0,\"easing\":\"ease-in-out\"},{\"position\":\"Mini Angled\",\"duration\":1000,\"delay\":3000,\"easing\":\"ease-in-out\"},{\"position\":\"Mini\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]", false);
-        ui.AddTextbox("End Sequence", "JSON array of steps. Each step is a target position with transition duration, delay after arrival and easing.", "Positions", "rts.actionreplay.animation." + profile + ".endSequence", "[{\"position\":\"Mini Hidden\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]", false);
+        AddAnimationSequence(ui, "Start Sequence", "The positions and transitions used when the replay starts.", "rts.actionreplay.animation." + profile + ".startSequence", GetStartDefaults(profile));
+        AddAnimationSequence(ui, "End Sequence", "The positions and transitions used when the replay ends.", "rts.actionreplay.animation." + profile + ".endSequence", GetEndDefaults());
         ui.EndSection();
+    }
+
+    private void AddAnimationSequence(RtsUI ui, string title, string description, string key, string defaultPosition)
+    {
+        ui.AddDynamicRows(title, description, "Positions", key, rows =>
+        {
+            rows.AddDropdown("Position", "position", BuildPositionOptions(), defaultPosition);
+            rows.AddNumericTextbox("Duration", "duration", 1000, 0, 60000);
+            rows.AddDropdown("Easing", "easing", new[] { "linear", "ease", "ease-in", "ease-out", "ease-in-out" }, "ease-in-out");
+            rows.AddNumericTextbox("Delay", "delay", 0, 0, 60000);
+        });
+    }
+
+    private string GetStartDefaults(string profile)
+    {
+        if (profile == "default") return "Mini Hidden";
+        return "Full Screen";
+    }
+
+    private string GetEndDefaults()
+    {
+        return "Mini Hidden";
+    }
+
+    private string[] BuildPositionOptions()
+    {
+        var positions = ParsePositions(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true));
+        var options = new List<string>();
+        foreach (var item in positions)
+        {
+            var position = item.Value as JObject;
+            if (position == null) continue;
+            var name = (string)position["name"];
+            if (!string.IsNullOrWhiteSpace(name) && !options.Contains(name)) options.Add(name);
+        }
+        if (options.Count == 0) options.Add("Full Screen");
+        return options.ToArray();
     }
 
     private void AddMessageSettings(RtsUI ui)
