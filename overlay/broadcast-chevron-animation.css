@@ -1,0 +1,33 @@
+#player-title.title-broadcast:before {
+  background-image: none;
+  animation: none;
+}
+
+#player-title.title-broadcast .broadcast-chevron-track {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 15%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+#player-title.title-broadcast .broadcast-chevron {
+  position: absolute;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  box-sizing: border-box;
+  border-right: 5px solid var(--chevron-color, #0384CB);
+  border-bottom: 5px solid var(--chevron-color, #0384CB);
+  transform: translateY(-50%) rotate(-45deg);
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--chevron-color, #0384CB) 45%, transparent));
+  opacity: .72;
+  will-change: transform;
+}
+
+@media(prefers-reduced-motion:reduce){
+  #player-title.title-broadcast .broadcast-chevron{display:none}
+}
