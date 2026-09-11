@@ -200,16 +200,15 @@ public class CPHInline
 
     private void AddAnimationProfileSettings(RtsUI ui)
     {
-        ui.BeginSection("Animation Profiles", "Positions");
+        ui.AddTitle("Animation Profiles", "Positions");
         AddAnimationProfile(ui, "Mini Player", "default");
         AddAnimationProfile(ui, "Full Screen", "fullScreen");
         AddAnimationProfile(ui, "Half Screen", "halfScreen");
-        ui.EndSection();
     }
 
     private void AddAnimationProfile(RtsUI ui, string title, string profile)
     {
-        ui.BeginSection(title);
+        ui.BeginSection(title, "Positions");
         ui.AddTextbox("Profile Name", "Display name for this animation profile. The internal profile ID remains stable when renamed.", "Positions", "rts.actionreplay.animation." + profile + ".name", title, false);
         AddAnimationSequence(ui, "Start Sequence", "The positions and transitions used when the replay starts.", "rts.actionreplay.animation." + profile + ".startSequence", GetStartDefaults(profile));
         AddAnimationSequence(ui, "End Sequence", "The positions and transitions used when the replay ends.", "rts.actionreplay.animation." + profile + ".endSequence", GetEndDefaults());
