@@ -27,8 +27,8 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const primary = colour(styles.getPropertyValue('--title-primary')) || '#0384CB';
   const secondary = colour(styles.getPropertyValue('--title-secondary')) || '#FFD400';
   const heightSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronHeight, 1, track.clientHeight, 42);
-  const widthSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronWidth, 1, 200, heightSetting);
-  const thicknessSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronThickness, 1, 20, 4);
+  const widthSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronWidth, 1, 300, 90);
+  const thicknessSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronThickness, 1, 80, 40);
   const spacingSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronSpacing, 0, 200, 0);
   const randomHeight = RTSReplayBroadcast.command?.replayBroadcastRandomHeight === true;
   const randomWidth = RTSReplayBroadcast.command?.replayBroadcastRandomWidth === true;
@@ -39,14 +39,8 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const getHeight = () => randomHeight ? randomValue(heightSetting, 1) : heightSetting;
   const getWidth = () => randomWidth ? randomValue(widthSetting, 1) : widthSetting;
   const getSpacing = () => randomSpacing ? randomValue(spacingSetting, 0) : spacingSetting;
-  const dimensions = (width, height) => {
-    const scale = Math.min(width / 50, height / 100);
-    return { width: 50 * scale, height: 100 * scale };
-  };
-  const pitch = (width, height, spacing) => {
-    const size = dimensions(width, height);
-    return Math.max(1, size.width - thicknessSetting + spacing);
-  };
+  const dimensions = (width, height) => ({ width, height });
+  const pitch = (width, height, spacing) => Math.max(1, dimensions(width, height).width - thicknessSetting + spacing);
   const glow = spacing => ({
     radius: spacing <= 0 ? 0 : Math.min(5, 1 + spacing * 0.4),
     alpha: spacing <= 0 ? 0 : Math.min(45, 15 + spacing * 2.5)
