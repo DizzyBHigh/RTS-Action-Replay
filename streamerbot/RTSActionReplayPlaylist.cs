@@ -115,7 +115,13 @@ public class CPHInline
     private bool IsPaused() => CPH.GetGlobalVar<bool?>(PausedKey, false) ?? false;
     private bool PersistQueue() => CPH.GetGlobalVar<bool?>(PersistKey, true) ?? false;
     private void HidePlayer() { CPH.SetArgument("replayCommand", "hide"); CPH.TriggerEvent("RTS-Action Replay", true); }
-    private JArray LoadQueue() { var raw = CPH.GetGlobalVar<string>(QueueKey, PersistQueue()); try { return string.IsNullOrWhiteSpace(raw) ? new JArray() : JArray.Parse(raw); } catch { return new JArray(); } }
+    private JArray LoadQueue()
+    {
+        var persist = PersistQueue();
+        if (!persist) CPH.SetGlobalVar(QueueKey, "", true);
+        var raw = CPH.GetGlobalVar<string>(QueueKey, persist);
+        try { return string.IsNullOrWhiteSpace(raw) ? new JArray() : JArray.Parse(raw); } catch { return new JArray(); }
+    }
     private void SaveQueue(JArray queue) => CPH.SetGlobalVar(QueueKey, queue.ToString(Newtonsoft.Json.Formatting.None), PersistQueue());
     private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); } }
     private JArray Catalog(JObject data) => data["catalog"] as JArray ?? new JArray();
