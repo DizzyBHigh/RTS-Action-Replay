@@ -32,7 +32,7 @@ The Playlist is a current queue, separate from Catalog and Recent Clips.
 - Playback completion comes from the browser's native `video.ended` event over the existing Streamer.bot WebSocket.
 - When the queue has another item and is not paused, the next replay replaces the video in-place without hiding/showing the player between items.
 - Play counts are incremented only after the browser successfully starts playback.
-- The live queue uses non-persisted Streamer.bot globals, so a Streamer.bot restart does not resurrect an old queue.
+- Playlist persistence is configurable. When enabled, the queue survives a Streamer.bot restart; when disabled, the queue is session-only. Transient playback state is never persisted.
 
 ## Video and player controls
 

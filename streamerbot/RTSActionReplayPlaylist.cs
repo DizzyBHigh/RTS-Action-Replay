@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 public class CPHInline
 {
     private const string QueueKey = "rts.actionreplay.playlist";
+    private const string PersistKey = "rts.actionreplay.playlistPersist";
     private const string PausedKey = "rts.actionreplay.playlistPaused";
     private const string ActiveKey = "rts.actionreplay.playlistActive";
     private const string DataKey = "rts.actionreplay.data";
@@ -14,8 +15,7 @@ public class CPHInline
     public bool EnqueueCurrentReplay()
     {
         if (!CPH.TryGetArg("replayId", out string replayId) || string.IsNullOrWhiteSpace(replayId)) return false;
-        var data = Load();
-        var replay = FindReplay(Catalog(data), replayId);
+        var replay = FindReplay(Catalog(Load()), replayId);
         if (replay == null) return false;
         CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName);
         var creator = replay["creator"] as JObject;
@@ -113,9 +113,10 @@ public class CPHInline
 
     private string ActiveId() => CPH.GetGlobalVar<string>(ActiveKey, false);
     private bool IsPaused() => CPH.GetGlobalVar<bool?>(PausedKey, false) ?? false;
+    private bool PersistQueue() => CPH.GetGlobalVar<bool?>(PersistKey, true) ?? false;
     private void HidePlayer() { CPH.SetArgument("replayCommand", "hide"); CPH.TriggerEvent("RTS-Action Replay", true); }
-    private JArray LoadQueue() { var raw = CPH.GetGlobalVar<string>(QueueKey, false); try { return string.IsNullOrWhiteSpace(raw) ? new JArray() : JArray.Parse(raw); } catch { return new JArray(); } }
-    private void SaveQueue(JArray queue) => CPH.SetGlobalVar(QueueKey, queue.ToString(Newtonsoft.Json.Formatting.None), false);
+    private JArray LoadQueue() { var raw = CPH.GetGlobalVar<string>(QueueKey, PersistQueue()); try { return string.IsNullOrWhiteSpace(raw) ? new JArray() : JArray.Parse(raw); } catch { return new JArray(); } }
+    private void SaveQueue(JArray queue) => CPH.SetGlobalVar(QueueKey, queue.ToString(Newtonsoft.Json.Formatting.None), PersistQueue());
     private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); } }
     private JArray Catalog(JObject data) => data["catalog"] as JArray ?? new JArray();
 }
