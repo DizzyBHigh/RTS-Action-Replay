@@ -33,7 +33,6 @@ RTSReplayVideo.loadReplay = command => {
 
   const profile = RTSReplayAnimation.readProfile(command);
   const startSequence = profile?.start;
-  const endSequence = profile?.end;
   const startSteps = Array.isArray(startSequence) ? startSequence : [];
   const startName = command.replayStartPosition || command.replayPosition || 'Full Screen';
   const endName = command.replayEndPosition || startName;
@@ -79,9 +78,15 @@ RTSReplayVideo.moveReplay = command => {
   const position = RTSReplayVideo.getPosition(command.replayPosition || 'Full Screen');
   const current = RTSReplayVideo.activePosition;
   if (current && RTSReplayVideo.positionsEqual?.(current, position)) return;
-  RTSReplayVideo.activePosition = position;
-  RTSReplayVideo.applyPosition(position);
   RTSReplayVideo.player.classList.add('show');
+  if (!current) {
+    RTSReplayVideo.applyPosition(position, true);
+    RTSReplayVideo.activePosition = position;
+    return;
+  }
+  RTSReplayVideo.animatePosition(current, position, () => {
+    RTSReplayVideo.activePosition = position;
+  });
 };
 
 RTSReplayVideo.showPlayer = () => {
