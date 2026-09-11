@@ -1,24 +1,21 @@
 using System;
 using Newtonsoft.Json.Linq;
 
-// Shared animation-profile storage and sequence helpers.
+// Animation-profile defaults and sequence helpers.
 // Profiles are presentation presets and are intentionally source-independent.
 public static class RTSActionReplayAnimationProfiles
 {
-    private const string ProfilesKey = "rts.actionreplay.animation.profiles";
     private const string DefaultEasingKey = "rts.actionreplay.animation.default.easing";
 
     public static void EnsureProfiles()
     {
-        var profiles = LoadProfiles();
-        EnsureProfile(profiles, "default", "Mini Player");
-        EnsureProfile(profiles, "fullScreen", "Full Screen");
-        EnsureProfile(profiles, "halfScreen", "Half Screen");
-        EnsureProfile(profiles, "twitchClip", "Mini Player");
-        EnsureProfile(profiles, "obsClip", "Mini Player");
-        EnsureProfile(profiles, "playlist", "Mini Player");
-        EnsureProfile(profiles, "recent", "Mini Player");
-        SaveProfiles(profiles);
+        EnsureProfile("default", "Mini Player", true);
+        EnsureProfile("fullScreen", "Full Screen", false);
+        EnsureProfile("halfScreen", "Half Screen", false);
+        EnsureProfile("twitchClip", "Mini Player", false);
+        EnsureProfile("obsClip", "Mini Player", false);
+        EnsureProfile("playlist", "Mini Player", false);
+        EnsureProfile("recent", "Mini Player", false);
     }
 
     public static string BuildProfile(string profile)
@@ -55,29 +52,31 @@ public static class RTSActionReplayAnimationProfiles
         return CPH.GetGlobalVar<string>(DefaultEasingKey, true) ?? "ease-in-out";
     }
 
+    private static void EnsureProfile(string profile, string name, bool miniStart)
+    {
+        SetDefault("rts.actionreplay.animation." + profile + ".name", name);
+        var start = miniStart
+            ? "[{\"position\":\"Mini Hidden\",\"duration\":0,\"delay\":0,\"easing\":\"ease-in-out\"},{\"position\":\"Mini Angled\",\"duration\":1000,\"delay\":3000,\"easing\":\"ease-in-out\"},{\"position\":\"Mini\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]"
+            : "[{\"position\":\"Full Screen\",\"duration\":0,\"delay\":0,\"easing\":\"ease-in-out\"}]";
+        SetDefault("rts.actionreplay.animation." + profile + ".startSequence", start);
+        SetDefault("rts.actionreplay.animation." + profile + ".endSequence", "[{\"position\":\"Mini Hidden\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]");
+    }
+
+    private static void SetDefault(string key, object value)
+    {
+        if (value is string)
+        {
+            if (CPH.GetGlobalVar<string>(key, true) == null) CPH.SetGlobalVar(key, value, true);
+            return;
+        }
+        CPH.SetGlobalVar(key, value, true);
+    }
+
     private static JArray ReadSequence(string key)
     {
         var raw = CPH.GetGlobalVar<string>(key, true);
         if (string.IsNullOrWhiteSpace(raw)) return new JArray();
         try { return JArray.Parse(raw); }
         catch { return new JArray(); }
-    }
-
-    private static void EnsureProfile(JObject profiles, string id, string name)
-    {
-        if (profiles[id] is JObject) return;
-        profiles[id] = new JObject { ["name"] = name, ["start"] = new JArray(), ["end"] = new JArray() };
-    }
-
-    private static JObject LoadProfiles()
-    {
-        var raw = CPH.GetGlobalVar<string>(ProfilesKey, true);
-        try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); }
-        catch { return new JObject(); }
-    }
-
-    private static void SaveProfiles(JObject profiles)
-    {
-        CPH.SetGlobalVar(ProfilesKey, profiles.ToString(Newtonsoft.Json.Formatting.None), true);
     }
 }
