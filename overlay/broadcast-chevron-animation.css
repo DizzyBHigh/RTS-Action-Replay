@@ -30,6 +30,9 @@
   left: 0;
   width: var(--chevron-width,42px);
   height: var(--chevron-height,42px);
+  box-sizing: border-box;
+  border: 0;
+  background: transparent;
   overflow: visible;
   color: var(--chevron-color, #0384CB);
   transform: translateY(-50%);
