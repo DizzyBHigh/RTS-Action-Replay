@@ -12,13 +12,14 @@
   overflow: hidden;
   pointer-events: none;
   z-index: 1;
+  clip-path: polygon(0 0,82% 0,100% 50%,82% 100%,0 100%);
 }
 
 #player-title.title-broadcast .broadcast-chevron-mover {
   position: absolute;
   top: 0;
   left: 0;
-  width: 24px;
+  width: 30px;
   height: 100%;
   will-change: transform;
 }
@@ -27,14 +28,32 @@
   position: absolute;
   top: 50%;
   left: 0;
-  width: 24px;
-  height: 24px;
-  box-sizing: border-box;
-  border-right: 5px solid var(--chevron-color, #0384CB);
-  border-bottom: 5px solid var(--chevron-color, #0384CB);
-  transform: translateY(-50%) rotate(-45deg);
+  width: 30px;
+  height: 58px;
+  transform: translateY(-50%);
   filter: drop-shadow(0 0 5px color-mix(in srgb, var(--chevron-color, #0384CB) 45%, transparent));
   opacity: .72;
+}
+
+#player-title.title-broadcast .broadcast-chevron:before,
+#player-title.title-broadcast .broadcast-chevron:after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 30px;
+  height: 25px;
+  border-radius: 2px;
+  background: var(--chevron-color, #0384CB);
+  transform-origin: right center;
+}
+
+#player-title.title-broadcast .broadcast-chevron:before {
+  transform: translateY(-50%) rotate(-70.2deg);
+}
+
+#player-title.title-broadcast .broadcast-chevron:after {
+  transform: translateY(-50%) rotate(70.2deg);
 }
 
 @media(prefers-reduced-motion:reduce){
