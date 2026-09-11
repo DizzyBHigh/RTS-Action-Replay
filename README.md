@@ -4,28 +4,47 @@ Action replay system for Streamer.bot and OBS.
 
 Stage 1 keeps the replay library and statistics local to Streamer.bot. Replay video files remain on the user's computer and are served by Streamer.bot's HTTP Server to the RTS-hosted overlay.
 
-## Stage 1
+## Replay library
 
-- Persistent replay library in `rts.actionreplay.data`.
+- Persistent replay Catalog in `rts.actionreplay.data`.
+- Recent Clips stored separately from the Catalog.
 - File/Folder Watcher support for new OBS replay files.
 - Stable replay IDs independent of playlist position.
 - Configurable replay title templates using Streamer.bot variables.
 - Explicit custom replay titles with case-insensitive duplicate checking.
-- `!playlist` support.
-- `!playreplay <number>` and `!playreplay <custom title>` support.
 - Persistent total and per-user playback counts.
 - Replay creator and creator leaderboard.
 - Playback leaderboard.
 - Maximum history enforcement without deleting physical video files.
 - Replay playback confirmation from the browser overlay before incrementing play counts.
-- Skinnable player frame with frame/border styling, playback speed and non-interactive status controls.
-- Named player positions with scale, X/Y placement and X/Y/Z rotation.
-- Streamer.bot-controlled position changes with smooth transitions.
-- Configurable player entrance and exit animations: zoom and directional slides.
 
-## Stage 2 boundary
+## Live Playlist
 
-Twitch Clip creation is deliberately not part of Stage 1. The replay record is platform-neutral so Twitch clip metadata can be added later without redesigning the replay library.
+The Playlist is a current queue, separate from Catalog and Recent Clips.
+
+- New requested clips are queued rather than played immediately.
+- New OBS replay captures are queued by the replay watcher action.
+- Queue entries retain the video title and requester.
+- `View` shows the current queue in order.
+- `Remove` removes a queued item by position; the currently playing item cannot be removed.
+- `Pause` stops automatic progression without interrupting the current video.
+- `Resume` continues the queue or starts the first queued item when idle.
+- Playback completion comes from the browser's native `video.ended` event over the existing Streamer.bot WebSocket.
+- When the queue has another item and is not paused, the next replay replaces the video in-place without hiding/showing the player between items.
+- Play counts are incremented only after the browser successfully starts playback.
+- The live queue uses non-persisted Streamer.bot globals, so a Streamer.bot restart does not resurrect an old queue.
+
+## Video and player controls
+
+`RTSActionReplayVideoControl.cs` exposes independent controls:
+
+- `PauseVideo`
+- `PlayVideo`
+- `SetVideoSpeed`
+- `HidePlayer` — pauses the current video before hiding it without resetting its position.
+- `ShowPlayer` — shows the existing player and resumes the current video.
+
+These controls are independent of Playlist pause/resume.
 
 ## Streamer.bot code modules
 
@@ -33,16 +52,32 @@ Twitch Clip creation is deliberately not part of Stage 1. The replay record is p
 
 `RTSActionReplayPlayback.cs` is the playback module. Give it the name `RTS Action Replay Playback`.
 
-The main public methods are:
+`RTSActionReplayPlaylist.cs` is the live queue module. Give it the name `RTS Action Replay Playlist` and expose:
 
-- Store: `Initialize`, `AddReplay`, `NameReplay`, `ListPlaylist`, `CreatorLeaderboard`, `PlaybackLeaderboard`
-- Playback: `SaveReplay`, `PlayReplay`, `SetPlayerPosition`, `HidePlayer`, `ConfirmPlayback`
+- `EnqueueCurrentReplay`
+- `View`
+- `Remove`
+- `Pause`
+- `Resume`
+- `PlaybackEnded`
 
-The production import should wire the File/Folder Watcher, commands, player movement methods, custom event and overlay confirmation to these methods. Import code is intentionally not being maintained until the extension functionality is finished.
+`RTSActionReplayVideoControl.cs` is the independent player-control module. Give it the name `RTS Action Replay Video Control` and expose:
+
+- `PauseVideo`
+- `PlayVideo`
+- `SetVideoSpeed`
+- `HidePlayer`
+- `ShowPlayer`
+
+`PlaybackEnded` is the target of the browser WebSocket `DoAction` request named `RTS Action Replay - Playback Ended`.
+
+When a request creates or selects a replay for playback, the request action should execute `RTS Action Replay Playlist -> EnqueueCurrentReplay` instead of directly playing the replay. The OBS replay watcher should execute the same method after `RTS Action Replay Store -> AddReplay`.
+
+The existing `RTS Action Replay Playback -> PlayReplay` method remains the actual playback path. Playlist playback supplies the catalog position for the queued replay, so all existing URL resolution, player settings and playback confirmation remain centralized there.
 
 ## Overlay
 
-The production overlay remains hosted by The Road to Somewhere. It subscribes to the Streamer.bot custom event `RTS-Action Replay` and sends a `DoAction` request back to Streamer.bot using the action name `RTS Action Replay - Playback Confirm` after a replay successfully starts.
+The production overlay remains hosted by The Road to Somewhere. It subscribes to the Streamer.bot custom event `RTS-Action Replay` and sends `DoAction` requests back to Streamer.bot for playback confirmation and playback completion.
 
 The browser player has no user controls. Its status bar is visual-only; playback is controlled through Streamer.bot WebSocket events.
 
