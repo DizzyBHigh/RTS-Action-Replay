@@ -36,7 +36,6 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
 
   const getWidth = () => randomWidth ? randomValue(widthSetting, 1) : widthSetting;
   const getSpacing = () => randomSpacing ? randomValue(spacingSetting, 0) : spacingSetting;
-  const visualWidth = width => width * Math.SQRT2;
   const pitch = (currentWidth, nextWidth, spacing) =>
     currentWidth * (1 + 1 / Math.SQRT2) + nextWidth * (1 / Math.SQRT2 - 0.5) + spacing;
 
@@ -69,9 +68,8 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   let nextWidth = getWidth();
   let spacing = getSpacing();
   while (left < trackWidth) {
-    createChevron(left, width, index);
-    animate(track.lastElementChild, left);
-    index++;
+    const mover = createChevron(left, width, index++);
+    animate(mover, left);
     left += pitch(width, nextWidth, spacing);
     width = nextWidth;
     nextWidth = getWidth();
@@ -79,6 +77,7 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   }
 
   let pendingWidth = width;
+  let pendingNextWidth = nextWidth;
   let pendingSpacing = spacing;
 
   const spawn = () => {
@@ -88,18 +87,24 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     }
 
     const currentWidth = pendingWidth;
-    const nextWidth = getWidth();
+    const nextWidth = pendingNextWidth;
     const spacing = pendingSpacing;
-    const delay = (pitch(currentWidth, nextWidth, spacing) / speed) * 1000;
     const mover = createChevron(seedLeft, currentWidth, index++);
     animate(mover, seedLeft);
 
     pendingWidth = nextWidth;
+    pendingNextWidth = getWidth();
     pendingSpacing = getSpacing();
+    const delay = (pitch(currentWidth, nextWidth, spacing) / speed) * 1000;
     RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(spawn, delay);
   };
 
-  RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(spawn, (pitch(pendingWidth, getWidth(), pendingSpacing) / speed) * 1000);
+  const firstNextWidth = getWidth();
+  RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(
+    spawn,
+    (pitch(pendingWidth, firstNextWidth, pendingSpacing) / speed) * 1000
+  );
+  pendingNextWidth = firstNextWidth;
 };
 
 RTSReplayBroadcast.observeBroadcastChevrons = () => {
