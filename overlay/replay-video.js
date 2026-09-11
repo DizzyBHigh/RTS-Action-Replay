@@ -31,10 +31,14 @@ RTSReplayVideo.loadReplay = command => {
   RTSReplayControls.configure(command);
   RTSReplayElements.configure(command);
 
+  const profile = RTSReplayAnimation.readProfile(command);
+  const startSequence = profile?.start;
+  const endSequence = profile?.end;
+  const startSteps = Array.isArray(startSequence) ? startSequence : [];
   const startName = command.replayStartPosition || command.replayPosition || 'Full Screen';
   const endName = command.replayEndPosition || startName;
-  const startPosition = RTSReplayVideo.getPosition(startName);
-  const endPosition = RTSReplayVideo.getPosition(endName);
+  const startPosition = startSteps.length ? RTSReplayAnimation.getPosition(startSteps[0].position) : RTSReplayVideo.getPosition(startName);
+  const endPosition = startSteps.length ? RTSReplayAnimation.getPosition(startSteps[startSteps.length - 1].position) : RTSReplayVideo.getPosition(endName);
 
   RTSReplayVideo.video.src = command.replayUrl;
   RTSReplayVideo.video.style.display = 'block';
@@ -42,9 +46,12 @@ RTSReplayVideo.loadReplay = command => {
   const alreadyVisible = RTSReplayVideo.player.classList.contains('show');
   RTSReplayVideo.video.load();
   if (alreadyVisible) {
-    RTSReplayVideo.cancelPendingTransition();
+    RTSReplayAnimation.cancelSequence();
     RTSReplayVideo.applyPosition(endPosition, true);
     RTSReplayVideo.activePosition = endPosition;
+  } else if (startSteps.length) {
+    RTSReplayAnimation.runSequence(startSequence);
+    RTSReplayVideo.player.classList.add('show');
   } else {
     RTSReplayVideo.animateIn(startPosition, endPosition);
   }
@@ -86,6 +93,18 @@ RTSReplayVideo.showPlayer = () => {
   RTSReplayVideo.playReplay(RTSReplayVideo.currentCommand || {});
 };
 
+RTSReplayVideo.hideReplay = () => {
+  RTSReplayAnimation.cancelSequence();
+  RTSReplayVideo.video.pause();
+  RTSReplayVideo.visiblePosition = RTSReplayVideo.activePosition;
+  const profile = RTSReplayAnimation.readProfile(RTSReplayVideo.currentCommand || {});
+  if (Array.isArray(profile?.end) && profile.end.length) {
+    RTSReplayAnimation.runEndSequence(profile.end, () => RTSReplayVideo.player.classList.remove('show'));
+    return;
+  }
+  RTSReplayVideo.animateOut();
+};
+
 RTSReplayVideo.handleReplayCommand = command => {
   if (command.replayCommand === 'message') RTSReplayVideo.showMessage(command);
   if (command.replayCommand === 'load') RTSReplayVideo.loadReplay(command);
@@ -97,11 +116,7 @@ RTSReplayVideo.handleReplayCommand = command => {
     RTSReplayVideo.video.playbackRate = speed;
   }
   if (command.replayCommand === 'move') RTSReplayVideo.moveReplay(command);
-  if (command.replayCommand === 'hide') {
-    RTSReplayVideo.video.pause();
-    RTSReplayVideo.visiblePosition = RTSReplayVideo.activePosition;
-    RTSReplayVideo.animateOut();
-  }
+  if (command.replayCommand === 'hide') RTSReplayVideo.hideReplay();
   if (command.replayCommand === 'show') RTSReplayVideo.showPlayer();
   if (command.replayCommand === 'stop') {
     RTSReplayVideo.video.pause();
