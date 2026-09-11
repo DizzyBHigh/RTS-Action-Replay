@@ -227,8 +227,10 @@ public class CPHInline
         var rows = new List<string[]>();
         foreach (var item in positions)
         {
-            var tag = (string)item.Value["tag"] ?? "";
-            var name = (string)item.Value["name"] ?? "";
+            var position = item.Value as JObject;
+            if (position == null) continue;
+            var tag = (string)position["tag"] ?? "";
+            var name = (string)position["name"] ?? "";
             rows.Add(new string[] { tag, name });
         }
         return rows.ToArray();
