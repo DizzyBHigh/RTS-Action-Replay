@@ -33,7 +33,6 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const randomWidth = RTSReplayBroadcast.command?.replayBroadcastRandomWidth === true;
   const randomSpacing = RTSReplayBroadcast.command?.replayBroadcastRandomSpacing === true;
   const speed = number(RTSReplayBroadcast.command?.replayBroadcastChevronSpeed, 10, 500, 95);
-  const seedLeft = -120;
   const trackWidth = track.clientWidth;
   const getHeight = () => randomHeight ? randomValue(heightSetting, 1) : heightSetting;
   const getWidth = () => randomWidth ? randomValue(widthSetting, 1) : widthSetting;
@@ -78,8 +77,8 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     return mover;
   };
 
-  const animate = (mover, left) => {
-    const distance = trackWidth - left + 60;
+  const animate = (mover, left, width) => {
+    const distance = trackWidth + width - left;
     const animation = mover.animate(
       [{ transform: 'translate3d(0,0,0)' }, { transform: `translate3d(${distance}px,0,0)` }],
       { duration: (distance / speed) * 1000, easing: 'linear', fill: 'forwards' }
@@ -100,8 +99,9 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     const width = pendingWidth;
     const height = pendingHeight;
     const spacing = pendingSpacing;
+    const seedLeft = -width;
     const mover = createChevron(seedLeft, width, height, index++);
-    animate(mover, seedLeft);
+    animate(mover, seedLeft, width);
     pendingWidth = getWidth();
     pendingHeight = getHeight();
     pendingSpacing = getSpacing();
