@@ -1,0 +1,132 @@
+name: Apply animation profile UI
+on:
+  push:
+    branches: [feature/playlist]
+permissions:
+  contents: write
+jobs:
+  apply:
+    if: github.event.head_commit.message != 'Apply dynamic animation profile settings UI'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/playlist
+          fetch-depth: 0
+      - name: Update settings UI
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          p = Path('streamerbot/RTSActionReplaySettings.cs')
+          s = p.read_text()
+          s = s.replace('        AddPlayerSettings(ui);\n        AddAppearanceSettings(ui);\n        CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "EnsureProfiles");', '        CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "EnsureProfiles");\n        AddPlayerSettings(ui);\n        AddAppearanceSettings(ui);')
+          start = s.index('    private void AddAnimationProfileSettings(RtsUI ui)')
+          end = s.index('    private void AddMessageSettings(RtsUI ui)', start)
+          replacement = '''    private void AddAnimationProfileSettings(RtsUI ui)
+    {
+        ui.AddTitle("Animation Profiles", "Positions");
+        ui.AddDropdown("Default Animation Profile", "Animation profile used for normal replay playback. A specific replay/action can still explicitly override this profile.", "Positions", "rts.actionreplay.animation.selectedProfile", BuildAnimationProfileOptions(), "Default");
+        ui.AddClickableButton("Add Profile", "Create a new animation profile. The new profile is created as 'New Profile'; reopen the settings window to edit it.", "Add Profile", "blue", "Positions", delegate { CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "AddProfile"); });
+
+        var profiles = ReadAnimationProfiles();
+        foreach (var item in profiles)
+        {
+            var id = (string)item["id"];
+            if (string.IsNullOrWhiteSpace(id)) continue;
+            var name = CPH.GetGlobalVar<string>("rts.actionreplay.animation." + id + ".name", true) ?? (string)item["name"] ?? "New Profile";
+            AddAnimationProfile(ui, name, id);
+        }
+    }
+
+    private void AddAnimationProfile(RtsUI ui, string title, string profile)
+    {
+        ui.BeginSection(title, "Positions");
+        if (profile == "default")
+            ui.AddTitle("Default profile is permanent and cannot be renamed or deleted. Its animation sequences can be edited.", "Positions");
+        else
+        {
+            ui.AddTextbox("Profile Name", "Display name for this animation profile.", "Positions", "rts.actionreplay.animation." + profile + ".name", title, false);
+            ui.AddClickableButton("Remove Profile", "Delete this animation profile. Reopen the settings window after removing it.", "Remove Profile", "red", "Positions", delegate
+            {
+                CPH.SetArgument("profileId", profile);
+                CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "RemoveProfile");
+            });
+        }
+        AddAnimationSequence(ui, "Start Sequence", "The positions and transitions used when the replay starts.", "rts.actionreplay.animation." + profile + ".startSequence", GetStartDefaults(profile));
+        AddAnimationSequence(ui, "End Sequence", "The positions and transitions used when the replay ends.", "rts.actionreplay.animation." + profile + ".endSequence", GetEndDefaults());
+        ui.EndSection();
+    }
+
+    private string[] BuildAnimationProfileOptions()
+    {
+        var profiles = ReadAnimationProfiles();
+        var options = new List<string>();
+        foreach (var item in profiles)
+        {
+            var id = (string)item["id"];
+            if (string.IsNullOrWhiteSpace(id)) continue;
+            var name = CPH.GetGlobalVar<string>("rts.actionreplay.animation." + id + ".name", true) ?? (string)item["name"];
+            if (!string.IsNullOrWhiteSpace(name)) options.Add(name);
+        }
+        if (options.Count == 0) options.Add("Default");
+        return options.ToArray();
+    }
+
+    private JArray ReadAnimationProfiles()
+    {
+        var raw = CPH.GetGlobalVar<string>("rts.actionreplay.animation.profiles", true);
+        if (string.IsNullOrWhiteSpace(raw)) return new JArray(new JObject { ["id"] = "default", ["name"] = "Default" });
+        try { return JArray.Parse(raw); }
+        catch { return new JArray(new JObject { ["id"] = "default", ["name"] = "Default" }); }
+    }
+
+    private void AddAnimationSequence(RtsUI ui, string title, string description, string key, string defaultPosition)
+    {
+        ui.AddDynamicRows(title, description, "Positions", key, rows =>
+        {
+            rows.AddDropdown("Position", "position", BuildPositionOptions(), defaultPosition);
+            rows.AddNumericTextbox("Duration", "duration", 1000, 0, 60000);
+            rows.AddDropdown("Easing", "easing", new[] { "linear", "ease", "ease-in", "ease-out", "ease-in-out" }, "ease-in-out");
+            rows.AddNumericTextbox("Delay", "delay", 0, 0, 60000);
+        });
+    }
+
+    private string GetStartDefaults(string profile)
+    {
+        return profile == "default" ? "Mini Hidden" : "Full Screen";
+    }
+
+    private string GetEndDefaults()
+    {
+        return "Mini Hidden";
+    }
+
+    private string[] BuildPositionOptions()
+    {
+        var positions = ParsePositions(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true));
+        var options = new List<string>();
+        foreach (var item in positions)
+        {
+            var position = item.Value as JObject;
+            if (position == null) continue;
+            var name = (string)position["name"];
+            if (!string.IsNullOrWhiteSpace(name) && !options.Contains(name)) options.Add(name);
+        }
+        if (options.Count == 0) options.Add("Full Screen");
+        return options.ToArray();
+    }
+
+'''
+          s = s[:start] + replacement + s[end:]
+          p.write_text(s)
+      - name: Commit and remove helper workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add streamerbot/RTSActionReplaySettings.cs .github/workflows/_apply-profile-ui.yml
+          git commit -m "Apply dynamic animation profile settings UI"
+          git rm .github/workflows/_apply-profile-ui.yml
+          git commit -m "Remove one-time profile UI workflow"
+          git push origin feature/playlist
