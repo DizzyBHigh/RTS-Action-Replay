@@ -48,8 +48,8 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     return Math.max(1, size.width - thicknessSetting + spacing);
   };
   const glow = spacing => ({
-    radius: Math.min(5, 1.5 + spacing * 0.35),
-    alpha: Math.min(45, 22 + spacing * 2.3)
+    radius: spacing <= 0 ? 0 : Math.min(5, 1 + spacing * 0.4),
+    alpha: spacing <= 0 ? 0 : Math.min(45, 15 + spacing * 2.5)
   });
 
   const createChevron = (left, width, height, spacing, index) => {
@@ -66,9 +66,17 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     chevron.setAttribute('height', size.height.toFixed(2));
     chevron.style.setProperty('--chevron-width', `${size.width.toFixed(2)}px`);
     chevron.style.setProperty('--chevron-height', `${size.height.toFixed(2)}px`);
-    chevron.style.setProperty('--chevron-color', index % 2 ? secondary : primary);
-    chevron.style.setProperty('--chevron-glow-radius', `${glowSetting.radius.toFixed(2)}px`);
-    chevron.style.setProperty('--chevron-glow-alpha', `${glowSetting.alpha.toFixed(0)}%`);
+    const chevronColor = index % 2 ? secondary : primary;
+    chevron.style.setProperty('--chevron-color', chevronColor);
+    if (glowSetting.radius === 0) {
+      chevron.style.filter = 'none';
+    } else {
+      const hex = chevronColor.replace('#', '');
+      const r = parseInt(hex.slice(0, 2), 16) || 0;
+      const g = parseInt(hex.slice(2, 4), 16) || 0;
+      const b = parseInt(hex.slice(4, 6), 16) || 0;
+      chevron.style.filter = `drop-shadow(0 0 ${glowSetting.radius.toFixed(2)}px rgba(${r},${g},${b},${(glowSetting.alpha / 100).toFixed(2)}))`;
+    }
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
     path.setAttribute('points', '3,3 47,50 3,97');
     path.setAttribute('fill', 'none');
