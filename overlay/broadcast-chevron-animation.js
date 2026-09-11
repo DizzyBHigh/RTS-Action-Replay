@@ -28,6 +28,7 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const secondary = colour(styles.getPropertyValue('--title-secondary')) || '#FFD400';
   const heightSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronHeight, 1, track.clientHeight, 42);
   const widthSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronWidth, 1, 200, heightSetting);
+  const thicknessSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronThickness, 1, 20, 4);
   const spacingSetting = number(RTSReplayBroadcast.command?.replayBroadcastChevronSpacing, 0, 200, 0);
   const randomHeight = RTSReplayBroadcast.command?.replayBroadcastRandomHeight === true;
   const randomWidth = RTSReplayBroadcast.command?.replayBroadcastRandomWidth === true;
@@ -42,7 +43,10 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     const scale = Math.min(width / 50, height / 100);
     return { width: 50 * scale, height: 100 * scale };
   };
-  const pitch = (width, height, spacing) => Math.max(1, dimensions(width, height).width + spacing);
+  const pitch = (width, height, spacing) => {
+    const size = dimensions(width, height);
+    return Math.max(1, size.width - thicknessSetting + spacing);
+  };
 
   const createChevron = (left, width, height, index) => {
     const size = dimensions(width, height);
@@ -62,7 +66,8 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     path.setAttribute('points', '3,3 47,50 3,97');
     path.setAttribute('fill', 'none');
     path.setAttribute('stroke', 'currentColor');
-    path.setAttribute('stroke-width', '7');
+    path.setAttribute('stroke-width', String(Math.min(thicknessSetting, size.height)));
+    path.setAttribute('vector-effect', 'non-scaling-stroke');
     path.setAttribute('stroke-linecap', 'round');
     path.setAttribute('stroke-linejoin', 'round');
     chevron.append(path);
