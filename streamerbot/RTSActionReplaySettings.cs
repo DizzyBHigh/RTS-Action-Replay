@@ -201,25 +201,18 @@ public class CPHInline
     private void AddAnimationProfileSettings(RtsUI ui)
     {
         ui.BeginSection("Animation Profiles", "Positions");
-        AddAnimationProfile(ui, "Default", "default");
-        AddAnimationProfile(ui, "Twitch Clip", "twitchClip");
-        AddAnimationProfile(ui, "OBS Clip", "obsClip");
-        AddAnimationProfile(ui, "Playlist", "playlist");
-        AddAnimationProfile(ui, "Recent", "recent");
+        AddAnimationProfile(ui, "Mini Player", "miniPlayer");
+        AddAnimationProfile(ui, "Full Screen", "fullScreen");
+        AddAnimationProfile(ui, "Half Screen", "halfScreen");
         ui.EndSection();
     }
 
     private void AddAnimationProfile(RtsUI ui, string title, string profile)
     {
         ui.BeginSection(title);
-        ui.BeginRow();
-        ui.AddPositionSelector("Start Position", "Position used when the replay enters.", "Positions", "rts.actionreplay.animation." + profile + ".startPosition", "rts.actionreplay.positions", "Full Screen");
-        ui.AddPositionSelector("End Position", "Position used when the replay exits.", "Positions", "rts.actionreplay.animation." + profile + ".endPosition", "rts.actionreplay.positions", "Full Screen");
-        ui.EndRow();
-        ui.BeginRow();
-        ui.AddDecimalTextbox("Duration", "Animation duration in seconds.", "Positions", "rts.actionreplay.animation." + profile + ".duration", .5, 0, 10, .1);
-        ui.AddDropdown("Easing", "Transition easing.", "Positions", "rts.actionreplay.animation." + profile + ".easing", new[] { "linear", "ease", "ease-in", "ease-out", "ease-in-out" }, "ease-in-out");
-        ui.EndRow();
+        ui.AddTextbox("Profile Name", "Display name for this animation profile. The internal profile ID remains stable when renamed.", "Positions", "rts.actionreplay.animation." + profile + ".name", title, false);
+        ui.AddTextbox("Start Sequence", "JSON array of steps. First step is the initial position; each later step uses duration/delay/easing. Example: [{\"position\":\"Mini Hidden\",\"duration\":0,\"delay\":0},{\"position\":\"Mini Angled\",\"duration\":1000,\"delay\":3000},{\"position\":\"Full Screen\",\"duration\":1000,\"delay\":0}]", "Positions", "rts.actionreplay.animation." + profile + ".startSequence", "[{\"position\":\"Full Screen\",\"duration\":0,\"delay\":0,\"easing\":\"ease-in-out\"}]", false);
+        ui.AddTextbox("End Sequence", "JSON array of steps. Each step is a target position with transition duration, delay after arrival and easing.", "Positions", "rts.actionreplay.animation." + profile + ".endSequence", "[{\"position\":\"Full Screen\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]", false);
         ui.EndSection();
     }
 
@@ -254,39 +247,35 @@ public class CPHInline
 
     private void EnsureAnimationProfiles()
     {
-        var profiles = new[] { "default", "twitchClip", "obsClip", "playlist", "recent" };
-        foreach (var profile in profiles)
-        {
-            SetDefault("rts.actionreplay.animation." + profile + ".startPosition", "Full Screen");
-            SetDefault("rts.actionreplay.animation." + profile + ".endPosition", "Full Screen");
-            SetDefault("rts.actionreplay.animation." + profile + ".duration", .5);
-            SetDefault("rts.actionreplay.animation." + profile + ".easing", "ease-in-out");
-        }
+        EnsureProfile("miniPlayer", "Mini Player");
+        EnsureProfile("fullScreen", "Full Screen");
+        EnsureProfile("halfScreen", "Half Screen");
+    }
+
+    private void EnsureProfile(string profile, string name)
+    {
+        SetDefault("rts.actionreplay.animation." + profile + ".name", name);
+        SetDefault("rts.actionreplay.animation." + profile + ".startSequence", "[{\"position\":\"Full Screen\",\"duration\":0,\"delay\":0,\"easing\":\"ease-in-out\"}]");
+        SetDefault("rts.actionreplay.animation." + profile + ".endSequence", "[{\"position\":\"Full Screen\",\"duration\":1000,\"delay\":0,\"easing\":\"ease-in-out\"}]");
     }
 
     private void SetDefault(string key, object value)
     {
         if (value is string)
         {
-            if (CPH.GetGlobalVar<string>(key, true) == null)
-                CPH.SetGlobalVar(key, value, true);
+            if (CPH.GetGlobalVar<string>(key, true) == null) CPH.SetGlobalVar(key, value, true);
             return;
         }
-
         if (value is double)
         {
-            if (CPH.GetGlobalVar<double?>(key, true) == null)
-                CPH.SetGlobalVar(key, value, true);
+            if (CPH.GetGlobalVar<double?>(key, true) == null) CPH.SetGlobalVar(key, value, true);
             return;
         }
-
         if (value is int)
         {
-            if (CPH.GetGlobalVar<int?>(key, true) == null)
-                CPH.SetGlobalVar(key, value, true);
+            if (CPH.GetGlobalVar<int?>(key, true) == null) CPH.SetGlobalVar(key, value, true);
             return;
         }
-
         CPH.SetGlobalVar(key, value, true);
     }
 }
