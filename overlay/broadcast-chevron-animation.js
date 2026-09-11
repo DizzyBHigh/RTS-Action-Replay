@@ -83,8 +83,8 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     path.setAttribute('stroke', 'currentColor');
     path.setAttribute('stroke-width', String(Math.min(thicknessSetting, size.height)));
     path.setAttribute('vector-effect', 'non-scaling-stroke');
-    path.setAttribute('stroke-linecap', 'round');
-    path.setAttribute('stroke-linejoin', 'round');
+    path.setAttribute('stroke-linecap', 'butt');
+    path.setAttribute('stroke-linejoin', 'miter');
     chevron.append(path);
     mover.append(chevron);
     track.append(mover);
