@@ -12,7 +12,7 @@
   overflow: hidden;
   pointer-events: none;
   z-index: 1;
-  clip-path: polygon(0 0,82% 0,100% 50%,82% 100%,0 100%);
+  clip-path: polygon(0 0,50% 0,100% 50%,50% 100%,0 100%);
 }
 
 #player-title.title-broadcast .broadcast-chevron-mover {
@@ -49,11 +49,11 @@
 }
 
 #player-title.title-broadcast .broadcast-chevron:before {
-  transform: translateY(-50%) rotate(-70.2deg);
+  transform: translateY(-50%) rotate(-45deg);
 }
 
 #player-title.title-broadcast .broadcast-chevron:after {
-  transform: translateY(-50%) rotate(70.2deg);
+  transform: translateY(-50%) rotate(45deg);
 }
 
 @media(prefers-reduced-motion:reduce){
