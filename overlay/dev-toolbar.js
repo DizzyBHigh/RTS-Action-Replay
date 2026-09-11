@@ -16,20 +16,25 @@
     <button data-position="bottom">Bottom</button>
     <label class="dev-speed-label" for="rts-dev-speed">Speed</label>
     <select id="rts-dev-speed" aria-label="Playback speed">
-      <option value="0.25">0.25×</option>
-      <option value="0.5">0.5×</option>
-      <option value="0.75">0.75×</option>
-      <option value="1" selected>1×</option>
-      <option value="1.25">1.25×</option>
-      <option value="1.5">1.5×</option>
-      <option value="1.75">1.75×</option>
-      <option value="2">2×</option>
+      <option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="0.75">0.75×</option>
+      <option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option>
+      <option value="1.75">1.75×</option><option value="2">2×</option>
     </select>
+    <span class="dev-position-label">From</span>
+    <select id="rts-dev-from" aria-label="Test start position"></select>
+    <span class="dev-position-label">To</span>
+    <select id="rts-dev-to" aria-label="Test end position"></select>
+    <select id="rts-dev-easing" aria-label="Test easing">
+      <option value="linear">Linear</option><option value="ease-in">Ease In</option>
+      <option value="ease-out">Ease Out</option><option value="ease-in-out" selected>Ease In Out</option><option value="ease">Ease</option>
+    </select>
+    <label class="dev-position-label" for="rts-dev-duration">Duration</label>
+    <input id="rts-dev-duration" type="number" min="0.1" max="10" step="0.1" value="1" aria-label="Test duration in seconds">
+    <button data-action="position-test">Test Position</button>
     <input id="rts-dev-title" value="FIRST TEST — REPLAY CAPTURE" aria-label="Preview title">
     <button data-action="show">Show Title</button>
     <button data-action="hide">Hide Title</button>
-    <span class="spacer"></span>
-    <span class="hint">?dev=true</span>
+    <span class="spacer"></span><span class="hint">?dev=true</span>
   `;
   document.body.prepend(bar);
 
@@ -58,100 +63,101 @@
     document.getElementById('clapper-played').textContent = played;
   };
 
-  window.RTSDevToolbar = { updateClapper };
+  const refreshPositions = () => {
+    const positions = RTSReplayVideo?.getPositions?.() || RTSReplay?.getPositions?.() || {};
+    const names = Object.keys(positions);
+    const selects = [document.getElementById('rts-dev-from'), document.getElementById('rts-dev-to')];
+    selects.forEach((select, index) => {
+      const previous = select.value;
+      select.replaceChildren(...names.map(name => new Option(name, name)));
+      const preferred = previous && names.includes(previous) ? previous : names[index ? 0 : 0];
+      if (preferred) select.value = preferred;
+    });
+
+    const command = RTSReplayVideo?.currentCommand || RTSReplay?.command || {};
+    const start = command.replayStartPosition;
+    const end = command.replayEndPosition;
+    const duration = Number(command.replayAnimationDuration);
+    const easing = command.replayAnimationEasing;
+    if (start && names.includes(start)) selects[0].value = start;
+    if (end && names.includes(end)) selects[1].value = end;
+    if (Number.isFinite(duration)) document.getElementById('rts-dev-duration').value = duration < 10 ? duration : duration / 1000;
+    if (easing) document.getElementById('rts-dev-easing').value = easing;
+  };
+
+  window.RTSDevToolbar = { updateClapper, refreshPositions };
 
   const showClapper = () => {
     const card = RTSReplay?.messageCard;
     if (!card) return;
-    clapperVisible = true;
-    updateClapper();
-    card.classList.add('show');
-    card.setAttribute('aria-hidden', 'false');
+    clapperVisible = true; updateClapper(); card.classList.add('show'); card.setAttribute('aria-hidden', 'false');
     bar.querySelector('[data-action="clapper"]').textContent = 'Hide Clapperboard';
   };
-
   const hideClapper = () => {
     const card = RTSReplay?.messageCard;
     if (!card) return;
-    clapperVisible = false;
-    card.classList.remove('show');
-    card.setAttribute('aria-hidden', 'true');
+    clapperVisible = false; card.classList.remove('show'); card.setAttribute('aria-hidden', 'true');
     bar.querySelector('[data-action="clapper"]').textContent = 'Show Clapperboard';
   };
-
   const setSpeed = value => {
     const speed = Number(value);
     if (!Number.isFinite(speed) || !RTSReplay?.video) return;
     RTSReplay.video.playbackRate = speed;
-    const command = Object.assign({}, RTSReplay.command || {}, {
-      replayPlaybackSpeed: speed,
-      replayPlaybackSpeedVisibility: RTSReplay.command?.replayPlaybackSpeedVisibility || 'Only when greater or less than 1'
-    });
-    RTSReplay.command = command;
-    RTSReplayElements?.configureSpeed?.(command);
+    const command = Object.assign({}, RTSReplay.command || {}, { replayPlaybackSpeed: speed, replayPlaybackSpeedVisibility: RTSReplay.command?.replayPlaybackSpeedVisibility || 'Only when greater or less than 1' });
+    RTSReplay.command = command; RTSReplayElements?.configureSpeed?.(command);
   };
-
   const showPlayer = () => {
     const player = RTSReplay?.player;
     if (!player) return;
-    playerVisible = true;
-    player.classList.add('dev-player', 'show');
-    player.style.opacity = '1';
-    player.style.visibility = 'visible';
+    playerVisible = true; player.classList.add('dev-player', 'show'); player.style.opacity = '1'; player.style.visibility = 'visible';
     if (RTSReplay.frame) RTSReplay.frame.classList.add('dev-frame');
     bar.querySelector('[data-action="player"]').textContent = 'Hide Player';
   };
-
   const hidePlayer = () => {
     const player = RTSReplay?.player;
     if (!player) return;
-    playerVisible = false;
-    RTSReplay.hideTitle?.();
-    player.classList.remove('show', 'dev-player');
-    player.style.opacity = '';
-    player.style.visibility = '';
-    RTSReplay.frame?.classList.remove('dev-frame');
-    bar.querySelector('[data-action="player"]').textContent = 'Show Player';
+    playerVisible = false; RTSReplay.hideTitle?.(); player.classList.remove('show', 'dev-player'); player.style.opacity = ''; player.style.visibility = '';
+    RTSReplay.frame?.classList.remove('dev-frame'); bar.querySelector('[data-action="player"]').textContent = 'Show Player';
   };
-
   const preview = () => {
-    showPlayer();
-    setSpeed(document.getElementById('rts-dev-speed').value);
+    showPlayer(); setSpeed(document.getElementById('rts-dev-speed').value);
     const title = RTSReplay?.title;
     if (!title) return;
     RTSReplay.hideTitle?.();
     const text = document.getElementById('rts-dev-title').value.trim() || 'FIRST TEST — REPLAY CAPTURE';
-    title.className = `title-${style} title-${position}`;
-    title.textContent = text;
-    title.classList.add('visible', 'title-enter');
+    title.className = `title-${style} title-${position}`; title.textContent = text; title.classList.add('visible', 'title-enter');
+  };
+  const testPosition = () => {
+    showPlayer();
+    const from = document.getElementById('rts-dev-from').value;
+    const to = document.getElementById('rts-dev-to').value;
+    const duration = Math.max(0.1, Number(document.getElementById('rts-dev-duration').value) || 1);
+    const easing = document.getElementById('rts-dev-easing').value;
+    const command = Object.assign({}, RTSReplayVideo?.currentCommand || RTSReplay?.command || {}, {
+      replayStartPosition: from, replayEndPosition: to, replayAnimationDuration: duration, replayAnimationEasing: easing
+    });
+    RTSReplayVideo.currentCommand = command;
+    RTSReplay.command = command;
+    RTSReplayControls.configure(command);
+    RTSReplayElements.configure(command);
+    RTSReplayVideo.animateIn(RTSReplayVideo.getPosition(from), RTSReplayVideo.getPosition(to));
   };
 
   bar.addEventListener('click', event => {
     const button = event.target.closest('button');
     if (!button) return;
-    if (button.dataset.style) {
-      style = button.dataset.style;
-      bar.querySelectorAll('[data-style]').forEach(item => item.classList.toggle('active', item === button));
-      preview();
-    }
-    if (button.dataset.position) {
-      position = button.dataset.position;
-      bar.querySelectorAll('[data-position]').forEach(item => item.classList.toggle('active', item === button));
-      preview();
-    }
-    if (button.dataset.action === 'player') {
-      playerVisible ? hidePlayer() : showPlayer();
-      if (playerVisible) preview();
-    }
+    if (button.dataset.style) { style = button.dataset.style; bar.querySelectorAll('[data-style]').forEach(item => item.classList.toggle('active', item === button)); preview(); }
+    if (button.dataset.position) { position = button.dataset.position; bar.querySelectorAll('[data-position]').forEach(item => item.classList.toggle('active', item === button)); preview(); }
+    if (button.dataset.action === 'player') { playerVisible ? hidePlayer() : showPlayer(); if (playerVisible) preview(); }
     if (button.dataset.action === 'clapper') clapperVisible ? hideClapper() : showClapper();
+    if (button.dataset.action === 'position-test') testPosition();
     if (button.dataset.action === 'show') preview();
     if (button.dataset.action === 'hide') RTSReplay.hideTitle?.();
   });
 
-  RTSReplay?.video?.addEventListener('loadedmetadata', () => {
-    if (clapperVisible) updateClapper();
-  });
+  RTSReplay?.video?.addEventListener('loadedmetadata', () => { if (clapperVisible) updateClapper(); });
   bar.querySelector('#rts-dev-speed').addEventListener('change', event => setSpeed(event.target.value));
   bar.querySelector('[data-style="broadcast"]').classList.add('active');
   bar.querySelector('[data-position="bottom"]').classList.add('active');
+  refreshPositions();
 })();
