@@ -1,5 +1,3 @@
-// Streamer.bot C# action: open the Action Replay settings window.
-// Requires RtsUI.dll 0.2.0 or newer as a custom assembly reference.
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
@@ -169,7 +167,7 @@ public class CPHInline
         ui.BeginRow();
         ui.AddNumericTextbox("Block Width", "Cut block width in pixels.", "Appearance", "rts.actionreplay.cut.blockWidth", 170, 1, 1000);
         ui.AddToggleSwitch("Random", "Randomize each Cut block width between 1 and the configured width.", "Appearance", "rts.actionreplay.cut.randomWidth", true);
-        ui.AddNumericTextbox("Bar Height", "Cut accent bar height in pixels.", "Appearance", "rts.actionreplay.cut.barHeight", 5, 1, 30);
+        ui.AddNumericTextbox("Bar Height", "Cut accent bar height in pixels.", "Appearance", "rts.actionreplay.cut.barHeight", 5, 1, 50);
         ui.EndRow();
         ui.BeginRow();
         ui.AddColorPicker("Title Prefix / Suffix Colour", "Colour of the Cut title decoration.", "Appearance", "rts.actionreplay.cut.decorationColor", "#0384CBFF");
@@ -205,84 +203,68 @@ public class CPHInline
     {
         ui.BeginSection(name);
         ui.BeginRow();
-        ui.AddPositionSelector("Start Position", "Position used when this source starts showing.", "Positions", "rts.actionreplay.animation." + slug + ".startPosition", "rts.actionreplay.positions", "Full Screen");
-        ui.AddPositionSelector("End Position", "Position reached when this source finishes showing.", "Positions", "rts.actionreplay.animation." + slug + ".endPosition", "rts.actionreplay.positions", "Full Screen");
+        ui.AddPositionSelector("Start Position", "Position used at the start of this playback animation.", "Positions", "rts.actionreplay.animation." + slug + ".startPosition", "Full Screen");
+        ui.AddPositionSelector("End Position", "Position used at the end of this playback animation.", "Positions", "rts.actionreplay.animation." + slug + ".endPosition", "Full Screen");
         ui.EndRow();
         ui.BeginRow();
-        ui.AddNumericTextbox("Duration", "Duration of the movement between Start Position and End Position, in milliseconds.", "Positions", "rts.actionreplay.animation." + slug + ".duration", 500, 100, 20000);
-        ui.AddDropdown("Easing", "CSS easing used for this source's player movement.", "Positions", "rts.actionreplay.animation." + slug + ".easing", new[] { "linear", "ease", "ease-in", "ease-out", "ease-in-out" }, "ease-in-out");
+        ui.AddDecimalTextbox("Duration", "Animation duration in seconds.", "Positions", "rts.actionreplay.animation." + slug + ".duration", .5, .1, 10, .1);
+        ui.AddDropdown("Easing", "Position animation easing.", "Positions", "rts.actionreplay.animation." + slug + ".easing", new[] { "linear", "ease-in", "ease-out", "ease-in-out", "ease" }, "ease-in-out");
         ui.EndRow();
         ui.EndSection();
     }
 
     private void EnsureAnimationProfiles()
     {
-        var start = CPH.GetGlobalVar<string>("rts.actionreplay.defaultStartPosition", true) ?? "Full Screen";
-        var end = CPH.GetGlobalVar<string>("rts.actionreplay.defaultEndPosition", true) ?? "Full Screen";
-        var duration = GetSettingDouble("rts.actionreplay.animationDuration", 500);
-        var easing = CPH.GetGlobalVar<string>("rts.actionreplay.animationEasing", true) ?? "ease-in-out";
-        var profiles = new[] { "default", "twitchClip", "obsClip", "playlist", "recent" };
-        foreach (var slug in profiles)
+        SetDefault("rts.actionreplay.animation.default.startPosition", "Full Screen");
+        SetDefault("rts.actionreplay.animation.default.endPosition", "Full Screen");
+        SetDefault("rts.actionreplay.animation.default.duration", .5);
+        SetDefault("rts.actionreplay.animation.default.easing", "ease-in-out");
+        SetDefault("rts.actionreplay.animation.twitchClip.startPosition", "Mini Right Hidden");
+        SetDefault("rts.actionreplay.animation.twitchClip.endPosition", "Mini Right Angled");
+        SetDefault("rts.actionreplay.animation.twitchClip.duration", 1.0);
+        SetDefault("rts.actionreplay.animation.twitchClip.easing", "ease-in-out");
+        SetDefault("rts.actionreplay.animation.obsClip.startPosition", "Mini Right Off Screen");
+        SetDefault("rts.actionreplay.animation.obsClip.endPosition", "Mini Right");
+        SetDefault("rts.actionreplay.animation.obsClip.duration", 1.0);
+        SetDefault("rts.actionreplay.animation.obsClip.easing", "ease-in-out");
+        SetDefault("rts.actionreplay.animation.playlist.startPosition", "Center Hidden");
+        SetDefault("rts.actionreplay.animation.playlist.endPosition", "Center Large");
+        SetDefault("rts.actionreplay.animation.playlist.duration", 1.0);
+        SetDefault("rts.actionreplay.animation.playlist.easing", "ease-in-out");
+        SetDefault("rts.actionreplay.animation.recent.startPosition", "Mini Right Hidden");
+        SetDefault("rts.actionreplay.animation.recent.endPosition", "Full Screen");
+        SetDefault("rts.actionreplay.animation.recent.duration", 1.0);
+        SetDefault("rts.actionreplay.animation.recent.easing", "ease-in-out");
+    }
+
+    private void SetDefault(string key, object value)
+    {
+        if (CPH.GetGlobalVar<object>(key, true) == null) CPH.SetGlobalVar(key, value, true);
+    }
+
+    private List<string> BuildPositionTagList(string raw)
+    {
+        var result = new List<string>();
+        if (string.IsNullOrWhiteSpace(raw)) return result;
+        try
         {
-            SetIfMissing("rts.actionreplay.animation." + slug + ".startPosition", start);
-            SetIfMissing("rts.actionreplay.animation." + slug + ".endPosition", end);
-            SetIfMissing("rts.actionreplay.animation." + slug + ".duration", duration);
-            SetIfMissing("rts.actionreplay.animation." + slug + ".easing", easing);
+            var positions = JObject.Parse(raw);
+            foreach (var item in positions.Properties())
+            {
+                var tag = (string)item.Value["tag"];
+                if (!string.IsNullOrWhiteSpace(tag)) result.Add(item.Name + " → " + tag);
+            }
         }
-    }
-
-    private void SetIfMissing(string key, string value)
-    {
-        var existing = CPH.GetGlobalVar<string>(key, true);
-        if (string.IsNullOrWhiteSpace(existing)) CPH.SetGlobalVar(key, value, true);
-    }
-
-    private void SetIfMissing(string key, double value)
-    {
-        var existing = CPH.GetGlobalVar<double?>(key, true);
-        if (!existing.HasValue) CPH.SetGlobalVar(key, value, true);
+        catch { }
+        return result;
     }
 
     private void AddMessageSettings(RtsUI ui)
     {
-        ui.BeginSection("Clapperboard", "Messages");
-        ui.BeginRow();
-        ui.AddColorPicker("Board Color", "Clapperboard slate colour.", "Messages", "rts.actionreplay.clapper.boardColor", "#101416");
-        ui.AddColorPicker("Accent Color", "Clapperboard accent colour.", "Messages", "rts.actionreplay.clapper.accent", "#0384CB");
-        ui.EndRow();
-        ui.BeginRow();
-        ui.AddColorPicker("Stripe Light", "Clapperstick light stripe colour.", "Messages", "rts.actionreplay.clapper.stripeLight", "#EEEEEE");
-        ui.AddColorPicker("Stripe Dark", "Clapperstick dark stripe colour.", "Messages", "rts.actionreplay.clapper.stripeDark", "#444444");
-        ui.EndRow();
-        ui.AddColorPicker("Text Color", "Clapperboard text colour.", "Messages", "rts.actionreplay.clapper.textColor", "#FFFFFFFF");
-        ui.AddTextbox("Template", "Template used for the clapperboard message. Streamer.bot variables can be used.", "Messages", "rts.actionreplay.clapper.template", "ACTION REPLAY - %replayName%", false);
+        ui.BeginSection("Messages", "Messages");
+        ui.AddTextbox("Save Confirmation", "Chat message after a replay is saved.", "Messages", "rts.actionreplay.message.save", "Replay saved.", false);
+        ui.AddTextbox("Playback Confirmation", "Chat message after a replay starts playing.", "Messages", "rts.actionreplay.message.play", "Playing replay.", false);
+        ui.AddTextbox("Hide Confirmation", "Chat message after the replay player is hidden.", "Messages", "rts.actionreplay.message.hide", "Replay hidden.", false);
         ui.EndSection();
-    }
-
-    private string[][] BuildPositionTagList(string positionsJson)
-    {
-        var result = new List<string[]>();
-        if (string.IsNullOrWhiteSpace(positionsJson)) return result.ToArray();
-        try
-        {
-            var map = JObject.Parse(positionsJson);
-            foreach (var entry in map.Properties())
-            {
-                var tag = entry.Value?["tag"]?.ToString() ?? "";
-                result.Add(new[] { entry.Name, tag });
-            }
-        }
-        catch { }
-        return result.ToArray();
-    }
-
-    private double GetSettingDouble(string key, double fallback)
-    {
-        try
-        {
-            var value = CPH.GetGlobalVar<double?>(key, true);
-            return value.HasValue ? value.Value : fallback;
-        }
-        catch { return fallback; }
     }
 }
