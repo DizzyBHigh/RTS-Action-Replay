@@ -142,6 +142,41 @@ public class CPHInline
         ui.AddToggleSwitch("Border Glow", "Add a branded glow around the player border.", "Appearance", "rts.actionreplay.borderGlow", true);
         ui.EndRow();
         ui.EndSection();
+
+        ui.BeginSection("Title Settings", "Appearance");
+        ui.BeginSection("Broadcast");
+        ui.BeginRow();
+        ui.AddColorPicker("Primary Colour", "Primary colour for Broadcast chevrons and accents.", "Appearance", "rts.actionreplay.broadcast.primaryColor", "#0384CBFF");
+        ui.AddColorPicker("Secondary Colour", "Secondary colour for Broadcast chevrons and accents.", "Appearance", "rts.actionreplay.broadcast.secondaryColor", "#FFD400FF");
+        ui.EndRow();
+        ui.BeginRow();
+        ui.AddNumericTextbox("Chevron Width", "Broadcast chevron width in pixels.", "Appearance", "rts.actionreplay.broadcast.chevronWidth", 42, 1, 200);
+        ui.AddToggleSwitch("Random", "Randomize each Broadcast chevron width between 1 and the configured width.", "Appearance", "rts.actionreplay.broadcast.randomWidth", false);
+        ui.AddNumericTextbox("Chevron Spacing", "Gap between Broadcast chevrons in pixels.", "Appearance", "rts.actionreplay.broadcast.chevronSpacing", 13, 0, 200);
+        ui.AddToggleSwitch("Random", "Randomize each Broadcast chevron gap between 0 and the configured spacing.", "Appearance", "rts.actionreplay.broadcast.randomSpacing", false);
+        ui.EndRow();
+        ui.BeginRow();
+        ui.AddColorPicker("Title Prefix / Suffix Colour", "Colour of the Broadcast title decoration.", "Appearance", "rts.actionreplay.broadcast.decorationColor", "#0384CBFF");
+        ui.AddColorPicker("Title Colour", "Colour of the Broadcast title text.", "Appearance", "rts.actionreplay.broadcast.titleColor", "#FFFFFFFF");
+        ui.EndRow();
+        ui.EndSection();
+
+        ui.BeginSection("Cut");
+        ui.BeginRow();
+        ui.AddColorPicker("Primary Colour", "Primary colour for Cut blocks and accents.", "Appearance", "rts.actionreplay.cut.primaryColor", "#0384CBFF");
+        ui.AddColorPicker("Secondary Colour", "Secondary colour for Cut blocks and accents.", "Appearance", "rts.actionreplay.cut.secondaryColor", "#FFD400FF");
+        ui.EndRow();
+        ui.BeginRow();
+        ui.AddNumericTextbox("Block Width", "Cut block width in pixels.", "Appearance", "rts.actionreplay.cut.blockWidth", 170, 1, 1000);
+        ui.AddToggleSwitch("Random", "Randomize each Cut block width between 1 and the configured width.", "Appearance", "rts.actionreplay.cut.randomWidth", true);
+        ui.AddNumericTextbox("Bar Height", "Cut accent bar height in pixels.", "Appearance", "rts.actionreplay.cut.barHeight", 5, 1, 30);
+        ui.EndRow();
+        ui.BeginRow();
+        ui.AddColorPicker("Title Prefix / Suffix Colour", "Colour of the Cut title decoration.", "Appearance", "rts.actionreplay.cut.decorationColor", "#0384CBFF");
+        ui.AddColorPicker("Title Colour", "Colour of the Cut title text.", "Appearance", "rts.actionreplay.cut.titleColor", "#FFFFFFFF");
+        ui.EndRow();
+        ui.EndSection();
+        ui.EndSection();
     }
 
     private void AddPositionSettings(RtsUI ui)
@@ -152,7 +187,6 @@ public class CPHInline
         ui.AddList("Position Tags", "", "Positions", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)));
         ui.EndRow();
         ui.EndSection();
-
         AddAnimationProfileSettings(ui);
     }
 
