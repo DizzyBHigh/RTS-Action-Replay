@@ -38,20 +38,30 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const getHeight = () => randomHeight ? randomValue(heightSetting, 1) : heightSetting;
   const getWidth = () => randomWidth ? randomValue(widthSetting, 1) : widthSetting;
   const getSpacing = () => randomSpacing ? randomValue(spacingSetting, 0) : spacingSetting;
-  const visualExtent = (width, height) => (width + height) / Math.SQRT2;
-  const chevronScale = (width, height) => Math.min(1, height / visualExtent(width, height));
-  const pitch = (width, height, spacing) => Math.max(0, (visualExtent(width, height) - Math.min(width, height) * 0.22) * chevronScale(width, height) + spacing);
+  const visualSize = (width, height) => Math.min(width, height);
+  const pitch = (width, height, spacing) => Math.max(1, visualSize(width, height) + spacing);
 
   const createChevron = (left, width, height, index) => {
     const mover = document.createElement('span');
     mover.className = 'broadcast-chevron-mover';
     mover.style.left = `${left.toFixed(2)}px`;
-    const chevron = document.createElement('span');
-    chevron.className = 'broadcast-chevron';
+    const chevron = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    chevron.classList.add('broadcast-chevron');
+    chevron.setAttribute('viewBox', '0 0 100 100');
+    chevron.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    chevron.setAttribute('width', width.toFixed(2));
+    chevron.setAttribute('height', height.toFixed(2));
     chevron.style.setProperty('--chevron-width', `${width.toFixed(2)}px`);
     chevron.style.setProperty('--chevron-height', `${height.toFixed(2)}px`);
-    chevron.style.setProperty('--chevron-scale', chevronScale(width, height).toFixed(4));
     chevron.style.setProperty('--chevron-color', index % 2 ? secondary : primary);
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    path.setAttribute('points', '10,10 90,50 10,90');
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'currentColor');
+    path.setAttribute('stroke-width', '9');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-linejoin', 'round');
+    chevron.append(path);
     mover.append(chevron);
     track.append(mover);
     return mover;
