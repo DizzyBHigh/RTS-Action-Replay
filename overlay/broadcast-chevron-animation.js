@@ -55,6 +55,8 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
     chevron.setAttribute('viewBox', '0 0 50 100');
     chevron.setAttribute('width', size.width.toFixed(2));
     chevron.setAttribute('height', size.height.toFixed(2));
+    chevron.style.setProperty('--chevron-width', `${size.width.toFixed(2)}px`);
+    chevron.style.setProperty('--chevron-height', `${size.height.toFixed(2)}px`);
     chevron.style.setProperty('--chevron-color', index % 2 ? secondary : primary);
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
     path.setAttribute('points', '3,3 47,50 3,97');
