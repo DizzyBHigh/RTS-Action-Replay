@@ -48,7 +48,7 @@ RTSReplayCut.startCutBar = () => {
 
   let seedLeft = -40;
   while (seedLeft < barWidth) {
-    const width = getWidth();
+    const width = Math.min(getWidth(), barWidth - seedLeft);
     const colourValue = Math.random() < 0.5 ? primary : secondary;
     createBlock(seedLeft, width, colourValue);
     seedLeft += width;
@@ -85,7 +85,7 @@ RTSReplayCut.startCutBar = () => {
     RTSReplayCut.cutSpawnTimer = setTimeout(spawn, (width / speed) * 1000);
   };
 
-  RTSReplayCut.cutSpawnTimer = setTimeout(spawn, 300);
+  RTSReplayCut.cutSpawnTimer = setTimeout(spawn, 0);
 };
 
 RTSReplayCut.observeCutBar = () => {
