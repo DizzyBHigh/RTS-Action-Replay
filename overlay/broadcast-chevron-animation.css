@@ -19,7 +19,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 42px;
+  width: var(--chevron-size,42px);
   height: 100%;
   will-change: transform;
 }
@@ -28,11 +28,11 @@
   position: absolute;
   top: 50%;
   left: 0;
-  width: 42px;
-  height: 42px;
+  width: var(--chevron-size,42px);
+  height: var(--chevron-size,42px);
   box-sizing: border-box;
-  border-right: 15px solid var(--chevron-color, #0384CB);
-  border-bottom: 15px solid var(--chevron-color, #0384CB);
+  border-right: max(1px,calc(var(--chevron-size,42px) * .357142857)) solid var(--chevron-color, #0384CB);
+  border-bottom: max(1px,calc(var(--chevron-size,42px) * .357142857)) solid var(--chevron-color, #0384CB);
   transform: translateY(-50%) rotate(-45deg);
   filter: drop-shadow(0 0 5px color-mix(in srgb, var(--chevron-color, #0384CB) 45%, transparent));
   opacity: .72;
