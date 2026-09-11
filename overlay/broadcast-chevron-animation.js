@@ -26,7 +26,8 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const primary = colour(styles.getPropertyValue('--title-primary')) || '#0384CB';
   const secondary = colour(styles.getPropertyValue('--title-secondary')) || '#FFD400';
   const speed = 95;
-  const pitch = 56;
+  const pitch = 72;
+  const seedLeft = -90;
   const trackWidth = track.clientWidth;
 
   const createChevron = (left, index) => {
@@ -43,19 +44,15 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   };
 
   let index = 0;
-  for (let seedLeft = -90; seedLeft < trackWidth; seedLeft += pitch) {
-    createChevron(seedLeft, index++);
-  }
-
-  [...track.children].forEach(mover => {
-    const left = parseFloat(mover.style.left);
-    const distance = trackWidth - left + 32;
+  for (let left = seedLeft; left < trackWidth; left += pitch) {
+    const mover = createChevron(left, index++);
+    const distance = trackWidth - left + 60;
     const animation = mover.animate(
       [{ transform: 'translate3d(0,0,0)' }, { transform: `translate3d(${distance}px,0,0)` }],
       { duration: (distance / speed) * 1000, easing: 'linear', fill: 'forwards' }
     );
     animation.onfinish = () => mover.remove();
-  });
+  }
 
   const spawn = () => {
     if (!broadcastTitle.classList.contains('title-broadcast') || !broadcastTitle.classList.contains('visible') || track !== RTSReplayBroadcast.broadcastChevronTrack) {
@@ -63,15 +60,13 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
       return;
     }
 
-    const lastIndex = Math.floor(track.children.length) + index;
-    const mover = createChevron(-24, lastIndex);
-    const distance = trackWidth + 48;
+    const mover = createChevron(seedLeft, index++);
+    const distance = trackWidth - seedLeft + 60;
     const animation = mover.animate(
       [{ transform: 'translate3d(0,0,0)' }, { transform: `translate3d(${distance}px,0,0)` }],
       { duration: (distance / speed) * 1000, easing: 'linear', fill: 'forwards' }
     );
     animation.onfinish = () => mover.remove();
-    index++;
     RTSReplayBroadcast.broadcastChevronSpawnTimer = setTimeout(spawn, (pitch / speed) * 1000);
   };
 
