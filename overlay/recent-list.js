@@ -20,14 +20,23 @@ RTSRecentList.showRecentList = command => {
     return;
   }
 
-  recentListLog('recent list panel found', { textLength: text.length });
-  panel.innerHTML = '<div id="recent-list-title">RECENT REPLAYS</div>';
   const entries = text.split(' | ').filter(Boolean);
+  recentListLog('recent list panel found', { textLength: text.length, entries: entries.length });
+  panel.innerHTML = '<div class="rts-panel-header"><span class="rts-panel-kicker">ACTION REPLAY</span><strong>RECENT REPLAYS</strong></div><div class="rts-panel-list"></div>';
+  const list = panel.querySelector('.rts-panel-list');
+
   entries.forEach(entry => {
+    const match = entry.match(/^#(\d+)\s+(.*?)\s+—\s+(.*)$/);
     const row = document.createElement('div');
-    row.className = 'recent-list-entry';
-    row.textContent = entry;
-    panel.appendChild(row);
+    row.className = 'rts-panel-entry';
+    if (match) {
+      row.innerHTML = `<span class="rts-panel-number">${match[1]}</span><span class="rts-panel-title"></span><span class="rts-panel-requester"></span>`;
+      row.querySelector('.rts-panel-title').textContent = match[2];
+      row.querySelector('.rts-panel-requester').textContent = match[3];
+    } else {
+      row.textContent = entry;
+    }
+    list.appendChild(row);
   });
 
   clearTimeout(RTSRecentList.recentListTimer);
