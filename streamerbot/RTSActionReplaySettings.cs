@@ -91,22 +91,30 @@ public class CPHInline
     private void AddAnimationProfileSettings(RtsUI ui)
     {
         ui.AddTitle("Animation Profiles", "Positions");
-        ui.AddDropdown("Default Animation Profile", "Animation profile used for normal replay playback. A specific replay/action can still explicitly override this profile.", "Positions", "rts.actionreplay.animation.selectedProfile", BuildAnimationProfileOptions(), "Default");
+        ui.AddDropdown("Default Animation Profile", "Fallback profile used when no entry point has a specific profile configured.", "Positions", "rts.actionreplay.animation.selectedProfile", BuildAnimationProfileOptions(), "Default");
+        ui.BeginSection("Entry Point Profiles", "Positions");
+        ui.AddTitle("Choose which animation profile each replay entry point uses. Default is used unless you select another profile. Start animation only runs when the player is hidden; the selected profile also supplies the exit sequence when that playback session hides the player.", "Positions");
+        ui.BeginRow();
+        ui.AddDropdown("Create — OBS", "Animation profile used when a newly captured OBS replay is automatically played.", "Positions", "rts.actionreplay.animation.entry.obs", BuildAnimationProfileOptions(), "Default");
+        ui.AddDropdown("Create — Twitch", "Animation profile used when a newly created Twitch Clip is automatically played.", "Positions", "rts.actionreplay.animation.entry.twitch", BuildAnimationProfileOptions(), "Default");
+        ui.EndRow();
+        ui.BeginRow();
+        ui.AddDropdown("Play — Recent", "Animation profile used when a replay is started from Recent Clips.", "Positions", "rts.actionreplay.animation.entry.recent", BuildAnimationProfileOptions(), "Default");
+        ui.AddDropdown("Play — Catalog", "Animation profile used when a replay is started from the Catalog.", "Positions", "rts.actionreplay.animation.entry.catalog", BuildAnimationProfileOptions(), "Default");
+        ui.EndRow();
+        ui.AddDropdown("Play — Playlist", "Animation profile used when starting a populated Playlist while the player is hidden.", "Positions", "rts.actionreplay.animation.entry.playlist", BuildAnimationProfileOptions(), "Default");
+        ui.EndSection();
         ui.AddClickableButton("Add Profile", "Create a new animation profile.", "Add Profile", "blue", "Positions", delegate
         {
             if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "AddProfile"))
             {
-                ui.RebuildUI(delegate(RtsUI rebuiltUi)
-                {
-                    BuildSettings(rebuiltUi);
-                });
+                ui.RebuildUI(delegate(RtsUI rebuiltUi) { BuildSettings(rebuiltUi); });
             }
         });
 
         foreach (var item in ReadAnimationProfiles())
         {
-            var id = (string)item["id"];
-            if (string.IsNullOrWhiteSpace(id)) continue;
+            var id = (string)item["id"]; if (string.IsNullOrWhiteSpace(id)) continue;
             var name = id == "default" ? "Default" : CPH.GetGlobalVar<string>("rts.actionreplay.animation." + id + ".name", true) ?? (string)item["name"] ?? "New Profile";
             AddAnimationProfile(ui, name, id);
         }
@@ -115,23 +123,14 @@ public class CPHInline
     private void AddAnimationProfile(RtsUI ui, string title, string profile)
     {
         ui.BeginSection(title, "Positions");
-        if (profile == "default")
-        {
-            ui.AddTitle("Default profile is permanent and cannot be renamed or deleted. Its animation sequences can be edited.", "Positions");
-        }
+        if (profile == "default") ui.AddTitle("Default profile is permanent and cannot be renamed or deleted. Its animation sequences can be edited.", "Positions");
         else
         {
             ui.AddTextbox("Profile Name", "Display name for this animation profile.", "Positions", "rts.actionreplay.animation." + profile + ".name", title, false);
             ui.AddClickableButton("Remove Profile", "Delete this animation profile.", "Remove Profile", "red", "Positions", delegate
             {
                 CPH.SetArgument("profileId", profile);
-                if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "RemoveProfile"))
-                {
-                    ui.RebuildUI(delegate(RtsUI rebuiltUi)
-                    {
-                        BuildSettings(rebuiltUi);
-                    });
-                }
+                if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "RemoveProfile")) ui.RebuildUI(delegate(RtsUI rebuiltUi) { BuildSettings(rebuiltUi); });
             });
         }
         AddAnimationSequence(ui, "Start Sequence", "The positions and transitions used when the replay starts.", "rts.actionreplay.animation." + profile + ".startSequence", GetStartDefaults(profile));
@@ -156,8 +155,7 @@ public class CPHInline
     {
         var raw = CPH.GetGlobalVar<string>("rts.actionreplay.animation.profiles", true);
         if (string.IsNullOrWhiteSpace(raw)) return new JArray(new JObject { ["id"] = "default", ["name"] = "Default" });
-        try { return JArray.Parse(raw); }
-        catch { return new JArray(new JObject { ["id"] = "default", ["name"] = "Default" }); }
+        try { return JArray.Parse(raw); } catch { return new JArray(new JObject { ["id"] = "default", ["name"] = "Default" }); }
     }
 
     private void AddAnimationSequence(RtsUI ui, string title, string description, string key, string defaultPosition)
@@ -176,17 +174,9 @@ public class CPHInline
 
     private string[] BuildPositionOptions()
     {
-        var positions = ParsePositions(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true));
-        var options = new List<string>();
-        foreach (var item in positions)
-        {
-            var position = item.Value as JObject;
-            if (position == null) continue;
-            var name = (string)position["name"];
-            if (!string.IsNullOrWhiteSpace(name) && !options.Contains(name)) options.Add(name);
-        }
-        if (options.Count == 0) options.Add("Full Screen");
-        return options.ToArray();
+        var positions = ParsePositions(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)); var options = new List<string>();
+        foreach (var item in positions) { var position = item.Value as JObject; if (position == null) continue; var name = (string)position["name"]; if (!string.IsNullOrWhiteSpace(name) && !options.Contains(name)) options.Add(name); }
+        if (options.Count == 0) options.Add("Full Screen"); return options.ToArray();
     }
 
     private void AddMessageSettings(RtsUI ui)
@@ -197,17 +187,9 @@ public class CPHInline
     private string[][] BuildPositionTagList(string json)
     {
         var positions = ParsePositions(json); var rows = new List<string[]>();
-        foreach (var item in positions)
-        {
-            var position = item.Value as JObject; if (position == null) continue;
-            rows.Add(new string[] { (string)position["tag"] ?? "", (string)position["name"] ?? "" });
-        }
+        foreach (var item in positions) { var position = item.Value as JObject; if (position == null) continue; rows.Add(new string[] { (string)position["tag"] ?? "", (string)position["name"] ?? "" }); }
         return rows.ToArray();
     }
 
-    private JObject ParsePositions(string json)
-    {
-        if (string.IsNullOrWhiteSpace(json)) return new JObject();
-        try { return JObject.Parse(json); } catch { return new JObject(); }
-    }
+    private JObject ParsePositions(string json) { if (string.IsNullOrWhiteSpace(json)) return new JObject(); try { return JObject.Parse(json); } catch { return new JObject(); } }
 }
