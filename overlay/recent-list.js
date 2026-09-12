@@ -48,7 +48,20 @@ RTSRecentList.showRecentList = command => {
   void panel.offsetWidth;
 
   const panelPosition = command?.replayPanelPosition || command?.replayRecentPosition || 'Center';
-  RTSInformationPanels.show(panel, command, panelPosition);
+  const animationCommand = { ...command, replayPanelAnimation: command?.replayPanelAnimation || JSON.stringify({
+    id: 'default-panel',
+    name: 'Default',
+    start: [
+      { position: 'Hidden Left', duration: 0, delay: 0, easing: 'ease-in-out' },
+      { position: panelPosition, duration: 600, delay: 0, easing: 'ease-out' }
+    ],
+    end: [
+      { position: panelPosition, duration: 0, delay: 0, easing: 'ease-in-out' },
+      { position: 'Hidden Left', duration: 600, delay: 0, easing: 'ease-in' }
+    ]
+  }) };
+  panel._rtsPanelAnimationCommand = animationCommand;
+  RTSInformationPanels.show(panel, animationCommand, panelPosition);
 
   const startedAt = Date.now();
   const scrollable = list.scrollHeight > list.clientHeight;
@@ -57,7 +70,7 @@ RTSRecentList.showRecentList = command => {
   const scheduleHide = delay => {
     clearTimeout(RTSRecentList.recentListTimer);
     RTSRecentList.recentListTimer = setTimeout(() => {
-      RTSInformationPanels.hide(panel);
+      RTSInformationPanels.hide(panel, panel._rtsPanelAnimationCommand || animationCommand);
     }, delay);
   };
 
@@ -85,6 +98,6 @@ RTSRecentList.showRecentList = command => {
   recentListLog('recent list rendered', { entries: entries.length, scrollable, panelPosition });
 
   RTSRecentList.recentListTimer = setTimeout(() => {
-    if (scrollFinished) RTSInformationPanels.hide(panel);
+    if (scrollFinished) RTSInformationPanels.hide(panel, panel._rtsPanelAnimationCommand || animationCommand);
   }, 10000);
 };
