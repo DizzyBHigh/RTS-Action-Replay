@@ -7,6 +7,9 @@ public class CPHInline
     private const string DefaultEasingKey = "rts.actionreplay.animation.default.easing";
     private const string ProfilesKey = "rts.actionreplay.animation.profiles";
     private const string SelectedProfileKey = "rts.actionreplay.animation.selectedProfile";
+    private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
+    private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
+    private const string PlaybackProfileHandoffKey = "rts.actionreplay.handoff.playbackProfile";
 
     public bool Execute() => EnsureProfiles();
     public bool EnsureProfiles()
@@ -30,15 +33,22 @@ public class CPHInline
     }
     public bool ResolveEntryPointProfile()
     {
-        if (!CPH.TryGetArg("animationEntryPoint", out string entryPoint) || string.IsNullOrWhiteSpace(entryPoint)) return false;
-        var configured = CPH.GetGlobalVar<string>("rts.actionreplay.animation.entry." + entryPoint.Trim().ToLowerInvariant(), true);
-        CPH.SetArgument("replayAnimationProfileId", ResolveProfileId(configured) ?? "default"); return true;
+        var entryPoint = CPH.TryGetArg("animationEntryPoint", out string requestedEntryPoint) && !string.IsNullOrWhiteSpace(requestedEntryPoint)
+            ? requestedEntryPoint.Trim()
+            : CPH.GetGlobalVar<string>(EntryPointHandoffKey, false);
+        if (string.IsNullOrWhiteSpace(entryPoint)) return false;
+        var configured = CPH.GetGlobalVar<string>("rts.actionreplay.animation.entry." + entryPoint.ToLowerInvariant(), true);
+        var profile = ResolveProfileId(configured) ?? "default";
+        CPH.SetGlobalVar(ResolvedProfileHandoffKey, profile, false);
+        CPH.SetArgument("replayAnimationProfileId", profile); return true;
     }
     public bool ApplyProfile()
     {
         string profile = null;
         if (CPH.TryGetArg("replayAnimationProfileId", out string explicitProfile) && !string.IsNullOrWhiteSpace(explicitProfile)) profile = explicitProfile.Trim();
+        if (string.IsNullOrWhiteSpace(profile)) profile = CPH.GetGlobalVar<string>(PlaybackProfileHandoffKey, false);
         if (string.IsNullOrWhiteSpace(profile)) profile = ResolveProfileId(CPH.GetGlobalVar<string>(SelectedProfileKey, true));
+        CPH.UnsetGlobalVar(PlaybackProfileHandoffKey, false);
         if (string.IsNullOrWhiteSpace(profile) || !ProfileExists(profile)) profile = "default";
         var key = "rts.actionreplay.animation." + profile + "."; var start = ReadSequence(key + "startSequence"); var end = ReadSequence(key + "endSequence");
         if (start.Count == 0) start.Add(new JObject { ["position"] = GetProfileString(profile, "startPosition", "Full Screen"), ["duration"] = 0, ["delay"] = 0, ["easing"] = GetProfileString(profile, "easing", GetEasing()) });
