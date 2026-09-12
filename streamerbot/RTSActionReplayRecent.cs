@@ -14,6 +14,29 @@ public class CPHInline
 
     public bool Execute() => PlayRecent();
 
+    public bool ListRecent()
+    {
+        var data = Load();
+        var catalog = (JArray)data["catalog"] ?? new JArray();
+        var recentIds = (JArray)data["recentIds"] ?? new JArray();
+        var lines = "";
+        for (var i = 0; i < recentIds.Count; i++)
+        {
+            var id = Convert.ToString(recentIds[i]);
+            var replay = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals(Convert.ToString(x["id"]), id, StringComparison.OrdinalIgnoreCase));
+            if (replay == null) continue;
+            var title = Convert.ToString(replay["title"]);
+            var creator = replay["creator"] as JObject;
+            var requester = Convert.ToString(creator?["name"]);
+            if (string.IsNullOrWhiteSpace(requester)) requester = "Unknown";
+            lines += (lines.Length == 0 ? "" : " | ") + "#" + (i + 1) + " " + title + " — " + requester;
+        }
+        if (lines.Length == 0) { CPH.SendMessage("There are no recent replays."); return true; }
+        CPH.SetArgument("replayRecent", lines);
+        CPH.SendMessage(lines);
+        return true;
+    }
+
     public bool PlayRecent()
     {
         var data = Load();
