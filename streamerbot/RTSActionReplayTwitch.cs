@@ -17,7 +17,7 @@ public class CPHInline
     private const string MaxRecentKey = "rts.actionreplay.maxHistory";
     private const string PlaybackModeKey = "rts.actionreplay.twitch.playbackMode";
     private const string TwitchFolderKey = "rts.actionreplay.twitch.folder";
-    private const string PlaylistAction = "RTS Action Replay Playlist";
+    private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
     private const string AnimationAction = "RTS - Action Replay - Core - Animation";
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
     private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
