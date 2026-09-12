@@ -129,7 +129,6 @@ public class CPHInline
             CPH.SetArgument("replayPanelHeight", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700);
             CPH.SetArgument("replayPanelPosition", CPH.GetGlobalVar<string>("rts.actionreplay.panel.position", true) ?? "Center");
             CPH.SetArgument("replayPanelPositions", CPH.GetGlobalVar<string>("rts.actionreplay.panel.positions", true) ?? "{}");
-            CPH.SetArgument("replayRecentData", CPH.GetGlobalVar<string>("replayRecentData", false) ?? "[]");
             CPH.TriggerEvent(EventName, true);
         }
     }
