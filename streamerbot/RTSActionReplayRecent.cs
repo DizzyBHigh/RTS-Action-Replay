@@ -8,6 +8,9 @@ public class CPHInline
     private const string LegacyCatalogKey = "rts.actionreplay.catalog";
     private const string PlaylistAction = "RTS Action Replay Playlist";
     private const string AnimationAction = "RTS - Action Replay - Core - Animation";
+    private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
+    private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
+    private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
 
     public bool Execute() => PlayRecent();
 
@@ -37,8 +40,9 @@ public class CPHInline
         }
 
         if (replay == null) { CPH.SendMessage("Recent replay not found."); return false; }
-        CPH.SetArgument("replayId", Convert.ToString(replay["id"]));
-        CPH.SetArgument("animationEntryPoint", "recent");
+        CPH.SetGlobalVar(ReplayIdHandoffKey, Convert.ToString(replay["id"]), false);
+        CPH.SetGlobalVar(EntryPointHandoffKey, "recent", false);
+        CPH.UnsetGlobalVar(ResolvedProfileHandoffKey, false);
         if (!CPH.ExecuteMethod(AnimationAction, "ResolveEntryPointProfile")) return false;
         return CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay");
     }
