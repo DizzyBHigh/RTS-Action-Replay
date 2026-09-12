@@ -123,6 +123,11 @@ public class CPHInline
 
         if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? true)
         {
+            var panelPosition = CPH.GetGlobalVar<string>("rts.actionreplay.panel.position", true);
+            var panelPositions = CPH.GetGlobalVar<string>("rts.actionreplay.panel.positions", true);
+            if (string.IsNullOrWhiteSpace(panelPosition)) panelPosition = "Center";
+            CPH.SetArgument("replayPanelPosition", panelPosition);
+            CPH.SetArgument("replayPanelPositions", panelPositions ?? "");
             CPH.SetArgument("replayCommand", "recent-list");
             CPH.SetArgument("replayRecent", fullList);
             CPH.TriggerEvent(EventName, true);
