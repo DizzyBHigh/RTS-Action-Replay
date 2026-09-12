@@ -16,6 +16,7 @@ RTSRecentList.showRecentList = command => {
     });
   }
 
+  panel.dataset.rtsInformationPanel = 'recent';
   panel.innerHTML = '<div class="rts-panel-header"><span class="rts-panel-kicker">ACTION REPLAY</span><strong>RECENT REPLAYS</strong></div><div class="rts-panel-list"></div>';
   const list = panel.querySelector('.rts-panel-list');
 
@@ -45,8 +46,9 @@ RTSRecentList.showRecentList = command => {
   panel.setAttribute('aria-hidden', 'true');
   list.scrollTop = 0;
   void panel.offsetWidth;
-  panel.classList.add('show');
-  panel.setAttribute('aria-hidden', 'false');
+
+  const panelPosition = command?.replayPanelPosition || command?.replayRecentPosition || 'Center';
+  RTSInformationPanels.show(panel, command, panelPosition);
 
   const startedAt = Date.now();
   const scrollable = list.scrollHeight > list.clientHeight;
@@ -55,8 +57,7 @@ RTSRecentList.showRecentList = command => {
   const scheduleHide = delay => {
     clearTimeout(RTSRecentList.recentListTimer);
     RTSRecentList.recentListTimer = setTimeout(() => {
-      panel.classList.remove('show');
-      panel.setAttribute('aria-hidden', 'true');
+      RTSInformationPanels.hide(panel);
     }, delay);
   };
 
@@ -81,12 +82,9 @@ RTSRecentList.showRecentList = command => {
   };
 
   RTSRecentList.recentListScrollTimer = setTimeout(startAutoScroll, 3000);
-  recentListLog('recent list rendered', { entries: entries.length, scrollable });
+  recentListLog('recent list rendered', { entries: entries.length, scrollable, panelPosition });
 
   RTSRecentList.recentListTimer = setTimeout(() => {
-    if (scrollFinished) {
-      panel.classList.remove('show');
-      panel.setAttribute('aria-hidden', 'true');
-    }
+    if (scrollFinished) RTSInformationPanels.hide(panel);
   }, 10000);
 };
