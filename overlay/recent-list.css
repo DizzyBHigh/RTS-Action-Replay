@@ -97,7 +97,13 @@
 }
 
 .rts-panel-avatar.missing { visibility: hidden; }
-.rts-panel-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rts-panel-title {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: normal;
+  white-space: normal;
+  line-height: 1.25;
+}
 
 @media (max-width: 700px) {
   #recent-list { width: calc(100vw - 30px); max-height: calc(100vh - 60px); }
