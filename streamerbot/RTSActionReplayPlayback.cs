@@ -14,7 +14,7 @@ public class CPHInline
     private const string TwitchMappingKey = "rts.actionreplay.twitch.httpMapping";
     private const string TwitchModeKey = "rts.actionreplay.twitch.playbackMode";
     private const string AnimationAction = "RTS - Action Replay - Core - Animation";
-    private const string PlaylistAction = "RTS Action Replay Playlist";
+    private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
     private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
     private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
