@@ -63,14 +63,16 @@
   window.RTSDevToolbar = { ...previous, log };
 
   bar.addEventListener('click', event => {
-    const target = event.target.closest('[data-action="log"], [data-log-clear]');
+    const target = event.target.closest('[data-action="log"]');
     if (!target) return;
-    if (target.dataset.logClear !== undefined) {
-      entries.length = 0;
-      output.textContent = '';
-      return;
-    }
     toggle();
+  });
+
+  panel.addEventListener('click', event => {
+    const target = event.target.closest('[data-log-clear]');
+    if (!target) return;
+    entries.length = 0;
+    output.textContent = '';
   });
 
   log('diagnostics ready');
