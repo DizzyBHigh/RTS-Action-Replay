@@ -33,29 +33,9 @@ public class CPHInline
             return "#" + (i + 1) + " " + title + " — " + requester;
         }).Where(x => x != null).ToList();
 
-        if (entries.Count == 0)
-        {
-            CPH.SendMessage("There are no recent replays.");
-            CPH.SetArgument("replayCommand", "recent-list");
-            CPH.SetArgument("replayRecent", "There are no recent replays.");
-            CPH.TriggerEvent(EventName, true);
-            return true;
-        }
-
-        var fullList = string.Join(" | ", entries);
+        var fullList = entries.Count == 0 ? "There are no recent replays." : string.Join(" | ", entries);
         CPH.SetArgument("replayRecent", fullList);
-        var message = "";
-        foreach (var entry in entries)
-        {
-            var next = message.Length == 0 ? entry : message + " | " + entry;
-            if (next.Length > MaxChatMessageLength)
-            {
-                if (message.Length > 0) CPH.SendMessage(message);
-                message = entry.Length <= MaxChatMessageLength ? entry : entry.Substring(0, MaxChatMessageLength);
-            }
-            else message = next;
-        }
-        if (message.Length > 0) CPH.SendMessage(message);
+        SendRecentMessage(fullList);
 
         CPH.SetArgument("replayCommand", "recent-list");
         CPH.TriggerEvent(EventName, true);
@@ -87,6 +67,35 @@ public class CPHInline
         CPH.UnsetGlobalVar(ResolvedProfileHandoffKey, false);
         if (!CPH.ExecuteMethod(AnimationAction, "ResolveEntryPointProfile")) return false;
         return CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay");
+    }
+
+    private void SendRecentMessage(string fullList)
+    {
+        var key = "rts.actionreplay.message.recent";
+        var text = CPH.GetGlobalVar<string>(key + ".text", true);
+        if (string.IsNullOrWhiteSpace(text)) text = "%replayRecent%";
+        text = CPH.Parse(text);
+        if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true)
+        {
+            var message = "";
+            foreach (var entry in text.Split(new[] { " | " }, StringSplitOptions.None))
+            {
+                var next = message.Length == 0 ? entry : message + " | " + entry;
+                if (next.Length > MaxChatMessageLength)
+                {
+                    if (message.Length > 0) CPH.SendMessage(message);
+                    message = entry.Length <= MaxChatMessageLength ? entry : entry.Substring(0, MaxChatMessageLength);
+                }
+                else message = next;
+            }
+            if (message.Length > 0) CPH.SendMessage(message);
+        }
+        if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false)
+        {
+            CPH.SetArgument("replayCommand", "message");
+            CPH.SetArgument("replayMessage", text);
+            CPH.TriggerEvent(EventName, true);
+        }
     }
 
     private JObject Load()
