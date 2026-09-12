@@ -6,6 +6,7 @@ public class CPHInline
 {
     private const string DataKey = "rts.actionreplay.data";
     private const string LegacyCatalogKey = "rts.actionreplay.catalog";
+    private const string EventName = "RTS-Action Replay";
     private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
     private const string AnimationAction = "RTS - Action Replay - Core - Animation";
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
@@ -32,8 +33,17 @@ public class CPHInline
             return "#" + (i + 1) + " " + title + " — " + requester;
         }).Where(x => x != null).ToList();
 
-        if (entries.Count == 0) { CPH.SendMessage("There are no recent replays."); return true; }
-        CPH.SetArgument("replayRecent", string.Join(" | ", entries));
+        if (entries.Count == 0)
+        {
+            CPH.SendMessage("There are no recent replays.");
+            CPH.SetArgument("replayCommand", "recent-list");
+            CPH.SetArgument("replayRecent", "There are no recent replays.");
+            CPH.TriggerEvent(EventName, true);
+            return true;
+        }
+
+        var fullList = string.Join(" | ", entries);
+        CPH.SetArgument("replayRecent", fullList);
         var message = "";
         foreach (var entry in entries)
         {
@@ -46,6 +56,9 @@ public class CPHInline
             else message = next;
         }
         if (message.Length > 0) CPH.SendMessage(message);
+
+        CPH.SetArgument("replayCommand", "recent-list");
+        CPH.TriggerEvent(EventName, true);
         return true;
     }
 
@@ -55,7 +68,6 @@ public class CPHInline
         var catalog = (JArray)data["catalog"] ?? new JArray();
         var recentIds = (JArray)data["recentIds"] ?? new JArray();
         if (recentIds.Count == 0) { CPH.SendMessage("There are no recent replays."); return false; }
-
         var selector = "1";
         CPH.TryGetArg("rawInput", out string rawInput);
         if (!string.IsNullOrWhiteSpace(rawInput)) selector = rawInput.Trim();
