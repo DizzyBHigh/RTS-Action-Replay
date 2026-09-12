@@ -65,8 +65,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 34px;
-  padding: 7px 10px;
+  min-height: 30px;
+  padding: 6px 10px;
   box-sizing: border-box;
   background: rgba(8, 12, 15, .94);
   border-top: 2px solid var(--frame-color);
@@ -74,11 +74,16 @@
   color: #fff;
 }
 
-#player-controls[aria-hidden="true"] { display: none; }
-#player-state { width: 22px; text-align: center; }
+#player-current,
+#player-duration {
+  min-width: 44px;
+  font-variant-numeric: tabular-nums;
+}
+
+#player-current { text-align: left; }
+#player-duration { text-align: right; }
 #player-progress { flex: 1; height: 4px; border-radius: 2px; overflow: hidden; background: rgba(255,255,255,.2); }
 #player-progress-bar { width: 0; height: 100%; background: var(--frame-color); transform-origin: left center; }
-#player-time { min-width: 92px; text-align: right; font-variant-numeric: tabular-nums; }
 #player-speed { min-width: 42px; text-align: right; color: var(--frame-color); }
 #replay-player.controls-hidden #player-controls { display: none; }
 #replay-player.progress-hidden #player-progress { display: none; }
@@ -87,5 +92,7 @@
   #replay-player-stage { width: 100vw; height: 100vh; }
   #replay-player { width: 100vw; }
   #player-controls { gap: 7px; padding: 5px 7px; }
+  #player-current,
+  #player-duration { min-width: 40px; }
   #player-speed { display: none; }
 }
