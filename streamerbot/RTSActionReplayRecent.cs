@@ -36,9 +36,6 @@ public class CPHInline
         var fullList = entries.Count == 0 ? "There are no recent replays." : string.Join(" | ", entries);
         CPH.SetArgument("replayRecent", fullList);
         SendRecentMessage(fullList);
-
-        CPH.SetArgument("replayCommand", "recent-list");
-        CPH.TriggerEvent(EventName, true);
         return true;
     }
 
@@ -75,6 +72,7 @@ public class CPHInline
         var text = CPH.GetGlobalVar<string>(key + ".text", true);
         if (string.IsNullOrWhiteSpace(text)) text = "%replayRecent%";
         text = CPH.Parse(text);
+
         if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true)
         {
             var message = "";
@@ -90,10 +88,11 @@ public class CPHInline
             }
             if (message.Length > 0) CPH.SendMessage(message);
         }
-        if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false)
+
+        if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? true)
         {
-            CPH.SetArgument("replayCommand", "message");
-            CPH.SetArgument("replayMessage", text);
+            CPH.SetArgument("replayCommand", "recent-list");
+            CPH.SetArgument("replayRecent", fullList);
             CPH.TriggerEvent(EventName, true);
         }
     }
