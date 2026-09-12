@@ -4,8 +4,8 @@
   position: fixed;
   left: 50%;
   top: 50%;
-  width: min(500px, calc(100vw - 80px));
-  max-height: min(760px, calc(100vh - 120px));
+  width: var(--rts-panel-width, 500px);
+  height: var(--rts-panel-height, 700px);
   padding: 0;
   box-sizing: border-box;
   overflow: hidden;
@@ -31,7 +31,9 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
+  height: 88px;
   padding: 18px 20px 16px;
+  box-sizing: border-box;
   background: linear-gradient(135deg, rgba(3, 132, 203, .24), rgba(3, 132, 203, .04) 55%, transparent);
   border-bottom: 2px solid var(--panel-primary);
   overflow: hidden;
@@ -60,7 +62,7 @@
 }
 
 .rts-panel-list {
-  max-height: calc(min(760px, 100vh - 120px) - 88px);
+  height: calc(var(--rts-panel-height, 700px) - 88px);
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--panel-primary) transparent;
@@ -106,10 +108,10 @@
 }
 
 @media (max-width: 700px) {
-  #recent-list { width: calc(100vw - 30px); max-height: calc(100vh - 60px); }
+  #recent-list { width: calc(100vw - 30px); height: calc(100vh - 60px); }
   .rts-panel-header { padding: 14px 16px 13px; }
   .rts-panel-header strong { font-size: 20px; }
   .rts-panel-entry { grid-template-columns: 28px 28px minmax(0, 1fr); gap: 9px; padding: 7px 13px; font-size: 14px; }
   .rts-panel-avatar { width: 28px; height: 28px; }
-  .rts-panel-list { max-height: calc(100vh - 145px); }
+  .rts-panel-list { height: calc(100vh - 148px); }
 }
