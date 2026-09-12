@@ -15,9 +15,7 @@ RTSInformationPanels.getPositions = command => {
     const raw = command?.replayPanelPositions;
     const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
     return parsed && typeof parsed === 'object' ? parsed : RTSInformationPanels.defaultPositions;
-  } catch (_) {
-    return RTSInformationPanels.defaultPositions;
-  }
+  } catch (_) { return RTSInformationPanels.defaultPositions; }
 };
 
 RTSInformationPanels.getPosition = (command, name) => {
@@ -50,13 +48,21 @@ RTSInformationPanels.applyPosition = (panel, command, name) => {
 };
 
 RTSInformationPanels.show = (panel, command, name) => {
+  if (window.RTSInformationPanelAnimation) {
+    RTSInformationPanelAnimation.show(panel, command, name);
+    return;
+  }
   RTSInformationPanels.applyPosition(panel, command, name);
   panel.classList.add('show');
   panel.setAttribute('aria-hidden', 'false');
 };
 
-RTSInformationPanels.hide = panel => {
+RTSInformationPanels.hide = (panel, command) => {
   if (!panel) return;
+  if (window.RTSInformationPanelAnimation) {
+    RTSInformationPanelAnimation.hide(panel, command);
+    return;
+  }
   panel.classList.remove('show');
   panel.setAttribute('aria-hidden', 'true');
 };
