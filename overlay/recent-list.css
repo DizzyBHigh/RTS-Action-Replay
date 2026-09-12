@@ -1,0 +1,46 @@
+#recent-list {
+  position: fixed;
+  left: 50%;
+  bottom: 5vh;
+  width: min(92vw, 900px);
+  transform: translate(-50%, 18px);
+  padding: 18px 22px;
+  box-sizing: border-box;
+  border: 2px solid #0384CB;
+  border-radius: 8px;
+  background: rgba(8, 12, 15, .94);
+  box-shadow: 0 0 18px rgba(3, 132, 203, .35);
+  color: #fff;
+  font: 600 18px/1.45 system-ui, sans-serif;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+  z-index: 100;
+}
+
+#recent-list.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+
+#recent-list-title {
+  margin-bottom: 10px;
+  color: #0384CB;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.recent-list-entry {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 700px) {
+  #recent-list { bottom: 3vh; padding: 12px 15px; font-size: 14px; }
+  #recent-list-title { font-size: 12px; }
+}
