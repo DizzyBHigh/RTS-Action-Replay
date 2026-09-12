@@ -32,7 +32,7 @@ public class CPHInline
         var title = CPH.Parse(CPH.GetGlobalVar<string>(TitleKey, true) ?? "%replayName%"); if (string.IsNullOrWhiteSpace(title)) title = Path.GetFileNameWithoutExtension(path);
         var replay = new JObject { ["id"] = id, ["sourceType"] = "OBS", ["sourceId"] = id, ["file"] = file, ["filePath"] = path, ["title"] = title, ["customTitle"] = false, ["added"] = now.ToString("o"), ["captured"] = now.ToString("o"), ["acquisitionMethod"] = "OBSReplayBuffer", ["creator"] = new JObject { ["id"] = creatorId, ["name"] = creatorName }, ["plays"] = 0, ["users"] = new JObject() };
         catalog.Insert(0, replay); AddRecent(data, id); TrimRecent(data); Save(data);
-        CPH.LogInfo($"RTS Action Replay: added {title} ({id})"); CPH.SetArgument("replayTitle", title); SendMessage("save"); if (CPH.GetGlobalVar<bool?>("rts.actionreplay.autoPlay", true) ?? false) BroadcastReplay(replay); return true;
+        CPH.LogInfo($"RTS Action Replay: added {title} ({id})"); CPH.SetArgument("replayTitle", title); SendStoreMessage("save"); if (CPH.GetGlobalVar<bool?>("rts.actionreplay.autoPlay", true) ?? false) BroadcastReplay(replay); return true;
     }
 
     public bool NameReplay()
@@ -43,29 +43,29 @@ public class CPHInline
         var data = Load(); var list = GetCatalog(data); if (index < 1 || index > list.Count) { CPH.SendMessage($"Replay #{index} does not exist."); return false; }
         var target = (JObject)list[index - 1];
         for (var i = 0; i < list.Count; i++) { var other = (JObject)list[i]; if (ReferenceEquals(other, target) || !((bool?)other["customTitle"] ?? false)) continue; if (string.Equals((string)other["title"], title, StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage("That title already exists."); return false; } }
-        target["title"] = title; target["customTitle"] = true; Save(data); CPH.SetArgument("replayNumber", index); CPH.SetArgument("replayTitle", title); SendMessage("name"); return true;
+        target["title"] = title; target["customTitle"] = true; Save(data); CPH.SetArgument("replayNumber", index); CPH.SetArgument("replayTitle", title); SendStoreMessage("name"); return true;
     }
 
     public bool ListPlaylist()
     {
-        var list = GetCatalog(Load()); var message = list.Count == 0 ? "The replay playlist is empty." : string.Join(" | ", list.OfType<JObject>().Select((x, i) => "#" + (i + 1) + " " + (string)x["title"])); CPH.SetArgument("replayPlaylist", message); SendMessage("playlist"); return true;
+        var list = GetCatalog(Load()); var message = list.Count == 0 ? "The replay playlist is empty." : string.Join(" | ", list.OfType<JObject>().Select((x, i) => "#" + (i + 1) + " " + (string)x["title"])); CPH.SetArgument("replayPlaylist", message); SendStoreMessage("playlist"); return true;
     }
 
     public bool CreatorLeaderboard()
     {
         var list = GetCatalog(Load()); var groups = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.KeyValuePair<string, int>>(StringComparer.OrdinalIgnoreCase);
         foreach (var token in list) { var creator = token["creator"] as JObject; var id = (string)creator?["id"]; if (string.IsNullOrWhiteSpace(id)) continue; var name = (string)creator["name"] ?? id; groups[id] = groups.ContainsKey(id) ? new System.Collections.Generic.KeyValuePair<string, int>(name, groups[id].Value + 1) : new System.Collections.Generic.KeyValuePair<string, int>(name, 1); }
-        var results = groups.Values.OrderByDescending(x => x.Value).Take(5).ToList(); var message = results.Count == 0 ? "Replay creators: No replay creators yet." : "Replay creators: " + string.Join(" | ", results.Select((x, i) => "#" + (i + 1) + " " + x.Key + " (" + x.Value + ")")); CPH.SetArgument("replayLeaderboard", message); SendMessage("creatorLeaderboard"); return true;
+        var results = groups.Values.OrderByDescending(x => x.Value).Take(5).ToList(); var message = results.Count == 0 ? "Replay creators: No replay creators yet." : "Replay creators: " + string.Join(" | ", results.Select((x, i) => "#" + (i + 1) + " " + x.Key + " (" + x.Value + ")")); CPH.SetArgument("replayLeaderboard", message); SendStoreMessage("creatorLeaderboard"); return true;
     }
 
     public bool PlaybackLeaderboard()
     {
         var list = GetCatalog(Load()); var users = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.KeyValuePair<string, int>>(StringComparer.OrdinalIgnoreCase);
         foreach (var token in list) { var replayUsers = token["users"] as JObject; if (replayUsers == null) continue; foreach (var property in replayUsers.Properties()) { var user = property.Value as JObject; var name = (string)user?["name"] ?? property.Name; var plays = (int?)user?["plays"] ?? 0; users[property.Name] = users.ContainsKey(property.Name) ? new System.Collections.Generic.KeyValuePair<string, int>(name, users[property.Name].Value + plays) : new System.Collections.Generic.KeyValuePair<string, int>(name, plays); } }
-        var results = users.Values.OrderByDescending(x => x.Value).Take(5).ToList(); var message = results.Count == 0 ? "Replay viewers: No replay plays yet." : "Replay viewers: " + string.Join(" | ", results.Select((x, i) => "#" + (i + 1) + " " + x.Key + " (" + x.Value + " plays)")); CPH.SetArgument("replayLeaderboard", message); SendMessage("playbackLeaderboard"); return true;
+        var results = users.Values.OrderByDescending(x => x.Value).Take(5).ToList(); var message = results.Count == 0 ? "Replay viewers: No replay plays yet." : "Replay viewers: " + string.Join(" | ", results.Select((x, i) => "#" + (i + 1) + " " + x.Key + " (" + x.Value + " plays)")); CPH.SetArgument("replayLeaderboard", message); SendStoreMessage("playbackLeaderboard"); return true;
     }
 
-    private void SendMessage(string type)
+    private void SendStoreMessage(string type)
     {
         var key = "rts.actionreplay.message." + type; var text = CPH.GetGlobalVar<string>(key + ".text", true); if (string.IsNullOrWhiteSpace(text)) return; text = CPH.Parse(text); if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) CPH.SendMessage(text); if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false) { CPH.SetArgument("replayCommand", "message"); CPH.SetArgument("replayMessage", text); SetMessageStyleArguments(); CPH.TriggerEvent("RTS-Action Replay", true); }
     }
@@ -109,6 +109,4 @@ public class CPHInline
         if (!CPH.ExecuteMethod(AnimationAction, "ResolveEntryPointProfile")) return;
         CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay");
     }
-
-    private void SendMessage(string type) { var key = "rts.actionreplay.message." + type; var text = CPH.GetGlobalVar<string>(key + ".text", true); if (string.IsNullOrWhiteSpace(text)) return; text = CPH.Parse(text); if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) CPH.SendMessage(text); if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false) { CPH.SetArgument("replayCommand", "message"); CPH.SetArgument("replayMessage", text); SetMessageStyleArguments(); CPH.TriggerEvent("RTS-Action Replay", true); } }
 }
