@@ -1,5 +1,7 @@
 const RTSReplayVideo = window.RTSReplay;
 
+const replayDevLog = (message, details) => window.RTSDevToolbar?.log?.(message, details);
+
 RTSReplayVideo.confirmPlayback = (replayId, userId, userName) => {
   if (!replayId || !RTSReplayVideo.socket || RTSReplayVideo.socket.readyState !== WebSocket.OPEN) return;
   RTSReplayVideo.socket.send(JSON.stringify({
@@ -19,13 +21,22 @@ RTSReplayVideo.notifyPlaybackEnded = command => {
 };
 
 RTSReplayVideo.playReplay = command => {
+  replayDevLog('play() requested', { replayId: command?.replayId, src: RTSReplayVideo.video.currentSrc, readyState: RTSReplayVideo.video.readyState });
   RTSReplayVideo.video.play().then(() => {
+    replayDevLog('play() resolved', { replayId: command?.replayId, currentTime: RTSReplayVideo.video.currentTime });
     RTSReplayVideo.confirmPlayback(command.replayId, command.replayUserId, command.replayUserName);
-  }).catch(error => console.warn('Replay play failed', error));
+  }).catch(error => {
+    replayDevLog('play() rejected', { name: error?.name, message: error?.message });
+    console.warn('Replay play failed', error);
+  });
 };
 
 RTSReplayVideo.loadReplay = command => {
-  if (!command.replayUrl) return;
+  if (!command.replayUrl) {
+    replayDevLog('loadReplay skipped: missing replayUrl');
+    return;
+  }
+  replayDevLog('loadReplay entered', { replayId: command.replayId, url: command.replayUrl, autoplay: !!command.replayAutoplay });
   RTSReplayVideo.currentCommand = command;
   window.RTSDevToolbar?.updateClapper?.(command);
   RTSReplayControls.configure(command);
@@ -40,10 +51,12 @@ RTSReplayVideo.loadReplay = command => {
   const endPosition = startSteps.length ? RTSReplayAnimation.getPosition(startSteps[startSteps.length - 1].position) : RTSReplayVideo.getPosition(endName);
 
   RTSReplayVideo.video.src = command.replayUrl;
+  replayDevLog('video src assigned', { currentSrc: RTSReplayVideo.video.currentSrc, readyState: RTSReplayVideo.video.readyState, networkState: RTSReplayVideo.video.networkState });
   RTSReplayVideo.video.style.display = 'block';
   RTSReplayVideo.visiblePosition = endPosition;
   const alreadyVisible = RTSReplayVideo.player.classList.contains('show');
   RTSReplayVideo.video.load();
+  replayDevLog('video.load() called', { readyState: RTSReplayVideo.video.readyState, networkState: RTSReplayVideo.video.networkState, alreadyVisible, hasStartSequence: startSteps.length > 0 });
   if (alreadyVisible) {
     RTSReplayAnimation.cancelSequence();
     RTSReplayVideo.applyPosition(endPosition, true);
@@ -56,7 +69,11 @@ RTSReplayVideo.loadReplay = command => {
   }
 
   if (command.replayAutoplay) {
-    RTSReplayVideo.video.addEventListener('canplay', () => RTSReplayVideo.playReplay(command), { once: true });
+    replayDevLog('waiting for canplay');
+    RTSReplayVideo.video.addEventListener('canplay', () => {
+      replayDevLog('canplay handler fired', { readyState: RTSReplayVideo.video.readyState });
+      RTSReplayVideo.playReplay(command);
+    }, { once: true });
   }
 };
 
@@ -135,5 +152,6 @@ RTSReplayVideo.handleReplayCommand = command => {
 
 RTSReplayVideo.video.addEventListener('ended', () => {
   const command = RTSReplayVideo.currentCommand;
+  replayDevLog('video ended', { replayId: command?.replayId, currentTime: RTSReplayVideo.video.currentTime });
   if (command) RTSReplayVideo.notifyPlaybackEnded(command);
 });
