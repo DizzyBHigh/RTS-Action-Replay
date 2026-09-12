@@ -33,8 +33,27 @@ public class CPHInline
             return "#" + (i + 1) + " " + title + " — " + requester;
         }).Where(x => x != null).ToList();
 
+        var panelEntries = new JArray();
+        foreach (var item in recentIds.Select((token, i) => new { token, i }))
+        {
+            var id = Convert.ToString(item.token);
+            var replay = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals(Convert.ToString(x["id"]), id, StringComparison.OrdinalIgnoreCase));
+            if (replay == null) continue;
+            var creator = replay["creator"] as JObject;
+            var requester = Convert.ToString(creator?["name"]);
+            if (string.IsNullOrWhiteSpace(requester)) requester = "Unknown";
+            panelEntries.Add(new JObject
+            {
+                ["number"] = item.i + 1,
+                ["title"] = Convert.ToString(replay["title"]),
+                ["requester"] = requester,
+                ["avatarUrl"] = GetAvatarUrl(creator)
+            });
+        }
+
         var fullList = entries.Count == 0 ? "There are no recent replays." : string.Join(" | ", entries);
         CPH.SetArgument("replayRecent", fullList);
+        CPH.SetArgument("replayRecentData", panelEntries.ToString(Newtonsoft.Json.Formatting.None));
         SendRecentMessage(fullList);
         return true;
     }
@@ -64,6 +83,19 @@ public class CPHInline
         CPH.UnsetGlobalVar(ResolvedProfileHandoffKey, false);
         if (!CPH.ExecuteMethod(AnimationAction, "ResolveEntryPointProfile")) return false;
         return CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay");
+    }
+
+    private string GetAvatarUrl(JObject creator)
+    {
+        var id = Convert.ToString(creator?["id"]);
+        var name = Convert.ToString(creator?["name"]);
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(id)) return CPH.TwitchGetExtendedUserInfoById(id)?.ProfileImageUrl ?? "";
+            if (!string.IsNullOrWhiteSpace(name)) return CPH.TwitchGetExtendedUserInfoByLogin(name)?.ProfileImageUrl ?? "";
+        }
+        catch { }
+        return "";
     }
 
     private void SendRecentMessage(string fullList)
