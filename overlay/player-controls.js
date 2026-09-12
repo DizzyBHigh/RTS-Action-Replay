@@ -13,15 +13,17 @@ RTSReplayControls.updateControls = () => {
   const video = RTSReplayControls.video;
   const duration = Number.isFinite(video.duration) ? video.duration : 0;
   const current = Number.isFinite(video.currentTime) ? video.currentTime : 0;
-  RTSReplayControls.state.textContent = video.paused ? '▶' : '❚❚';
-  RTSReplayControls.time.textContent = `${RTSReplayControls.formatTime(current)} / ${RTSReplayControls.formatTime(duration)}`;
+  RTSReplayControls.current.textContent = RTSReplayControls.formatTime(current);
+  RTSReplayControls.duration.textContent = RTSReplayControls.formatTime(duration);
   RTSReplayControls.progressBar.style.width = duration ? `${(current / duration) * 100}%` : '0%';
 };
 
 RTSReplayControls.configure = command => {
   const player = RTSReplayControls.player;
-  player.classList.toggle('controls-hidden', command.replayShowControls === false);
+  const showControls = command.replayShowControls !== false;
+  player.classList.toggle('controls-hidden', !showControls);
   player.classList.toggle('progress-hidden', command.replayShowProgress === false);
+  RTSReplayControls.controls.setAttribute('aria-hidden', showControls ? 'false' : 'true');
   player.style.setProperty('--frame-color', command.replayFrameColor || '#0384CB');
   player.style.setProperty('--border-color', command.replayBorderColor || '#FFFFFF');
   RTSReplayControls.frame.className = '';
