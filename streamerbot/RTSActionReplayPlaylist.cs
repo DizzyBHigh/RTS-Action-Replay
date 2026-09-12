@@ -8,7 +8,7 @@ public class CPHInline
     private const string PausedKey = "rts.actionreplay.playlistPaused";
     private const string ActiveKey = "rts.actionreplay.playlistActive";
     private const string DataKey = "rts.actionreplay.data";
-    private const string PlaybackCode = "RTS Action Replay Playback";
+    private const string PlaybackCode = "RTS - Action Replay - Playback";
     private const string AnimationAction = "RTS - Action Replay - Core - Animation";
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
     private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
