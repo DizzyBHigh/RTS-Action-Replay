@@ -45,31 +45,37 @@ public class CPHInline
         CPH.SetArgument("replayPlaylist", lines); CPH.SendMessage(lines); return true;
     }
 
+    // Clear removes waiting playlist items but keeps the currently active replay in the queue.
     public bool Clear()
     {
         var queue = LoadQueue();
         var activeId = ActiveId();
         var cleared = 0;
-        if (string.IsNullOrWhiteSpace(activeId))
+        for (var i = queue.Count - 1; i >= 0; i--)
         {
-            cleared = queue.Count;
-            queue.Clear();
-        }
-        else
-        {
-            for (var i = queue.Count - 1; i >= 0; i--)
+            var item = queue[i] as JObject;
+            if (string.IsNullOrWhiteSpace(activeId) || item == null || !string.Equals((string)item["entryId"], activeId, StringComparison.OrdinalIgnoreCase))
             {
-                var item = queue[i] as JObject;
-                if (item == null || !string.Equals((string)item["entryId"], activeId, StringComparison.OrdinalIgnoreCase))
-                {
-                    queue.RemoveAt(i);
-                    cleared++;
-                }
+                queue.RemoveAt(i);
+                cleared++;
             }
         }
         SaveQueue(queue);
-        CPH.LogInfo($"RTS Action Replay: playlist cleared; active={(string.IsNullOrWhiteSpace(activeId) ? "<none>" : activeId)}; cleared={cleared}; remaining={queue.Count}.");
-        CPH.SendMessage(queue.Count == 0 ? "Playlist cleared." : $"Playlist cleared; active replay retained.");
+        CPH.LogInfo($"RTS Action Replay: playlist Clear removed {cleared} waiting item(s); active={(string.IsNullOrWhiteSpace(activeId) ? "<none>" : activeId)}; remaining={queue.Count}.");
+        CPH.SendMessage(queue.Count == 0 ? "Playlist cleared." : "Playlist cleared; active replay retained.");
+        return true;
+    }
+
+    // ClearAll removes every playlist item, including the active queue entry. It does not stop playback.
+    public bool ClearAll()
+    {
+        var queue = LoadQueue();
+        var cleared = queue.Count;
+        queue.Clear();
+        SaveQueue(queue);
+        CPH.SetGlobalVar(ActiveKey, "", false);
+        CPH.LogInfo($"RTS Action Replay: playlist ClearAll removed {cleared} item(s); active playback was not stopped.");
+        CPH.SendMessage("Playlist completely cleared.");
         return true;
     }
 
