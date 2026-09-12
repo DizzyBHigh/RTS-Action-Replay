@@ -36,6 +36,7 @@ public class CPHInline
         var entryPoint = CPH.TryGetArg("animationEntryPoint", out string requestedEntryPoint) && !string.IsNullOrWhiteSpace(requestedEntryPoint)
             ? requestedEntryPoint.Trim()
             : CPH.GetGlobalVar<string>(EntryPointHandoffKey, false);
+        CPH.UnsetGlobalVar(EntryPointHandoffKey, false);
         if (string.IsNullOrWhiteSpace(entryPoint)) return false;
         var configured = CPH.GetGlobalVar<string>("rts.actionreplay.animation.entry." + entryPoint.ToLowerInvariant(), true);
         var profile = ResolveProfileId(configured) ?? "default";
