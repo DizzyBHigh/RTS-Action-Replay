@@ -45,6 +45,20 @@ public class CPHInline
         CPH.SetArgument("replayPlaylist", lines); CPH.SendMessage(lines); return true;
     }
 
+    public bool Clear()
+    {
+        var queue = LoadQueue();
+        var activeId = ActiveId();
+        if (!string.IsNullOrWhiteSpace(activeId) && queue.Count > 0)
+        {
+            var active = queue.FirstOrDefault(x => string.Equals((string)x["entryId"], activeId, StringComparison.OrdinalIgnoreCase));
+            if (active != null) queue.Remove(active);
+        }
+        SaveQueue(queue);
+        CPH.LogInfo($"RTS Action Replay: playlist cleared; active={(string.IsNullOrWhiteSpace(activeId) ? "<none>" : activeId)}; remaining={queue.Count}.");
+        return true;
+    }
+
     public bool Remove()
     {
         if (!CPH.TryGetArg("rawInput", out string input) || !int.TryParse(input, out var index)) return false;
