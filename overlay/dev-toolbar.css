@@ -1,20 +1,44 @@
-#rts-dev-toolbar {
+#rts-dev-screen {
   position:fixed;
-  top:0;
-  left:0;
-  right:0;
-  z-index:9999;
-  display:flex;
-  align-items:center;
-  gap:6px;
-  min-height:42px;
-  padding:6px 10px;
+  z-index:1;
+  left:50%;
+  top:calc(50% + 24px);
+  width:min(92vw, calc(92vh * 16 / 9));
+  aspect-ratio:16 / 9;
+  transform:translate(-50%, -50%);
   box-sizing:border-box;
+  border:2px solid rgba(3,132,203,.75);
+  background:rgba(8,12,15,.72);
+  box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 18px 55px rgba(0,0,0,.45);
+  pointer-events:none;
+}
+#rts-dev-screen::after {
+  content:'';
+  position:absolute;
+  inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px, transparent 1px);
+  background-size:10% 10%;
+}
+#rts-dev-screen .dev-screen-label {
+  position:absolute;
+  top:-24px;
+  left:0;
+  padding:5px 8px;
   background:rgba(10,13,16,.96);
-  border-bottom:1px solid rgba(255,255,255,.16);
-  box-shadow:0 4px 18px rgba(0,0,0,.35);
-  color:#fff;
-  font:600 12px/1 system-ui,sans-serif;
+  border:1px solid rgba(3,132,203,.55);
+  color:#0384CB;
+  font:600 11px/1 system-ui,sans-serif;
+  letter-spacing:.08em;
+}
+#rts-dev-screen .dev-safe-area {
+  position:absolute;
+  inset:5%;
+  border:1px dashed rgba(255,255,255,.14);
+}
+
+#rts-dev-toolbar {
+  position:fixed; top:0; left:0; right:0; z-index:9999; display:flex; align-items:center; gap:6px; min-height:42px; padding:6px 10px; box-sizing:border-box;
+  background:rgba(10,13,16,.96); border-bottom:1px solid rgba(255,255,255,.16); box-shadow:0 4px 18px rgba(0,0,0,.35); color:#fff; font:600 12px/1 system-ui,sans-serif;
 }
 #rts-dev-toolbar .dev-label { color:#0384CB; letter-spacing:.08em; margin-right:4px; }
 #rts-dev-toolbar button { border:1px solid rgba(255,255,255,.2); border-radius:3px; padding:7px 10px; background:#171c20; color:#fff; font:inherit; cursor:pointer; }
@@ -23,45 +47,21 @@
 #rts-dev-toolbar input { width:180px; padding:7px 9px; border:1px solid rgba(255,255,255,.2); border-radius:3px; background:#111519; color:#fff; font:inherit; }
 #rts-dev-toolbar input[type="number"] { width:58px; }
 #rts-dev-toolbar select { min-width:72px; padding:7px 8px; border:1px solid rgba(255,255,255,.2); border-radius:3px; background:#111519; color:#fff; font:inherit; }
-#rts-dev-toolbar .dev-speed-label,
-#rts-dev-toolbar .dev-position-label { opacity:.7; margin-left:2px; white-space:nowrap; }
+#rts-dev-toolbar .dev-speed-label,#rts-dev-toolbar .dev-position-label { opacity:.7; margin-left:2px; white-space:nowrap; }
 #rts-dev-toolbar .spacer { flex:1; }
 #rts-dev-toolbar .hint { opacity:.55; font-weight:400; }
 
 #rts-dev-log {
-  position:fixed;
-  top:54px;
-  left:10px;
-  right:10px;
-  z-index:9998;
-  display:none;
-  max-height:42vh;
-  overflow:auto;
-  box-sizing:border-box;
-  padding:10px;
-  background:rgba(10,13,16,.97);
-  border:1px solid rgba(255,255,255,.16);
-  border-radius:4px;
-  box-shadow:0 10px 35px rgba(0,0,0,.45);
-  color:#dfe7eb;
-  font:11px/1.45 Consolas,monospace;
+  position:fixed; top:54px; left:10px; right:10px; z-index:9998; display:none; max-height:42vh; overflow:auto; box-sizing:border-box; padding:10px;
+  background:rgba(10,13,16,.97); border:1px solid rgba(255,255,255,.16); border-radius:4px; box-shadow:0 10px 35px rgba(0,0,0,.45); color:#dfe7eb; font:11px/1.45 Consolas,monospace;
 }
 #rts-dev-log.show { display:block; }
 #rts-dev-log .dev-log-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; color:#0384CB; font:600 12px/1 system-ui,sans-serif; }
 #rts-dev-log .dev-log-header button { border:1px solid rgba(255,255,255,.2); border-radius:3px; padding:4px 8px; background:#171c20; color:#fff; font:inherit; cursor:pointer; }
 #rts-dev-log pre { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; }
 
-#replay-player.dev-player {
-  width:min(82vw,1280px);
-  opacity:1;
-  visibility:visible;
-}
-#replay-player.dev-player #player-frame {
-  width:100%;
-  aspect-ratio:16 / 9;
-  background:#101416;
-  box-shadow:0 18px 55px rgba(0,0,0,.5);
-}
+#replay-player.dev-player { width:min(82vw,1280px); opacity:1; visibility:visible; }
+#replay-player.dev-player #player-frame { width:100%; aspect-ratio:16 / 9; background:#101416; box-shadow:0 18px 55px rgba(0,0,0,.5); }
 #replay-player.dev-player #video { width:100%; height:100%; object-fit:cover; opacity:1; }
 #replay-player.dev-player #player-frame::before { display:none; }
 #replay-player.dev-player #player-elements { z-index:20; }
