@@ -19,6 +19,9 @@ public class CPHInline
     private const string TwitchFolderKey = "rts.actionreplay.twitch.folder";
     private const string PlaylistAction = "RTS Action Replay Playlist";
     private const string AnimationAction = "RTS - Action Replay - Core - Animation";
+    private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
+    private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
+    private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
 
     public bool Execute() => CreateTwitchClip();
 
@@ -93,8 +96,9 @@ public class CPHInline
 
     private bool BroadcastReplay(JObject item)
     {
-        CPH.SetArgument("replayId", (string)item["id"] ?? "");
-        CPH.SetArgument("animationEntryPoint", "twitch");
+        CPH.SetGlobalVar(ReplayIdHandoffKey, (string)item["id"] ?? "", false);
+        CPH.SetGlobalVar(EntryPointHandoffKey, "twitch", false);
+        CPH.UnsetGlobalVar(ResolvedProfileHandoffKey, false);
         if (!CPH.ExecuteMethod(AnimationAction, "ResolveEntryPointProfile")) return false;
         return CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay");
     }
@@ -150,5 +154,4 @@ public class CPHInline
     private bool PathsEqual(string a, string b) { try { return string.Equals(Path.GetFullPath(a).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), Path.GetFullPath(b).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), StringComparison.OrdinalIgnoreCase); } catch { return string.Equals(a, b, StringComparison.OrdinalIgnoreCase); } }
     private string Sanitize(string value) { var invalid = Path.GetInvalidFileNameChars(); var chars = value.ToCharArray(); for (var i = 0; i < chars.Length; i++) for (var j = 0; j < invalid.Length; j++) if (chars[i] == invalid[j]) chars[i] = '_'; return new string(chars); }
     private int GetSettingInt(string key, int fallback) { try { object value = CPH.GetGlobalVar<object>(key, true); return value == null ? fallback : Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture); } catch { return fallback; } }
-    private double GetSettingDouble(string key, double fallback) { try { object value = CPH.GetGlobalVar<object>(key, true); return value == null ? fallback : Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture); } catch { return fallback; } }
 }
