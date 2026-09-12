@@ -19,6 +19,7 @@ public class CPHInline
     private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
     private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
     private const string PlaybackProfileHandoffKey = "rts.actionreplay.handoff.playbackProfile";
+    private const string PlaybackQueueEntryHandoffKey = "rts.actionreplay.handoff.playbackQueueEntryId";
 
     public bool Execute() => PlayReplay();
 
@@ -32,14 +33,27 @@ public class CPHInline
 
     public bool PlayReplay()
     {
-        var data = Load(); var list = GetCatalog(data);
-        if (!CPH.TryGetArg("rawInput", out string selector) || string.IsNullOrWhiteSpace(selector)) return false;
-        selector = selector.Trim(); JObject replay = null;
-        if (int.TryParse(selector, out var index) && index > 0 && index <= list.Count) replay = (JObject)list[index - 1];
-        else replay = list.OfType<JObject>().FirstOrDefault(x => ((bool?)x["customTitle"] ?? false) && string.Equals((string)x["title"], selector, StringComparison.OrdinalIgnoreCase));
-        if (replay == null) { CPH.SendMessage("Replay not found."); return false; }
+        var data = Load(); var list = GetCatalog(data); JObject replay = null;
+        var handoffQueueEntryId = CPH.GetGlobalVar<string>(PlaybackQueueEntryHandoffKey, false);
+        var handoffReplayId = CPH.GetGlobalVar<string>(ReplayIdHandoffKey, false);
+        string selector = null; CPH.TryGetArg("rawInput", out selector);
+        if (!string.IsNullOrWhiteSpace(handoffQueueEntryId) && !string.IsNullOrWhiteSpace(handoffReplayId))
+        {
+            replay = list.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], handoffReplayId, StringComparison.OrdinalIgnoreCase));
+            if (replay == null) { CPH.SendMessage("Replay not found."); return false; }
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(selector)) return false;
+            selector = selector.Trim();
+            if (int.TryParse(selector, out var index) && index > 0 && index <= list.Count) replay = (JObject)list[index - 1];
+            else replay = list.OfType<JObject>().FirstOrDefault(x => ((bool?)x["customTitle"] ?? false) && string.Equals((string)x["title"], selector, StringComparison.OrdinalIgnoreCase));
+            if (replay == null) { CPH.SendMessage("Replay not found."); return false; }
+        }
 
-        if (!CPH.TryGetArg("replayQueueEntryId", out string queueEntryId) || string.IsNullOrWhiteSpace(queueEntryId))
+        var queueEntryId = handoffQueueEntryId;
+        if (string.IsNullOrWhiteSpace(queueEntryId)) CPH.TryGetArg("replayQueueEntryId", out queueEntryId);
+        if (string.IsNullOrWhiteSpace(queueEntryId))
         {
             CPH.SetGlobalVar(ReplayIdHandoffKey, (string)replay["id"] ?? "", false);
             CPH.SetGlobalVar(EntryPointHandoffKey, "catalog", false);
@@ -53,7 +67,7 @@ public class CPHInline
         CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName);
         var creator = replay["creator"] as JObject; var creatorName = (string)creator?["name"] ?? "";
         CPH.SetArgument("replayCommand", "load"); CPH.SetArgument("replayId", (string)replay["id"]); CPH.SetArgument("replayUrl", url); CPH.SetArgument("replayAutoplay", true);
-        CPH.SetArgument("replayUserId", userId ?? ""); CPH.SetArgument("replayUserName", userName ?? ""); CPH.SetArgument("replayDirector", creatorName);
+        CPH.SetArgument("replayQueueEntryId", queueEntryId); CPH.SetArgument("replayUserId", userId ?? ""); CPH.SetArgument("replayUserName", userName ?? ""); CPH.SetArgument("replayDirector", creatorName);
         CPH.SetArgument("replayNumber", Array.IndexOf(list.ToArray(), replay) + 1); CPH.SetArgument("replayTitle", (string)replay["title"] ?? ""); CPH.SetArgument("replayPlayedCount", ((int?)replay["plays"] ?? 0) + 1);
         CPH.SetArgument("replaySource", (string)replay["sourceType"] ?? "OBS"); CPH.SetArgument("replaySourceId", (string)replay["sourceId"] ?? "");
         var profile = CPH.TryGetArg("replayAnimationProfileId", out string requestedProfile) && !string.IsNullOrWhiteSpace(requestedProfile) ? requestedProfile.Trim() : CPH.GetGlobalVar<string>(PlaybackProfileHandoffKey, false);
