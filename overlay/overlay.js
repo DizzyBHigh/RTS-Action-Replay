@@ -11,7 +11,7 @@ RTSReplayOverlay.handleEvent = message => {
     queueEntryId: data.args?.replayQueueEntryId
   });
   RTSReplayOverlay.handleReplayCommand(data.args);
-  RTSRecentList?.handleRecentListCommand?.(data.args);
+  if (data.args.replayCommand === 'recent-list') RTSReplayOverlay.showRecentList?.(data.args);
 };
 
 window.rtsOverlay = RTSReplayOverlay.config;
