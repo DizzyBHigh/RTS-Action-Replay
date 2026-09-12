@@ -39,8 +39,17 @@ RTSInformationPanels.normalise = position => {
   };
 };
 
+RTSInformationPanels.applySize = (panel, command) => {
+  if (!panel) return;
+  const width = Number(command?.replayPanelWidth);
+  const height = Number(command?.replayPanelHeight);
+  panel.style.setProperty('--rts-panel-width', `${Number.isFinite(width) && width > 0 ? width : 500}px`);
+  panel.style.setProperty('--rts-panel-height', `${Number.isFinite(height) && height > 0 ? height : 700}px`);
+};
+
 RTSInformationPanels.applyPosition = (panel, command, name) => {
   if (!panel) return;
+  RTSInformationPanels.applySize(panel, command);
   const position = RTSInformationPanels.normalise(RTSInformationPanels.getPosition(command, name));
   panel.style.left = `calc(50% + ${position.x}vw)`;
   panel.style.top = `calc(50% - ${position.y}vh)`;
