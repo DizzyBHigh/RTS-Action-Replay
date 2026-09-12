@@ -154,5 +154,4 @@ RTSReplayVideo.video.addEventListener('ended', () => {
   const command = RTSReplayVideo.currentCommand;
   replayDevLog('video ended', { replayId: command?.replayId, currentTime: RTSReplayVideo.video.currentTime });
   if (command) RTSReplayVideo.notifyPlaybackEnded(command);
-  RTSReplayVideo.hideReplay();
 });
