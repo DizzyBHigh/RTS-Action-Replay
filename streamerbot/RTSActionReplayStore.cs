@@ -35,7 +35,7 @@ public class CPHInline
         var title = CPH.Parse(CPH.GetGlobalVar<string>(TitleKey, true) ?? "%replayName%"); if (string.IsNullOrWhiteSpace(title)) title = Path.GetFileNameWithoutExtension(path);
         var replay = new JObject { ["id"] = id, ["sourceType"] = "OBS", ["sourceId"] = id, ["file"] = file, ["filePath"] = path, ["title"] = title, ["customTitle"] = false, ["added"] = now.ToString("o"), ["captured"] = now.ToString("o"), ["acquisitionMethod"] = "OBSReplayBuffer", ["creator"] = new JObject { ["id"] = creatorId, ["name"] = creatorName }, ["plays"] = 0, ["users"] = new JObject() };
         catalog.Insert(0, replay); AddRecent(data, id); TrimRecent(data); Save(data);
-        CPH.LogInfo($"RTS Action Replay: added {title} ({id})"); CPH.SetArgument("replayTitle", title); SendStoreMessage("save"); if (CPH.GetGlobalVar<bool?>("rts.actionreplay.autoPlay", true) ?? false) BroadcastReplay(replay); return true;
+        CPH.LogInfo($"RTS Action Replay: added {title} ({id})"); CPH.SetArgument("replayTitle", title); CPH.SetArgument("animationEntryPoint", "obs"); CPH.SetArgument("replayAutoPlay", CPH.GetGlobalVar<bool?>("rts.actionreplay.autoPlay", true) ?? false); SendStoreMessage("save"); return true;
     }
 
     public bool NameReplay()
