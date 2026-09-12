@@ -1,0 +1,32 @@
+#recent-list {
+  position: fixed;
+  left: 50%;
+  bottom: 42px;
+  width: min(1100px, calc(100vw - 80px));
+  max-height: calc(100vh - 84px);
+  transform: translate(-50%, 18px);
+  padding: 18px 24px;
+  box-sizing: border-box;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  background: rgba(8, 12, 15, .94);
+  border: 3px solid #0384CB;
+  box-shadow: 0 0 18px rgba(3, 132, 203, .45);
+  font: 600 20px/1.45 system-ui, sans-serif;
+  color: #fff;
+  transition: opacity .25s ease, transform .25s ease, visibility .25s ease;
+}
+
+#recent-list.show {
+  transform: translate(-50%, 0);
+  opacity: 1;
+  visibility: visible;
+}
+
+.recent-list-entry { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+@media (max-width: 700px) {
+  #recent-list { bottom: 20px; width: calc(100vw - 30px); padding: 12px 15px; font-size: 14px; }
+}
