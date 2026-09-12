@@ -85,7 +85,36 @@ public class CPHInline
     private void AddPositionSettings(RtsUI ui)
     {
         ui.BeginSection("Saved Positions", "Positions"); ui.BeginRow(3, 2); ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", "Edit Positions", null, "scale,x,y,rotateX,rotateY,rotateZ", null, null); ui.AddList("Position Tags", "", "Positions", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true))); ui.EndRow(); ui.EndSection();
+        AddPanelPositionSettings(ui);
         AddAnimationProfileSettings(ui);
+    }
+
+    private void AddPanelPositionSettings(RtsUI ui)
+    {
+        var width = CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500;
+        var height = CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700;
+        ui.BeginSection("Information Panels", "Positions");
+        ui.AddTitle("Information panels use the 1920×1080 overlay resolution. Width and height are stored as actual output pixels. The position editor remains a 640×360 canvas and previews the panel at one-third scale.", "Positions");
+        ui.BeginRow();
+        ui.AddNumericTextbox("Panel Width", "Information panel width in 1080p output pixels.", "Positions", "rts.actionreplay.panel.width", 500, 100, 1920);
+        ui.AddNumericTextbox("Panel Height", "Information panel height in 1080p output pixels.", "Positions", "rts.actionreplay.panel.height", 700, 100, 1080);
+        ui.EndRow();
+        ui.AddPositionEditor("Panel Positions", "Create and edit reusable information-panel positions. Positions are shared by Recent Replays, Playlist, Creator Leaderboard and Playback Leaderboard.", "Positions", "rts.actionreplay.panel.positions", "{\"Center\":{\"name\":\"Center\",\"tag\":\"center\",\"scale\":100,\"x\":0,\"y\":0,\"rotateZ\":0},\"Top\":{\"name\":\"Top\",\"tag\":\"top\",\"scale\":100,\"x\":0,\"y\":17.5926,\"rotateZ\":0},\"Bottom\":{\"name\":\"Bottom\",\"tag\":\"bottom\",\"scale\":100,\"x\":0,\"y\":-17.5926,\"rotateZ\":0},\"Top Left\":{\"name\":\"Top Left\",\"tag\":\"top-left\",\"scale\":100,\"x\":-36.9792,\"y\":17.5926,\"rotateZ\":0},\"Top Right\":{\"name\":\"Top Right\",\"tag\":\"top-right\",\"scale\":100,\"x\":36.9792,\"y\":17.5926,\"rotateZ\":0},\"Bottom Left\":{\"name\":\"Bottom Left\",\"tag\":\"bottom-left\",\"scale\":100,\"x\":-36.9792,\"y\":-17.5926,\"rotateZ\":0},\"Bottom Right\":{\"name\":\"Bottom Right\",\"tag\":\"bottom-right\",\"scale\":100,\"x\":36.9792,\"y\":-17.5926,\"rotateZ\":0}}", "Edit Panel Positions", null, "scale,x,y,rotateZ", null, null, BuildPanelPreviewSizes(width, height));
+        ui.AddPositionSelector("Panel Position", "Default position used by information panels unless a panel-specific position is supplied.", "Positions", "rts.actionreplay.panel.position", "rts.actionreplay.panel.positions", "Center");
+        ui.EndSection();
+    }
+
+    private Dictionary<string, RtsUIPreviewSize> BuildPanelPreviewSizes(int width, int height)
+    {
+        var previewSizes = new Dictionary<string, RtsUIPreviewSize>(StringComparer.OrdinalIgnoreCase);
+        var positions = ParsePositions(CPH.GetGlobalVar<string>("rts.actionreplay.panel.positions", true));
+        foreach (var item in positions)
+        {
+            var position = item.Value as JObject; var name = (string)position?["name"];
+            if (!string.IsNullOrWhiteSpace(name)) previewSizes[name] = new RtsUIPreviewSize(width / 3.0, height / 3.0);
+        }
+        if (previewSizes.Count == 0) previewSizes["Center"] = new RtsUIPreviewSize(width / 3.0, height / 3.0);
+        return previewSizes;
     }
 
     private void AddAnimationProfileSettings(RtsUI ui)
