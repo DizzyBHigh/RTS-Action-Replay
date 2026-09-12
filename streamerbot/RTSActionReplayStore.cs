@@ -11,7 +11,7 @@ public class CPHInline
     private const string MaxHistoryKey = "rts.actionreplay.maxHistory";
     private const string PendingKey = "rts.actionreplay.pendingSaves";
     private const string FileTypesKey = "rts.actionreplay.replayFileTypes";
-    private const string PlaylistAction = "RTS Action Replay Playlist";
+    private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
     private const string AnimationAction = "RTS - Action Replay - Core - Animation";
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
     private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
@@ -105,9 +105,9 @@ public class CPHInline
     private bool Stable(string path) { for (var i = 0; i < 5; i++) { var a = new FileInfo(path).Length; CPH.Wait(500); var b = new FileInfo(path).Length; if (a == b) return true; } return false; }
     private void ApplyPendingCreator(ref string id, ref string name) { if (!string.IsNullOrWhiteSpace(id)) return; var raw = CPH.GetGlobalVar<string>(PendingKey, false); if (string.IsNullOrWhiteSpace(raw)) return; try { var queue = JArray.Parse(raw); if (queue.Count == 0) return; var item = (JObject)queue[0]; queue.RemoveAt(0); CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), false); DateTime queued; if (DateTime.TryParse((string)item["queued"], out queued) && DateTime.UtcNow - queued <= TimeSpan.FromSeconds(60)) { id = (string)item["id"] ?? ""; name = (string)item["name"] ?? ""; } } catch { } }
 
-    private void BroadcastReplay(JObject replay)
+    private void BroadcastReplay(JObject item)
     {
-        CPH.SetGlobalVar(ReplayIdHandoffKey, (string)replay["id"] ?? "", false);
+        CPH.SetGlobalVar(ReplayIdHandoffKey, (string)item["id"] ?? "", false);
         CPH.SetGlobalVar(EntryPointHandoffKey, "obs", false);
         CPH.UnsetGlobalVar(ResolvedProfileHandoffKey, false);
         if (!CPH.ExecuteMethod(AnimationAction, "ResolveEntryPointProfile")) return;
