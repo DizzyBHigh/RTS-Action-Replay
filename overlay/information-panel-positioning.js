@@ -44,7 +44,9 @@ RTSInformationPanels.applyPosition = (panel, command, name) => {
   const position = RTSInformationPanels.normalise(RTSInformationPanels.getPosition(command, name));
   panel.style.left = `calc(50% + ${position.x}vw)`;
   panel.style.top = `calc(50% - ${position.y}vh)`;
-  panel.style.transform = `translate(-50%, -50%) scale3d(${position.scaleX / 100}, ${position.scaleY / 100}, 1) rotateZ(${position.rotateZ}deg)`;
+  panel.style.setProperty('--panel-scale-x', position.scaleX / 100);
+  panel.style.setProperty('--panel-scale-y', position.scaleY / 100);
+  panel.style.setProperty('--panel-rotate-z', `${position.rotateZ}deg`);
 };
 
 RTSInformationPanels.show = (panel, command, name) => {
