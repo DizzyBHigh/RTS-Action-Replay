@@ -15,15 +15,33 @@ public class CPHInline
 
     public bool EnqueueCurrentReplay()
     {
-        if (!CPH.TryGetArg("replayId", out string replayId) || string.IsNullOrWhiteSpace(replayId)) return false;
-        var replay = FindReplay(Catalog(Load()), replayId); if (replay == null) return false;
+        CPH.LogInfo("RTS Action Replay TRACE: EnqueueCurrentReplay entered.");
+        if (!CPH.TryGetArg("replayId", out string replayId) || string.IsNullOrWhiteSpace(replayId))
+        {
+            CPH.LogWarn("RTS Action Replay TRACE: EnqueueCurrentReplay failed - replayId argument missing or empty.");
+            return false;
+        }
+        CPH.LogInfo($"RTS Action Replay TRACE: EnqueueCurrentReplay replayId={replayId}.");
+        var replay = FindReplay(Catalog(Load()), replayId);
+        if (replay == null)
+        {
+            CPH.LogWarn($"RTS Action Replay TRACE: EnqueueCurrentReplay failed - replay {replayId} not found in catalog.");
+            return false;
+        }
         CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName);
         var creator = replay["creator"] as JObject; var requester = string.IsNullOrWhiteSpace(userName) ? (string)creator?["name"] ?? "" : userName;
         var profile = ResolveRequestedProfile();
+        CPH.LogInfo($"RTS Action Replay TRACE: EnqueueCurrentReplay resolved profile={profile ?? "<null>"}.");
         var queue = LoadQueue();
         queue.Add(new JObject { ["entryId"] = Guid.NewGuid().ToString("N"), ["replayId"] = replayId, ["title"] = (string)replay["title"] ?? "Replay", ["requesterId"] = userId ?? "", ["requesterName"] = requester, ["animationProfileId"] = profile, ["queued"] = DateTime.Now.ToString("o") });
         SaveQueue(queue);
-        if (!IsPaused() && ActiveId() == null) return PlayNext(queue);
+        CPH.LogInfo($"RTS Action Replay TRACE: EnqueueCurrentReplay queued replay {replayId}; queueCount={queue.Count}; paused={IsPaused()}; active={ActiveId() ?? "<none>"}.");
+        if (!IsPaused() && ActiveId() == null)
+        {
+            var started = PlayNext(queue);
+            CPH.LogInfo($"RTS Action Replay TRACE: EnqueueCurrentReplay PlayNext returned {started}.");
+            return started;
+        }
         return true;
     }
 
@@ -67,13 +85,17 @@ public class CPHInline
 
     private bool PlayNext(JArray queue)
     {
-        if (queue.Count == 0) return true; var item = queue[0] as JObject; if (item == null) return false;
+        CPH.LogInfo($"RTS Action Replay TRACE: PlayNext entered; queueCount={queue.Count}.");
+        if (queue.Count == 0) return true; var item = queue[0] as JObject; if (item == null) { CPH.LogWarn("RTS Action Replay TRACE: PlayNext failed - queue item is not an object."); return false; }
         var catalog = Catalog(Load()); var index = -1;
         for (var i = 0; i < catalog.Count; i++) { var replay = catalog[i] as JObject; if (replay != null && string.Equals((string)replay["id"], (string)item["replayId"], StringComparison.OrdinalIgnoreCase)) { index = i; break; } }
-        if (index < 0) return false;
+        if (index < 0) { CPH.LogWarn($"RTS Action Replay TRACE: PlayNext failed - replay {(string)item["replayId"]} not found in catalog."); return false; }
         var profile = (string)item["animationProfileId"]; if (string.IsNullOrWhiteSpace(profile)) profile = ResolvePlaylistProfile();
         CPH.SetArgument("rawInput", (index + 1).ToString()); CPH.SetArgument("replayQueueEntryId", (string)item["entryId"]); CPH.SetArgument("replayAnimationProfileId", profile);
-        var started = CPH.ExecuteMethod(PlaybackCode, "PlayReplay"); if (started) CPH.SetGlobalVar(ActiveKey, (string)item["entryId"], false); return started;
+        CPH.LogInfo($"RTS Action Replay TRACE: PlayNext calling Playback; catalogIndex={index + 1}; entryId={(string)item["entryId"]}; profile={profile ?? "<null>"}.");
+        var started = CPH.ExecuteMethod(PlaybackCode, "PlayReplay");
+        CPH.LogInfo($"RTS Action Replay TRACE: Playback PlayReplay returned {started}.");
+        if (started) CPH.SetGlobalVar(ActiveKey, (string)item["entryId"], false); return started;
     }
 
     private string ResolveRequestedProfile()
