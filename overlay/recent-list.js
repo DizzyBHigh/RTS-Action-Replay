@@ -2,13 +2,11 @@ const RTSRecentList = window.RTSReplay;
 
 RTSRecentList.showRecentList = command => {
   const text = String(command?.replayRecent || '').trim();
-  if (!text) return;
   const panel = RTSRecentList.recentList;
-  if (!panel) return;
+  if (!panel || !text) return;
 
-  const entries = text.split(' | ').filter(Boolean);
-  panel.innerHTML = '';
-  entries.forEach(entry => {
+  panel.innerHTML = '<div id="recent-list-title">RECENT REPLAYS</div>';
+  text.split(' | ').filter(Boolean).forEach(entry => {
     const row = document.createElement('div');
     row.className = 'recent-list-entry';
     row.textContent = entry;
