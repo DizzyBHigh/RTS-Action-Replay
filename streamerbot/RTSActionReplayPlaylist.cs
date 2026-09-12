@@ -60,7 +60,7 @@ public class CPHInline
                 cleared++;
             }
         }
-        SaveQueue(queue);
+        SaveQueueAndClearOtherStore(queue);
         CPH.LogInfo($"RTS Action Replay: playlist Clear removed {cleared} waiting item(s); active={(string.IsNullOrWhiteSpace(activeId) ? "<none>" : activeId)}; remaining={queue.Count}.");
         CPH.SendMessage(queue.Count == 0 ? "Playlist cleared." : "Playlist cleared; active replay retained.");
         return true;
@@ -72,7 +72,7 @@ public class CPHInline
         var queue = LoadQueue();
         var cleared = queue.Count;
         queue.Clear();
-        SaveQueue(queue);
+        SaveQueueAndClearOtherStore(queue);
         CPH.SetGlobalVar(ActiveKey, "", false);
         CPH.LogInfo($"RTS Action Replay: playlist ClearAll removed {cleared} item(s); active playback was not stopped.");
         CPH.SendMessage("Playlist completely cleared.");
@@ -152,6 +152,12 @@ public class CPHInline
     private void HidePlayer() { CPH.SetArgument("replayCommand", "hide"); CPH.TriggerEvent("RTS-Action Replay", true); }
     private JArray LoadQueue() { var persist = PersistQueue(); var raw = CPH.GetGlobalVar<string>(QueueKey, persist); try { return string.IsNullOrWhiteSpace(raw) ? new JArray() : JArray.Parse(raw); } catch { return new JArray(); } }
     private void SaveQueue(JArray queue) => CPH.SetGlobalVar(QueueKey, queue.ToString(Newtonsoft.Json.Formatting.None), PersistQueue());
+    private void SaveQueueAndClearOtherStore(JArray queue)
+    {
+        var persist = PersistQueue();
+        SaveQueue(queue);
+        CPH.UnsetGlobalVar(QueueKey, !persist);
+    }
     private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); } }
     private JArray Catalog(JObject data) => data["catalog"] as JArray ?? new JArray();
 }
