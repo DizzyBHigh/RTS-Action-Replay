@@ -10,6 +10,7 @@ public class CPHInline
     private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
     private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
     private const string PlaybackProfileHandoffKey = "rts.actionreplay.handoff.playbackProfile";
+    private const string AnimationProfileHandoffKey = "rts.actionreplay.handoff.animationProfile";
 
     public bool Execute() => EnsureProfiles();
     public bool EnsureProfiles()
@@ -45,6 +46,7 @@ public class CPHInline
     }
     public bool ApplyProfile()
     {
+        var handoffRequested = !string.IsNullOrWhiteSpace(CPH.GetGlobalVar<string>(PlaybackProfileHandoffKey, false));
         string profile = null;
         if (CPH.TryGetArg("replayAnimationProfileId", out string explicitProfile) && !string.IsNullOrWhiteSpace(explicitProfile)) profile = explicitProfile.Trim();
         if (string.IsNullOrWhiteSpace(profile)) profile = CPH.GetGlobalVar<string>(PlaybackProfileHandoffKey, false);
@@ -54,7 +56,10 @@ public class CPHInline
         var key = "rts.actionreplay.animation." + profile + "."; var start = ReadSequence(key + "startSequence"); var end = ReadSequence(key + "endSequence");
         if (start.Count == 0) start.Add(new JObject { ["position"] = GetProfileString(profile, "startPosition", "Full Screen"), ["duration"] = 0, ["delay"] = 0, ["easing"] = GetProfileString(profile, "easing", GetEasing()) });
         if (end.Count == 0) end.Add(new JObject { ["position"] = GetProfileString(profile, "endPosition", "Full Screen"), ["duration"] = (int)Math.Round(GetProfileDouble(profile, "duration", .5) * 1000), ["delay"] = 0, ["easing"] = GetProfileString(profile, "easing", GetEasing()) });
-        CPH.SetArgument("profileId", profile); CPH.SetArgument("replayAnimationProfile", new JObject { ["id"] = profile, ["name"] = GetProfileName(profile), ["start"] = start, ["end"] = end }.ToString(Newtonsoft.Json.Formatting.None));
+        CPH.SetArgument("profileId", profile);
+        var profileJson = new JObject { ["id"] = profile, ["name"] = GetProfileName(profile), ["start"] = start, ["end"] = end }.ToString(Newtonsoft.Json.Formatting.None);
+        CPH.SetArgument("replayAnimationProfile", profileJson);
+        if (handoffRequested) CPH.SetGlobalVar(AnimationProfileHandoffKey, profileJson, false);
         CPH.SetArgument("replayStartPosition", GetProfileString(profile, "startPosition", "Full Screen")); CPH.SetArgument("replayEndPosition", GetProfileString(profile, "endPosition", "Full Screen")); CPH.SetArgument("replayAnimationDuration", GetProfileDouble(profile, "duration", .5)); CPH.SetArgument("replayAnimationEasing", GetProfileString(profile, "easing", GetEasing())); return true;
     }
     public bool GetProfile() => ApplyProfile();
