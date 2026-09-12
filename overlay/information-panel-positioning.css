@@ -1,4 +1,7 @@
 [data-rts-information-panel] {
+  --panel-scale-x: 1;
+  --panel-scale-y: 1;
+  --panel-rotate-z: 0deg;
   position: fixed;
   left: 50%;
   top: 50%;
