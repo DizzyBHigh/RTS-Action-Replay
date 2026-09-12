@@ -49,16 +49,27 @@ public class CPHInline
     {
         var queue = LoadQueue();
         var activeId = ActiveId();
-        if (!string.IsNullOrWhiteSpace(activeId))
+        var cleared = 0;
+        if (string.IsNullOrWhiteSpace(activeId))
+        {
+            cleared = queue.Count;
+            queue.Clear();
+        }
+        else
         {
             for (var i = queue.Count - 1; i >= 0; i--)
             {
                 var item = queue[i] as JObject;
-                if (item != null && string.Equals((string)item["entryId"], activeId, StringComparison.OrdinalIgnoreCase)) queue.RemoveAt(i);
+                if (item == null || !string.Equals((string)item["entryId"], activeId, StringComparison.OrdinalIgnoreCase))
+                {
+                    queue.RemoveAt(i);
+                    cleared++;
+                }
             }
         }
         SaveQueue(queue);
-        CPH.LogInfo($"RTS Action Replay: playlist cleared; active={(string.IsNullOrWhiteSpace(activeId) ? "<none>" : activeId)}; remaining={queue.Count}.");
+        CPH.LogInfo($"RTS Action Replay: playlist cleared; active={(string.IsNullOrWhiteSpace(activeId) ? "<none>" : activeId)}; cleared={cleared}; remaining={queue.Count}.");
+        CPH.SendMessage(queue.Count == 0 ? "Playlist cleared." : $"Playlist cleared; active replay retained.");
         return true;
     }
 
