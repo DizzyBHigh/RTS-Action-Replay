@@ -6,7 +6,7 @@ public class CPHInline
 {
     private const string DataKey = "rts.actionreplay.data";
     private const string LegacyCatalogKey = "rts.actionreplay.catalog";
-    private const string PlaylistAction = "RTS Action Replay Playlist";
+    private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
     private const string AnimationAction = "RTS - Action Replay - Core - Animation";
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
     private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
