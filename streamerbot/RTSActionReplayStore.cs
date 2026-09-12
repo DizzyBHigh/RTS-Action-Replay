@@ -13,6 +13,9 @@ public class CPHInline
     private const string FileTypesKey = "rts.actionreplay.replayFileTypes";
     private const string PlaylistAction = "RTS Action Replay Playlist";
     private const string AnimationAction = "RTS - Action Replay - Core - Animation";
+    private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
+    private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
+    private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
 
     public bool Execute() => Initialize();
     public bool Initialize() { Save(Load()); return true; }
@@ -104,8 +107,9 @@ public class CPHInline
 
     private void BroadcastReplay(JObject replay)
     {
-        CPH.SetArgument("replayId", (string)replay["id"] ?? "");
-        CPH.SetArgument("animationEntryPoint", "obs");
+        CPH.SetGlobalVar(ReplayIdHandoffKey, (string)replay["id"] ?? "", false);
+        CPH.SetGlobalVar(EntryPointHandoffKey, "obs", false);
+        CPH.UnsetGlobalVar(ResolvedProfileHandoffKey, false);
         if (!CPH.ExecuteMethod(AnimationAction, "ResolveEntryPointProfile")) return;
         CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay");
     }
