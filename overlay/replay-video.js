@@ -116,18 +116,32 @@ RTSReplayVideo.showPlayer = () => {
 };
 
 RTSReplayVideo.hideReplay = () => {
+  const command = RTSReplayVideo.currentCommand || {};
+  const profile = RTSReplayAnimation.readProfile(command);
+  replayDevLog('hideReplay entered', {
+    replayId: command.replayId,
+    showClass: RTSReplayVideo.player.classList.contains('show'),
+    activePosition: RTSReplayVideo.activePosition,
+    visiblePosition: RTSReplayVideo.visiblePosition,
+    hasEndSequence: Array.isArray(profile?.end) && profile.end.length > 0
+  });
   RTSReplayAnimation.cancelSequence();
   RTSReplayVideo.video.pause();
   RTSReplayVideo.visiblePosition = RTSReplayVideo.activePosition;
-  const profile = RTSReplayAnimation.readProfile(RTSReplayVideo.currentCommand || {});
   if (Array.isArray(profile?.end) && profile.end.length) {
-    RTSReplayAnimation.runEndSequence(profile.end, () => RTSReplayVideo.player.classList.remove('show'));
+    replayDevLog('hideReplay starting end sequence', { steps: profile.end.length });
+    RTSReplayAnimation.runEndSequence(profile.end, () => {
+      RTSReplayVideo.player.classList.remove('show');
+      replayDevLog('hideReplay end sequence complete', { showClass: RTSReplayVideo.player.classList.contains('show'), activePosition: RTSReplayVideo.activePosition });
+    });
     return;
   }
+  replayDevLog('hideReplay using animateOut');
   RTSReplayVideo.animateOut();
 };
 
 RTSReplayVideo.handleReplayCommand = command => {
+  replayDevLog('command received', { replayCommand: command?.replayCommand, replayId: command?.replayId });
   if (command.replayCommand === 'message') RTSReplayVideo.showMessage(command);
   if (command.replayCommand === 'load') RTSReplayVideo.loadReplay(command);
   if (command.replayCommand === 'title-test') RTSReplayVideo.testTitle(command);
