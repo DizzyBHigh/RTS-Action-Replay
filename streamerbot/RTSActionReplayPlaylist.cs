@@ -16,24 +16,12 @@ public class CPHInline
     public bool EnqueueCurrentReplay()
     {
         if (!CPH.TryGetArg("replayId", out string replayId) || string.IsNullOrWhiteSpace(replayId)) return false;
-        var replay = FindReplay(Catalog(Load()), replayId);
-        if (replay == null) return false;
+        var replay = FindReplay(Catalog(Load()), replayId); if (replay == null) return false;
         CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName);
-        var creator = replay["creator"] as JObject;
-        var requester = string.IsNullOrWhiteSpace(userName) ? (string)creator?["name"] ?? "" : userName;
-
+        var creator = replay["creator"] as JObject; var requester = string.IsNullOrWhiteSpace(userName) ? (string)creator?["name"] ?? "" : userName;
         var profile = ResolveRequestedProfile();
         var queue = LoadQueue();
-        queue.Add(new JObject
-        {
-            ["entryId"] = Guid.NewGuid().ToString("N"),
-            ["replayId"] = replayId,
-            ["title"] = (string)replay["title"] ?? "Replay",
-            ["requesterId"] = userId ?? "",
-            ["requesterName"] = requester,
-            ["animationProfileId"] = profile,
-            ["queued"] = DateTime.Now.ToString("o")
-        });
+        queue.Add(new JObject { ["entryId"] = Guid.NewGuid().ToString("N"), ["replayId"] = replayId, ["title"] = (string)replay["title"] ?? "Replay", ["requesterId"] = userId ?? "", ["requesterName"] = requester, ["animationProfileId"] = profile, ["queued"] = DateTime.Now.ToString("o") });
         SaveQueue(queue);
         if (!IsPaused() && ActiveId() == null) return PlayNext(queue);
         return true;
@@ -41,17 +29,9 @@ public class CPHInline
 
     public bool View()
     {
-        var queue = LoadQueue();
-        if (queue.Count == 0) { CPH.SendMessage("Playlist is empty."); return true; }
+        var queue = LoadQueue(); if (queue.Count == 0) { CPH.SendMessage("Playlist is empty."); return true; }
         var lines = "";
-        for (var i = 0; i < queue.Count; i++)
-        {
-            var item = queue[i] as JObject;
-            if (item == null) continue;
-            var requester = (string)item["requesterName"];
-            if (string.IsNullOrWhiteSpace(requester)) requester = "Created automatically";
-            lines += (lines.Length == 0 ? "" : " | ") + "#" + (i + 1) + " " + (string)item["title"] + " — " + requester;
-        }
+        for (var i = 0; i < queue.Count; i++) { var item = queue[i] as JObject; if (item == null) continue; var requester = (string)item["requesterName"]; if (string.IsNullOrWhiteSpace(requester)) requester = "Created automatically"; lines += (lines.Length == 0 ? "" : " | ") + "#" + (i + 1) + " " + (string)item["title"] + " — " + requester; }
         CPH.SetArgument("replayPlaylist", lines); CPH.SendMessage(lines); return true;
     }
 
@@ -68,45 +48,32 @@ public class CPHInline
     public bool Resume()
     {
         CPH.SetGlobalVar(PausedKey, false, false);
-        var queue = LoadQueue(); return ActiveId() != null || queue.Count == 0 || PlayNext(queue);
+        var queue = LoadQueue();
+        if (ActiveId() != null || queue.Count == 0) return true;
+        queue[0]["animationProfileId"] = ResolvePlaylistProfile();
+        SaveQueue(queue);
+        return PlayNext(queue);
     }
 
     public bool PlaybackEnded()
     {
         if (!CPH.TryGetArg("replayId", out string replayId)) return false;
-        CPH.TryGetArg("replayQueueEntryId", out string entryId);
-        var queue = LoadQueue(); JObject current = null;
-        for (var i = 0; i < queue.Count; i++)
-        {
-            var item = queue[i] as JObject;
-            if (item != null && string.Equals((string)item["replayId"], replayId, StringComparison.OrdinalIgnoreCase) && (string.IsNullOrWhiteSpace(entryId) || string.Equals((string)item["entryId"], entryId, StringComparison.OrdinalIgnoreCase))) { current = item; break; }
-        }
+        CPH.TryGetArg("replayQueueEntryId", out string entryId); var queue = LoadQueue(); JObject current = null;
+        for (var i = 0; i < queue.Count; i++) { var item = queue[i] as JObject; if (item != null && string.Equals((string)item["replayId"], replayId, StringComparison.OrdinalIgnoreCase) && (string.IsNullOrWhiteSpace(entryId) || string.Equals((string)item["entryId"], entryId, StringComparison.OrdinalIgnoreCase))) { current = item; break; } }
         if (current == null || !string.Equals((string)current["entryId"], ActiveId(), StringComparison.OrdinalIgnoreCase)) return false;
         queue.Remove(current); SaveQueue(queue); CPH.SetGlobalVar(ActiveKey, "", false);
-        if (IsPaused()) return true;
-        if (queue.Count == 0) { HidePlayer(); return true; }
-        return PlayNext(queue);
+        if (IsPaused()) return true; if (queue.Count == 0) { HidePlayer(); return true; } return PlayNext(queue);
     }
 
     private bool PlayNext(JArray queue)
     {
-        if (queue.Count == 0) return true;
-        var item = queue[0] as JObject; if (item == null) return false;
+        if (queue.Count == 0) return true; var item = queue[0] as JObject; if (item == null) return false;
         var catalog = Catalog(Load()); var index = -1;
-        for (var i = 0; i < catalog.Count; i++)
-        {
-            var replay = catalog[i] as JObject;
-            if (replay != null && string.Equals((string)replay["id"], (string)item["replayId"], StringComparison.OrdinalIgnoreCase)) { index = i; break; }
-        }
+        for (var i = 0; i < catalog.Count; i++) { var replay = catalog[i] as JObject; if (replay != null && string.Equals((string)replay["id"], (string)item["replayId"], StringComparison.OrdinalIgnoreCase)) { index = i; break; } }
         if (index < 0) return false;
-        var profile = (string)item["animationProfileId"];
-        if (string.IsNullOrWhiteSpace(profile)) profile = ResolvePlaylistProfile();
-        CPH.SetArgument("rawInput", (index + 1).ToString());
-        CPH.SetArgument("replayQueueEntryId", (string)item["entryId"]);
-        CPH.SetArgument("replayAnimationProfileId", profile);
-        var started = CPH.ExecuteMethod(PlaybackCode, "PlayReplay");
-        if (started) CPH.SetGlobalVar(ActiveKey, (string)item["entryId"], false);
-        return started;
+        var profile = (string)item["animationProfileId"]; if (string.IsNullOrWhiteSpace(profile)) profile = ResolvePlaylistProfile();
+        CPH.SetArgument("rawInput", (index + 1).ToString()); CPH.SetArgument("replayQueueEntryId", (string)item["entryId"]); CPH.SetArgument("replayAnimationProfileId", profile);
+        var started = CPH.ExecuteMethod(PlaybackCode, "PlayReplay"); if (started) CPH.SetGlobalVar(ActiveKey, (string)item["entryId"], false); return started;
     }
 
     private string ResolveRequestedProfile()
@@ -122,27 +89,12 @@ public class CPHInline
         return "default";
     }
 
-    private JObject FindReplay(JArray catalog, string replayId)
-    {
-        for (var i = 0; i < catalog.Count; i++)
-        {
-            var replay = catalog[i] as JObject;
-            if (replay != null && string.Equals((string)replay["id"], replayId, StringComparison.OrdinalIgnoreCase)) return replay;
-        }
-        return null;
-    }
-
+    private JObject FindReplay(JArray catalog, string replayId) { for (var i = 0; i < catalog.Count; i++) { var replay = catalog[i] as JObject; if (replay != null && string.Equals((string)replay["id"], replayId, StringComparison.OrdinalIgnoreCase)) return replay; } return null; }
     private string ActiveId() => CPH.GetGlobalVar<string>(ActiveKey, false);
     private bool IsPaused() => CPH.GetGlobalVar<bool?>(PausedKey, false) ?? false;
     private bool PersistQueue() => CPH.GetGlobalVar<bool?>(PersistKey, true) ?? false;
     private void HidePlayer() { CPH.SetArgument("replayCommand", "hide"); CPH.TriggerEvent("RTS-Action Replay", true); }
-    private JArray LoadQueue()
-    {
-        var persist = PersistQueue();
-        if (!persist) CPH.SetGlobalVar(QueueKey, "", true);
-        var raw = CPH.GetGlobalVar<string>(QueueKey, persist);
-        try { return string.IsNullOrWhiteSpace(raw) ? new JArray() : JArray.Parse(raw); } catch { return new JArray(); }
-    }
+    private JArray LoadQueue() { var persist = PersistQueue(); if (!persist) CPH.SetGlobalVar(QueueKey, "", true); var raw = CPH.GetGlobalVar<string>(QueueKey, persist); try { return string.IsNullOrWhiteSpace(raw) ? new JArray() : JArray.Parse(raw); } catch { return new JArray(); } }
     private void SaveQueue(JArray queue) => CPH.SetGlobalVar(QueueKey, queue.ToString(Newtonsoft.Json.Formatting.None), PersistQueue());
     private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); } }
     private JArray Catalog(JObject data) => data["catalog"] as JArray ?? new JArray();
