@@ -37,33 +37,37 @@ public class CPHInline
         var handoffQueueEntryId = CPH.GetGlobalVar<string>(PlaybackQueueEntryHandoffKey, false);
         var handoffReplayId = CPH.GetGlobalVar<string>(ReplayIdHandoffKey, false);
         string selector = null; CPH.TryGetArg("rawInput", out selector);
+        CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay entered; handoffReplayId={handoffReplayId ?? "<none>"}; handoffQueueEntryId={handoffQueueEntryId ?? "<none>"}; rawInput={selector ?? "<none>"}; catalogCount={list.Count}.");
         if (!string.IsNullOrWhiteSpace(handoffQueueEntryId) && !string.IsNullOrWhiteSpace(handoffReplayId))
         {
             replay = list.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], handoffReplayId, StringComparison.OrdinalIgnoreCase));
-            if (replay == null) { CPH.SendMessage("Replay not found."); return false; }
+            if (replay == null) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - handoff replay {handoffReplayId} not found in catalog."); CPH.SendMessage("Replay not found."); return false; }
         }
         else
         {
-            if (string.IsNullOrWhiteSpace(selector)) return false;
+            if (string.IsNullOrWhiteSpace(selector)) { CPH.LogWarn("RTS Action Replay TRACE: PlayReplay failed - no queue handoff and rawInput is empty."); return false; }
             selector = selector.Trim();
             if (int.TryParse(selector, out var index) && index > 0 && index <= list.Count) replay = (JObject)list[index - 1];
             else replay = list.OfType<JObject>().FirstOrDefault(x => ((bool?)x["customTitle"] ?? false) && string.Equals((string)x["title"], selector, StringComparison.OrdinalIgnoreCase));
-            if (replay == null) { CPH.SendMessage("Replay not found."); return false; }
+            if (replay == null) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - selector '{selector}' did not resolve to a replay."); CPH.SendMessage("Replay not found."); return false; }
         }
 
         var queueEntryId = handoffQueueEntryId;
         if (string.IsNullOrWhiteSpace(queueEntryId)) CPH.TryGetArg("replayQueueEntryId", out queueEntryId);
+        CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay resolved replayId={(string)replay["id"]}; title={(string)replay["title"]}; queueEntryId={queueEntryId ?? "<none>"}.");
         if (string.IsNullOrWhiteSpace(queueEntryId))
         {
             CPH.SetGlobalVar(ReplayIdHandoffKey, (string)replay["id"] ?? "", false);
             CPH.SetGlobalVar(EntryPointHandoffKey, "catalog", false);
             CPH.UnsetGlobalVar(ResolvedProfileHandoffKey, false);
-            if (!CPH.ExecuteMethod(AnimationAction, "ResolveEntryPointProfile")) return false;
+            CPH.LogInfo("RTS Action Replay TRACE: PlayReplay catalog path; resolving catalog animation profile.");
+            if (!CPH.ExecuteMethod(AnimationAction, "ResolveEntryPointProfile")) { CPH.LogWarn("RTS Action Replay TRACE: PlayReplay failed - ResolveEntryPointProfile returned false."); return false; }
             return CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay");
         }
 
         var url = ResolveReplayUrl(replay);
-        if (string.IsNullOrWhiteSpace(url)) { CPH.SendMessage($"Replay media is unavailable: {(string)replay["title"]}"); return false; }
+        CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay media resolution returned {(string.IsNullOrWhiteSpace(url) ? "<null>" : url)}.");
+        if (string.IsNullOrWhiteSpace(url)) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - media URL unavailable for replay {(string)replay["id"]}; file={(string)replay["file"]}; filePath={(string)replay["filePath"]}."); CPH.SendMessage($"Replay media is unavailable: {(string)replay["title"]}"); return false; }
         CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName);
         var creator = replay["creator"] as JObject; var creatorName = (string)creator?["name"] ?? "";
         CPH.SetArgument("replayCommand", "load"); CPH.SetArgument("replayId", (string)replay["id"]); CPH.SetArgument("replayUrl", url); CPH.SetArgument("replayAutoplay", true);
@@ -72,14 +76,19 @@ public class CPHInline
         CPH.SetArgument("replaySource", (string)replay["sourceType"] ?? "OBS"); CPH.SetArgument("replaySourceId", (string)replay["sourceId"] ?? "");
         var profile = CPH.TryGetArg("replayAnimationProfileId", out string requestedProfile) && !string.IsNullOrWhiteSpace(requestedProfile) ? requestedProfile.Trim() : CPH.GetGlobalVar<string>(PlaybackProfileHandoffKey, false);
         if (string.IsNullOrWhiteSpace(profile)) profile = "default";
-        ApplyPlayerSettings(profile); CPH.TriggerEvent(EventName, true); SendMessage("play"); return true;
+        CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay dispatching load; replayId={(string)replay["id"]}; url={url}; profile={profile}; queueEntryId={queueEntryId}.");
+        ApplyPlayerSettings(profile); CPH.TriggerEvent(EventName, true); SendMessage("play");
+        CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay completed dispatch for replay {(string)replay["id"]}.");
+        return true;
     }
 
     private string ResolveReplayUrl(JObject replay)
     {
         if (string.Equals((string)replay["sourceType"], "Twitch", StringComparison.OrdinalIgnoreCase)) return ResolveTwitchUrl(replay);
         var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true); var mapping = CPH.GetGlobalVar<string>("rts.actionreplay.httpMapping", true) ?? "replays"; var port = CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474;
-        var file = (string)replay["file"]; var path = Path.Combine(folder ?? "", file ?? ""); if (!File.Exists(path)) return null;
+        var file = (string)replay["file"]; var path = Path.Combine(folder ?? "", file ?? "");
+        CPH.LogInfo($"RTS Action Replay TRACE: ResolveReplayUrl OBS; folder={folder ?? "<null>"}; file={file ?? "<null>"}; path={path}; exists={File.Exists(path)}; mapping={mapping}; port={port}.");
+        if (!File.Exists(path)) return null;
         return "http://localhost:" + port + "/" + mapping.Trim('/') + "/" + CPH.UrlEncode(file ?? "");
     }
 
