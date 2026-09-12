@@ -2,9 +2,13 @@
   --panel-scale-x: 1;
   --panel-scale-y: 1;
   --panel-rotate-z: 0deg;
+  --rts-panel-width: 500px;
+  --rts-panel-height: 700px;
   position: fixed;
   left: 50%;
   top: 50%;
+  width: var(--rts-panel-width);
+  height: var(--rts-panel-height);
   transform-origin: center center;
   box-sizing: border-box;
   will-change: transform, left, top;
