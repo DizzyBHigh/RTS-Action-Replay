@@ -16,14 +16,14 @@
   border: 3px solid var(--panel-primary);
   box-shadow: 0 0 0 1px rgba(3, 132, 203, .25), 0 0 24px rgba(3, 132, 203, .35);
   color: #fff;
-  transform: translate(-50%, -46%) scale(.97);
+  transform: translate(-50%, -46%) scale(calc(.97 * var(--panel-scale-x, 1))) scaleY(var(--panel-scale-y, 1)) rotateZ(var(--panel-rotate-z, 0deg));
   transition: opacity .25s ease, transform .25s ease, visibility .25s ease;
 }
 
 #recent-list.show {
   opacity: 1;
   visibility: visible;
-  transform: translate(-50%, -50%) scale(1);
+  transform: translate(-50%, -50%) scaleX(var(--panel-scale-x, 1)) scaleY(var(--panel-scale-y, 1)) rotateZ(var(--panel-rotate-z, 0deg));
 }
 
 .rts-panel-header {
