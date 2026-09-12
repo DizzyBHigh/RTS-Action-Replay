@@ -48,12 +48,32 @@ RTSRecentList.showRecentList = command => {
   panel.classList.add('show');
   panel.setAttribute('aria-hidden', 'false');
 
+  const startedAt = Date.now();
+  const scrollable = list.scrollHeight > list.clientHeight;
+  let scrollFinished = !scrollable;
+
+  const scheduleHide = delay => {
+    clearTimeout(RTSRecentList.recentListTimer);
+    RTSRecentList.recentListTimer = setTimeout(() => {
+      panel.classList.remove('show');
+      panel.setAttribute('aria-hidden', 'true');
+    }, delay);
+  };
+
+  const finishScrolling = () => {
+    if (scrollFinished) return;
+    scrollFinished = true;
+    clearInterval(RTSRecentList.recentListScrollInterval);
+    RTSRecentList.recentListScrollInterval = null;
+    const elapsed = Date.now() - startedAt;
+    if (elapsed >= 10000) scheduleHide(3000);
+  };
+
   const startAutoScroll = () => {
-    if (list.scrollHeight <= list.clientHeight) return;
+    if (!scrollable) return;
     RTSRecentList.recentListScrollInterval = setInterval(() => {
       if (list.scrollTop + list.clientHeight >= list.scrollHeight - 1) {
-        clearInterval(RTSRecentList.recentListScrollInterval);
-        RTSRecentList.recentListScrollInterval = null;
+        finishScrolling();
         return;
       }
       list.scrollTop += 1;
@@ -61,12 +81,12 @@ RTSRecentList.showRecentList = command => {
   };
 
   RTSRecentList.recentListScrollTimer = setTimeout(startAutoScroll, 3000);
-  recentListLog('recent list rendered', { entries: entries.length, scrollable: list.scrollHeight > list.clientHeight });
+  recentListLog('recent list rendered', { entries: entries.length, scrollable });
+
   RTSRecentList.recentListTimer = setTimeout(() => {
-    clearTimeout(RTSRecentList.recentListScrollTimer);
-    clearInterval(RTSRecentList.recentListScrollInterval);
-    RTSRecentList.recentListScrollInterval = null;
-    panel.classList.remove('show');
-    panel.setAttribute('aria-hidden', 'true');
+    if (scrollFinished) {
+      panel.classList.remove('show');
+      panel.setAttribute('aria-hidden', 'true');
+    }
   }, 10000);
 };
