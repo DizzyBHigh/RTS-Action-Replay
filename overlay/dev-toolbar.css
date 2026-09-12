@@ -1,6 +1,6 @@
 #rts-dev-screen {
   position:fixed;
-  z-index:1;
+  z-index:0;
   left:50%;
   top:calc(50% + 24px);
   width:min(92vw, calc(92vh * 16 / 9));
@@ -35,6 +35,8 @@
   inset:5%;
   border:1px dashed rgba(255,255,255,.14);
 }
+
+#replay-player-stage { z-index:2; }
 
 #rts-dev-toolbar {
   position:fixed; top:0; left:0; right:0; z-index:9999; display:flex; align-items:center; gap:6px; min-height:42px; padding:6px 10px; box-sizing:border-box;
