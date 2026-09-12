@@ -11,6 +11,7 @@ public class CPHInline
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
     private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
     private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
+    private const int MaxChatMessageLength = 500;
 
     public bool Execute() => PlayRecent();
 
@@ -19,21 +20,32 @@ public class CPHInline
         var data = Load();
         var catalog = (JArray)data["catalog"] ?? new JArray();
         var recentIds = (JArray)data["recentIds"] ?? new JArray();
-        var lines = "";
-        for (var i = 0; i < recentIds.Count; i++)
+        var entries = recentIds.Select((item, i) =>
         {
-            var id = Convert.ToString(recentIds[i]);
+            var id = Convert.ToString(item);
             var replay = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals(Convert.ToString(x["id"]), id, StringComparison.OrdinalIgnoreCase));
-            if (replay == null) continue;
+            if (replay == null) return null;
             var title = Convert.ToString(replay["title"]);
             var creator = replay["creator"] as JObject;
             var requester = Convert.ToString(creator?["name"]);
             if (string.IsNullOrWhiteSpace(requester)) requester = "Unknown";
-            lines += (lines.Length == 0 ? "" : " | ") + "#" + (i + 1) + " " + title + " — " + requester;
+            return "#" + (i + 1) + " " + title + " — " + requester;
+        }).Where(x => x != null).ToList();
+
+        if (entries.Count == 0) { CPH.SendMessage("There are no recent replays."); return true; }
+        CPH.SetArgument("replayRecent", string.Join(" | ", entries));
+        var message = "";
+        foreach (var entry in entries)
+        {
+            var next = message.Length == 0 ? entry : message + " | " + entry;
+            if (next.Length > MaxChatMessageLength)
+            {
+                if (message.Length > 0) CPH.SendMessage(message);
+                message = entry.Length <= MaxChatMessageLength ? entry : entry.Substring(0, MaxChatMessageLength);
+            }
+            else message = next;
         }
-        if (lines.Length == 0) { CPH.SendMessage("There are no recent replays."); return true; }
-        CPH.SetArgument("replayRecent", lines);
-        CPH.SendMessage(lines);
+        if (message.Length > 0) CPH.SendMessage(message);
         return true;
     }
 
@@ -47,7 +59,6 @@ public class CPHInline
         var selector = "1";
         CPH.TryGetArg("rawInput", out string rawInput);
         if (!string.IsNullOrWhiteSpace(rawInput)) selector = rawInput.Trim();
-
         JObject replay = null;
         if (int.TryParse(selector, out var index) && index > 0 && index <= recentIds.Count)
         {
@@ -56,12 +67,8 @@ public class CPHInline
         }
         else
         {
-            replay = recentIds.Select(item => Convert.ToString(item))
-                .Where(id => !string.IsNullOrWhiteSpace(id))
-                .Select(id => catalog.OfType<JObject>().FirstOrDefault(x => string.Equals(Convert.ToString(x["id"]), id, StringComparison.OrdinalIgnoreCase)))
-                .FirstOrDefault(x => x != null && string.Equals(Convert.ToString(x["title"]), selector, StringComparison.OrdinalIgnoreCase));
+            replay = recentIds.Select(item => Convert.ToString(item)).Where(id => !string.IsNullOrWhiteSpace(id)).Select(id => catalog.OfType<JObject>().FirstOrDefault(x => string.Equals(Convert.ToString(x["id"]), id, StringComparison.OrdinalIgnoreCase))).FirstOrDefault(x => x != null && string.Equals(Convert.ToString(x["title"]), selector, StringComparison.OrdinalIgnoreCase));
         }
-
         if (replay == null) { CPH.SendMessage("Recent replay not found."); return false; }
         CPH.SetGlobalVar(ReplayIdHandoffKey, Convert.ToString(replay["id"]), false);
         CPH.SetGlobalVar(EntryPointHandoffKey, "recent", false);
@@ -76,17 +83,12 @@ public class CPHInline
         JObject data;
         if (string.IsNullOrWhiteSpace(raw)) data = new JObject { ["version"] = 2, ["catalog"] = new JArray(), ["recentIds"] = new JArray() };
         else { try { data = JObject.Parse(raw); } catch { data = new JObject { ["version"] = 2, ["catalog"] = new JArray(), ["recentIds"] = new JArray() }; } }
-
         var catalog = data["catalog"] as JArray;
         var legacy = data["replays"] as JArray;
         if (catalog == null) catalog = legacy ?? new JArray();
         else if (legacy != null && legacy.Count > 0) MergeCatalog(catalog, legacy);
-
         var external = CPH.GetGlobalVar<string>(LegacyCatalogKey, true);
-        if (!string.IsNullOrWhiteSpace(external))
-        {
-            try { var externalData = JObject.Parse(external); var externalCatalog = externalData["catalog"] as JArray; if (externalCatalog != null) MergeCatalog(catalog, externalCatalog); } catch { }
-        }
+        if (!string.IsNullOrWhiteSpace(external)) { try { var externalData = JObject.Parse(external); var externalCatalog = externalData["catalog"] as JArray; if (externalCatalog != null) MergeCatalog(catalog, externalCatalog); } catch { } }
         data["version"] = 2; data["catalog"] = catalog; data["recentIds"] = data["recentIds"] as JArray ?? new JArray(); data.Remove("replays");
         return data;
     }
