@@ -108,6 +108,7 @@ public class CPHInline
             .ToString(Newtonsoft.Json.Formatting.None);
         CPH.SetArgument("profileId", profile);
         CPH.SetArgument("replayAnimationProfile", profileJson);
+        CPH.SetArgument("replayPlayerPositions", (player["positions"] as JObject ?? new JObject()).ToString(Newtonsoft.Json.Formatting.None));
         CPH.SetArgument("replayStartPosition", (string)start[0]["position"] ?? "Full Screen");
         CPH.SetArgument("replayEndPosition", (string)end[end.Count - 1]["position"] ?? "Full Screen");
         CPH.SetArgument("replayAnimationDuration", 0.5);
@@ -162,6 +163,7 @@ public class CPHInline
         var end = item["endSequence"] as JArray ?? DefaultPanelEnd();
         if (start.Count == 0) start = DefaultPanelStart();
         if (end.Count == 0) end = DefaultPanelEnd();
+        CPH.SetArgument("replayPanelPositions", (panel["positions"] as JObject ?? new JObject()).ToString(Newtonsoft.Json.Formatting.None));
         CPH.SetArgument("replayPanelAnimation", new JObject
         {
             ["id"] = profile, ["name"] = (string)item["name"] ?? "Default", ["start"] = start, ["end"] = end
