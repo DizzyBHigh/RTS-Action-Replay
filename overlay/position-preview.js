@@ -28,15 +28,15 @@ if (originalPanelApplyPosition) {
 }
 
 RTSPositionPreview.previewPanelPosition = command => {
-  const panel = document.querySelector('[data-rts-information-panel]');
+  const panel = RTSPositionPreview.recentList;
   if (!panel || !window.RTSInformationPanels) return;
 
   RTSPositionPreview.currentCommand = { ...(RTSPositionPreview.currentCommand || {}), ...command };
+  panel.dataset.rtsInformationPanel = 'recent';
+
+  const positionName = command.replayPanelPosition || 'Center';
   const position = window.RTSInformationPanels.normalise(
-    window.RTSInformationPanels.getPosition(
-      command,
-      command.replayPanelPosition || 'Center'
-    )
+    window.RTSInformationPanels.getPosition(command, positionName)
   );
   const wasVisible = panel.classList.contains('show');
   const start = RTSPositionPreview.panelPosition;
@@ -62,22 +62,22 @@ RTSPositionPreview.previewPanelPosition = command => {
         rotateZ: start.rotateZ + (position.rotateZ - start.rotateZ) * amount
       };
       window.RTSInformationPanelAnimation.apply(panel, current);
-      if (progress < 1) RTSPositionPreview.panelAnimationFrame = requestAnimationFrame(frame);
-      else RTSPositionPreview.panelPosition = position;
+      if (progress < 1) {
+        RTSPositionPreview.panelAnimationFrame = requestAnimationFrame(frame);
+      } else {
+        RTSPositionPreview.panelAnimationFrame = null;
+        RTSPositionPreview.panelPosition = position;
+      }
     };
     if (RTSPositionPreview.panelAnimationFrame) cancelAnimationFrame(RTSPositionPreview.panelAnimationFrame);
     RTSPositionPreview.panelAnimationFrame = requestAnimationFrame(frame);
   } else {
-    window.RTSInformationPanels.applyPosition(
-      panel,
-      command,
-      command.replayPanelPosition || 'Center'
-    );
+    window.RTSInformationPanels.applyPosition(panel, command, positionName);
+    RTSPositionPreview.panelPosition = position;
   }
 
   panel.classList.add('show');
   panel.setAttribute('aria-hidden', 'false');
-  RTSPositionPreview.panelPosition = position;
 };
 
 RTSPositionPreview.hidePositionPreview = () => {
@@ -89,7 +89,7 @@ RTSPositionPreview.hidePositionPreview = () => {
     RTSPositionPreview.panelAnimationFrame = null;
   }
 
-  const panel = document.querySelector('[data-rts-information-panel]');
+  const panel = RTSPositionPreview.recentList;
   if (panel) {
     window.RTSInformationPanelAnimation?.cancel?.();
     panel.classList.remove('show');
