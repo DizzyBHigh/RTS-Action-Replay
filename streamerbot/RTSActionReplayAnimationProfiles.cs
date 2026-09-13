@@ -138,41 +138,51 @@ public class CPHInline
 
     private void MigrateLegacyToConfig()
     {
+        var playerRaw = CPH.GetGlobalVar<string>(PlayerKey, true);
         var player = ReadConfig(PlayerKey, CreatePlayerDefaults());
-        var legacyProfiles = ReadLegacyArray("rts.actionreplay.animation.profiles");
-        if (legacyProfiles.Count > 0)
+        var playerProfiles = player["animationProfiles"] as JArray;
+        if (string.IsNullOrWhiteSpace(playerRaw) || playerProfiles == null || playerProfiles.Count == 0)
         {
-            var profiles = new JArray();
-            foreach (var token in legacyProfiles)
+            var legacyProfiles = ReadLegacyArray("rts.actionreplay.animation.profiles");
+            if (legacyProfiles.Count > 0)
             {
-                var id = (string)token["id"]; if (string.IsNullOrWhiteSpace(id)) continue;
-                var name = CPH.GetGlobalVar<string>("rts.actionreplay.animation." + id + ".name", true) ?? (string)token["name"] ?? "New Profile";
-                profiles.Add(new JObject { ["id"] = id, ["name"] = name, ["startSequence"] = ReadLegacySequence("rts.actionreplay.animation." + id + ".startSequence"), ["endSequence"] = ReadLegacySequence("rts.actionreplay.animation." + id + ".endSequence") });
+                var profiles = new JArray();
+                foreach (var token in legacyProfiles)
+                {
+                    var id = (string)token["id"]; if (string.IsNullOrWhiteSpace(id)) continue;
+                    var name = CPH.GetGlobalVar<string>("rts.actionreplay.animation." + id + ".name", true) ?? (string)token["name"] ?? "New Profile";
+                    profiles.Add(new JObject { ["id"] = id, ["name"] = name, ["startSequence"] = ReadLegacySequence("rts.actionreplay.animation." + id + ".startSequence"), ["endSequence"] = ReadLegacySequence("rts.actionreplay.animation." + id + ".endSequence") });
+                }
+                if (profiles.Count > 0) player["animationProfiles"] = profiles;
+                var animation = player["animation"] as JObject ?? new JObject();
+                animation["selectedProfile"] = ResolveLegacyProfile(CPH.GetGlobalVar<string>("rts.actionreplay.animation.selectedProfile", true), profiles);
+                var entries = new JObject();
+                foreach (var point in new[] { "obs", "twitch", "recent", "catalog", "playlist" }) entries[point] = ResolveLegacyProfile(CPH.GetGlobalVar<string>("rts.actionreplay.animation.entry." + point, true), profiles);
+                animation["entryPoints"] = entries; player["animation"] = animation;
             }
-            if (profiles.Count > 0) player["animationProfiles"] = profiles;
-            var animation = player["animation"] as JObject ?? new JObject();
-            animation["selectedProfile"] = ResolveLegacyProfile(CPH.GetGlobalVar<string>("rts.actionreplay.animation.selectedProfile", true), profiles);
-            var entries = new JObject();
-            foreach (var point in new[] { "obs", "twitch", "recent", "catalog", "playlist" }) entries[point] = ResolveLegacyProfile(CPH.GetGlobalVar<string>("rts.actionreplay.animation.entry." + point, true), profiles);
-            animation["entryPoints"] = entries; player["animation"] = animation;
         }
         SaveConfig(PlayerKey, player);
 
+        var panelRaw = CPH.GetGlobalVar<string>(PanelKey, true);
         var panel = ReadConfig(PanelKey, CreatePanelDefaults());
-        var legacyPanelProfiles = ReadLegacyArray("rts.actionreplay.panel.animation.profiles");
-        if (legacyPanelProfiles.Count > 0)
+        var panelProfiles = panel["animationProfiles"] as JArray;
+        if (string.IsNullOrWhiteSpace(panelRaw) || panelProfiles == null || panelProfiles.Count == 0)
         {
-            var profiles = new JArray();
-            foreach (var token in legacyPanelProfiles)
+            var legacyPanelProfiles = ReadLegacyArray("rts.actionreplay.panel.animation.profiles");
+            if (legacyPanelProfiles.Count > 0)
             {
-                var id = (string)token["id"]; if (string.IsNullOrWhiteSpace(id)) continue;
-                var name = CPH.GetGlobalVar<string>("rts.actionreplay.panel.animation." + id + ".name", true) ?? (string)token["name"] ?? "New Panel Profile";
-                profiles.Add(new JObject { ["id"] = id, ["name"] = name, ["startSequence"] = ReadLegacySequence("rts.actionreplay.panel.animation." + id + ".startSequence"), ["endSequence"] = ReadLegacySequence("rts.actionreplay.panel.animation." + id + ".endSequence") });
+                var profiles = new JArray();
+                foreach (var token in legacyPanelProfiles)
+                {
+                    var id = (string)token["id"]; if (string.IsNullOrWhiteSpace(id)) continue;
+                    var name = CPH.GetGlobalVar<string>("rts.actionreplay.panel.animation." + id + ".name", true) ?? (string)token["name"] ?? "New Panel Profile";
+                    profiles.Add(new JObject { ["id"] = id, ["name"] = name, ["startSequence"] = ReadLegacySequence("rts.actionreplay.panel.animation." + id + ".startSequence"), ["endSequence"] = ReadLegacySequence("rts.actionreplay.panel.animation." + id + ".endSequence") });
+                }
+                if (profiles.Count > 0) panel["animationProfiles"] = profiles;
+                var animation = panel["animation"] as JObject ?? new JObject(); var entries = new JObject();
+                foreach (var point in new[] { "recent", "playlist", "creatorLeaderboard", "playbackLeaderboard" }) entries[point] = ResolveLegacyProfile(CPH.GetGlobalVar<string>("rts.actionreplay.panel.animation.entry." + point, true), profiles);
+                animation["entryPoints"] = entries; panel["animation"] = animation;
             }
-            if (profiles.Count > 0) panel["animationProfiles"] = profiles;
-            var animation = panel["animation"] as JObject ?? new JObject(); var entries = new JObject();
-            foreach (var point in new[] { "recent", "playlist", "creatorLeaderboard", "playbackLeaderboard" }) entries[point] = ResolveLegacyProfile(CPH.GetGlobalVar<string>("rts.actionreplay.panel.animation.entry." + point, true), profiles);
-            animation["entryPoints"] = entries; panel["animation"] = animation;
         }
         SaveConfig(PanelKey, panel);
     }
