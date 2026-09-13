@@ -6,7 +6,7 @@ RTSReplayPlayer.defaultPositions = {
 
 RTSReplayPlayer.getPositions = () => {
   try {
-    const raw = RTSReplayPlayer.currentCommand?.replayPositions;
+    const raw = RTSReplayPlayer.currentCommand?.replayPlayerPositions ?? RTSReplayPlayer.currentCommand?.replayPositions;
     const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
     return parsed && typeof parsed === 'object' ? parsed : RTSReplayPlayer.defaultPositions;
   } catch (_) { return RTSReplayPlayer.defaultPositions; }
@@ -87,32 +87,18 @@ RTSReplayPlayer.transformFor = (p, scaleFactor = 1) => {
   const scaleX = RTSReplayPlayer.numberOr(p?.scaleX, legacyScale * 100) / 100 * scaleFactor;
   const scaleY = RTSReplayPlayer.numberOr(p?.scaleY, legacyScale * 100) / 100 * scaleFactor;
   const z = RTSReplayPlayer.numberOr(p?.z, 0);
-
-  // RtsUI uses +Y as up. CSS screen coordinates use +Y down. Convert the
-  // coordinate-system handedness at the overlay boundary so stored position
-  // values remain identical between the editor and the browser.
   const rotateX = -RTSReplayPlayer.numberOr(p?.rotateX, 0);
   const rotateY = RTSReplayPlayer.numberOr(p?.rotateY, 0);
   const rotateZ = -RTSReplayPlayer.numberOr(p?.rotateZ, 0);
   const fov = Math.max(30, Math.min(120, RTSReplayPlayer.numberOr(p?.fov, 90)));
-
-  // RtsUI uses a PerspectiveCamera. Its distance is calculated from the
-  // horizontal preview width, so use the same calculation for the browser stage.
   const viewportWidth = Math.max(1, window.innerWidth || 1920);
   const perspective = Math.max(1, (viewportWidth / 2) / Math.tan((fov * Math.PI / 180) / 2));
   RTSReplayPlayer.stage.style.perspective = `${perspective}px`;
   RTSReplayPlayer.stage.style.perspectiveOrigin = 'center center';
-
-  // Screen positioning is kept outside the 3D transform. The stage is the
-  // camera/screen plane and the player is the 3D surface at its center.
   const x = RTSReplayPlayer.numberOr(p?.x, 0);
   const y = RTSReplayPlayer.numberOr(p?.y, 0);
   RTSReplayPlayer.stage.style.left = `calc(50% + ${x}vw)`;
   RTSReplayPlayer.stage.style.top = `calc(50% - ${y}vh)`;
-
-  // RtsUI's Transform3DGroup is Scale -> RotateX -> RotateY -> RotateZ ->
-  // Translate. CSS transform functions are composed right-to-left, so the
-  // 3D operations are written in the reverse order here.
   return `translate(-50%, -50%) translateZ(${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX}, ${scaleY}, 1)`;
 };
 
@@ -148,27 +134,21 @@ RTSReplayPlayer.animatePosition = (startPosition, endPosition, onComplete) => {
   const token = (RTSReplayPlayer.transitionToken || 0) + 1;
   RTSReplayPlayer.transitionToken = token;
   if (RTSReplayPlayer.animationFrame) cancelAnimationFrame(RTSReplayPlayer.animationFrame);
-
   const rawDuration = Number(RTSReplayPlayer.currentCommand?.replayAnimationDuration);
   const duration = Math.max(100, Number.isFinite(rawDuration) ? (rawDuration < 10 ? rawDuration * 1000 : rawDuration) : 500);
   const easing = RTSReplayPlayer.easing(RTSReplayPlayer.currentCommand?.replayAnimationEasing);
   const started = performance.now();
-
   const frame = now => {
     if (token !== RTSReplayPlayer.transitionToken) return;
     const rawProgress = Math.min(1, Math.max(0, (now - started) / duration));
     const progress = easing(rawProgress);
     const current = RTSReplayPlayer.interpolatePosition(start, end, progress);
     RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(current);
-    if (rawProgress < 1) {
-      RTSReplayPlayer.animationFrame = requestAnimationFrame(frame);
-      return;
-    }
+    if (rawProgress < 1) { RTSReplayPlayer.animationFrame = requestAnimationFrame(frame); return; }
     RTSReplayPlayer.animationFrame = null;
     RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(end);
     if (onComplete) onComplete();
   };
-
   RTSReplayPlayer.player.classList.remove('player-transition');
   RTSReplayPlayer.stage.classList.remove('player-transition');
   RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(start);
@@ -181,29 +161,23 @@ RTSReplayPlayer.animateIn = (startPosition, endPosition) => {
   RTSReplayPlayer.cancelPendingTransition();
   RTSReplayPlayer.player.classList.add('show');
   RTSReplayPlayer.activePosition = start;
-
   if (RTSReplayPlayer.positionsEqual(start, end)) {
     RTSReplayPlayer.applyPosition(end, true);
     RTSReplayPlayer.activePosition = end;
     return;
   }
-
-  RTSReplayPlayer.animatePosition(start, end, () => {
-    RTSReplayPlayer.activePosition = end;
-  });
+  RTSReplayPlayer.animatePosition(start, end, () => { RTSReplayPlayer.activePosition = end; });
 };
 
 RTSReplayPlayer.animateOut = () => {
   const start = RTSReplayPlayer.activePosition || RTSReplayPlayer.defaultPositions['Full Screen'];
   const end = RTSReplayPlayer.getPosition(RTSReplayPlayer.currentCommand?.replayStartPosition || 'Full Screen');
   RTSReplayPlayer.cancelPendingTransition();
-
   if (RTSReplayPlayer.positionsEqual(start, end)) {
     RTSReplayPlayer.player.classList.remove('show');
     RTSReplayPlayer.activePosition = end;
     return;
   }
-
   RTSReplayPlayer.player.classList.add('show');
   RTSReplayPlayer.animatePosition(start, end, () => {
     RTSReplayPlayer.player.classList.remove('show');
