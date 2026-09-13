@@ -123,9 +123,24 @@ public class CPHInline
 
     private JArray NormalizeProfiles(JArray source)
     {
-        var result = new JArray(); var seen = false;
-        foreach (var token in source ?? new JArray()) { var id = (string)token["id"]; if (string.IsNullOrWhiteSpace(id) || result.Count > 0 && FindProfile(result, id) != null) continue; var item = new JObject { ["id"] = id, ["name"] = id == "default" ? "Default" : (string)token["name"] ?? "New Profile", ["startSequence"] = token["startSequence"] as JArray ?? new JArray(), ["endSequence"] = token["endSequence"] as JArray ?? new JArray() }; if (id == "default") seen = true; result.Add(item); }
-        if (!seen) result.Insert(0, CreateProfile("default", "Default", true)); return result;
+        var result = new JArray();
+        var defaultProfile = (JObject)null;
+        foreach (var token in source ?? new JArray())
+        {
+            var id = (string)token["id"];
+            if (string.IsNullOrWhiteSpace(id) || FindProfile(result, id) != null) continue;
+            var item = new JObject
+            {
+                ["id"] = id,
+                ["name"] = id == "default" ? "Default" : (string)token["name"] ?? "New Profile",
+                ["startSequence"] = token["startSequence"] as JArray ?? new JArray(),
+                ["endSequence"] = token["endSequence"] as JArray ?? new JArray()
+            };
+            if (id == "default") defaultProfile = item;
+            else result.Add(item);
+        }
+        result.Insert(0, defaultProfile ?? CreateProfile("default", "Default", true));
+        return result;
     }
 
     private JObject NormalizeEntryPoints(JObject source, JArray profiles, string[] names) { var result = new JObject(); foreach (var name in names) result[name] = ResolveProfileId(profiles, (string)source?[name]) ?? "default"; return result; }
