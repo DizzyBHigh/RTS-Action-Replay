@@ -84,7 +84,6 @@ public class CPHInline
 
     private void AddPositionSettings(RtsUI ui)
     {
-        // Player position data: completely separate from Information Panels.
         ui.BeginSection("Saved Positions", "Positions");
         ui.BeginRow(3, 2);
         ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", "Edit Positions", "Preview Position", null, "scale,x,y,rotateX,rotateY,rotateZ", null, delegate(string position, string json) { PreviewVideoPosition(position, json); }, null);
@@ -92,15 +91,11 @@ public class CPHInline
         ui.EndRow();
         ui.EndSection();
 
-        // Information Panel data: completely separate from player Positions.
-        ui.BeginSection("Panel Dimensions", "Information Panels");
+        ui.BeginSection("Information Panels", "Information Panels");
         ui.BeginRow(2, 2);
         ui.AddNumericTextbox("Panel Width", "Information panel width in 1920×1080 output pixels.", "Information Panels", "rts.actionreplay.panel.width", 500, 100, 1920);
         ui.AddNumericTextbox("Panel Height", "Information panel height in 1920×1080 output pixels.", "Information Panels", "rts.actionreplay.panel.height", 700, 100, 1080);
         ui.EndRow();
-        ui.EndSection();
-
-        ui.BeginSection("Panel Positions", "Information Panels");
         ui.BeginRow(2, 2);
         ui.AddPositionEditor("Panel Positions", "Create and edit reusable information-panel positions. The preview represents the configured panel size on the 640×360 editor canvas.", "Information Panels", "rts.actionreplay.panel.positions", "{\"Center\":{\"name\":\"Center\",\"tag\":\"center\",\"scale\":100,\"x\":0,\"y\":0,\"rotateZ\":0},\"Middle Right\":{\"name\":\"Middle Right\",\"tag\":\"mr\",\"scale\":100,\"x\":36,\"y\":0,\"rotateZ\":0},\"Middle Right - Off Screen\":{\"name\":\"Middle Right - Off Screen\",\"tag\":\"mr-os\",\"scale\":100,\"x\":56,\"y\":0,\"rotateZ\":0},\"Middle Right minimised\":{\"name\":\"Middle Right minimised\",\"tag\":\"mr-min\",\"scale\":100,\"x\":36,\"y\":0,\"rotateZ\":0},\"Middle Right - Off Screen - Minimised\":{\"name\":\"Middle Right - Off Screen - Minimised\",\"tag\":\"mr-os-min\",\"scale\":100,\"x\":56,\"y\":0,\"rotateZ\":0}}", "Edit Panel Positions", "Preview Panel", null, "scale,x,y,rotateX,rotateY,rotateZ", null, delegate(string position, string json) { PreviewPanelPosition(position, json); }, BuildPanelPreviewSizes());
         ui.AddList("Panel Position Tags", "", "Information Panels", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.panel.positions", true)));
@@ -182,18 +177,15 @@ public class CPHInline
         if (profile != "default")
         {
             ui.AddTextbox("New Panel Name", "Display name for this information-panel animation profile.", "Information Panels", "rts.actionreplay.panel.animation." + profile + ".name", title, false);
-        }
-        ui.BeginRow();
-        AddPanelAnimationSequence(ui, "Start Sequence", "The positions and transitions used when the panel appears.", "rts.actionreplay.panel.animation." + profile + ".startSequence", "Hidden Left");
-        AddPanelAnimationSequence(ui, "End Sequence", "The positions and transitions used when the panel disappears.", "rts.actionreplay.panel.animation." + profile + ".endSequence", "__PANEL_POSITION__");
-        if (profile != "default")
-        {
             ui.AddClickableButton("Remove Profile", "Delete this information-panel animation profile.", "Delete Profile", "red", "Information Panels", delegate
             {
                 CPH.SetArgument("panelProfileId", profile);
                 if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "RemovePanelProfile")) ui.RebuildUI(delegate(RtsUI rebuiltUi) { BuildSettings(rebuiltUi); });
             });
         }
+        ui.BeginRow();
+        AddPanelAnimationSequence(ui, "Start Sequence", "The positions and transitions used when the panel appears.", "rts.actionreplay.panel.animation." + profile + ".startSequence", "Hidden Left");
+        AddPanelAnimationSequence(ui, "End Sequence", "The positions and transitions used when the panel disappears.", "rts.actionreplay.panel.animation." + profile + ".endSequence", "__PANEL_POSITION__");
         ui.EndRow();
         ui.EndSection();
     }
