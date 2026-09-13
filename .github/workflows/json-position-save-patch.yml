@@ -1,0 +1,31 @@
+name: Fix direct player position JSON save
+
+on:
+  push:
+    branches: [feature/json-conversion]
+
+jobs:
+  patch:
+    if: github.actor == 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch settings callback
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('streamerbot/RTSActionReplaySettings.cs')
+          s = p.read_text(encoding='utf-8')
+          old = '''    private void SavePlayerPositionsFromEditor(string json)\n    {\n        if (string.IsNullOrWhiteSpace(json)) return;\n        CPH.SetGlobalVar("rts.actionreplay.ui.playerPositions", json, true);\n        CPH.SetArgument("replayPositions", json);\n        CPH.ExecuteMethod("RTS Action Replay Store", "SavePlayerPositions");\n    }'''
+          new = '''    private void SavePlayerPositionsFromEditor(string json)\n    {\n        if (string.IsNullOrWhiteSpace(json)) return;\n        try\n        {\n            var positions = JObject.Parse(json);\n            var raw = CPH.GetGlobalVar<string>("rts.actionreplay.config.player", true);\n            var player = string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw);\n            if (player.Count == 0)\n            {\n                player["version"] = 1;\n                player["animationProfiles"] = new JArray();\n                player["animation"] = new JObject();\n            }\n            player["positions"] = positions;\n            CPH.SetGlobalVar("rts.actionreplay.config.player", player.ToString(Newtonsoft.Json.Formatting.None), true);\n            CPH.SetGlobalVar("rts.actionreplay.ui.playerPositions", positions.ToString(Newtonsoft.Json.Formatting.None), true);\n        }\n        catch (Exception ex)\n        {\n            CPH.LogWarn("RTS Action Replay: player position editor save failed: " + ex.Message);\n        }\n    }'''
+          if old not in s:
+              raise SystemExit('target callback not found')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add streamerbot/RTSActionReplaySettings.cs
+          git commit -m "Fix direct player position JSON save"
+          git push
