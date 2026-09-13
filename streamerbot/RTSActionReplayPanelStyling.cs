@@ -45,36 +45,26 @@ public class CPHInline
         ui.EndSection();
     }
 
-    public bool Apply()
-    {
-        EnsureStyle(); var panel = ReadPanel();
-        CPH.SetArgument("replayPanelStyle", (panel["style"] as JObject ?? CreateStyle()).ToString(Newtonsoft.Json.Formatting.None)); return true;
-    }
+    public bool Apply() { EnsureStyle(); var panel = ReadPanel(); CPH.SetArgument("replayPanelStyle", (panel["style"] as JObject ?? CreateStyle()).ToString(Newtonsoft.Json.Formatting.None)); return true; }
 
     public void Preview()
     {
         EnsureStyle(); var panel = ReadPanel();
-        CPH.SetArgument("replayCommand", "panel-position-preview");
-        CPH.SetArgument("replayPanelPosition", "Centered");
+        CPH.SetArgument("replayCommand", "panel-position-preview"); CPH.SetArgument("replayPanelPosition", "Centered");
         CPH.SetArgument("replayPanelPositions", (panel["positions"] as JObject ?? new JObject()).ToString(Newtonsoft.Json.Formatting.None));
-        CPH.SetArgument("replayPanelWidth", (int?)panel["width"] ?? 500);
-        CPH.SetArgument("replayPanelHeight", (int?)panel["height"] ?? 700);
-        CPH.SetArgument("replayPanelStyle", (panel["style"] as JObject ?? CreateStyle()).ToString(Newtonsoft.Json.Formatting.None));
-        CPH.TriggerEvent("RTS-Action Replay", true);
+        CPH.SetArgument("replayPanelWidth", (int?)panel["width"] ?? 500); CPH.SetArgument("replayPanelHeight", (int?)panel["height"] ?? 700);
+        CPH.SetArgument("replayPanelStyle", (panel["style"] as JObject ?? CreateStyle()).ToString(Newtonsoft.Json.Formatting.None)); CPH.TriggerEvent("RTS-Action Replay", true);
     }
 
     private string ReadValue(string key)
     {
-        var style = ReadPanel()["style"] as JObject ?? CreateStyle();
-        var path = key.Substring(StylePrefix.Length).Split('.'); JToken value = style;
-        foreach (var part in path) value = value?[part];
-        return value?.ToString() ?? "";
+        var style = ReadPanel()["style"] as JObject ?? CreateStyle(); var path = key.Substring(StylePrefix.Length).Split('.'); JToken value = style;
+        foreach (var part in path) value = value?[part]; return value?.ToString() ?? "";
     }
 
     private void SaveValue(string key, object value)
     {
-        var panel = ReadPanel(); var style = panel["style"] as JObject ?? CreateStyle(); panel["style"] = style;
-        var path = key.Substring(StylePrefix.Length).Split('.'); var target = style;
+        var panel = ReadPanel(); var style = panel["style"] as JObject ?? CreateStyle(); panel["style"] = style; var path = key.Substring(StylePrefix.Length).Split('.'); var target = style;
         for (var i = 0; i < path.Length - 1; i++) target = target[path[i]] as JObject ?? CreateChild(target, path[i]);
         target[path[path.Length - 1]] = JToken.FromObject(value ?? ""); SavePanel(panel);
     }
