@@ -37,7 +37,7 @@ public class CPHInline
         ui.AddNumericTextbox("Header Height", "Header height in pixels.", "Information Panels", StylePrefix + "header.height", 88, 40, 240); ui.EndSection();
 
         ui.BeginSection("List", "Information Panels");
-        ui.BeginRow(); ui.AddGoogleFontSelector("Font", "Google Font used by list entries.", "Information Panels", StylePrefix + "list.font", "Inter", "Inter"); ui.AddNumericTextbox("Size", "List entry font size in pixels.", "Information Panels", StylePrefix + "list.size", 15, 8, 48); ui.AddDropdown("Weight", "List entry font weight.", "Information Panels", StylePrefix + "list.weight", new[] { "400", "500", "600", "700", "800" }, "600"); ui.EndRow();
+        ui.BeginRow(); ui.AddGoogleFontSelector("Font", "Google Font used by list entries.", "Information Panels", StylePrefix + "list.font", "Inter"); ui.AddNumericTextbox("Size", "List entry font size in pixels.", "Information Panels", StylePrefix + "list.size", 15, 8, 48); ui.AddDropdown("Weight", "List entry font weight.", "Information Panels", StylePrefix + "list.weight", new[] { "400", "500", "600", "700", "800" }, "600"); ui.EndRow();
         ui.BeginRow(); ui.AddSlider("Row Spacing", "Space between list entries in pixels.", "Information Panels", StylePrefix + "list.spacing", 0, 30, 0); ui.AddSlider("Row Radius", "List row corner radius in pixels.", "Information Panels", StylePrefix + "list.radius", 0, 30, 0); ui.EndRow(); ui.EndSection();
 
         ui.BeginSection("RTS Accent", "Information Panels");
