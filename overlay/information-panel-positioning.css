@@ -1,0 +1,19 @@
+[data-rts-information-panel] {
+  --panel-scale-x: 1;
+  --panel-scale-y: 1;
+  --panel-rotate-z: 0deg;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform-origin: center center;
+  box-sizing: border-box;
+  will-change: transform, left, top;
+}
+
+[data-rts-information-panel].show {
+  visibility: visible;
+}
+
+[data-rts-information-panel]:not(.show) {
+  visibility: hidden;
+}

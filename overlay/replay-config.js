@@ -5,6 +5,7 @@ RTSReplay.config = {
   port: 8080,
   eventName: 'RTS-Action Replay',
   confirmAction: 'RTS Action Replay - Playback Confirm',
+  endedAction: 'RTS - Action Replay - Playback Ended',
   reconnectDelay: 3000,
   messageDuration: 5000
 };
@@ -23,10 +24,13 @@ RTSReplay.messageCard = document.getElementById('message-card');
 RTSReplay.messageText = document.getElementById('message-text');
 RTSReplay.brandLogo = document.getElementById('brand-logo');
 RTSReplay.brandFallback = document.getElementById('brand-fallback');
+RTSReplay.recentList = document.getElementById('recent-list');
 RTSReplay.socket = null;
 RTSReplay.reconnectTimer = null;
 RTSReplay.messageTimer = null;
+RTSReplay.recentListTimer = null;
 RTSReplay.currentCommand = null;
 RTSReplay.activePosition = null;
+RTSReplay.visiblePosition = null;
 
 window.RTSReplay = RTSReplay;
