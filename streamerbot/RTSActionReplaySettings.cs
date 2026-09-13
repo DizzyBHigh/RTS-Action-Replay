@@ -86,12 +86,11 @@ public class CPHInline
     {
         ui.BeginSection("Saved Positions", "Positions"); ui.BeginRow(3, 2); ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", "Edit Positions", "Preview Position", null, "scale,x,y,rotateX,rotateY,rotateZ", null, delegate(string position, string json) { PreviewVideoPosition(position, json); }, null); ui.AddList("Position Tags", "", "Positions", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true))); ui.EndRow(); ui.EndSection();
 
-        ui.BeginSection("Information Panels", "Information Panels");
+        ui.BeginSection("Panel Dimensions", "Information Panels");
         ui.BeginRow(2, 2);
         ui.AddNumericTextbox("Panel Width", "Information panel width in 1920×1080 output pixels.", "Information Panels", "rts.actionreplay.panel.width", 500, 100, 1920);
         ui.AddNumericTextbox("Panel Height", "Information panel height in 1920×1080 output pixels.", "Information Panels", "rts.actionreplay.panel.height", 700, 100, 1080);
         ui.EndRow();
-        ui.AddPositionSelector("Panel Position", "Position used by all information panels: Recent Replays, Playlist/Replay Queue, Creator Leaderboard and Playback Leaderboard.", "Information Panels", "rts.actionreplay.panel.position", "rts.actionreplay.panel.positions", "Center");
         ui.EndSection();
 
         ui.BeginSection("Panel Positions", "Information Panels");
@@ -101,7 +100,7 @@ public class CPHInline
         ui.EndRow();
         ui.EndSection();
 
-        ui.AddClickableButton("Add New Profile", "Create a new information-panel animation profile.", "Add New Profile", "blue", "Information Panels", delegate
+        ui.AddClickableButton("Add New Animation Profile", "Create a new information-panel animation profile.", "Add New Animation Profile", "blue", "Information Panels", delegate
         {
             if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "AddPanelProfile")) ui.RebuildUI(delegate(RtsUI rebuiltUi) { BuildSettings(rebuiltUi); });
         });
@@ -162,31 +161,34 @@ public class CPHInline
         ui.AddDropdown("Creator Leaderboard Profile", "Animation profile used when the Creator Leaderboard panel appears and disappears.", "Information Panels", "rts.actionreplay.panel.animation.entry.creatorLeaderboard", BuildPanelAnimationProfileOptions(), "Default");
         ui.AddDropdown("Playback Leaderboard Profile", "Animation profile used by the Playback Leaderboard panel.", "Information Panels", "rts.actionreplay.panel.animation.entry.playbackLeaderboard", BuildPanelAnimationProfileOptions(), "Default");
         ui.EndRow();
+        ui.EndSection();
+
         foreach (var item in ReadPanelAnimationProfiles())
         {
             var id = (string)item["id"]; if (string.IsNullOrWhiteSpace(id)) continue;
-            var name = id == "default" ? "Default" : CPH.GetGlobalVar<string>("rts.actionreplay.panel.animation." + id + ".name", true) ?? (string)item["name"] ?? "New Panel Profile";
+            var name = id == "default" ? "Default Profile" : CPH.GetGlobalVar<string>("rts.actionreplay.panel.animation." + id + ".name", true) ?? (string)item["name"] ?? "New Panel Profile";
             AddPanelAnimationProfile(ui, name, id);
         }
-        ui.EndSection();
     }
 
     private void AddPanelAnimationProfile(RtsUI ui, string title, string profile)
     {
         ui.BeginSection(title, "Information Panels");
-        if (profile == "default") ui.AddTitle("Default panel profile is permanent. Its animation sequences can be edited.", "Information Panels");
-        else
+        if (profile != "default")
         {
-            ui.AddTextbox("Profile Name", "Display name for this information-panel animation profile.", "Information Panels", "rts.actionreplay.panel.animation." + profile + ".name", title, false);
-            ui.AddClickableButton("Remove Profile", "Delete this information-panel animation profile.", "Remove Panel Profile", "red", "Information Panels", delegate
+            ui.AddTextbox("New Panel Name", "Display name for this information-panel animation profile.", "Information Panels", "rts.actionreplay.panel.animation." + profile + ".name", title, false);
+        }
+        ui.BeginRow();
+        AddPanelAnimationSequence(ui, "Start Sequence", "The positions and transitions used when the panel appears.", "rts.actionreplay.panel.animation." + profile + ".startSequence", "Hidden Left");
+        AddPanelAnimationSequence(ui, "End Sequence", "The positions and transitions used when the panel disappears.", "rts.actionreplay.panel.animation." + profile + ".endSequence", "__PANEL_POSITION__");
+        if (profile != "default")
+        {
+            ui.AddClickableButton("Remove Profile", "Delete this information-panel animation profile.", "Delete Profile", "red", "Information Panels", delegate
             {
                 CPH.SetArgument("panelProfileId", profile);
                 if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "RemovePanelProfile")) ui.RebuildUI(delegate(RtsUI rebuiltUi) { BuildSettings(rebuiltUi); });
             });
         }
-        ui.BeginRow();
-        AddPanelAnimationSequence(ui, "Start Sequence", "The positions and transitions used when the panel appears.", "rts.actionreplay.panel.animation." + profile + ".startSequence", "Hidden Left");
-        AddPanelAnimationSequence(ui, "End Sequence", "The positions and transitions used when the panel disappears.", "rts.actionreplay.panel.animation." + profile + ".endSequence", "__PANEL_POSITION__");
         ui.EndRow();
         ui.EndSection();
     }
