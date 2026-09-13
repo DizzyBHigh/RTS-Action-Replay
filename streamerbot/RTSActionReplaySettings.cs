@@ -84,8 +84,15 @@ public class CPHInline
 
     private void AddPositionSettings(RtsUI ui)
     {
-        ui.BeginSection("Saved Positions", "Positions"); ui.BeginRow(3, 2); ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", "Edit Positions", "Preview Position", null, "scale,x,y,rotateX,rotateY,rotateZ", null, delegate(string position, string json) { PreviewVideoPosition(position, json); }, null); ui.AddList("Position Tags", "", "Positions", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true))); ui.EndRow(); ui.EndSection();
+        // Player position data: completely separate from Information Panels.
+        ui.BeginSection("Saved Positions", "Positions");
+        ui.BeginRow(3, 2);
+        ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", "Edit Positions", "Preview Position", null, "scale,x,y,rotateX,rotateY,rotateZ", null, delegate(string position, string json) { PreviewVideoPosition(position, json); }, null);
+        ui.AddList("Position Tags", "", "Positions", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)));
+        ui.EndRow();
+        ui.EndSection();
 
+        // Information Panel data: completely separate from player Positions.
         ui.BeginSection("Panel Dimensions", "Information Panels");
         ui.BeginRow(2, 2);
         ui.AddNumericTextbox("Panel Width", "Information panel width in 1920×1080 output pixels.", "Information Panels", "rts.actionreplay.panel.width", 500, 100, 1920);
@@ -95,7 +102,7 @@ public class CPHInline
 
         ui.BeginSection("Panel Positions", "Information Panels");
         ui.BeginRow(2, 2);
-        ui.AddPositionEditor("Panel Positions", "Create and edit reusable information-panel positions. The preview represents the configured panel size on the 640×360 editor canvas.", "Information Panels", "rts.actionreplay.panel.positions", "{\"Center\":{\"name\":\"Center\",\"tag\":\"center\",\"scale\":100,\"x\":0,\"y\":0,\"rotateZ\":0},\"Top\":{\"name\":\"Top\",\"tag\":\"top\",\"scale\":100,\"x\":0,\"y\":32,\"rotateZ\":0},\"Bottom\":{\"name\":\"Bottom\",\"tag\":\"bottom\",\"scale\":100,\"x\":0,\"y\":-32,\"rotateZ\":0},\"Top Left\":{\"name\":\"Top Left\",\"tag\":\"top-left\",\"scale\":100,\"x\":-36,\"y\":28,\"rotateZ\":0},\"Top Right\":{\"name\":\"Top Right\",\"tag\":\"top-right\",\"scale\":100,\"x\":36,\"y\":28,\"rotateZ\":0},\"Bottom Left\":{\"name\":\"Bottom Left\",\"tag\":\"bottom-left\",\"scale\":100,\"x\":-36,\"y\":-28,\"rotateZ\":0},\"Bottom Right\":{\"name\":\"Bottom Right\",\"tag\":\"bottom-right\",\"scale\":100,\"x\":36,\"y\":-28,\"rotateZ\":0}}", "Edit Panel Positions", "Preview Panel", null, "scale,x,y,rotateX,rotateY,rotateZ", null, delegate(string position, string json) { PreviewPanelPosition(position, json); }, BuildPanelPreviewSizes());
+        ui.AddPositionEditor("Panel Positions", "Create and edit reusable information-panel positions. The preview represents the configured panel size on the 640×360 editor canvas.", "Information Panels", "rts.actionreplay.panel.positions", "{\"Center\":{\"name\":\"Center\",\"tag\":\"center\",\"scale\":100,\"x\":0,\"y\":0,\"rotateZ\":0},\"Middle Right\":{\"name\":\"Middle Right\",\"tag\":\"mr\",\"scale\":100,\"x\":36,\"y\":0,\"rotateZ\":0},\"Middle Right - Off Screen\":{\"name\":\"Middle Right - Off Screen\",\"tag\":\"mr-os\",\"scale\":100,\"x\":56,\"y\":0,\"rotateZ\":0},\"Middle Right minimised\":{\"name\":\"Middle Right minimised\",\"tag\":\"mr-min\",\"scale\":100,\"x\":36,\"y\":0,\"rotateZ\":0},\"Middle Right - Off Screen - Minimised\":{\"name\":\"Middle Right - Off Screen - Minimised\",\"tag\":\"mr-os-min\",\"scale\":100,\"x\":56,\"y\":0,\"rotateZ\":0}}", "Edit Panel Positions", "Preview Panel", null, "scale,x,y,rotateX,rotateY,rotateZ", null, delegate(string position, string json) { PreviewPanelPosition(position, json); }, BuildPanelPreviewSizes());
         ui.AddList("Panel Position Tags", "", "Information Panels", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.panel.positions", true)));
         ui.EndRow();
         ui.EndSection();
@@ -141,12 +148,10 @@ public class CPHInline
         return new Dictionary<string, RtsUIPreviewSize>
         {
             ["Center"] = previewSize,
-            ["Top"] = previewSize,
-            ["Bottom"] = previewSize,
-            ["Top Left"] = previewSize,
-            ["Top Right"] = previewSize,
-            ["Bottom Left"] = previewSize,
-            ["Bottom Right"] = previewSize
+            ["Middle Right"] = previewSize,
+            ["Middle Right - Off Screen"] = previewSize,
+            ["Middle Right minimised"] = previewSize,
+            ["Middle Right - Off Screen - Minimised"] = previewSize
         };
     }
 
