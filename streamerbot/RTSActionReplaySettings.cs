@@ -10,13 +10,7 @@ public class CPHInline
 
     public bool Execute()
     {
-        var ui = new RtsUI("RTS Action Replay", "1.0.0",
-            (key, persisted) => CPH.GetGlobalVar<bool?>(key, persisted),
-            (key, persisted) => CPH.GetGlobalVar<int?>(key, persisted),
-            (key, persisted) => ReadUiValue(key),
-            (key, persisted) => CPH.GetGlobalVar<object>(key, persisted),
-            (key, value, persisted) => SaveUiValue(key, value, persisted),
-            message => CPH.LogInfo(message));
+        var ui = new RtsUI("RTS Action Replay", "1.0.0", (key, persisted) => CPH.GetGlobalVar<bool?>(key, persisted), (key, persisted) => CPH.GetGlobalVar<int?>(key, persisted), (key, persisted) => ReadUiValue(key), (key, persisted) => CPH.GetGlobalVar<object>(key, persisted), (key, value, persisted) => SaveUiValue(key, value, persisted), message => CPH.LogInfo(message));
         BuildSettings(ui); ui.ShowUI(); return true;
     }
 
@@ -61,35 +55,22 @@ public class CPHInline
     private void AddPositionSettings(RtsUI ui)
     {
         SyncPlayerPositionEditorBridge(); SyncPanelPositionEditorBridge(); ui.BeginSection("Saved Positions", "Positions"); ui.BeginRow(3, 2); ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.ui.playerPositions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"scaleX\":100,\"scaleY\":100,\"x\":0,\"y\":0,\"z\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0,\"fov\":90}}", "Edit Positions", "Preview Position", null, "scale,x,y,rotateX,rotateY,rotateZ", SavePlayerPositionsFromEditor, (position, json) => PreviewVideoPosition(position, json), null); ui.AddList("Position Tags", "", "Positions", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.ui.playerPositions", true))); ui.EndRow(); ui.EndSection();
-        ui.BeginSection("Information Panels", "Information Panels"); ui.BeginRow(2, 2); ui.AddNumericTextbox("Panel Width", "Information panel width in 1920×1080 output pixels.", "Information Panels", "rts.actionreplay.panel.width", 500, 100, 1920); ui.AddNumericTextbox("Panel Height", "Information panel height in 1920×1080 output pixels.", "Information Panels", "rts.actionreplay.panel.height", 700, 100, 1080); ui.EndRow(); ui.BeginRow(2, 2); ui.AddPositionEditor("Panel Positions", "Create and edit reusable information-panel positions. Centered is built in and cannot be deleted.", "Information Panels", "rts.actionreplay.panel.positions", "{\"Centered\":{\"name\":\"Centered\",\"tag\":\"centered\",\"scale\":100,\"scaleX\":100,\"scaleY\":100,\"x\":0,\"y\":0,\"rotateZ\":0}}", "Edit Panel Positions", "Preview Panel", null, "scale,x,y,rotateX,rotateY,rotateZ", SavePanelPositionsFromEditor, (position, json) => PreviewPanelPosition(position, json), BuildPanelPreviewSizes()); ui.AddList("Panel Position Tags", "", "Information Panels", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.ui.panelPositions", true))); ui.EndRow(); ui.EndSection(); ui.AddClickableButton("Add New Animation Profile", "Create a new information-panel animation profile.", "Add New Animation Profile", "blue", "Information Panels", () => { if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "AddPanelProfile")) ui.RebuildUI(rebuilt => BuildSettings(rebuilt)); }); AddPanelAnimationSettings(ui); AddAnimationProfileSettings(ui);
-    }
-
-    private void AddPanelAnimationSettings(RtsUI ui)
-    {
-        ui.BeginSection("Panel Animation Profiles", "Information Panels"); ui.BeginRow(); AddPanelEntry(ui, "Recent Replays Profile", "recent"); AddPanelEntry(ui, "Playlist Profile", "playlist"); ui.EndRow(); ui.BeginRow(); AddPanelEntry(ui, "Creator Leaderboard Profile", "creatorLeaderboard"); AddPanelEntry(ui, "Playback Leaderboard Profile", "playbackLeaderboard"); ui.EndRow(); ui.EndSection(); foreach (var item in ReadProfiles(PanelKey)) { var id = (string)item["id"]; if (!string.IsNullOrWhiteSpace(id)) AddPanelAnimationProfile(ui, (string)item["name"] ?? "Default", id); }
-    }
-
-    private void AddPanelEntry(RtsUI ui, string title, string point) => ui.AddDropdown(title, "Animation profile used for this information-panel entry point.", "Information Panels", UiPrefix + "panel.entry." + point, BuildProfileOptions(PanelKey), "Default");
-    private void AddPanelAnimationProfile(RtsUI ui, string title, string id)
-    {
-        ui.BeginSection(title, "Information Panels"); if (id != "default") { ui.AddTextbox("Panel Profile Name", "Display name for this information-panel animation profile.", "Information Panels", UiPrefix + "panel.profile." + id + ".name", title, false); ui.AddClickableButton("Remove Profile", "Delete this information-panel animation profile.", "Delete Profile", "red", "Information Panels", () => { CPH.SetArgument("panelProfileId", id); if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "RemovePanelProfile")) ui.RebuildUI(rebuilt => BuildSettings(rebuilt)); }); } ui.BeginRow(); AddAnimationRows(ui, "Start Sequence", "The positions and transitions used when the panel appears.", PanelKey, id, "startSequence", "Centered", "Information Panels"); AddAnimationRows(ui, "End Sequence", "The positions and transitions used when the panel disappears.", PanelKey, id, "endSequence", "Centered", "Information Panels"); ui.EndRow(); ui.EndSection();
+        ui.BeginSection("Information Panels", "Information Panels"); ui.BeginRow(2, 2); ui.AddNumericTextbox("Panel Width", "Information panel width in 1920×1080 output pixels.", "Information Panels", "rts.actionreplay.panel.width", 500, 100, 1920); ui.AddNumericTextbox("Panel Height", "Information panel height in 1920×1080 output pixels.", "Information Panels", "rts.actionreplay.panel.height", 700, 100, 1080); ui.EndRow(); ui.BeginRow(2, 2); ui.AddPositionEditor("Panel Positions", "Create and edit reusable information-panel positions. Centered is built in and cannot be deleted.", "Information Panels", "rts.actionreplay.panel.positions", "{\"Centered\":{\"name\":\"Centered\",\"tag\":\"centered\",\"scale\":100,\"scaleX\":100,\"scaleY\":100,\"x\":0,\"y\":0,\"rotateZ\":0}}", "Edit Panel Positions", "Preview Panel", null, "scale,x,y,rotateX,rotateY,rotateZ", SavePanelPositionsFromEditor, (position, json) => PreviewPanelPosition(position, json), BuildPanelPreviewSizes()); ui.AddList("Panel Position Tags", "", "Information Panels", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.ui.panelPositions", true))); ui.EndRow(); ui.EndSection(); ui.AddClickableButton("Add New Animation Profile", "Create a new information-panel animation profile.", "Add New Animation Profile", "blue", "Positions", "rts.actionreplay.addProfile"); AddAnimationProfileSettings(ui);
     }
 
     private void AddAnimationProfileSettings(RtsUI ui)
     {
-        ui.AddTitle("Animation Profiles", "Positions"); ui.AddDropdown("Default Animation Profile", "Fallback profile used when no entry point has a specific profile configured.", "Positions", UiPrefix + "player.selectedProfile", BuildProfileOptions(PlayerKey), "Default"); ui.BeginSection("Entry Point Profiles", "Positions"); ui.AddTitle("Choose which animation profile each replay entry point uses.", "Positions"); ui.BeginRow(); AddPlayerEntry(ui, "Create — OBS", "obs"); AddPlayerEntry(ui, "Create — Twitch", "twitch"); ui.EndRow(); ui.BeginRow(); AddPlayerEntry(ui, "Play — Recent", "recent"); AddPlayerEntry(ui, "Play — Catalog", "catalog"); ui.EndRow(); AddPlayerEntry(ui, "Play — Playlist", "playlist"); ui.EndSection(); ui.AddClickableButton("Add Profile", "Create a new animation profile.", "Add Profile", "blue", "Positions", () => { if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "AddProfile")) ui.RebuildUI(rebuilt => BuildSettings(rebuilt)); }); foreach (var item in ReadProfiles(PlayerKey)) { var id = (string)item["id"]; if (!string.IsNullOrWhiteSpace(id)) AddPlayerAnimationProfile(ui, (string)item["name"] ?? "Default", id); }
+        ui.BeginSection("Animation Profiles", "Animation"); ui.AddDropdown("Selected Profile", "Profile used for the configured entry points below.", "Animation", UiPrefix + "player.selectedProfile", BuildProfileOptions(PlayerKey), "Default"); AddAnimationEntryPoints(ui); AddAnimationRows(ui, PlayerKey, "Player Start Sequence", "Define the positions used when the player appears.", "startSequence", "Full Screen"); AddAnimationRows(ui, PlayerKey, "Player End Sequence", "Define the positions used when the player hides.", "endSequence", "Full Screen"); AddAnimationRows(ui, PanelKey, "Panel Start Sequence", "Define the positions used when an information panel appears.", "startSequence", "Centered"); AddAnimationRows(ui, PanelKey, "Panel End Sequence", "Define the positions used when an information panel hides.", "endSequence", "Centered"); ui.EndSection();
     }
 
-    private void AddPlayerEntry(RtsUI ui, string title, string point) => ui.AddDropdown(title, "Animation profile used for this replay entry point.", "Positions", UiPrefix + "player.entry." + point, BuildProfileOptions(PlayerKey), "Default");
-    private void AddPlayerAnimationProfile(RtsUI ui, string title, string id)
+    private void AddAnimationEntryPoints(RtsUI ui)
     {
-        ui.BeginSection(title, "Positions"); if (id == "default") ui.AddTitle("Default profile is permanent. Its animation sequences can be edited.", "Positions"); else { ui.AddTextbox("Profile Name", "Display name for this animation profile.", "Positions", UiPrefix + "player.profile." + id + ".name", title, false); ui.AddClickableButton("Remove Profile", "Delete this animation profile.", "Remove Profile", "red", "Positions", () => { CPH.SetArgument("profileId", id); if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "RemoveProfile")) ui.RebuildUI(rebuilt => BuildSettings(rebuilt)); }); } AddAnimationRows(ui, "Start Sequence", "The positions and transitions used when the replay starts.", PlayerKey, id, "startSequence", "Full Screen", "Positions"); AddAnimationRows(ui, "End Sequence", "The positions and transitions used when the replay ends.", PlayerKey, id, "endSequence", "Full Screen", "Positions"); ui.EndSection();
+        ui.BeginSection("Entry Points"); foreach (var entry in new[] { "obs", "twitch", "recent", "catalog", "playlist" }) ui.AddDropdown(entry.ToUpperInvariant(), "Animation profile used by this entry point.", "Animation", UiPrefix + "player.entry." + entry, BuildProfileOptions(PlayerKey), "Default"); foreach (var entry in new[] { "recent", "playlist", "creatorLeaderboard", "playbackLeaderboard" }) ui.AddDropdown(entry, "Animation profile used by this panel entry point.", "Animation", UiPrefix + "panel.entry." + entry, BuildProfileOptions(PanelKey), "Default"); ui.EndSection();
     }
 
-    private void AddAnimationRows(RtsUI ui, string title, string description, string configKey, string profile, string sequence, string defaultPosition, string category)
+    private void AddAnimationRows(RtsUI ui, string configKey, string title, string description, string sequence, string defaultPosition)
     {
-        var key = UiPrefix + (configKey == PlayerKey ? "player" : "panel") + ".profile." + profile + "." + sequence;
-        ui.AddDynamicRows(title, description, category, key, rows => { rows.AddDropdown("Position", "position", configKey == PlayerKey ? BuildAnimationPositionOptions() : BuildPanelAnimationPositionOptions(), defaultPosition); rows.AddNumericTextbox("Duration", "duration", 600, 0, 60000); rows.AddDropdown("Easing", "easing", new[] { "linear", "ease", "ease-in", "ease-out", "ease-in-out" }, "ease-in-out"); rows.AddNumericTextbox("Delay", "delay", 0, 0, 60000); }, json => SaveSequence(configKey, profile, sequence, json));
+        foreach (var profile in ReadProfiles(configKey)) { var id = (string)profile["id"] ?? "default"; ui.AddDynamicRows(title + " - " + ((string)profile["name"] ?? "Default"), description, "Animation", UiPrefix + (configKey == PlayerKey ? "player" : "panel") + ".profile." + id + "." + sequence, rows => { rows.AddDropdown("Position", "position", configKey == PlayerKey ? BuildAnimationPositionOptions() : BuildPanelAnimationPositionOptions(), defaultPosition); rows.AddNumericTextbox("Duration", "duration", 600, 0, 60000); rows.AddDropdown("Easing", "easing", new[] { "linear", "ease", "ease-in", "ease-out", "ease-in-out" }, "ease-in-out"); rows.AddNumericTextbox("Delay", "delay", 0, 0, 60000); }, json => SaveSequence(configKey, id, sequence, json)); }
     }
 
     private string[] BuildProfileOptions(string key) { var list = new List<string>(); foreach (var item in ReadProfiles(key)) { var name = (string)item["name"]; if (!string.IsNullOrWhiteSpace(name)) list.Add(name); } if (list.Count == 0) list.Add("Default"); return list.ToArray(); }
@@ -97,16 +78,7 @@ public class CPHInline
 
     private string[] BuildAnimationPositionOptions() => BuildPositionOptions(CPH.GetGlobalVar<string>("rts.actionreplay.ui.playerPositions", true), "Full Screen");
     private string[] BuildPanelAnimationPositionOptions() => BuildPositionOptions(CPH.GetGlobalVar<string>("rts.actionreplay.ui.panelPositions", true), "Centered");
-    private string[] BuildPositionOptions(string json, string builtIn)
-    {
-        var options = new List<string> { builtIn };
-        foreach (var item in ParsePositions(json))
-        {
-            var name = (string)item.Value["name"];
-            if (!string.IsNullOrWhiteSpace(name) && !options.Contains(name)) options.Add(name);
-        }
-        return options.ToArray();
-    }
+    private string[] BuildPositionOptions(string json, string builtIn) { var options = new List<string> { builtIn }; foreach (var item in ParsePositions(json)) { var name = (string)item.Value["name"]; if (!string.IsNullOrWhiteSpace(name) && !options.Contains(name)) options.Add(name); } return options.ToArray(); }
 
     private string ReadUiValue(string key)
     {
@@ -114,24 +86,9 @@ public class CPHInline
         try { var parts = key.Substring(UiPrefix.Length).Split('.'); var configKey = parts[0] == "player" ? PlayerKey : PanelKey; var config = ReadConfig(configKey); if (parts[1] == "selectedProfile") return ProfileName(config, (string)(config["animation"] as JObject)?["selectedProfile"]); if (parts[1] == "entry") { var entries = (config["animation"] as JObject)?["entryPoints"] as JObject; return ProfileName(config, (string)entries?[parts[2]]); } if (parts[1] == "profile") { var profile = FindProfile(config["animationProfiles"] as JArray, parts[2]); if (parts.Length == 4 && parts[3] == "name") return (string)profile?["name"] ?? "New Profile"; if (parts.Length == 4) return SequenceJson(profile, parts[3]); } } catch { } return "";
     }
 
-    private void SaveUiValue(string key, object value, bool persisted)
-    {
-        if (!key.StartsWith(UiPrefix, StringComparison.Ordinal)) { CPH.SetGlobalVar(key, value, persisted); return; }
-        try { var parts = key.Substring(UiPrefix.Length).Split('.'); var configKey = parts[0] == "player" ? PlayerKey : PanelKey; var config = ReadConfig(configKey); var animation = config["animation"] as JObject ?? new JObject(); config["animation"] = animation; var text = value == null ? "" : value.ToString(); if (parts[1] == "selectedProfile") animation["selectedProfile"] = ResolveProfileId(config, text); else if (parts[1] == "entry") { var entries = animation["entryPoints"] as JObject ?? new JObject(); entries[parts[2]] = ResolveProfileId(config, text); animation["entryPoints"] = entries; } else if (parts[1] == "profile" && parts.Length == 4 && parts[3] == "name") { var profile = FindProfile(config["animationProfiles"] as JArray, parts[2]); if (profile != null) profile["name"] = text; } SaveConfig(configKey, config); } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: animation UI save failed: " + ex.Message); }
-    }
+    private void SaveUiValue(string key, object value, bool persisted) { if (!key.StartsWith(UiPrefix, StringComparison.Ordinal)) { CPH.SetGlobalVar(key, value, persisted); return; } try { var parts = key.Substring(UiPrefix.Length).Split('.'); var configKey = parts[0] == "player" ? PlayerKey : PanelKey; var config = ReadConfig(configKey); var animation = config["animation"] as JObject ?? new JObject(); config["animation"] = animation; var text = value == null ? "" : value.ToString(); if (parts[1] == "selectedProfile") animation["selectedProfile"] = ResolveProfileId(config, text); else if (parts[1] == "entry") { var entries = animation["entryPoints"] as JObject ?? new JObject(); entries[parts[2]] = ResolveProfileId(config, text); animation["entryPoints"] = entries; } else if (parts[1] == "profile" && parts.Length == 4 && parts[3] == "name") { var profile = FindProfile(config["animationProfiles"] as JArray, parts[2]); if (profile != null) profile["name"] = text; } SaveConfig(configKey, config); } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: animation UI save failed: " + ex.Message); } }
 
-    private void SaveSequence(string configKey, string profileId, string sequence, string json)
-    {
-        try
-        {
-            var config = ReadConfig(configKey); var profile = FindProfile(config["animationProfiles"] as JArray, profileId); if (profile == null) return;
-            var rows = string.IsNullOrWhiteSpace(json) ? new JArray() : JArray.Parse(json);
-            for (var i = 0; i < rows.Count; i++) { var row = rows[i] as JObject; if (row == null) continue; row["duration"] = ReadSequenceNumber(row["duration"]); row["delay"] = ReadSequenceNumber(row["delay"]); row["position"] = (string)row["position"] ?? ""; row["easing"] = (string)row["easing"] ?? "ease-in-out"; if (sequence == "startSequence" && i == 0) row["duration"] = 0; }
-            profile[sequence] = rows; SaveConfig(configKey, config);
-        }
-        catch (Exception ex) { CPH.LogWarn("RTS Action Replay: animation sequence save failed: " + ex.Message); }
-    }
-
+    private void SaveSequence(string configKey, string profileId, string sequence, string json) { try { var config = ReadConfig(configKey); var profile = FindProfile(config["animationProfiles"] as JArray, profileId); if (profile == null) return; var rows = string.IsNullOrWhiteSpace(json) ? new JArray() : JArray.Parse(json); for (var i = 0; i < rows.Count; i++) { var row = rows[i] as JObject; if (row == null) continue; row["duration"] = ReadSequenceNumber(row["duration"]); row["delay"] = ReadSequenceNumber(row["delay"]); row["position"] = (string)row["position"] ?? ""; row["easing"] = (string)row["easing"] ?? "ease-in-out"; if (sequence == "startSequence" && i == 0) row["duration"] = 0; } profile[sequence] = rows; SaveConfig(configKey, config); } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: animation sequence save failed: " + ex.Message); } }
     private static int ReadSequenceNumber(JToken value) { if (value == null) return 0; int result; return int.TryParse(value.ToString(), out result) ? Math.Max(0, result) : 0; }
     private JObject ReadConfig(string key) { var raw = CPH.GetGlobalVar<string>(key, true); try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); } }
     private void SaveConfig(string key, JObject value) => CPH.SetGlobalVar(key, value.ToString(Newtonsoft.Json.Formatting.None), true);
@@ -142,50 +99,13 @@ public class CPHInline
     private static Dictionary<string, JObject> ParsePositions(string json) { var result = new Dictionary<string, JObject>(StringComparer.OrdinalIgnoreCase); try { foreach (var item in JObject.Parse(json ?? "{}").Properties()) if (item.Value is JObject p) result[item.Name] = p; } catch { } return result; }
     private static string[][] BuildPositionTagList(string json) { var rows = new List<string[]>(); foreach (var item in ParsePositions(json)) rows.Add(new[] { (string)item.Value["name"] ?? item.Key, (string)item.Value["tag"] ?? "" }); return rows.ToArray(); }
     private void SyncPlayerPositionEditorBridge() { CPH.ExecuteMethod("RTS Action Replay Store", "GetPlayerPositions"); CPH.SetGlobalVar("rts.actionreplay.ui.playerPositions", CPH.GetGlobalVar<string>("rts.actionreplay.positions", true) ?? "{}", true); }
-    private void SyncPanelPositionEditorBridge() { CPH.ExecuteMethod("RTS Action Replay Store", "GetPanel"); var panel = ReadConfig(PanelKey); CPH.SetGlobalVar("rts.actionreplay.ui.panelPositions", (panel["positions"] as JObject ?? new JObject()).ToString(Newtonsoft.Json.Formatting.None), true); }
+    private void SyncPanelPositionEditorBridge() { CPH.ExecuteMethod("RTS Action Replay Store", "GetPanel"); var panel = ReadConfig(PanelKey); var positions = panel["positions"] as JObject ?? new JObject(); if (!positions.ContainsKey("Centered")) { positions["Centered"] = new JObject { ["name"] = "Centered", ["tag"] = "centered", ["scale"] = 100, ["scaleX"] = 100, ["scaleY"] = 100, ["x"] = 0, ["y"] = 0, ["rotateZ"] = 0 }; panel["positions"] = positions; SaveConfig(PanelKey, panel); } CPH.SetGlobalVar("rts.actionreplay.ui.panelPositions", positions.ToString(Newtonsoft.Json.Formatting.None), true); }
     private void SavePlayerPositionsFromEditor(string json) { SavePositions(PlayerKey, "rts.actionreplay.ui.playerPositions", json); }
     private void SavePanelPositionsFromEditor(string json) { SavePositions(PanelKey, "rts.actionreplay.ui.panelPositions", json); }
     private void SavePositions(string key, string uiKey, string json) { try { var config = ReadConfig(key); config["positions"] = JObject.Parse(json ?? "{}"); SaveConfig(key, config); CPH.SetGlobalVar(uiKey, config["positions"].ToString(Newtonsoft.Json.Formatting.None), true); } catch { } }
     private void PreviewVideoPosition(string position, string json) { CPH.SetArgument("replayCommand", string.IsNullOrWhiteSpace(position) ? "position-preview-hide" : "position-preview"); if (!string.IsNullOrWhiteSpace(position)) { CPH.SetArgument("replayPosition", position); CPH.SetArgument("replayPositions", json ?? "{}"); } CPH.TriggerEvent("RTS-Action Replay", true); }
     private void PreviewPanelPosition(string position, string json) { CPH.SetArgument("replayCommand", string.IsNullOrWhiteSpace(position) ? "position-preview-hide" : "panel-position-preview"); if (!string.IsNullOrWhiteSpace(position)) { CPH.SetArgument("replayPanelPosition", position); CPH.SetArgument("replayPanelPositions", json ?? "{}"); CPH.SetArgument("replayPanelWidth", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500); CPH.SetArgument("replayPanelHeight", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700); } CPH.TriggerEvent("RTS-Action Replay", true); }
     private Dictionary<string, RtsUIPreviewSize> BuildPanelPreviewSizes() { var size = new RtsUIPreviewSize((CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500) * 640.0 / 1920.0, (CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700) * 360.0 / 1080.0); return new Dictionary<string, RtsUIPreviewSize> { ["Centered"] = size, ["Middle Right"] = size, ["Middle Right - Off Screen"] = size, ["Middle Right minimised"] = size, ["Middle Right - Off Screen - Minimised"] = size }; }
-    private static void AddMessageSettings(RtsUI ui)
-{
-    ui.BeginSection("Clapperboard", "Messages");
-    ui.BeginRow();
-    ui.AddColorPicker("Board Color", "Clapperboard slate colour.", "Messages", "rts.actionreplay.clapper.boardColor", "#101416");
-    ui.AddColorPicker("Stripe Light", "Clapperstick light stripe colour.", "Messages", "rts.actionreplay.clapper.stripeLight", "#EEEEEE");
-    ui.AddColorPicker("Stripe Dark", "Clapperstick dark stripe colour.", "Messages", "rts.actionreplay.clapper.stripeDark", "#111111");
-    ui.AddColorPicker("Accent Color", "Clapperboard accent colour.", "Messages", "rts.actionreplay.clapper.accent", "#0384CB");
-    ui.AddColorPicker("Text Color", "Message text colour.", "Messages", "rts.actionreplay.clapper.textColor", "#0384CB");
-    ui.EndRow();
-    ui.AddGoogleFontSelector("Font", "Choose a Google Font.", "Messages", "rts.actionreplay.clapper.font", "Inter");
-    ui.BeginRow();
-    ui.AddSlider("Size (%)", "Overall clapperboard size.", "Messages", "rts.actionreplay.clapper.size", 0, 100, 50);
-    ui.AddSlider("Position X (%)", "Horizontal clapperboard position.", "Messages", "rts.actionreplay.clapper.positionX", 0, 100, 50);
-    ui.AddSlider("Position Y (%)", "Vertical clapperboard position.", "Messages", "rts.actionreplay.clapper.positionY", 0, 100, 50);
-    ui.EndRow();
-    ui.EndSection();
-
-    ui.BeginSection("Message Outputs", "Messages");
-    AddMessageOutput(ui, "Save Replay", "Replay saved: %replayTitle%.", "rts.actionreplay.message.save");
-    AddMessageOutput(ui, "Name Replay", "Replay #%replayNumber% renamed to %replayTitle%.", "rts.actionreplay.message.name");
-    AddMessageOutput(ui, "Play Replay", "Playing replay #%replayNumber%: %replayTitle%.", "rts.actionreplay.message.play");
-    AddMessageOutput(ui, "Recent", "%replayRecent%", "rts.actionreplay.message.recent");
-    AddMessageOutput(ui, "Playlist", "%replayPlaylist%", "rts.actionreplay.message.playlist");
-    AddMessageOutput(ui, "Creator Leaderboard", "%replayLeaderboard%", "rts.actionreplay.message.creatorLeaderboard");
-    AddMessageOutput(ui, "Playback Leaderboard", "%replayLeaderboard%", "rts.actionreplay.message.playbackLeaderboard");
-    ui.EndSection();
-}
-
-private static void AddMessageOutput(RtsUI ui, string name, string message, string key)
-{
-    ui.BeginRow();
-    ui.AddTextbox(name + " Message", "Message sent when this command completes.", "Messages", key + ".text", message, false);
-    ui.EndRow();
-    ui.BeginRow();
-    ui.AddToggleSwitch(name + " - Chat", "Send this message to Twitch chat.", "Messages", key + ".chat", true);
-    ui.AddToggleSwitch(name + " - Overlay", "Send this message to the Action Replay overlay.", "Messages", key + ".overlay", false);
-    ui.EndRow();
-}
+    private static void AddMessageSettings(RtsUI ui) { ui.BeginSection("Clapperboard", "Messages"); ui.BeginRow(); ui.AddColorPicker("Board Color", "Clapperboard slate colour.", "Messages", "rts.actionreplay.clapper.boardColor", "#101416"); ui.AddColorPicker("Stripe Light", "Clapperstick light stripe colour.", "Messages", "rts.actionreplay.clapper.stripeLight", "#EEEEEE"); ui.AddColorPicker("Stripe Dark", "Clapperstick dark stripe colour.", "Messages", "rts.actionreplay.clapper.stripeDark", "#111111"); ui.AddColorPicker("Accent Color", "Clapperboard accent colour.", "Messages", "rts.actionreplay.clapper.accent", "#0384CB"); ui.AddColorPicker("Text Color", "Message text colour.", "Messages", "rts.actionreplay.clapper.textColor", "#0384CB"); ui.EndRow(); ui.AddGoogleFontSelector("Font", "Choose a Google Font.", "Messages", "rts.actionreplay.clapper.font", "Inter"); ui.BeginRow(); ui.AddSlider("Size (%)", "Overall clapperboard size.", "Messages", "rts.actionreplay.clapper.size", 0, 100, 50); ui.AddSlider("Position X (%)", "Horizontal clapperboard position.", "Messages", "rts.actionreplay.clapper.positionX", 0, 100, 50); ui.AddSlider("Position Y (%)", "Vertical clapperboard position.", "Messages", "rts.actionreplay.clapper.positionY", 0, 100, 50); ui.EndRow(); ui.EndSection(); ui.BeginSection("Message Outputs", "Messages"); AddMessageOutput(ui, "Save Replay", "Replay saved: %replayTitle%.", "rts.actionreplay.message.save"); AddMessageOutput(ui, "Name Replay", "Replay #%replayNumber% renamed to %replayTitle%.", "rts.actionreplay.message.name"); AddMessageOutput(ui, "Play Replay", "Playing replay #%replayNumber%: %replayTitle%.", "rts.actionreplay.message.play"); AddMessageOutput(ui, "Recent", "%replayRecent%", "rts.actionreplay.message.recent"); AddMessageOutput(ui, "Playlist", "%replayPlaylist%", "rts.actionreplay.message.playlist"); AddMessageOutput(ui, "Creator Leaderboard", "%replayLeaderboard%", "rts.actionreplay.message.creatorLeaderboard"); AddMessageOutput(ui, "Playback Leaderboard", "%replayLeaderboard%", "rts.actionreplay.message.playbackLeaderboard"); ui.EndSection(); }
+    private static void AddMessageOutput(RtsUI ui, string name, string message, string key) { ui.BeginRow(); ui.AddTextbox(name + " Message", "Message sent when this command completes.", "Messages", key + ".text", message, false); ui.EndRow(); ui.BeginRow(); ui.AddToggleSwitch(name + " - Chat", "Send this message to Twitch chat.", "Messages", key + ".chat", true); ui.AddToggleSwitch(name + " - Overlay", "Send this message to the Action Replay overlay.", "Messages", key + ".overlay", false); ui.EndRow(); }
 }
