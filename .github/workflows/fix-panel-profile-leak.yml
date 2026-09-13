@@ -1,0 +1,63 @@
+name: Fix panel profile leak
+
+on:
+  push:
+    branches: [feature/json-conversion]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.event.head_commit.message != 'Fix panel profile separation'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/json-conversion
+          fetch-depth: 0
+      - name: Remove player profiles from panel configuration
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('streamerbot/RTSActionReplayAnimationProfiles.cs')
+          s = p.read_text()
+          old = '''        var panel = ReadConfig(PanelKey, CreatePanelDefaults());
+        NormalizePositionConfig(panel, true);
+        panel["animationProfiles"] = NormalizeProfiles(panel["animationProfiles"] as JArray);
+        NormalizeSequences(panel, true);'''
+          new = '''        var panel = ReadConfig(PanelKey, CreatePanelDefaults());
+        NormalizePositionConfig(panel, true);
+        panel["animationProfiles"] = NormalizeProfiles(panel["animationProfiles"] as JArray);
+        RemovePlayerProfilesFromPanel(panel["animationProfiles"] as JArray, (JArray)player["animationProfiles"]);
+        NormalizeSequences(panel, true);'''
+          if old not in s:
+              raise SystemExit('Expected panel normalization block was not found')
+          s = s.replace(old, new, 1)
+          marker = '''    private void NormalizePositionConfig(JObject config, bool panel)
+'''
+          helper = '''    private void RemovePlayerProfilesFromPanel(JArray panelProfiles, JArray playerProfiles)
+    {
+        if (panelProfiles == null || playerProfiles == null) return;
+        for (var i = panelProfiles.Count - 1; i >= 0; i--)
+        {
+            var id = (string)panelProfiles[i]["id"];
+            if (string.IsNullOrWhiteSpace(id) || id == "default") continue;
+            if (FindProfile(playerProfiles, id) != null) panelProfiles.RemoveAt(i);
+        }
+    }
+
+'''
+          if marker not in s:
+              raise SystemExit('Expected normalization marker was not found')
+          s = s.replace(marker, helper + marker, 1)
+          p.write_text(s)
+      - name: Commit fix and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add streamerbot/RTSActionReplayAnimationProfiles.cs
+          git rm .github/workflows/fix-panel-profile-leak.yml
+          git commit -m "Fix panel profile separation"
+          git push origin HEAD:feature/json-conversion
