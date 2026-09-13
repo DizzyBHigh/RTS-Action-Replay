@@ -104,8 +104,30 @@ public class CPHInline
     }
     private void SaveSequence(string configKey, string profileId, string sequence, string json)
     {
-        try { var config = ReadConfig(configKey); var profile = FindProfile(config["animationProfiles"] as JArray, profileId); if (profile == null) return; profile[sequence] = string.IsNullOrWhiteSpace(json) ? new JArray() : JArray.Parse(json); SaveConfig(configKey, config); } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: animation sequence save failed: " + ex.Message); }
+        try
+        {
+            var config = ReadConfig(configKey);
+            var profile = FindProfile(config["animationProfiles"] as JArray, profileId);
+            if (profile == null) return;
+
+            var rows = string.IsNullOrWhiteSpace(json) ? new JArray() : JArray.Parse(json);
+            for (var i = 0; i < rows.Count; i++)
+            {
+                var row = rows[i] as JObject;
+                if (row == null) continue;
+                row["duration"] = ReadSequenceNumber(row["duration"]);
+                row["delay"] = ReadSequenceNumber(row["delay"]);
+                row["position"] = (string)row["position"] ?? "";
+                row["easing"] = (string)row["easing"] ?? "ease-in-out";
+                if (sequence == "startSequence" && i == 0) row["duration"] = 0;
+            }
+
+            profile[sequence] = rows;
+            SaveConfig(configKey, config);
+        }
+        catch (Exception ex) { CPH.LogWarn("RTS Action Replay: animation sequence save failed: " + ex.Message); }
     }
+    private static int ReadSequenceNumber(JToken value) { if (value == null) return 0; int result; return int.TryParse(value.ToString(), out result) ? Math.Max(0, result) : 0; }
     private JObject ReadConfig(string key) { var raw = CPH.GetGlobalVar<string>(key, true); try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); } }
     private void SaveConfig(string key, JObject value) => CPH.SetGlobalVar(key, value.ToString(Newtonsoft.Json.Formatting.None), true);
     private static JObject FindProfile(JArray profiles, string id) { foreach (var item in profiles ?? new JArray()) if (string.Equals((string)item["id"], id, StringComparison.Ordinal)) return item as JObject; return null; }
