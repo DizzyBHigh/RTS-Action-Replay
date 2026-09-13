@@ -18,10 +18,6 @@ public class CPHInline
     private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
     private const string PlayerKey = "rts.actionreplay.config.player";
     private const string PanelKey = "rts.actionreplay.config.panel";
-    private const string LegacyPlayerPositionsKey = "rts.actionreplay.positions";
-    private const string LegacyPanelPositionsKey = "rts.actionreplay.panel.positions";
-    private const string LegacyPanelWidthKey = "rts.actionreplay.panel.width";
-    private const string LegacyPanelHeightKey = "rts.actionreplay.panel.height";
 
     public bool Execute() => Initialize();
     public bool Initialize() { Save(Load()); return true; }
@@ -30,13 +26,6 @@ public class CPHInline
     {
         EnsurePlayer();
         EnsureObject(PanelKey, CreatePanelDefaults());
-        return true;
-    }
-
-    public bool Migrate()
-    {
-        MigratePlayerPositions();
-        MigratePanel();
         return true;
     }
 
@@ -110,9 +99,7 @@ public class CPHInline
     {
         var current = Read(PlayerKey);
         if (current.Count > 0) return;
-        var player = CreatePlayerDefaults();
-        MigratePositionsInto(player);
-        SaveConfig(PlayerKey, player);
+        SaveConfig(PlayerKey, CreatePlayerDefaults());
     }
 
     private JObject CreatePlayerDefaults() => new JObject
@@ -146,7 +133,14 @@ public class CPHInline
         ["version"] = 1,
         ["width"] = 500,
         ["height"] = 700,
-        ["positions"] = new JObject(),
+        ["positions"] = new JObject
+        {
+            ["Centered"] = new JObject
+            {
+                ["name"] = "Centered", ["tag"] = "centered", ["scale"] = 100,
+                ["scaleX"] = 100, ["scaleY"] = 100, ["x"] = 0, ["y"] = 0, ["rotateZ"] = 0
+            }
+        },
         ["animationProfiles"] = new JArray
         {
             new JObject { ["id"] = "default", ["name"] = "Default", ["startSequence"] = new JArray(), ["endSequence"] = new JArray() }
@@ -160,61 +154,6 @@ public class CPHInline
             }
         }
     };
-
-    private void MigratePlayerPositions()
-    {
-        var player = Read(PlayerKey);
-        if (player.Count == 0) player = CreatePlayerDefaults();
-        MigratePositionsInto(player);
-        SaveConfig(PlayerKey, player);
-    }
-
-    private void MigratePositionsInto(JObject player)
-    {
-        var raw = CPH.GetGlobalVar<string>(LegacyPlayerPositionsKey, true);
-        if (string.IsNullOrWhiteSpace(raw)) return;
-        try
-        {
-            var positions = JObject.Parse(raw);
-            if (positions.Count > 0) player["positions"] = positions;
-        }
-        catch (Exception ex)
-        {
-            CPH.LogWarn("RTS Action Replay: player position JSON migration failed: " + ex.Message);
-        }
-    }
-
-    private void MigratePanel()
-    {
-        var panel = Read(PanelKey);
-        if (panel.Count == 0) panel = CreatePanelDefaults();
-        MigratePanelPositions(panel);
-        MigratePanelSize(panel);
-        SaveConfig(PanelKey, panel);
-    }
-
-    private void MigratePanelPositions(JObject panel)
-    {
-        var raw = CPH.GetGlobalVar<string>(LegacyPanelPositionsKey, true);
-        if (string.IsNullOrWhiteSpace(raw)) return;
-        try
-        {
-            var positions = JObject.Parse(raw);
-            if (positions.Count > 0) panel["positions"] = positions;
-        }
-        catch (Exception ex)
-        {
-            CPH.LogWarn("RTS Action Replay: panel position JSON migration failed: " + ex.Message);
-        }
-    }
-
-    private void MigratePanelSize(JObject panel)
-    {
-        var width = CPH.GetGlobalVar<int?>(LegacyPanelWidthKey, true);
-        var height = CPH.GetGlobalVar<int?>(LegacyPanelHeightKey, true);
-        if (width.HasValue) panel["width"] = width.Value;
-        if (height.HasValue) panel["height"] = height.Value;
-    }
 
     private JObject Read(string key)
     {
@@ -293,21 +232,52 @@ public class CPHInline
         CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? ""); CPH.SetArgument("replayMessageBoardColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.boardColor", true) ?? "#101416"); CPH.SetArgument("replayMessageStripeLight", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeLight", true) ?? "#EEEEEE"); CPH.SetArgument("replayMessageStripeDark", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeDark", true) ?? "#111111"); CPH.SetArgument("replayMessageAccent", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.accent", true) ?? "#0384CB"); CPH.SetArgument("replayMessageTextColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.textColor", true) ?? "#0384CB"); CPH.SetArgument("replayMessageFont", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.font", true) ?? "Arial, sans-serif"); CPH.SetArgument("replayMessageSize", GetSettingInt("rts.actionreplay.clapper.size", 100)); CPH.SetArgument("replayMessageDuration", GetSettingInt("rts.actionreplay.clapper.duration", 5000));
     }
 
-    private int GetSettingInt(string key, int fallback) { try { object value = CPH.GetGlobalVar<object>(key, true); return value == null ? fallback : Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture); } catch { return fallback; }
-    private bool IsReplayFile(string path) { var extension = Path.GetExtension(path); if (string.IsNullOrWhiteSpace(extension)) return false; var configured = CPH.GetGlobalVar<string>(FileTypesKey, true) ?? ".mp4, .mkv"; foreach (var raw in configured.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)) { var type = raw.Trim(); if (!type.StartsWith(".")) type = "." + type; if (string.Equals(extension, type, StringComparison.OrdinalIgnoreCase)) return true; } return false; }
+    private int GetSettingInt(string key, int fallback)
+    {
+        try { object value = CPH.GetGlobalVar<object>(key, true); return value == null ? fallback : Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture); }
+        catch { return fallback; }
+    }
+
+    private bool IsReplayFile(string path)
+    {
+        var extension = Path.GetExtension(path); if (string.IsNullOrWhiteSpace(extension)) return false;
+        var configured = CPH.GetGlobalVar<string>(FileTypesKey, true) ?? ".mp4, .mkv";
+        foreach (var raw in configured.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            var type = raw.Trim(); if (!type.StartsWith(".")) type = "." + type;
+            if (string.Equals(extension, type, StringComparison.OrdinalIgnoreCase)) return true;
+        }
+        return false;
+    }
 
     private JObject Load()
     {
-        var raw = CPH.GetGlobalVar<string>(DataKey, true); JObject data; try { data = string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { data = new JObject(); }
-        var catalog = data["catalog"] as JArray; var legacy = data["replays"] as JArray; if (catalog == null) catalog = legacy ?? new JArray(); else if (legacy != null) MergeCatalog(catalog, legacy);
-        var external = CPH.GetGlobalVar<string>(LegacyCatalogKey, true); if (!string.IsNullOrWhiteSpace(external)) { try { var externalCatalog = JObject.Parse(external)["catalog"] as JArray; if (externalCatalog != null) MergeCatalog(catalog, externalCatalog); } catch { } }
-        foreach (var item in catalog.OfType<JObject>()) { if (string.IsNullOrWhiteSpace((string)item["sourceType"])) item["sourceType"] = "OBS"; if (string.IsNullOrWhiteSpace((string)item["sourceId"])) item["sourceId"] = (string)item["id"] ?? ""; if (item["plays"] == null) item["plays"] = 0; if (item["users"] == null) item["users"] = new JObject(); }
+        var raw = CPH.GetGlobalVar<string>(DataKey, true); JObject data;
+        try { data = string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); }
+        catch { data = new JObject(); }
+        var catalog = data["catalog"] as JArray; var legacy = data["replays"] as JArray;
+        if (catalog == null) catalog = legacy ?? new JArray(); else if (legacy != null) MergeCatalog(catalog, legacy);
+        var external = CPH.GetGlobalVar<string>(LegacyCatalogKey, true);
+        if (!string.IsNullOrWhiteSpace(external))
+        {
+            try { var externalCatalog = JObject.Parse(external)["catalog"] as JArray; if (externalCatalog != null) MergeCatalog(catalog, externalCatalog); }
+            catch { }
+        }
+        foreach (var item in catalog.OfType<JObject>())
+        {
+            if (string.IsNullOrWhiteSpace((string)item["sourceType"])) item["sourceType"] = "OBS";
+            if (string.IsNullOrWhiteSpace((string)item["sourceId"])) item["sourceId"] = (string)item["id"] ?? "";
+            if (item["plays"] == null) item["plays"] = 0;
+            if (item["users"] == null) item["users"] = new JObject();
+        }
         data["version"] = 2; data["catalog"] = catalog; data["recentIds"] = data["recentIds"] as JArray ?? BuildRecent(catalog); data.Remove("replays"); return data;
     }
 
     private JArray BuildRecent(JArray catalog)
     {
-        var recent = new JArray(); var max = CPH.GetGlobalVar<int?>(MaxHistoryKey, true) ?? 20; foreach (var item in catalog.OfType<JObject>().OrderByDescending(x => ParseDate((string)x["added"])).Take(Math.Max(1, max))) recent.Add((string)item["id"]); return recent;
+        var recent = new JArray(); var max = CPH.GetGlobalVar<int?>(MaxHistoryKey, true) ?? 20;
+        foreach (var item in catalog.OfType<JObject>().OrderByDescending(x => ParseDate((string)x["added"])).Take(Math.Max(1, max))) recent.Add((string)item["id"]);
+        return recent;
     }
 
     private JArray GetCatalog(JObject data) => (JArray)data["catalog"] ?? new JArray();
