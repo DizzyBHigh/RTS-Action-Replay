@@ -6,7 +6,7 @@ RTSInformationPanels.defaultPositions = {
 
 RTSInformationPanels.getPositions = command => {
   try {
-    const raw = command?.replayPanelPositions;
+    const raw = command?.replayPanelPositions ?? command?.replayPanelJsonPositions;
     const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
     return parsed && typeof parsed === 'object' ? parsed : RTSInformationPanels.defaultPositions;
   } catch (_) { return RTSInformationPanels.defaultPositions; }
