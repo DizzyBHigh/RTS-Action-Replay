@@ -16,7 +16,9 @@ public class CPHInline
     public bool EnsureProfiles()
     {
         var player = ReadConfig(PlayerKey, CreatePlayerDefaults());
+        NormalizePositionConfig(player, false);
         player["animationProfiles"] = NormalizeProfiles(player["animationProfiles"] as JArray);
+        NormalizeSequences(player, false);
         var animation = player["animation"] as JObject ?? new JObject();
         var profiles = (JArray)player["animationProfiles"];
         animation["selectedProfile"] = ResolveProfileId(profiles, (string)animation["selectedProfile"]) ?? "default";
@@ -26,7 +28,9 @@ public class CPHInline
         SaveConfig(PlayerKey, player);
 
         var panel = ReadConfig(PanelKey, CreatePanelDefaults());
+        NormalizePositionConfig(panel, true);
         panel["animationProfiles"] = NormalizeProfiles(panel["animationProfiles"] as JArray);
+        NormalizeSequences(panel, true);
         var panelAnimation = panel["animation"] as JObject ?? new JObject();
         panelAnimation["entryPoints"] = NormalizeEntryPoints(panelAnimation["entryPoints"] as JObject,
             (JArray)panel["animationProfiles"],
@@ -89,7 +93,9 @@ public class CPHInline
             profile = explicitProfile.Trim();
         if (string.IsNullOrWhiteSpace(profile)) profile = CPH.GetGlobalVar<string>(PlaybackProfileHandoffKey, false);
         var player = ReadConfig(PlayerKey, CreatePlayerDefaults());
+        NormalizePositionConfig(player, false);
         var profiles = NormalizeProfiles(player["animationProfiles"] as JArray);
+        NormalizeSequences(player, false);
         if (string.IsNullOrWhiteSpace(profile)) profile = (string)((JObject)player["animation"])?["selectedProfile"];
         profile = ResolveProfileId(profiles, profile) ?? "default";
         CPH.UnsetGlobalVar(PlaybackProfileHandoffKey, false);
@@ -145,7 +151,9 @@ public class CPHInline
         var panelType = CPH.TryGetArg("panelType", out string requested) && !string.IsNullOrWhiteSpace(requested)
             ? requested.Trim() : "recent";
         var panel = ReadConfig(PanelKey, CreatePanelDefaults());
+        NormalizePositionConfig(panel, true);
         var profiles = NormalizeProfiles(panel["animationProfiles"] as JArray);
+        NormalizeSequences(panel, true);
         var animation = panel["animation"] as JObject ?? new JObject();
         var entries = animation["entryPoints"] as JObject ?? new JObject();
         var profile = ResolveProfileId(profiles, (string)entries[panelType.ToLowerInvariant()]) ?? "default";
@@ -159,6 +167,44 @@ public class CPHInline
             ["id"] = profile, ["name"] = (string)item["name"] ?? "Default", ["start"] = start, ["end"] = end
         }.ToString(Newtonsoft.Json.Formatting.None));
         return true;
+    }
+
+    private void NormalizePositionConfig(JObject config, bool panel)
+    {
+        var positions = config["positions"] as JObject ?? new JObject();
+        var obsolete = new[] { "Hidden Left", "Hidden Right", "Hidden Top", "Hidden Bottom", "Center", "Top", "Bottom", "Top Left", "Top Right", "Bottom Left", "Bottom Right" };
+        foreach (var name in obsolete) positions.Remove(name);
+        if (panel) positions.Remove("Full Screen");
+        var builtIn = panel
+            ? new JObject { ["name"] = "Centered", ["tag"] = "centered", ["scale"] = 100, ["scaleX"] = 100, ["scaleY"] = 100, ["x"] = 0, ["y"] = 0, ["rotateZ"] = 0 }
+            : new JObject { ["name"] = "Full Screen", ["tag"] = "full-screen", ["scale"] = 100, ["scaleX"] = 100, ["scaleY"] = 100, ["x"] = 0, ["y"] = 0, ["z"] = 0, ["rotateX"] = 0, ["rotateY"] = 0, ["rotateZ"] = 0, ["fov"] = 90 };
+        positions[panel ? "Centered" : "Full Screen"] = builtIn;
+        config["positions"] = positions;
+    }
+
+    private void NormalizeSequences(JObject config, bool panel)
+    {
+        var positions = config["positions"] as JObject ?? new JObject();
+        var profiles = config["animationProfiles"] as JArray ?? new JArray();
+        foreach (var token in profiles)
+        {
+            var profile = token as JObject;
+            if (profile == null) continue;
+            profile["startSequence"] = FilterSequence(profile["startSequence"] as JArray, positions);
+            profile["endSequence"] = FilterSequence(profile["endSequence"] as JArray, positions);
+        }
+    }
+
+    private JArray FilterSequence(JArray source, JObject positions)
+    {
+        var result = new JArray();
+        foreach (var token in source ?? new JArray())
+        {
+            var row = token as JObject;
+            var position = (string)row?["position"];
+            if (row != null && !string.IsNullOrWhiteSpace(position) && positions.ContainsKey(position)) result.Add(row);
+        }
+        return result;
     }
 
     private JArray NormalizeProfiles(JArray source)
