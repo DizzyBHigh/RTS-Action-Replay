@@ -52,12 +52,30 @@ const buildPanelPreview = panel => {
   });
 };
 
+const applyPanelPreviewSize = (panel, command) => {
+  const width = Number(command?.replayPanelWidth);
+  const height = Number(command?.replayPanelHeight);
+  if (!panel || !Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return;
+
+  const screen = document.getElementById('rts-dev-screen');
+  if (screen) {
+    const bounds = screen.getBoundingClientRect();
+    panel.style.setProperty('--preview-panel-width', `${width * bounds.width / 1920}px`);
+    panel.style.setProperty('--preview-panel-height', `${height * bounds.height / 1080}px`);
+  } else {
+    panel.style.setProperty('--preview-panel-width', `${width}px`);
+    panel.style.setProperty('--preview-panel-height', `${height}px`);
+  }
+};
+
 RTSPositionPreview.previewPanelPosition = command => {
   const panel = RTSPositionPreview.recentList;
   if (!panel || !window.RTSInformationPanels) return;
 
   RTSPositionPreview.currentCommand = { ...(RTSPositionPreview.currentCommand || {}), ...command };
   panel.dataset.rtsInformationPanel = 'recent';
+  panel.classList.add('position-preview');
+  applyPanelPreviewSize(panel, command);
   buildPanelPreview(panel);
 
   const positionName = command.replayPanelPosition || 'Center';
@@ -118,6 +136,9 @@ RTSPositionPreview.hidePositionPreview = () => {
   const panel = RTSPositionPreview.recentList;
   if (panel) {
     window.RTSInformationPanelAnimation?.cancel?.();
+    panel.classList.remove('position-preview');
+    panel.style.removeProperty('--preview-panel-width');
+    panel.style.removeProperty('--preview-panel-height');
     panel.classList.remove('show');
     panel.setAttribute('aria-hidden', 'true');
   }
