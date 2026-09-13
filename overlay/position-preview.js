@@ -77,8 +77,9 @@ RTSPositionPreview.previewPanelPosition = command => {
   panel.classList.add('position-preview');
   applyPanelPreviewSize(panel, command);
   buildPanelPreview(panel);
+  window.RTSInformationPanelStyle?.apply?.(panel, command);
 
-  const positionName = command.replayPanelPosition || 'Center';
+  const positionName = command.replayPanelPosition || 'Centered';
   const position = window.RTSInformationPanels.normalise(
     window.RTSInformationPanels.getPosition(command, positionName)
   );
