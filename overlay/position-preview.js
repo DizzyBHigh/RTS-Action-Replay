@@ -27,12 +27,38 @@ if (originalPanelApplyPosition) {
   };
 }
 
+const buildPanelPreview = panel => {
+  if (!panel || panel.querySelector('.rts-panel-header')) return;
+  panel.innerHTML = '<div class="rts-panel-header"><span class="rts-panel-kicker">ACTION REPLAY</span><strong>RECENT REPLAYS</strong></div><div class="rts-panel-list"></div>';
+  const list = panel.querySelector('.rts-panel-list');
+  [
+    { number: '1', title: 'Example Replay' },
+    { number: '2', title: 'Another Recent Replay' },
+    { number: '3', title: 'Requested Replay' },
+    { number: '4', title: 'Latest Replay' }
+  ].forEach(entry => {
+    const row = document.createElement('div');
+    row.className = 'rts-panel-entry';
+    const number = document.createElement('span');
+    number.className = 'rts-panel-number';
+    number.textContent = entry.number;
+    const avatar = document.createElement('span');
+    avatar.className = 'rts-panel-avatar';
+    const title = document.createElement('span');
+    title.className = 'rts-panel-title';
+    title.textContent = entry.title;
+    row.append(number, avatar, title);
+    list.appendChild(row);
+  });
+};
+
 RTSPositionPreview.previewPanelPosition = command => {
   const panel = RTSPositionPreview.recentList;
   if (!panel || !window.RTSInformationPanels) return;
 
   RTSPositionPreview.currentCommand = { ...(RTSPositionPreview.currentCommand || {}), ...command };
   panel.dataset.rtsInformationPanel = 'recent';
+  buildPanelPreview(panel);
 
   const positionName = command.replayPanelPosition || 'Center';
   const position = window.RTSInformationPanels.normalise(
