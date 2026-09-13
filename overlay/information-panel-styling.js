@@ -1,12 +1,12 @@
 const RTSInformationPanelStyling = window.RTSInformationPanelStyling || {};
 
 RTSInformationPanelStyling.defaults = {
-  background: { enabled: true, primary: '#101416FF', secondary: '#0384CBFF', opacity: 97 },
-  border: { enabled: true, color: '#0384CBFF', opacity: 100, width: 3, radius: 0 },
-  glow: { enabled: true, color: '#0384CBFF', opacity: 35, blur: 24, spread: 0 },
+  background: { enabled: true, primary: '#101416FF', secondary: '#0384CBFF' },
+  border: { enabled: true, color: '#0384CBFF', width: 3, radius: 0 },
+  glow: { enabled: true, color: '#0384CBFF', blur: 24, spread: 0 },
   header: { titleColor: '#FFFFFFFF', font: 'Inter', size: 24, weight: '800', shadowColor: '#000000FF', primary: '#0384CBFF', secondary: '#101416FF', angle: 135, height: 88 },
   list: { textColor: '#FFFFFFFF', secondaryTextColor: '#AAB4BAFF', font: 'Inter', size: 15, weight: '600', spacing: 0, primary: '#101416FF', secondary: '#0384CBFF', border: '#FFFFFF14', radius: 0, glowEnabled: false, glowColor: '#0384CBFF' },
-  accent: { color: '#0384CBFF', opacity: 100, chevron: true, glow: true }
+  accent: { color: '#0384CBFF', chevron: true, glow: true }
 };
 
 const mergePanelStyle = source => {
@@ -42,13 +42,10 @@ RTSInformationPanelStyling.apply = (panel, command) => {
   const set = (key, value) => panel.style.setProperty(key, String(value));
   set('--panel-bg-primary', style.background.primary);
   set('--panel-bg-secondary', style.background.secondary);
-  set('--panel-bg-opacity', Number(style.background.opacity) / 100);
   set('--panel-border-color', style.border.color);
-  set('--panel-border-opacity', Number(style.border.opacity) / 100);
   set('--panel-border-width', `${Number(style.border.width) || 0}px`);
   set('--panel-radius', `${Number(style.border.radius) || 0}px`);
   set('--panel-glow-color', style.glow.color);
-  set('--panel-glow-opacity', Number(style.glow.opacity) / 100);
   set('--panel-glow-blur', `${Number(style.glow.blur) || 0}px`);
   set('--panel-glow-spread', `${Number(style.glow.spread) || 0}px`);
   set('--panel-title-color', style.header.titleColor);
@@ -72,7 +69,6 @@ RTSInformationPanelStyling.apply = (panel, command) => {
   set('--panel-row-radius', `${Number(style.list.radius) || 0}px`);
   set('--panel-row-glow-color', style.list.glowColor);
   set('--panel-accent-color', style.accent.color);
-  set('--panel-accent-opacity', Number(style.accent.opacity) / 100);
   panel.classList.toggle('rts-panel-no-background', !style.background.enabled);
   panel.classList.toggle('rts-panel-no-border', !style.border.enabled);
   panel.classList.toggle('rts-panel-no-glow', !style.glow.enabled);
