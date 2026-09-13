@@ -12,13 +12,18 @@
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  background: rgba(16, 20, 22, .97);
-  border: 3px solid var(--panel-primary);
-  box-shadow: 0 0 0 1px rgba(3, 132, 203, .25), 0 0 24px rgba(3, 132, 203, .35);
-  color: #fff;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--panel-bg-primary) calc(var(--panel-bg-opacity) * 100%), transparent), color-mix(in srgb, var(--panel-bg-secondary) calc(var(--panel-bg-opacity) * 100%), transparent));
+  border: var(--panel-border-width, 3px) solid color-mix(in srgb, var(--panel-border-color, #0384CB) calc(var(--panel-border-opacity, 1) * 100%), transparent);
+  border-radius: var(--panel-radius, 0px);
+  box-shadow: 0 0 0 var(--panel-glow-spread, 0px) color-mix(in srgb, var(--panel-glow-color, #0384CB) calc(var(--panel-glow-opacity, .35) * 100%), transparent), 0 0 var(--panel-glow-blur, 24px) color-mix(in srgb, var(--panel-glow-color, #0384CB) calc(var(--panel-glow-opacity, .35) * 100%), transparent);
+  color: var(--panel-list-text, #fff);
   transform: translate(-50%, -46%) scale(calc(.97 * var(--panel-scale-x, 1))) scaleY(var(--panel-scale-y, 1)) rotateZ(var(--panel-rotate-z, 0deg));
   transition: opacity .25s ease, transform .25s ease, visibility .25s ease;
 }
+
+#recent-list.rts-panel-no-background { background: transparent; }
+#recent-list.rts-panel-no-border { border-color: transparent; }
+#recent-list.rts-panel-no-glow { box-shadow: none; }
 
 #recent-list.show {
   opacity: 1;
@@ -30,10 +35,13 @@
   position: relative;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 3px;
+  min-height: var(--panel-header-height, 88px);
+  box-sizing: border-box;
   padding: 18px 20px 16px;
-  background: linear-gradient(135deg, rgba(3, 132, 203, .24), rgba(3, 132, 203, .04) 55%, transparent);
-  border-bottom: 2px solid var(--panel-primary);
+  background: linear-gradient(var(--panel-header-angle, 135deg), var(--panel-header-primary, #0384CB), var(--panel-header-secondary, #101416));
+  border-bottom: 2px solid color-mix(in srgb, var(--panel-accent-color, #0384CB) calc(var(--panel-accent-opacity, 1) * 100%), transparent);
   overflow: hidden;
 }
 
@@ -44,26 +52,38 @@
   bottom: -34px;
   width: 150px;
   height: 70px;
-  border-top: 3px solid rgba(3, 132, 203, .5);
+  border-top: 3px solid color-mix(in srgb, var(--panel-accent-color, #0384CB) calc(var(--panel-accent-opacity, .5) * 100%), transparent);
   transform: skewX(-35deg);
+  opacity: var(--panel-accent-opacity, 1);
 }
 
+#recent-list.rts-panel-no-chevron .rts-panel-header::after { display: none; }
+
 .rts-panel-kicker {
-  font: 700 11px/1 system-ui, sans-serif;
+  font-family: var(--panel-title-font, Inter), system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
   letter-spacing: .16em;
-  color: var(--panel-primary);
+  color: var(--panel-accent-color, #0384CB);
+  text-shadow: 0 2px 4px var(--panel-title-shadow, #000);
 }
 
 .rts-panel-header strong {
-  font: 800 24px/1.1 system-ui, sans-serif;
+  font-family: var(--panel-title-font, Inter), system-ui, sans-serif;
+  font-size: var(--panel-title-size, 24px);
+  font-weight: var(--panel-title-weight, 800);
+  line-height: 1.1;
   letter-spacing: .02em;
+  color: var(--panel-title-color, #fff);
+  text-shadow: 0 2px 5px var(--panel-title-shadow, #000);
 }
 
 .rts-panel-list {
-  max-height: calc(min(760px, 100vh - 120px) - 88px);
+  max-height: calc(min(760px, 100vh - 120px) - var(--panel-header-height, 88px));
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: var(--panel-primary) transparent;
+  scrollbar-color: var(--panel-accent-color, #0384CB) transparent;
 }
 
 .rts-panel-entry {
@@ -72,18 +92,26 @@
   align-items: center;
   gap: 12px;
   min-height: 48px;
+  margin: var(--panel-row-spacing, 0px) 0;
   padding: 8px 16px;
   box-sizing: border-box;
-  border-bottom: 1px solid rgba(255, 255, 255, .08);
-  font: 600 15px/1.25 system-ui, sans-serif;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--panel-row-primary, #101416) 100%, transparent), color-mix(in srgb, var(--panel-row-secondary, #0384CB) 12%, transparent));
+  border-bottom: 1px solid var(--panel-row-border, rgba(255, 255, 255, .08));
+  border-radius: var(--panel-row-radius, 0px);
+  font-family: var(--panel-list-font, Inter), system-ui, sans-serif;
+  font-size: var(--panel-list-size, 15px);
+  font-weight: var(--panel-list-weight, 600);
+  line-height: 1.25;
+  color: var(--panel-list-text, #fff);
 }
 
 .rts-panel-entry:last-child { border-bottom: 0; }
-.rts-panel-entry:hover { background: rgba(3, 132, 203, .08); }
+.rts-panel-entry:hover { background: color-mix(in srgb, var(--panel-row-secondary, #0384CB) 12%, transparent); }
+#recent-list.rts-panel-row-glow .rts-panel-entry { box-shadow: 0 0 14px color-mix(in srgb, var(--panel-row-glow-color, #0384CB) 22%, transparent); }
 
 .rts-panel-number {
-  color: var(--panel-primary);
-  font: 800 14px/1 system-ui, sans-serif;
+  color: var(--panel-accent-color, #0384CB);
+  font: 800 14px/1 var(--panel-list-font, Inter), system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
@@ -93,7 +121,7 @@
   height: 30px;
   border-radius: 50%;
   object-fit: cover;
-  background: rgba(255, 255, 255, .08);
+  background: color-mix(in srgb, var(--panel-list-secondary-text, #AAB4BA) 8%, transparent);
 }
 
 .rts-panel-avatar.missing { visibility: hidden; }
@@ -103,13 +131,14 @@
   word-break: normal;
   white-space: normal;
   line-height: 1.25;
+  color: var(--panel-list-text, #fff);
 }
 
 @media (max-width: 700px) {
   #recent-list { width: calc(100vw - 30px); max-height: calc(100vh - 60px); }
   .rts-panel-header { padding: 14px 16px 13px; }
-  .rts-panel-header strong { font-size: 20px; }
-  .rts-panel-entry { grid-template-columns: 28px 28px minmax(0, 1fr); gap: 9px; padding: 7px 13px; font-size: 14px; }
+  .rts-panel-header strong { font-size: min(var(--panel-title-size, 24px), 20px); }
+  .rts-panel-entry { grid-template-columns: 28px 28px minmax(0, 1fr); gap: 9px; padding: 7px 13px; font-size: min(var(--panel-list-size, 15px), 14px); }
   .rts-panel-avatar { width: 28px; height: 28px; }
   .rts-panel-list { max-height: calc(100vh - 145px); }
 }
