@@ -55,6 +55,50 @@ public class CPHInline
         return true;
     }
 
+    public bool SavePlayerPositions()
+    {
+        EnsurePlayer();
+        string positionsJson;
+        if (!CPH.TryGetArg("replayPositions", out positionsJson) || string.IsNullOrWhiteSpace(positionsJson)) return false;
+        try
+        {
+            var positions = JObject.Parse(positionsJson);
+            var player = Read(PlayerKey);
+            player["positions"] = positions;
+            SaveConfig(PlayerKey, player);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            CPH.LogWarn("RTS Action Replay: player position JSON save failed: " + ex.Message);
+            return false;
+        }
+    }
+
+    private void SavePlayerPositionsFromEditor(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return;
+        try
+        {
+            var positions = JObject.Parse(json);
+            var player = Read(PlayerKey);
+            if (player.Count == 0) player = CreatePlayerDefaults();
+            player["positions"] = positions;
+            SaveConfig(PlayerKey, player);
+        }
+        catch (Exception ex)
+        {
+            CPH.LogWarn("RTS Action Replay: player position editor save failed: " + ex.Message);
+        }
+    }
+
+    private JObject GetPlayerPositionsObject()
+    {
+        EnsurePlayer();
+        var player = Read(PlayerKey);
+        return (JObject)player["positions"] ?? new JObject();
+    }
+
     public bool GetPanel()
     {
         EnsureObject(PanelKey, CreatePanelDefaults());
@@ -246,10 +290,10 @@ public class CPHInline
 
     private void SetMessageStyleArguments()
     {
-        CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? ""); CPH.SetArgument("replayMessageBoardColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.boardColor", true) ?? "#101416"); CPH.SetArgument("replayMessageStripeLight", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeLight", true) ?? "#EEEEEE"); CPH.SetArgument("replayMessageStripeDark", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeDark", true) ?? "#111111"); CPH.SetArgument("replayMessageAccent", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.accent", true) ?? "#0384CB"); CPH.SetArgument("replayMessageTextColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.textColor", true) ?? "#0384CB"); CPH.SetArgument("replayMessageFont", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.font", true) ?? "Arial, sans-serif"); CPH.SetArgument("replayMessageSize", GetSettingInt("rts.actionreplay.clapper.size", 100)); CPH.SetArgument("replayMessagePositionX", GetSettingInt("rts.actionreplay.clapper.positionX", 50)); CPH.SetArgument("replayMessagePositionY", GetSettingInt("rts.actionreplay.clapper.positionY", 50));
+        CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? ""); CPH.SetArgument("replayMessageBoardColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.boardColor", true) ?? "#101416"); CPH.SetArgument("replayMessageStripeLight", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeLight", true) ?? "#EEEEEE"); CPH.SetArgument("replayMessageStripeDark", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeDark", true) ?? "#111111"); CPH.SetArgument("replayMessageAccent", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.accent", true) ?? "#0384CB"); CPH.SetArgument("replayMessageTextColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.textColor", true) ?? "#0384CB"); CPH.SetArgument("replayMessageFont", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.font", true) ?? "Arial, sans-serif"); CPH.SetArgument("replayMessageSize", GetSettingInt("rts.actionreplay.clapper.size", 100)); CPH.SetArgument("replayMessageDuration", GetSettingInt("rts.actionreplay.clapper.duration", 5000));
     }
 
-    private int GetSettingInt(string key, int fallback) { try { object value = CPH.GetGlobalVar<object>(key, true); return value == null ? fallback : Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture); } catch { return fallback; } }
+    private int GetSettingInt(string key, int fallback) { try { object value = CPH.GetGlobalVar<object>(key, true); return value == null ? fallback : Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture); } catch { return fallback; }
     private bool IsReplayFile(string path) { var extension = Path.GetExtension(path); if (string.IsNullOrWhiteSpace(extension)) return false; var configured = CPH.GetGlobalVar<string>(FileTypesKey, true) ?? ".mp4, .mkv"; foreach (var raw in configured.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)) { var type = raw.Trim(); if (!type.StartsWith(".")) type = "." + type; if (string.Equals(extension, type, StringComparison.OrdinalIgnoreCase)) return true; } return false; }
 
     private JObject Load()
