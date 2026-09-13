@@ -85,6 +85,7 @@ public class CPHInline
     private void AddPositionSettings(RtsUI ui)
     {
         SyncPlayerPositionEditorBridge();
+        SyncPanelPositionEditorBridge();
         ui.BeginSection("Saved Positions", "Positions");
         ui.BeginRow(3, 2);
         ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.ui.playerPositions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", "Edit Positions", "Preview Position", null, "scale,x,y,rotateX,rotateY,rotateZ", SavePlayerPositionsFromEditor, delegate(string position, string json) { PreviewVideoPosition(position, json); }, null);
@@ -98,8 +99,8 @@ public class CPHInline
         ui.AddNumericTextbox("Panel Height", "Information panel height in 1920×1080 output pixels.", "Information Panels", "rts.actionreplay.panel.height", 700, 100, 1080);
         ui.EndRow();
         ui.BeginRow(2, 2);
-        ui.AddPositionEditor("Panel Positions", "Create and edit reusable information-panel positions. The preview represents the configured panel size on the 640×360 editor canvas.", "Information Panels", "rts.actionreplay.panel.positions", "{\"Center\":{\"name\":\"Center\",\"tag\":\"center\",\"scale\":100,\"x\":0,\"y\":0,\"rotateZ\":0},\"Middle Right\":{\"name\":\"Middle Right\",\"tag\":\"mr\",\"scale\":100,\"x\":36,\"y\":0,\"rotateZ\":0},\"Middle Right - Off Screen\":{\"name\":\"Middle Right - Off Screen\",\"tag\":\"mr-os\",\"scale\":100,\"x\":56,\"y\":0,\"rotateZ\":0},\"Middle Right minimised\":{\"name\":\"Middle Right minimised\",\"tag\":\"mr-min\",\"scale\":100,\"x\":36,\"y\":0,\"rotateZ\":0},\"Middle Right - Off Screen - Minimised\":{\"name\":\"Middle Right - Off Screen - Minimised\",\"tag\":\"mr-os-min\",\"scale\":100,\"x\":56,\"y\":0,\"rotateZ\":0}}", "Edit Panel Positions", "Preview Panel", null, "scale,x,y,rotateX,rotateY,rotateZ", null, delegate(string position, string json) { PreviewPanelPosition(position, json); }, BuildPanelPreviewSizes());
-        ui.AddList("Panel Position Tags", "", "Information Panels", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.panel.positions", true)));
+        ui.AddPositionEditor("Panel Positions", "Create and edit reusable information-panel positions. The preview represents the configured panel size on the 640×360 editor canvas.", "Information Panels", "rts.actionreplay.panel.positions", "{\"Center\":{\"name\":\"Center\",\"tag\":\"center\",\"scale\":100,\"x\":0,\"y\":0,\"rotateZ\":0},\"Middle Right\":{\"name\":\"Middle Right\",\"tag\":\"mr\",\"scale\":100,\"x\":36,\"y\":0,\"rotateZ\":0},\"Middle Right - Off Screen\":{\"name\":\"Middle Right - Off Screen\",\"tag\":\"mr-os\",\"scale\":100,\"x\":56,\"y\":0,\"rotateZ\":0},\"Middle Right minimised\":{\"name\":\"Middle Right minimised\",\"tag\":\"mr-min\",\"scale\":100,\"x\":36,\"y\":0,\"rotateZ\":0},\"Middle Right - Off Screen - Minimised\":{\"name\":\"Middle Right - Off Screen - Minimised\",\"tag\":\"mr-os-min\",\"scale\":100,\"x\":56,\"y\":0,\"rotateZ\":0}}", "Edit Panel Positions", "Preview Panel", null, "scale,x,y,rotateX,rotateY,rotateZ", SavePanelPositionsFromEditor, delegate(string position, string json) { PreviewPanelPosition(position, json); }, BuildPanelPreviewSizes());
+        ui.AddList("Panel Position Tags", "", "Information Panels", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.ui.panelPositions", true)));
         ui.EndRow();
         ui.EndSection();
 
@@ -119,6 +120,15 @@ public class CPHInline
         string replayPositions;
         if (CPH.TryGetArg("replayPositions", out replayPositions) && !string.IsNullOrWhiteSpace(replayPositions)) positions = replayPositions;
         CPH.SetGlobalVar("rts.actionreplay.ui.playerPositions", positions, true);
+    }
+
+    private void SyncPanelPositionEditorBridge()
+    {
+        CPH.ExecuteMethod("RTS Action Replay Store", "GetPanel");
+        var raw = CPH.GetGlobalVar<string>("rts.actionreplay.config.panel", true);
+        var panel = string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw);
+        var positions = panel["positions"] as JObject ?? new JObject();
+        CPH.SetGlobalVar("rts.actionreplay.ui.panelPositions", positions.ToString(Newtonsoft.Json.Formatting.None), true);
     }
 
     private void SavePlayerPositionsFromEditor(string json)
@@ -142,6 +152,32 @@ public class CPHInline
         catch (Exception ex)
         {
             CPH.LogWarn("RTS Action Replay: player position editor save failed: " + ex.Message);
+        }
+    }
+
+    private void SavePanelPositionsFromEditor(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return;
+        try
+        {
+            var positions = JObject.Parse(json);
+            var raw = CPH.GetGlobalVar<string>("rts.actionreplay.config.panel", true);
+            var panel = string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw);
+            if (panel.Count == 0)
+            {
+                panel["version"] = 1;
+                panel["width"] = CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500;
+                panel["height"] = CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700;
+                panel["animationProfiles"] = new JArray();
+                panel["animation"] = new JObject();
+            }
+            panel["positions"] = positions;
+            CPH.SetGlobalVar("rts.actionreplay.config.panel", panel.ToString(Newtonsoft.Json.Formatting.None), true);
+            CPH.SetGlobalVar("rts.actionreplay.ui.panelPositions", positions.ToString(Newtonsoft.Json.Formatting.None), true);
+        }
+        catch (Exception ex)
+        {
+            CPH.LogWarn("RTS Action Replay: panel position editor save failed: " + ex.Message);
         }
     }
 
