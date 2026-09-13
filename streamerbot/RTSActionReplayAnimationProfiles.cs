@@ -30,7 +30,6 @@ public class CPHInline
         var panel = ReadConfig(PanelKey, CreatePanelDefaults());
         NormalizePositionConfig(panel, true);
         panel["animationProfiles"] = NormalizeProfiles(panel["animationProfiles"] as JArray);
-        RemovePlayerProfilesFromPanel(panel["animationProfiles"] as JArray, profiles);
         NormalizeSequences(panel, true);
         var panelAnimation = panel["animation"] as JObject ?? new JObject();
         panelAnimation["entryPoints"] = NormalizeEntryPoints(panelAnimation["entryPoints"] as JObject,
@@ -168,17 +167,6 @@ public class CPHInline
             ["id"] = profile, ["name"] = (string)item["name"] ?? "Default", ["start"] = start, ["end"] = end
         }.ToString(Newtonsoft.Json.Formatting.None));
         return true;
-    }
-
-    private void RemovePlayerProfilesFromPanel(JArray panelProfiles, JArray playerProfiles)
-    {
-        if (panelProfiles == null || playerProfiles == null) return;
-        for (var i = panelProfiles.Count - 1; i >= 0; i--)
-        {
-            var id = (string)panelProfiles[i]["id"];
-            if (string.IsNullOrWhiteSpace(id) || id == "default") continue;
-            if (FindProfile(playerProfiles, id) != null) panelProfiles.RemoveAt(i);
-        }
     }
 
     private void NormalizePositionConfig(JObject config, bool panel)
