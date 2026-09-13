@@ -42,10 +42,13 @@ RTSInformationPanelStyling.apply = (panel, command) => {
   const set = (key, value) => panel.style.setProperty(key, String(value));
   set('--panel-bg-primary', style.background.primary);
   set('--panel-bg-secondary', style.background.secondary);
+  set('--panel-bg-opacity', 1);
   set('--panel-border-color', style.border.color);
+  set('--panel-border-opacity', 1);
   set('--panel-border-width', `${Number(style.border.width) || 0}px`);
   set('--panel-radius', `${Number(style.border.radius) || 0}px`);
   set('--panel-glow-color', style.glow.color);
+  set('--panel-glow-opacity', 1);
   set('--panel-glow-blur', `${Number(style.glow.blur) || 0}px`);
   set('--panel-glow-spread', `${Number(style.glow.spread) || 0}px`);
   set('--panel-title-color', style.header.titleColor);
@@ -69,6 +72,7 @@ RTSInformationPanelStyling.apply = (panel, command) => {
   set('--panel-row-radius', `${Number(style.list.radius) || 0}px`);
   set('--panel-row-glow-color', style.list.glowColor);
   set('--panel-accent-color', style.accent.color);
+  set('--panel-accent-opacity', 1);
   panel.classList.toggle('rts-panel-no-background', !style.background.enabled);
   panel.classList.toggle('rts-panel-no-border', !style.border.enabled);
   panel.classList.toggle('rts-panel-no-glow', !style.glow.enabled);
