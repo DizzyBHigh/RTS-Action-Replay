@@ -109,6 +109,7 @@ RTSInformationPanelAnimation.run = (panel, command, sequence, complete) => {
 RTSInformationPanelAnimation.show = (panel, command, name) => {
   const profile = RTSInformationPanelAnimation.profile(command);
   const start = profile?.start;
+  RTSInformationPanels.applySize(panel, command);
   panel.classList.add('show');
   panel.setAttribute('aria-hidden', 'false');
   if (Array.isArray(start) && start.length) RTSInformationPanelAnimation.run(panel, command, start);
