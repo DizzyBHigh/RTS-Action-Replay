@@ -162,13 +162,14 @@ public class CPHInline
         ui.AddDropdown("Creator Leaderboard Profile", "Animation profile used when the Creator Leaderboard panel appears and disappears.", "Information Panels", "rts.actionreplay.panel.animation.entry.creatorLeaderboard", BuildPanelAnimationProfileOptions(), "Default");
         ui.AddDropdown("Playback Leaderboard Profile", "Animation profile used when the Playback Leaderboard panel appears and disappears.", "Information Panels", "rts.actionreplay.panel.animation.entry.playbackLeaderboard", BuildPanelAnimationProfileOptions(), "Default");
         ui.EndRow();
+        ui.EndSection();
+
         foreach (var item in ReadPanelAnimationProfiles())
         {
             var id = (string)item["id"]; if (string.IsNullOrWhiteSpace(id)) continue;
             var name = id == "default" ? "Default" : CPH.GetGlobalVar<string>("rts.actionreplay.panel.animation." + id + ".name", true) ?? (string)item["name"] ?? "New Panel Profile";
             AddPanelAnimationProfile(ui, name, id);
         }
-        ui.EndSection();
     }
 
     private void AddPanelAnimationProfile(RtsUI ui, string title, string profile)
