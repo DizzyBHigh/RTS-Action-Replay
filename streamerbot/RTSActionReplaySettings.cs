@@ -10,7 +10,7 @@ public class CPHInline
 
     public bool Execute()
     {
-        var ui = new RtsUI("RTS Action Replay", "1.0.0", (key, persisted) => CPH.GetGlobalVar<bool?>(key, persisted), (key, persisted) => CPH.GetGlobalVar<int?>(key, persisted), (key, persisted) => ReadUiValue(key), (key, value, persisted) => SaveUiValue(key, value, persisted), message => CPH.LogInfo(message));
+        var ui = new RtsUI("RTS Action Replay", "1.0.0", (key, persisted) => CPH.GetGlobalVar<bool?>(key, persisted), (key, persisted) => CPH.GetGlobalVar<int?>(key, persisted), (key, persisted) => ReadUiValue(key), (key, persisted) => (object)CPH.GetGlobalVar<string>(key, persisted), (key, value, persisted) => SaveUiValue(key, value, persisted), message => CPH.LogInfo(message));
         BuildSettings(ui); ui.ShowUI(); return true;
     }
 
