@@ -1,13 +1,7 @@
 const RTSInformationPanels = window.RTSInformationPanels || {};
 
 RTSInformationPanels.defaultPositions = {
-  "Center": { scale: 100, x: 0, y: 0, rotateZ: 0 },
-  "Top": { scale: 100, x: 0, y: 32, rotateZ: 0 },
-  "Bottom": { scale: 100, x: 0, y: -32, rotateZ: 0 },
-  "Top Left": { scale: 100, x: -36, y: 28, rotateZ: 0 },
-  "Top Right": { scale: 100, x: 36, y: 28, rotateZ: 0 },
-  "Bottom Left": { scale: 100, x: -36, y: -28, rotateZ: 0 },
-  "Bottom Right": { scale: 100, x: 36, y: -28, rotateZ: 0 }
+  "Centered": { scale: 100, x: 0, y: 0, rotateZ: 0 }
 };
 
 RTSInformationPanels.getPositions = command => {
@@ -21,9 +15,9 @@ RTSInformationPanels.getPositions = command => {
 RTSInformationPanels.getPosition = (command, name) => {
   const positions = RTSInformationPanels.getPositions(command);
   if (positions[name]) return positions[name];
-  const target = String(name || 'Center').trim().toLowerCase();
+  const target = String(name || 'Centered').trim().toLowerCase();
   const match = Object.keys(positions).find(key => key.toLowerCase() === target || String(positions[key]?.tag || '').trim().toLowerCase() === target);
-  return positions[match] || positions.Center || RTSInformationPanels.defaultPositions.Center;
+  return positions[match] || positions.Centered || RTSInformationPanels.defaultPositions.Centered;
 };
 
 RTSInformationPanels.normalise = position => {
