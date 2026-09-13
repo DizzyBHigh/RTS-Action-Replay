@@ -9,6 +9,7 @@ public class CPHInline
     private const string EventName = "RTS-Action Replay";
     private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
     private const string AnimationAction = "RTS - Action Replay - Core - Animation";
+    private const string PanelStylingAction = "RTS - Action Replay - Panel Styling";
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
     private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
     private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
@@ -85,6 +86,7 @@ public class CPHInline
         {
             CPH.SetArgument("panelType", "recent");
             if (!CPH.ExecuteMethod(AnimationAction, "ResolvePanelAnimation")) return;
+            CPH.ExecuteMethod(PanelStylingAction, "Apply");
             CPH.SetArgument("replayCommand", "recent-list"); CPH.SetArgument("replayRecent", fullList); CPH.TriggerEvent(EventName, true);
         }
     }
