@@ -47,20 +47,21 @@ RTSRecentList.showRecentList = command => {
   list.scrollTop = 0;
   void panel.offsetWidth;
 
-  const panelPosition = command?.replayPanelPosition || command?.replayRecentPosition || 'Center';
+  const panelPosition = command?.replayPanelPosition || command?.replayRecentPosition || 'Centered';
   const animationCommand = { ...command, replayPanelAnimation: command?.replayPanelAnimation || JSON.stringify({
     id: 'default-panel',
     name: 'Default',
     start: [
-      { position: 'Hidden Left', duration: 0, delay: 0, easing: 'ease-in-out' },
+      { position: 'Centered', duration: 0, delay: 0, easing: 'ease-in-out' },
       { position: panelPosition, duration: 600, delay: 0, easing: 'ease-out' }
     ],
     end: [
       { position: panelPosition, duration: 0, delay: 0, easing: 'ease-in-out' },
-      { position: 'Hidden Left', duration: 600, delay: 0, easing: 'ease-in' }
+      { position: 'Centered', duration: 600, delay: 0, easing: 'ease-in' }
     ]
   }) };
   panel._rtsPanelAnimationCommand = animationCommand;
+  window.RTSInformationPanelStyling?.apply?.(panel, animationCommand);
   RTSInformationPanels.show(panel, animationCommand, panelPosition);
 
   const startedAt = Date.now();
