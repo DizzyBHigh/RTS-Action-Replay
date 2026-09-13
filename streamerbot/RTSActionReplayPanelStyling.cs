@@ -25,13 +25,13 @@ public class CPHInline
         ui.AddClickableButton("Preview Panel", "Show the current information-panel styling on the Action Replay overlay.", "Preview Panel", "blue", "Information Panels", Preview);
         ui.BeginSection("Background", "Information Panels");
         ui.BeginRow(); ui.AddToggleSwitch("Enable Background", "Display the panel background.", "Information Panels", StylePrefix + "background.enabled", true); ui.AddColorPicker("Primary Colour", "Primary background colour.", "Information Panels", StylePrefix + "background.primary", "#101416FF"); ui.EndRow();
-        ui.BeginRow(); ui.AddColorPicker("Secondary Colour", "Secondary background colour.", "Information Panels", StylePrefix + "background.secondary", "#0384CBFF"); ui.AddSlider("Background Opacity", "Background opacity percentage.", "Information Panels", StylePrefix + "background.opacity", 0, 100, 97); ui.EndRow(); ui.EndSection();
+        ui.BeginRow(); ui.AddColorPicker("Secondary Colour", "Secondary background colour.", "Information Panels", StylePrefix + "background.secondary", "#0384CBFF"); ui.EndRow(); ui.EndSection();
         ui.BeginSection("Border", "Information Panels");
         ui.BeginRow(); ui.AddToggleSwitch("Enable Border", "Display the panel border.", "Information Panels", StylePrefix + "border.enabled", true); ui.AddColorPicker("Colour", "Border colour.", "Information Panels", StylePrefix + "border.color", "#0384CBFF"); ui.EndRow();
-        ui.BeginRow(); ui.AddSlider("Opacity", "Border opacity percentage.", "Information Panels", StylePrefix + "border.opacity", 0, 100, 100); ui.AddSlider("Width", "Border width in pixels.", "Information Panels", StylePrefix + "border.width", 0, 12, 3); ui.AddSlider("Radius", "Panel corner radius in pixels.", "Information Panels", StylePrefix + "border.radius", 0, 48, 0); ui.EndRow(); ui.EndSection();
+        ui.BeginRow(); ui.AddSlider("Width", "Border width in pixels.", "Information Panels", StylePrefix + "border.width", 0, 12, 3); ui.AddSlider("Radius", "Panel corner radius in pixels.", "Information Panels", StylePrefix + "border.radius", 0, 48, 0); ui.EndRow(); ui.EndSection();
         ui.BeginSection("Glow", "Information Panels");
         ui.BeginRow(); ui.AddToggleSwitch("Enable Glow", "Display the panel glow.", "Information Panels", StylePrefix + "glow.enabled", true); ui.AddColorPicker("Colour", "Glow colour.", "Information Panels", StylePrefix + "glow.color", "#0384CBFF"); ui.EndRow();
-        ui.BeginRow(); ui.AddSlider("Intensity", "Glow opacity/intensity percentage.", "Information Panels", StylePrefix + "glow.opacity", 0, 100, 35); ui.AddSlider("Blur", "Glow blur in pixels.", "Information Panels", StylePrefix + "glow.blur", 0, 60, 24); ui.AddSlider("Spread", "Glow spread in pixels.", "Information Panels", StylePrefix + "glow.spread", 0, 20, 0); ui.EndRow(); ui.EndSection();
+        ui.BeginRow(); ui.AddSlider("Blur", "Glow blur in pixels.", "Information Panels", StylePrefix + "glow.blur", 0, 60, 24); ui.AddSlider("Spread", "Glow spread in pixels.", "Information Panels", StylePrefix + "glow.spread", 0, 20, 0); ui.EndRow(); ui.EndSection();
         ui.EndSection();
 
         ui.BeginSection("Header / Title", "Information Panels");
@@ -49,7 +49,7 @@ public class CPHInline
         ui.BeginRow(); ui.AddToggleSwitch("Row Glow", "Display a glow on list rows.", "Information Panels", StylePrefix + "list.glowEnabled", false); ui.AddColorPicker("Row Glow Colour", "List row glow colour.", "Information Panels", StylePrefix + "list.glowColor", "#0384CBFF"); ui.EndRow(); ui.EndSection();
 
         ui.BeginSection("Accent / RTS Elements", "Information Panels");
-        ui.BeginRow(); ui.AddColorPicker("Accent Colour", "RTS panel accent colour.", "Information Panels", StylePrefix + "accent.color", "#0384CBFF"); ui.AddSlider("Accent Opacity", "Accent opacity percentage.", "Information Panels", StylePrefix + "accent.opacity", 0, 100, 100); ui.EndRow();
+        ui.BeginRow(); ui.AddColorPicker("Accent Colour", "RTS panel accent colour.", "Information Panels", StylePrefix + "accent.color", "#0384CBFF"); ui.EndRow();
         ui.BeginRow(); ui.AddToggleSwitch("Chevron / Route Accent", "Display the RTS chevron/route accent.", "Information Panels", StylePrefix + "accent.chevron", true); ui.AddToggleSwitch("Accent Glow", "Display a glow on RTS accent elements.", "Information Panels", StylePrefix + "accent.glow", true); ui.EndRow(); ui.EndSection();
     }
 
@@ -99,11 +99,11 @@ public class CPHInline
 
     private JObject CreateStyle() => new JObject
     {
-        ["background"] = new JObject { ["enabled"] = true, ["primary"] = "#101416FF", ["secondary"] = "#0384CBFF", ["opacity"] = 97 },
-        ["border"] = new JObject { ["enabled"] = true, ["color"] = "#0384CBFF", ["opacity"] = 100, ["width"] = 3, ["radius"] = 0 },
-        ["glow"] = new JObject { ["enabled"] = true, ["color"] = "#0384CBFF", ["opacity"] = 35, ["blur"] = 24, ["spread"] = 0 },
+        ["background"] = new JObject { ["enabled"] = true, ["primary"] = "#101416FF", ["secondary"] = "#0384CBFF" },
+        ["border"] = new JObject { ["enabled"] = true, ["color"] = "#0384CBFF", ["width"] = 3, ["radius"] = 0 },
+        ["glow"] = new JObject { ["enabled"] = true, ["color"] = "#0384CBFF", ["blur"] = 24, ["spread"] = 0 },
         ["header"] = new JObject { ["titleColor"] = "#FFFFFFFF", ["font"] = "Inter", ["size"] = 24, ["weight"] = "800", ["shadowColor"] = "#000000FF", ["primary"] = "#0384CBFF", ["secondary"] = "#101416FF", ["angle"] = 135, ["height"] = 88 },
         ["list"] = new JObject { ["textColor"] = "#FFFFFFFF", ["secondaryTextColor"] = "#AAB4BAFF", ["font"] = "Inter", ["size"] = 15, ["weight"] = "600", ["spacing"] = 0, ["primary"] = "#101416FF", ["secondary"] = "#0384CBFF", ["border"] = "#FFFFFF14", ["radius"] = 0, ["glowEnabled"] = false, ["glowColor"] = "#0384CBFF" },
-        ["accent"] = new JObject { ["color"] = "#0384CBFF", ["opacity"] = 100, ["chevron"] = true, ["glow"] = true }
+        ["accent"] = new JObject { ["color"] = "#0384CBFF", ["chevron"] = true, ["glow"] = true }
     };
 }
