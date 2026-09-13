@@ -37,18 +37,6 @@ RTSInformationPanels.normalise = position => {
   };
 };
 
-RTSInformationPanels.applySize = (panel, command) => {
-  if (!panel) return;
-  const width = Number(command?.replayPanelWidth);
-  const height = Number(command?.replayPanelHeight);
-  if (Number.isFinite(width) && width > 0) panel.style.width = `${width}px`;
-  if (Number.isFinite(height) && height > 0) panel.style.height = `${height}px`;
-  if ((Number.isFinite(width) && width > 0) || (Number.isFinite(height) && height > 0)) {
-    panel.style.maxWidth = 'none';
-    panel.style.maxHeight = 'none';
-  }
-};
-
 RTSInformationPanels.getViewportOffset = position => {
   const screen = document.getElementById('rts-dev-screen');
   if (!screen) return null;
@@ -61,7 +49,6 @@ RTSInformationPanels.getViewportOffset = position => {
 
 RTSInformationPanels.applyPosition = (panel, command, name) => {
   if (!panel) return;
-  RTSInformationPanels.applySize(panel, command);
   const position = RTSInformationPanels.normalise(RTSInformationPanels.getPosition(command, name));
   const offset = RTSInformationPanels.getViewportOffset(position);
   panel.style.left = offset ? `${offset.left}px` : `calc(50% + ${position.x}vw)`;
