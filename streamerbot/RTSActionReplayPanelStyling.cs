@@ -61,7 +61,7 @@ public class CPHInline
         return true;
     }
 
-    public bool Preview()
+    public void Preview()
     {
         EnsureStyle();
         var panel = ReadPanel();
@@ -72,7 +72,6 @@ public class CPHInline
         CPH.SetArgument("replayPanelHeight", (int?)panel["height"] ?? 700);
         CPH.SetArgument("replayPanelStyle", (panel["style"] as JObject ?? CreateStyle()).ToString(Newtonsoft.Json.Formatting.None));
         CPH.TriggerEvent("RTS-Action Replay", true);
-        return true;
     }
 
     private string ReadValue(string key)
