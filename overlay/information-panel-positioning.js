@@ -37,11 +37,22 @@ RTSInformationPanels.normalise = position => {
   };
 };
 
+RTSInformationPanels.getViewportOffset = position => {
+  const screen = document.getElementById('rts-dev-screen');
+  if (!screen) return null;
+  const bounds = screen.getBoundingClientRect();
+  return {
+    left: bounds.left + bounds.width / 2 + position.x * bounds.width / 100,
+    top: bounds.top + bounds.height / 2 - position.y * bounds.height / 100
+  };
+};
+
 RTSInformationPanels.applyPosition = (panel, command, name) => {
   if (!panel) return;
   const position = RTSInformationPanels.normalise(RTSInformationPanels.getPosition(command, name));
-  panel.style.left = `calc(50% + ${position.x}vw)`;
-  panel.style.top = `calc(50% - ${position.y}vh)`;
+  const offset = RTSInformationPanels.getViewportOffset(position);
+  panel.style.left = offset ? `${offset.left}px` : `calc(50% + ${position.x}vw)`;
+  panel.style.top = offset ? `${offset.top}px` : `calc(50% - ${position.y}vh)`;
   panel.style.setProperty('--panel-scale-x', position.scaleX / 100);
   panel.style.setProperty('--panel-scale-y', position.scaleY / 100);
   panel.style.setProperty('--panel-rotate-z', `${position.rotateZ}deg`);
