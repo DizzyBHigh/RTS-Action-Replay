@@ -1,0 +1,57 @@
+#replay-player.position-preview #player-frame::after {
+  content: 'RTS POSITION PREVIEW';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(3, 132, 203, .10);
+  border: 2px dashed rgba(255, 255, 255, .65);
+  color: #fff;
+  font: 800 28px/1 system-ui, sans-serif;
+  letter-spacing: .12em;
+  text-shadow: 0 2px 8px #000;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+#rts-position-preview-panel {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 30px;
+  border: 3px solid #0384CB;
+  background: rgba(16, 20, 22, .96);
+  box-shadow: 0 0 0 1px rgba(3, 132, 203, .25), 0 0 28px rgba(3, 132, 203, .45);
+  color: #fff;
+  transform-origin: center center;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+#rts-position-preview-panel.show {
+  visibility: visible;
+  opacity: 1;
+}
+
+.rts-position-preview-kicker {
+  color: #0384CB;
+  font: 800 13px/1 system-ui, sans-serif;
+  letter-spacing: .18em;
+}
+
+#rts-position-preview-panel strong {
+  font: 800 30px/1.1 system-ui, sans-serif;
+}
+
+#rts-position-preview-panel span {
+  color: rgba(255,255,255,.7);
+  font: 600 15px/1 system-ui, sans-serif;
+}
