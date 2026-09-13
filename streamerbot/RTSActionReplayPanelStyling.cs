@@ -22,6 +22,7 @@ public class CPHInline
     {
         EnsureStyle();
         ui.BeginSection("Panel", "Information Panels");
+        ui.AddClickableButton("Preview Panel", "Show the current information-panel styling on the Action Replay overlay.", "Preview Panel", "blue", "Information Panels", Preview);
         ui.BeginSection("Background", "Information Panels");
         ui.BeginRow(); ui.AddToggleSwitch("Enable Background", "Display the panel background.", "Information Panels", StylePrefix + "background.enabled", true); ui.AddColorPicker("Primary Colour", "Primary background colour.", "Information Panels", StylePrefix + "background.primary", "#101416FF"); ui.EndRow();
         ui.BeginRow(); ui.AddColorPicker("Secondary Colour", "Secondary background colour.", "Information Panels", StylePrefix + "background.secondary", "#0384CBFF"); ui.AddSlider("Background Opacity", "Background opacity percentage.", "Information Panels", StylePrefix + "background.opacity", 0, 100, 97); ui.EndRow(); ui.EndSection();
@@ -57,6 +58,20 @@ public class CPHInline
         EnsureStyle();
         var panel = ReadPanel();
         CPH.SetArgument("replayPanelStyle", (panel["style"] as JObject ?? CreateStyle()).ToString(Newtonsoft.Json.Formatting.None));
+        return true;
+    }
+
+    public bool Preview()
+    {
+        EnsureStyle();
+        var panel = ReadPanel();
+        CPH.SetArgument("replayCommand", "panel-position-preview");
+        CPH.SetArgument("replayPanelPosition", "Centered");
+        CPH.SetArgument("replayPanelPositions", (panel["positions"] as JObject ?? new JObject()).ToString(Newtonsoft.Json.Formatting.None));
+        CPH.SetArgument("replayPanelWidth", (int?)panel["width"] ?? 500);
+        CPH.SetArgument("replayPanelHeight", (int?)panel["height"] ?? 700);
+        CPH.SetArgument("replayPanelStyle", (panel["style"] as JObject ?? CreateStyle()).ToString(Newtonsoft.Json.Formatting.None));
+        CPH.TriggerEvent("RTS-Action Replay", true);
         return true;
     }
 
