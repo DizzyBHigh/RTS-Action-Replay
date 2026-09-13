@@ -1,5 +1,7 @@
 const RTSPositionPreview = window.RTSReplay;
 
+const previewDevLog = (message, details) => window.RTSDevToolbar?.log?.(message, details);
+
 RTSPositionPreview.previewVideoPosition = command => {
   const player = RTSPositionPreview.player;
   if (!player) return;
@@ -69,14 +71,24 @@ const applyPanelPreviewSize = (panel, command) => {
 };
 
 RTSPositionPreview.previewPanelPosition = command => {
+  previewDevLog('Preview IN', command);
+
   const panel = RTSPositionPreview.recentList;
-  if (!panel || !window.RTSInformationPanels) return;
+  if (!panel) {
+    previewDevLog('Preview aborted: recent-list element missing');
+    return;
+  }
+  if (!window.RTSInformationPanels) {
+    previewDevLog('Preview aborted: information panel positioning unavailable');
+    return;
+  }
 
   RTSPositionPreview.currentCommand = { ...(RTSPositionPreview.currentCommand || {}), ...command };
   panel.dataset.rtsInformationPanel = 'recent';
   panel.classList.add('position-preview');
   applyPanelPreviewSize(panel, command);
   buildPanelPreview(panel);
+  previewDevLog('Preview style payload', command?.replayPanelStyle);
   window.RTSInformationPanelStyling?.apply?.(panel, command);
 
   const positionName = command.replayPanelPosition || 'Centered';
@@ -88,14 +100,9 @@ RTSPositionPreview.previewPanelPosition = command => {
   window.RTSInformationPanelAnimation?.cancel?.();
 
   if (wasVisible && start) {
-    const duration = Math.max(
-      100,
-      Number(RTSPositionPreview.currentCommand?.replayAnimationDuration) || 500
-    );
+    const duration = Math.max(100, Number(RTSPositionPreview.currentCommand?.replayAnimationDuration) || 500);
     const started = performance.now();
-    const easing = value => value < .5
-      ? 4 * value * value * value
-      : 1 - Math.pow(-2 * value + 2, 3) / 2;
+    const easing = value => value < .5 ? 4 * value * value * value : 1 - Math.pow(-2 * value + 2, 3) / 2;
     const frame = now => {
       const progress = Math.min(1, Math.max(0, (now - started) / duration));
       const amount = easing(progress);
@@ -107,9 +114,8 @@ RTSPositionPreview.previewPanelPosition = command => {
         rotateZ: start.rotateZ + (position.rotateZ - start.rotateZ) * amount
       };
       window.RTSInformationPanelAnimation.apply(panel, current);
-      if (progress < 1) {
-        RTSPositionPreview.panelAnimationFrame = requestAnimationFrame(frame);
-      } else {
+      if (progress < 1) RTSPositionPreview.panelAnimationFrame = requestAnimationFrame(frame);
+      else {
         RTSPositionPreview.panelAnimationFrame = null;
         RTSPositionPreview.panelPosition = position;
       }
@@ -123,6 +129,13 @@ RTSPositionPreview.previewPanelPosition = command => {
 
   panel.classList.add('show');
   panel.setAttribute('aria-hidden', 'false');
+  previewDevLog('Preview applied', {
+    position: positionName,
+    resolvedPosition: position,
+    width: command.replayPanelWidth,
+    height: command.replayPanelHeight,
+    className: panel.className
+  });
 };
 
 RTSPositionPreview.hidePositionPreview = () => {
