@@ -37,7 +37,7 @@ public class CPHInline
         ui.AddNumericTextbox("Header Height", "Header height in pixels.", "Information Panels", StylePrefix + "header.height", 88, 40, 240); ui.EndSection();
 
         ui.BeginSection("List", "Information Panels");
-        ui.BeginRow(); ui.AddGoogleFontSelector("Font", "Google Font used by list entries.", "Information Panels", StylePrefix + "list.font", "Inter"); ui.AddNumericTextbox("Size", "List entry font size in pixels.", "Information Panels", StylePrefix + "list.size", 15, 8, 48); ui.AddDropdown("Weight", "List entry font weight.", "Information Panels", StylePrefix + "list.weight", new[] { "400", "500", "600", "700", "800" }, "600"); ui.EndRow();
+        ui.BeginRow(); ui.AddGoogleFontSelector("Font", "Google Font used by list entries.", "Information Panels", StylePrefix + "list.font", "Inter", "Inter"); ui.AddNumericTextbox("Size", "List entry font size in pixels.", "Information Panels", StylePrefix + "list.size", 15, 8, 48); ui.AddDropdown("Weight", "List entry font weight.", "Information Panels", StylePrefix + "list.weight", new[] { "400", "500", "600", "700", "800" }, "600"); ui.EndRow();
         ui.BeginRow(); ui.AddSlider("Row Spacing", "Space between list entries in pixels.", "Information Panels", StylePrefix + "list.spacing", 0, 30, 0); ui.AddSlider("Row Radius", "List row corner radius in pixels.", "Information Panels", StylePrefix + "list.radius", 0, 30, 0); ui.EndRow(); ui.EndSection();
 
         ui.BeginSection("RTS Accent", "Information Panels");
@@ -50,10 +50,27 @@ public class CPHInline
     public void Preview()
     {
         EnsureStyle(); var panel = ReadPanel();
+        var positions = (panel["positions"] as JObject ?? new JObject()).ToString(Newtonsoft.Json.Formatting.None);
+        var style = (panel["style"] as JObject ?? CreateStyle()).ToString(Newtonsoft.Json.Formatting.None);
+        var width = (int?)panel["width"] ?? 500;
+        var height = (int?)panel["height"] ?? 700;
+
         CPH.SetArgument("replayCommand", "panel-position-preview"); CPH.SetArgument("replayPanelPosition", "Centered");
-        CPH.SetArgument("replayPanelPositions", (panel["positions"] as JObject ?? new JObject()).ToString(Newtonsoft.Json.Formatting.None));
-        CPH.SetArgument("replayPanelWidth", (int?)panel["width"] ?? 500); CPH.SetArgument("replayPanelHeight", (int?)panel["height"] ?? 700);
-        CPH.SetArgument("replayPanelStyle", (panel["style"] as JObject ?? CreateStyle()).ToString(Newtonsoft.Json.Formatting.None)); CPH.TriggerEvent("RTS-Action Replay", true);
+        CPH.SetArgument("replayPanelPositions", positions);
+        CPH.SetArgument("replayPanelWidth", width); CPH.SetArgument("replayPanelHeight", height);
+        CPH.SetArgument("replayPanelStyle", style);
+
+        var previewArguments = new JObject
+        {
+            ["replayCommand"] = "panel-position-preview",
+            ["replayPanelPosition"] = "Centered",
+            ["replayPanelPositions"] = positions,
+            ["replayPanelWidth"] = width,
+            ["replayPanelHeight"] = height,
+            ["replayPanelStyle"] = style
+        };
+        CPH.LogInfo("RTS Action Replay - Preview Panel arguments: " + previewArguments.ToString(Newtonsoft.Json.Formatting.None));
+        CPH.TriggerEvent("RTS-Action Replay", true);
     }
 
     private string ReadValue(string key)
