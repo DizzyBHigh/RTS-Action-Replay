@@ -12,10 +12,10 @@
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--panel-bg-primary) calc(var(--panel-bg-opacity) * 100%), transparent), color-mix(in srgb, var(--panel-bg-secondary) calc(var(--panel-bg-opacity) * 100%), transparent));
-  border: var(--panel-border-width, 3px) solid color-mix(in srgb, var(--panel-border-color, #0384CB) calc(var(--panel-border-opacity, 1) * 100%), transparent);
+  background: linear-gradient(135deg, var(--panel-bg-primary, #101416FF), var(--panel-bg-secondary, #0384CBFF));
+  border: var(--panel-border-width, 3px) solid var(--panel-border-color, #0384CBFF);
   border-radius: var(--panel-radius, 0px);
-  box-shadow: 0 0 0 var(--panel-glow-spread, 0px) color-mix(in srgb, var(--panel-glow-color, #0384CB) calc(var(--panel-glow-opacity, .35) * 100%), transparent), 0 0 var(--panel-glow-blur, 24px) color-mix(in srgb, var(--panel-glow-color, #0384CB) calc(var(--panel-glow-opacity, .35) * 100%), transparent);
+  box-shadow: 0 0 0 var(--panel-glow-spread, 0px) var(--panel-glow-color, #0384CBFF), 0 0 var(--panel-glow-blur, 24px) var(--panel-glow-color, #0384CBFF);
   color: var(--panel-list-text, #fff);
   transform: translate(-50%, -46%) scale(calc(.97 * var(--panel-scale-x, 1))) scaleY(var(--panel-scale-y, 1)) rotateZ(var(--panel-rotate-z, 0deg));
   transition: opacity .25s ease, transform .25s ease, visibility .25s ease;
@@ -41,7 +41,7 @@
   box-sizing: border-box;
   padding: 18px 20px 16px;
   background: linear-gradient(var(--panel-header-angle, 135deg), var(--panel-header-primary, #0384CB), var(--panel-header-secondary, #101416));
-  border-bottom: 2px solid color-mix(in srgb, var(--panel-accent-color, #0384CB) calc(var(--panel-accent-opacity, 1) * 100%), transparent);
+  border-bottom: 2px solid var(--panel-accent-color, #0384CBFF);
   overflow: hidden;
 }
 
@@ -52,9 +52,8 @@
   bottom: -34px;
   width: 150px;
   height: 70px;
-  border-top: 3px solid color-mix(in srgb, var(--panel-accent-color, #0384CB) calc(var(--panel-accent-opacity, .5) * 100%), transparent);
+  border-top: 3px solid var(--panel-accent-color, #0384CBFF);
   transform: skewX(-35deg);
-  opacity: var(--panel-accent-opacity, 1);
 }
 
 #recent-list.rts-panel-no-chevron .rts-panel-header::after { display: none; }
