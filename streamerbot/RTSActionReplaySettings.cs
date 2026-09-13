@@ -84,10 +84,11 @@ public class CPHInline
 
     private void AddPositionSettings(RtsUI ui)
     {
+        SyncPlayerPositionEditorBridge();
         ui.BeginSection("Saved Positions", "Positions");
         ui.BeginRow(3, 2);
-        ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.positions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", "Edit Positions", "Preview Position", null, "scale,x,y,rotateX,rotateY,rotateZ", null, delegate(string position, string json) { PreviewVideoPosition(position, json); }, null);
-        ui.AddList("Position Tags", "", "Positions", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true)));
+        ui.AddPositionEditor("Saved Positions", "Create and edit reusable player positions. Full Screen is built in and cannot be deleted.", "Positions", "rts.actionreplay.ui.playerPositions", "{\"Full Screen\":{\"name\":\"Full Screen\",\"tag\":\"full-screen\",\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}", "Edit Positions", "Preview Position", null, "scale,x,y,rotateX,rotateY,rotateZ", SavePlayerPositionsFromEditor, delegate(string position, string json) { PreviewVideoPosition(position, json); }, null);
+        ui.AddList("Position Tags", "", "Positions", BuildPositionTagList(CPH.GetGlobalVar<string>("rts.actionreplay.ui.playerPositions", true)));
         ui.EndRow();
         ui.EndSection();
 
@@ -109,6 +110,23 @@ public class CPHInline
 
         AddPanelAnimationSettings(ui);
         AddAnimationProfileSettings(ui);
+    }
+
+    private void SyncPlayerPositionEditorBridge()
+    {
+        CPH.ExecuteMethod("RTS Action Replay Store", "GetPlayerPositions");
+        var positions = CPH.GetGlobalVar<string>("rts.actionreplay.positions", true) ?? "{}";
+        string replayPositions;
+        if (CPH.TryGetArg("replayPositions", out replayPositions) && !string.IsNullOrWhiteSpace(replayPositions)) positions = replayPositions;
+        CPH.SetGlobalVar("rts.actionreplay.ui.playerPositions", positions, true);
+    }
+
+    private void SavePlayerPositionsFromEditor(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return;
+        CPH.SetGlobalVar("rts.actionreplay.ui.playerPositions", json, true);
+        CPH.SetArgument("replayPositions", json);
+        CPH.ExecuteMethod("RTS Action Replay Store", "SavePlayerPositions");
     }
 
     private void PreviewVideoPosition(string position, string json)
@@ -295,7 +313,7 @@ public class CPHInline
     private string[] BuildAnimationPositionOptions()
     {
         var options = new List<string> { "Hidden Left", "Hidden Right", "Hidden Top", "Hidden Bottom" };
-        var positions = ParsePositions(CPH.GetGlobalVar<string>("rts.actionreplay.positions", true));
+        var positions = ParsePositions(CPH.GetGlobalVar<string>("rts.actionreplay.ui.playerPositions", true));
         foreach (var item in positions) { var position = item.Value as JObject; if (position == null) continue; var name = (string)position["name"]; if (!string.IsNullOrWhiteSpace(name) && !options.Contains(name)) options.Add(name); }
         if (options.Count == 4) options.Add("Full Screen"); return options.ToArray();
     }
