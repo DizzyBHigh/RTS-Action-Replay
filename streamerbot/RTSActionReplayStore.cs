@@ -68,7 +68,7 @@ public class CPHInline
         if (current.Count > 0) return;
         var player = CreatePlayerDefaults();
         MigratePositionsInto(player);
-        Save(PlayerKey, player);
+        SaveConfig(PlayerKey, player);
     }
 
     private JObject CreatePlayerDefaults() => new JObject
@@ -122,7 +122,7 @@ public class CPHInline
         var player = Read(PlayerKey);
         if (player.Count == 0) player = CreatePlayerDefaults();
         MigratePositionsInto(player);
-        Save(PlayerKey, player);
+        SaveConfig(PlayerKey, player);
     }
 
     private void MigratePositionsInto(JObject player)
@@ -146,7 +146,7 @@ public class CPHInline
         if (panel.Count == 0) panel = CreatePanelDefaults();
         MigratePanelPositions(panel);
         MigratePanelSize(panel);
-        Save(PanelKey, panel);
+        SaveConfig(PanelKey, panel);
     }
 
     private void MigratePanelPositions(JObject panel)
@@ -183,15 +183,13 @@ public class CPHInline
     private void EnsureObject(string key, JObject defaults)
     {
         var current = Read(key);
-        if (current.Count == 0) Save(key, defaults);
+        if (current.Count == 0) SaveConfig(key, defaults);
     }
 
     private void SaveConfig(string key, JObject value)
     {
         CPH.SetGlobalVar(key, value.ToString(Newtonsoft.Json.Formatting.None), true);
     }
-
-    private void SaveConfigPlayer(JObject value) => SaveConfig(PlayerKey, value);
 
     public bool AddReplay()
     {
