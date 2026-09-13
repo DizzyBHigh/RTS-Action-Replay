@@ -83,32 +83,11 @@ public class CPHInline
         }
         if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? true)
         {
-            var panelPosition = CPH.GetGlobalVar<string>("rts.actionreplay.panel.position", true); var panelPositions = CPH.GetGlobalVar<string>("rts.actionreplay.panel.positions", true); if (string.IsNullOrWhiteSpace(panelPosition)) panelPosition = "Center";
-            CPH.SetArgument("replayPanelPosition", panelPosition); CPH.SetArgument("replayPanelPositions", panelPositions ?? "");
-            CPH.SetArgument("replayPanelAnimation", ResolvePanelAnimation(panelPosition));
+            CPH.SetArgument("panelType", "recent");
+            if (!CPH.ExecuteMethod(AnimationAction, "ResolvePanelAnimation")) return;
             CPH.SetArgument("replayCommand", "recent-list"); CPH.SetArgument("replayRecent", fullList); CPH.TriggerEvent(EventName, true);
         }
     }
-
-    private string ResolvePanelAnimation(string panelPosition)
-    {
-        const string prefix = "rts.actionreplay.panel.animation.";
-        var profilesRaw = CPH.GetGlobalVar<string>(prefix + "profiles", true); JArray profiles;
-        try { profiles = string.IsNullOrWhiteSpace(profilesRaw) ? new JArray() : JArray.Parse(profilesRaw); } catch { profiles = new JArray(); }
-        var configured = CPH.GetGlobalVar<string>(prefix + "entry.recent", true) ?? "Default"; string profile = "default";
-        foreach (var item in profiles.OfType<JObject>()) if (string.Equals((string)item["id"], configured, StringComparison.Ordinal) || string.Equals((string)item["name"], configured, StringComparison.OrdinalIgnoreCase)) { profile = (string)item["id"] ?? "default"; break; }
-        var start = ReadPanelSequence(prefix + profile + ".startSequence"); var end = ReadPanelSequence(prefix + profile + ".endSequence");
-        if (start.Count == 0) start = new JArray(); if (end.Count == 0) end = new JArray();
-        ReplacePanelPosition(start, panelPosition); ReplacePanelPosition(end, panelPosition);
-        if (start.Count == 0) start.Add(new JObject { ["position"] = "Hidden Left", ["duration"] = 0, ["delay"] = 0, ["easing"] = "ease-in-out" });
-        if (start.Count == 1) start.Add(new JObject { ["position"] = panelPosition, ["duration"] = 600, ["delay"] = 0, ["easing"] = "ease-out" });
-        if (end.Count == 0) end.Add(new JObject { ["position"] = panelPosition, ["duration"] = 0, ["delay"] = 0, ["easing"] = "ease-in-out" });
-        if (end.Count == 1) end.Add(new JObject { ["position"] = "Hidden Left", ["duration"] = 600, ["delay"] = 0, ["easing"] = "ease-in" });
-        return new JObject { ["id"] = profile, ["name"] = profile == "default" ? "Default" : profile, ["start"] = start, ["end"] = end }.ToString(Newtonsoft.Json.Formatting.None);
-    }
-
-    private JArray ReadPanelSequence(string key) { var raw = CPH.GetGlobalVar<string>(key, true); if (string.IsNullOrWhiteSpace(raw)) return new JArray(); try { return JArray.Parse(raw); } catch { return new JArray(); } }
-    private void ReplacePanelPosition(JArray sequence, string panelPosition) { foreach (var item in sequence.OfType<JObject>()) if (string.Equals((string)item["position"], "__PANEL_POSITION__", StringComparison.Ordinal)) item["position"] = panelPosition; }
 
     private JObject Load()
     {
