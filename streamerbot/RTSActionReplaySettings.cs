@@ -124,9 +124,25 @@ public class CPHInline
     private void SavePlayerPositionsFromEditor(string json)
     {
         if (string.IsNullOrWhiteSpace(json)) return;
-        CPH.SetGlobalVar("rts.actionreplay.ui.playerPositions", json, true);
-        CPH.SetArgument("replayPositions", json);
-        CPH.ExecuteMethod("RTS Action Replay Store", "SavePlayerPositions");
+        try
+        {
+            var positions = JObject.Parse(json);
+            var raw = CPH.GetGlobalVar<string>("rts.actionreplay.config.player", true);
+            var player = string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw);
+            if (player.Count == 0)
+            {
+                player["version"] = 1;
+                player["animationProfiles"] = new JArray();
+                player["animation"] = new JObject();
+            }
+            player["positions"] = positions;
+            CPH.SetGlobalVar("rts.actionreplay.config.player", player.ToString(Newtonsoft.Json.Formatting.None), true);
+            CPH.SetGlobalVar("rts.actionreplay.ui.playerPositions", positions.ToString(Newtonsoft.Json.Formatting.None), true);
+        }
+        catch (Exception ex)
+        {
+            CPH.LogWarn("RTS Action Replay: player position editor save failed: " + ex.Message);
+        }
     }
 
     private void PreviewVideoPosition(string position, string json)
