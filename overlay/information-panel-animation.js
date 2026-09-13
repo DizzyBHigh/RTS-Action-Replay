@@ -22,22 +22,14 @@ RTSInformationPanelAnimation.profile = command => {
 };
 
 RTSInformationPanelAnimation.normaliseStep = step => ({
-  position: step?.position || 'Center',
+  position: step?.position || 'Centered',
   duration: Math.max(0, Number(step?.duration) || 0),
   delay: Math.max(0, Number(step?.delay) || 0),
   easing: step?.easing || 'ease-in-out'
 });
 
-RTSInformationPanelAnimation.position = (command, name) => {
-  const special = {
-    'Hidden Left': { scale: 100, x: -120, y: 0, rotateZ: 0 },
-    'Hidden Right': { scale: 100, x: 120, y: 0, rotateZ: 0 },
-    'Hidden Top': { scale: 100, x: 0, y: 120, rotateZ: 0 },
-    'Hidden Bottom': { scale: 100, x: 0, y: -120, rotateZ: 0 }
-  };
-  if (special[name]) return RTSInformationPanels.normalise(special[name]);
-  return RTSInformationPanels.normalise(RTSInformationPanels.getPosition(command, name));
-};
+RTSInformationPanelAnimation.position = (command, name) =>
+  RTSInformationPanels.normalise(RTSInformationPanels.getPosition(command, name));
 
 RTSInformationPanelAnimation.easing = name => {
   switch (name) {
