@@ -12,7 +12,23 @@ RTSReplayVideo.confirmPlayback = (replayId, userId, userName) => {
 };
 
 RTSReplayVideo.notifyPlaybackEnded = command => {
-  if (!command?.replayId || !RTSReplayVideo.socket || RTSReplayVideo.socket.readyState !== WebSocket.OPEN) return;
+  if (!command?.replayId) {
+    replayDevLog('ended action skipped: missing replayId');
+    return;
+  }
+  if (!RTSReplayVideo.socket) {
+    replayDevLog('ended action skipped: socket unavailable');
+    return;
+  }
+  if (RTSReplayVideo.socket.readyState !== WebSocket.OPEN) {
+    replayDevLog('ended action skipped: socket not open', { readyState: RTSReplayVideo.socket.readyState });
+    return;
+  }
+  replayDevLog('sending playback ended action', {
+    action: RTSReplayVideo.config.endedAction,
+    replayId: command.replayId,
+    replayQueueEntryId: command.replayQueueEntryId || ''
+  });
   RTSReplayVideo.socket.send(JSON.stringify({
     request: 'DoAction', id: `rts-replay-ended-${Date.now()}`,
     action: { name: RTSReplayVideo.config.endedAction },
