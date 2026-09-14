@@ -262,4 +262,71 @@ public class CPHInline
         }
         return null;
     }
+
+    private JObject FindProfile(JArray profiles, string id)
+    {
+        foreach (var item in profiles ?? new JArray())
+            if (string.Equals((string)item["id"], id, StringComparison.Ordinal)) return (JObject)item;
+        return null;
+    }
+
+    private JObject CreateProfile(string id, string name) => new JObject
+    {
+        ["id"] = id, ["name"] = name, ["startSequence"] = DefaultPlayerStart(), ["endSequence"] = DefaultPlayerEnd()
+    };
+
+    private JObject CreatePanelProfile(string id, string name) => new JObject
+    {
+        ["id"] = id, ["name"] = name, ["startSequence"] = DefaultPanelStart(), ["endSequence"] = DefaultPanelEnd()
+    };
+
+    private JObject CreatePlayerDefaults() => new JObject
+    {
+        ["version"] = 1, ["positions"] = new JObject(),
+        ["animationProfiles"] = new JArray(CreateProfile("default", "Default")),
+        ["animation"] = new JObject { ["selectedProfile"] = "default", ["entryPoints"] = new JObject
+        {
+            ["obs"] = "default", ["twitch"] = "default", ["recent"] = "default", ["catalog"] = "default", ["playlist"] = "default"
+        }}
+    };
+
+    private JObject CreatePanelDefaults() => new JObject
+    {
+        ["version"] = 1, ["width"] = 500, ["height"] = 700, ["positions"] = new JObject(),
+        ["animationProfiles"] = new JArray(CreatePanelProfile("default", "Default")),
+        ["animation"] = new JObject { ["entryPoints"] = new JObject
+        {
+            ["recent"] = "default", ["playlist"] = "default", ["creatorLeaderboard"] = "default", ["playbackLeaderboard"] = "default"
+        }}
+    };
+
+    private JArray DefaultPlayerStart() => new JArray(new JObject
+    {
+        ["position"] = "Full Screen", ["duration"] = 0, ["delay"] = 0, ["easing"] = "ease-in-out"
+    });
+
+    private JArray DefaultPlayerEnd() => new JArray(new JObject
+    {
+        ["position"] = "Full Screen", ["duration"] = 0, ["delay"] = 0, ["easing"] = "ease-in-out"
+    });
+
+    private JArray DefaultPanelStart() => new JArray(new JObject
+    {
+        ["position"] = "Centered", ["duration"] = 0, ["delay"] = 0, ["easing"] = "ease-in-out"
+    });
+
+    private JArray DefaultPanelEnd() => new JArray(new JObject
+    {
+        ["position"] = "Centered", ["duration"] = 0, ["delay"] = 0, ["easing"] = "ease-in-out"
+    });
+
+    private JObject ReadConfig(string key, JObject defaults)
+    {
+        var raw = CPH.GetGlobalVar<string>(key, true);
+        if (string.IsNullOrWhiteSpace(raw)) return defaults;
+        try { return JObject.Parse(raw); }
+        catch { return defaults; }
+    }
+
+    private void SaveConfig(string key, JObject value) => CPH.SetGlobalVar(key, value.ToString(Newtonsoft.Json.Formatting.None), true);
 }
