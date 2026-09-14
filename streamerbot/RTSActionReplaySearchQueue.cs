@@ -27,7 +27,11 @@ public class CPHInline
     {
         var queue = LoadQueue();
         var requestId = Arg("replaySearchRequestId");
-        if (queue.Count == 0) return true;
+        if (queue.Count == 0)
+        {
+            CPH.SetGlobalVar(ActiveKey, false, false);
+            return true;
+        }
         if (!string.IsNullOrWhiteSpace(requestId) && !string.Equals(requestId, (string)queue[0]["requestId"], StringComparison.OrdinalIgnoreCase)) return false;
         queue.RemoveAt(0);
         SaveQueue(queue);
