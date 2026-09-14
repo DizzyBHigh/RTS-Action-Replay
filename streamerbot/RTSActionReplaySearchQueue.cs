@@ -19,7 +19,9 @@ public class CPHInline
         var queue = LoadQueue();
         queue.Add(request);
         SaveQueue(queue);
-        if (!IsActive()) return ShowNext();
+        var active = IsActive();
+        CPH.LogDebug($"RTS Action Replay Search Queue: Enqueue active={active}, queueCount={queue.Count}");
+        if (!active) return ShowNext();
         return true;
     }
 
@@ -30,6 +32,7 @@ public class CPHInline
         if (queue.Count == 0)
         {
             CPH.SetGlobalVar(ActiveKey, false, false);
+            CPH.LogDebug("RTS Action Replay Search Queue: SearchPanelEnded queue empty; active=false");
             return true;
         }
         if (!string.IsNullOrWhiteSpace(requestId) && !string.Equals(requestId, (string)queue[0]["requestId"], StringComparison.OrdinalIgnoreCase)) return false;
@@ -43,12 +46,14 @@ public class CPHInline
     {
         SaveQueue(new JArray());
         CPH.SetGlobalVar(ActiveKey, false, false);
+        CPH.LogDebug("RTS Action Replay Search Queue: Clear queue; active=false");
         return true;
     }
 
     private bool ShowNext()
     {
         var queue = LoadQueue();
+        CPH.LogDebug($"RTS Action Replay Search Queue: ShowNext queueCount={queue.Count}");
         if (queue.Count == 0)
         {
             CPH.SetGlobalVar(ActiveKey, false, false);
@@ -59,7 +64,9 @@ public class CPHInline
         CPH.SetGlobalVar(ActiveKey, true, false);
         CPH.SetArgument("replaySearchRequest", request.ToString(Newtonsoft.Json.Formatting.None));
         CPH.SetArgument("replaySearchRequestId", (string)request["requestId"] ?? "");
+        CPH.LogDebug($"RTS Action Replay Search Queue: calling {CatalogAction}.RenderSearchRequest");
         var shown = CPH.ExecuteMethod(CatalogAction, "RenderSearchRequest");
+        CPH.LogDebug($"RTS Action Replay Search Queue: RenderSearchRequest result={shown}");
         if (!shown)
         {
             queue.RemoveAt(0);
