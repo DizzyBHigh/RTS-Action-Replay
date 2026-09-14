@@ -4,11 +4,12 @@ RTSSearchPanel.panel = document.getElementById('search-panel');
 RTSSearchPanel.timer = null;
 RTSSearchPanel.endTimer = null;
 
-RTSSearchPanel.notifyEnded = () => {
+RTSSearchPanel.notifyEnded = requestId => {
   if (!RTSReplay.socket || RTSReplay.socket.readyState !== WebSocket.OPEN) return;
   RTSReplay.socket.send(JSON.stringify({
     request: 'DoAction', id: `rts-search-ended-${Date.now()}`,
-    action: { name: RTSReplay.config.searchEndedAction }, args: {}
+    action: { name: RTSReplay.config.searchEndedAction },
+    args: { replaySearchRequestId: requestId || '' }
   }));
 };
 
@@ -38,9 +39,10 @@ RTSSearchPanel.show = command => {
   panel.classList.remove('show'); panel.setAttribute('aria-hidden', 'true'); void panel.offsetWidth;
   RTSInformationPanels.show(panel, command, command.replayPanelPosition || 'Centered');
   const duration = Math.max(1000, Number(command.replaySearchDuration) || 10000);
+  const requestId = String(command.replaySearchRequestId || '');
   RTSSearchPanel.timer = setTimeout(() => {
     RTSInformationPanels.hide(panel, command);
-    RTSSearchPanel.endTimer = setTimeout(() => RTSSearchPanel.notifyEnded(), 700);
+    RTSSearchPanel.endTimer = setTimeout(() => RTSSearchPanel.notifyEnded(requestId), 700);
   }, duration);
 };
 
