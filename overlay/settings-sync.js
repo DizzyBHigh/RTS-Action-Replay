@@ -21,9 +21,8 @@ RTSReplaySettingsSync.apply = command => {
 
   if (RTSReplaySettingsSync.player?.classList.contains('show')) {
     window.RTSReplay.command = { ...(window.RTSReplay.command || {}), ...RTSReplaySettingsSync.command };
-    if (window.RTSReplayVideo) window.RTSReplayVideo.currentCommand = window.RTSReplay.command;
-    window.RTSReplayControls?.configure?.(window.RTSReplay.command);
-    window.RTSReplayElements?.configure?.(window.RTSReplay.command);
+    window.RTSReplay.configureControls?.(window.RTSReplay.command);
+    window.RTSReplay.configure?.(window.RTSReplay.command);
   }
 
   const panel = RTSReplaySettingsSync.recentList;
