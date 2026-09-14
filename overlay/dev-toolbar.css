@@ -68,4 +68,4 @@
 #replay-player.dev-player #player-frame::before { display:none; }
 #replay-player.dev-player #player-elements { z-index:20; }
 #replay-player.dev-player #player-controls { position:absolute; left:0; right:0; bottom:0; z-index:30; }
-#replay-player.dev-player #player-title.title-bottom { bottom:30px; }
+#replay-player.dev-player #player-title.title-bottom { bottom:42px; }
