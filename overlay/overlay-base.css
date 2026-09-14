@@ -21,6 +21,13 @@ body {
 
 #status { display: none; }
 
+/* Information panels always render above the replay player. */
+#recent-list,
+#search-panel,
+#playlist-list {
+  z-index: 40;
+}
+
 #message-card {
   --board-color: #101416;
   --stripe-light: #eeeeee;
