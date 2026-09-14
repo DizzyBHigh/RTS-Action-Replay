@@ -54,6 +54,7 @@ public class CPHInline
         if (request == null) { queue.RemoveAt(0); SaveQueue(queue); return ShowNext(); }
         CPH.SetGlobalVar(ActiveKey, true, false);
         CPH.SetArgument("replaySearchRequest", request.ToString(Newtonsoft.Json.Formatting.None));
+        CPH.SetArgument("replaySearchRequestId", (string)request["requestId"] ?? "");
         var shown = CPH.ExecuteMethod(CatalogAction, "RenderSearchRequest");
         if (!shown)
         {
