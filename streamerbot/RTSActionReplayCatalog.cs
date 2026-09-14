@@ -14,6 +14,13 @@ public class CPHInline
     public bool Execute() => ListCatalog();
     public bool ListCatalog() { var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var amount = ParseAmount(ref parts); var search = string.Join(" ", parts).Trim(); return Queue(BuildState(string.IsNullOrWhiteSpace(search) ? "all" : "search", search, "catalog", amount)); }
     public bool ListRecent() => Queue(BuildState("recent", "", "recent", ParseAmount(Arg("rawInput"))));
+    public bool ListLeaderboard()
+    {
+        var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        var amount = ParseAmount(ref parts);
+        var period = string.Join(" ", parts).Trim();
+        return Queue(BuildState("leaderboard", period, "leaderboard", amount));
+    }
     public bool ListCatalogDate() { var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var amount = ParseAmount(ref parts); var period = string.Join(" ", parts).Trim(); if (string.IsNullOrWhiteSpace(period)) { CPH.SendMessage("Please provide a catalog date period."); return false; } return Queue(BuildState("date", period, "catalog", amount)); }
     public bool ListCatalogCreator() { var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var amount = ParseAmount(ref parts); var creator = string.Join(" ", parts).Trim(); if (string.IsNullOrWhiteSpace(creator)) { CPH.SendMessage("Please provide a creator name."); return false; } return Queue(BuildState("creator", creator, "catalog", amount)); }
     public bool ListCatalogMostViews() => Queue(BuildState("all", "", "plays", ParseAmount(Arg("rawInput"))));
@@ -26,7 +33,7 @@ public class CPHInline
     {
         var json = Arg("replaySearchRequest"); if (string.IsNullOrWhiteSpace(json)) return false; JObject request; try { request = JObject.Parse(json); } catch { return false; }
         var results = Query(request); var amount = Math.Max(1, (int?)request["amount"] ?? MaxAmount()); var page = Math.Max(1, (int?)request["page"] ?? 1); var pages = Math.Max(1, (int)Math.Ceiling(results.Count / (double)amount)); page = Math.Min(page, pages); var start = (page - 1) * amount;
-        var entries = results.Skip(start).Take(amount).OfType<JObject>().Select((x, i) => Entry(x, start + i + 1)).ToList(); CPH.SetArgument("replaySearchEntries", new JArray(entries).ToString(Newtonsoft.Json.Formatting.None)); CPH.SetArgument("replaySearchHeader", Header(request, page, pages, results.Count)); CPH.SetArgument("replaySearchRequester", (string)request["requesterName"] ?? ""); CPH.SetArgument("replaySearchParameters", Parameters(request)); CPH.SetArgument("replaySearchRequestId", (string)request["requestId"] ?? ""); CPH.SetArgument("replaySearchDuration", CPH.GetGlobalVar<int?>("rts.actionreplay.searchPanel.duration", true) ?? 10000); CPH.SetArgument("replayPanelWidth", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500); CPH.SetArgument("replayPanelHeight", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700); CPH.SetArgument("panelType", "recent"); CPH.ExecuteMethod(PanelAnimationAction, "ResolvePanelAnimation"); CPH.SetArgument("replayCommand", "search-panel"); CPH.TriggerEvent("RTS-Action Replay", true); return true;
+        var entries = results.Skip(start).Take(amount).OfType<JObject>().Select((x, i) => Entry(x, start + i + 1)).ToList(); CPH.SetArgument("replaySearchEntries", new JArray(entries).ToString(Newtonsoft.Json.Formatting.None)); CPH.SetArgument("replaySearchHeader", Header(request, page, pages, results.Count)); CPH.SetArgument("replaySearchRequester", (string)request["requesterName"] ?? ""); CPH.SetArgument("replaySearchParameters", Parameters(request)); CPH.SetArgument("replaySearchRequestId", (string)request["requestId"] ?? ""); CPH.SetArgument("replaySearchDuration", CPH.GetGlobalVar<int?>("rts.actionreplay.searchPanel.duration", true) ?? 10000); CPH.SetArgument("replayPanelWidth", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500); CPH.SetArgument("replayPanelHeight", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700); CPH.SetArgument("panelType", request["filterType"]?.ToString() == "leaderboard" ? "creatorLeaderboard" : "recent"); CPH.ExecuteMethod(PanelAnimationAction, "ResolvePanelAnimation"); CPH.SetArgument("replayCommand", request["filterType"]?.ToString() == "leaderboard" ? "leaderboard-panel" : "search-panel"); CPH.TriggerEvent("RTS-Action Replay", true); return true;
     }
     public bool RateReplay()
     {
@@ -42,8 +49,19 @@ public class CPHInline
     {
         var list = (JArray)Load()["catalog"] ?? new JArray(); var type = ((string)state["filterType"] ?? "all").ToLowerInvariant(); var filter = ((string)state["filter"] ?? "").Trim(); IEnumerable<JObject> query = list.OfType<JObject>(); if (type == "search") query = query.Where(x => SearchMatch(x, filter)); else if (type == "date") query = query.Where(x => DateMatch(x, filter)); else if (type == "creator") query = query.Where(x => CreatorMatch(x, filter));
         if (type == "recent") query = query.OrderByDescending(x => ParseDate((string)x["captured"] ?? (string)x["added"])).Take(Math.Max(1, CPH.GetGlobalVar<int?>(MaxHistoryKey, true) ?? 20));
+        if (type == "leaderboard") query = BuildLeaderboard(query, filter);
         var sort = ((string)state["sort"] ?? "catalog").ToLowerInvariant(); if (sort == "plays") query = query.OrderByDescending(x => (int?)x["plays"] ?? 0); if (sort == "rating") query = query.Where(HasRatings).OrderByDescending(Rating).ThenByDescending(RatingCount); return new JArray(query);
     }
+    private IEnumerable<JObject> BuildLeaderboard(IEnumerable<JObject> source, string period)
+    {
+        var now = DateTime.Now; var key = NormalizePeriod(period); if (!string.IsNullOrWhiteSpace(key) && key != "all" && key != "today" && key != "week" && key != "month" && key != "year" && !TryParseMonthYear(key, out _, out _)) return new List<JObject>();
+        int? year = null; int? month = null; if (TryParseMonthYear(key, out var requestedYear, out var requestedMonth)) { year = requestedYear; month = requestedMonth; }
+        var filtered = source.Where(x => { var date = ParseDate((string)x["captured"] ?? (string)x["added"]); if (date == DateTime.MinValue) return false; if (year.HasValue) return date.Year == year.Value && date.Month == month.Value; if (key == "today") return date.Date == now.Date; if (key == "week") { var start = StartOfWeek(now); return date >= start && date < start.AddDays(7); } if (key == "month") return date.Year == now.Year && date.Month == now.Month; if (key == "year") return date.Year == now.Year; return true; });
+        var groups = filtered.Select(x => x["creator"] as JObject).Where(x => x != null && !string.IsNullOrWhiteSpace((string)x["id"])).GroupBy(x => (string)x["id"], StringComparer.OrdinalIgnoreCase).Select(g => new JObject { ["id"] = g.Key, ["creator"] = (string)g.First()["name"] ?? g.Key, ["count"] = g.Count() }).OrderByDescending(x => (int)x["count"]).ThenBy(x => (string)x["creator"], StringComparer.OrdinalIgnoreCase).ToList();
+        var results = new JArray(); foreach (var item in groups) results.Add(item); return results.OfType<JObject>();
+    }
+    private string NormalizePeriod(string period) => (period ?? "").ToLowerInvariant().Replace("_", "-").Replace(" ", "-").Trim();
+    private bool TryParseMonthYear(string value, out int year, out int month) { year = 0; month = 0; if (string.IsNullOrWhiteSpace(value)) return false; var normalized = value.Replace("/", "-").Replace(".", "-"); if (DateTime.TryParseExact("1 " + normalized, new[] { "d MMMM yyyy", "d MMM yyyy", "d-MM-yyyy", "d-M-yyyy" }, CultureInfo.CurrentCulture, DateTimeStyles.None, out var date)) { year = date.Year; month = date.Month; return true; } return false; }
     private bool SearchMatch(JObject x, string term) { if (string.IsNullOrWhiteSpace(term)) return true; var creator = x["creator"] as JObject; return Contains(x["title"], term) || Contains(x["file"], term) || Contains(creator?["name"], term); }
     private bool CreatorMatch(JObject x, string name) { var creator = x["creator"] as JObject; return string.Equals((string)creator?["name"], name, StringComparison.OrdinalIgnoreCase) || string.Equals((string)creator?["id"], name, StringComparison.OrdinalIgnoreCase); }
     private bool DateMatch(JObject x, string period)
@@ -55,7 +73,8 @@ public class CPHInline
     private bool Contains(JToken token, string term) => (token?.ToString() ?? "").IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0;
     private JObject Ratings(JObject x) => x["ratings"] as JObject ?? new JObject(); private bool HasRatings(JObject x) => Ratings(x).Properties().Any(); private double Rating(JObject x) => Ratings(x).Values().Select(v => (double)v.Value<int>()).DefaultIfEmpty().Average(); private int RatingCount(JObject x) => Ratings(x).Properties().Count();
     private JObject Entry(JObject x, int number) { var creator = x["creator"] as JObject; var ratings = Ratings(x); return new JObject { ["number"] = number, ["title"] = (string)x["title"] ?? "Untitled replay", ["creator"] = (string)creator?["name"] ?? "", ["plays"] = (int?)x["plays"] ?? 0, ["rating"] = ratings.Properties().Any() ? Math.Round(Rating(x), 1) : 0, ["ratingCount"] = ratings.Properties().Count() }; }
-    private string Header(JObject request, int page, int pages, int total) => $"{Parameters(request)} • {page}/{pages} • {total}";
+    private string Header(JObject request, int page, int pages, int total) { if (((string)request["filterType"] ?? "").Equals("leaderboard", StringComparison.OrdinalIgnoreCase)) return "CLIP CREATORS • " + LeaderboardPeriodLabel((string)request["filter"]) + " • " + page + "/" + pages + " • " + total; return $"{Parameters(request)} • {page}/{pages} • {total}"; }
+    private string LeaderboardPeriodLabel(string period) { var key = NormalizePeriod(period); if (string.IsNullOrWhiteSpace(key) || key == "all") return "ALL TIME"; if (key == "today") return "TODAY"; if (key == "week") return "THIS WEEK"; if (key == "month") return "THIS MONTH"; if (key == "year") return "THIS YEAR"; if (TryParseMonthYear(key, out var year, out var month)) return new DateTime(year, month, 1).ToString("MMMM yyyy", CultureInfo.CurrentCulture).ToUpperInvariant(); return period.ToUpperInvariant(); }
     private string Parameters(JObject request) { var type = ((string)request["filterType"] ?? "all").ToLowerInvariant(); if (type == "recent") return "RECENT"; if (type == "search") return "SEARCH: " + ((string)request["filter"] ?? ""); if (type == "date") return "DATE: " + ((string)request["filter"] ?? ""); if (type == "creator") return "CREATOR: " + ((string)request["filter"] ?? ""); var sort = ((string)request["sort"] ?? "catalog").ToLowerInvariant(); return sort == "plays" ? "MOST VIEWS" : sort == "rating" ? "TOP RATED" : "CATALOG"; }
     private JObject LoadUserState()
     {
@@ -63,8 +82,7 @@ public class CPHInline
     }
     private JObject DefaultState(string userName) => new JObject { ["filterType"] = "all", ["filter"] = "", ["sort"] = "catalog", ["amount"] = MaxAmount(), ["page"] = 1, ["requesterName"] = userName };
     private void SaveUserState(JObject state) { var userId = Arg("userId"); if (!string.IsNullOrWhiteSpace(userId)) CPH.SetTwitchUserVarById(userId, UserStateKey, state.ToString(Newtonsoft.Json.Formatting.None), true); }
-    private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); }
-    }
+    private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); } }
     private void Save(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
     private string Arg(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
     private int MaxAmount() => Math.Max(1, CPH.GetGlobalVar<int?>(MaxHistoryKey, true) ?? 20);
