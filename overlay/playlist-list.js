@@ -37,6 +37,11 @@ RTSPlaylistList.show = command => {
   });
 
   RTSPlaylistList.clearTimers();
+  const messageCard = document.getElementById('message-card');
+  if (messageCard) {
+    messageCard.classList.remove('show');
+    messageCard.setAttribute('aria-hidden', 'true');
+  }
   panel.classList.remove('show'); panel.setAttribute('aria-hidden', 'true');
   list.scrollTop = 0; void panel.offsetWidth;
   const panelPosition = command?.replayPanelPosition || 'Centered';
