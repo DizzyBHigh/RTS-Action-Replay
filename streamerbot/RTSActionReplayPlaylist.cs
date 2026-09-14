@@ -178,13 +178,14 @@ public class CPHInline
     private void SendPlaylistMessage(string text)
     {
         var key = "rts.actionreplay.message.playlist";
+        var playlistText = text;
         var configured = CPH.GetGlobalVar<string>(key + ".text", true);
-        if (!string.IsNullOrWhiteSpace(configured)) text = CPH.Parse(configured);
-        if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) CPH.SendMessage(text);
+        var chatText = string.IsNullOrWhiteSpace(configured) ? playlistText : CPH.Parse(configured);
+        if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) CPH.SendMessage(chatText);
         if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false)
         {
             CPH.SetArgument("replayCommand", "playlist-panel");
-            CPH.SetArgument("replayPlaylist", text);
+            CPH.SetArgument("replayPlaylist", playlistText);
             CPH.TriggerEvent("RTS-Action Replay", true);
         }
     }
