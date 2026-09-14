@@ -6,6 +6,7 @@ RTSReplay.config = {
   eventName: 'RTS-Action Replay',
   confirmAction: 'RTS Action Replay - Playback Confirm',
   endedAction: 'RTS - Action Replay - Playlist - Playback Ended',
+  searchEndedAction: 'RTS - Action Replay - Search Panel Ended',
   reconnectDelay: 3000,
   messageDuration: 5000
 };
