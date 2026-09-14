@@ -72,7 +72,8 @@ public class CPHInline
         queue.Clear();
         SaveQueueAndClearOtherStore(queue);
         CPH.SetGlobalVar(ActiveKey, "", false);
-        CPH.LogInfo($"RTS Action Replay: playlist ClearAll removed {cleared} item(s); active playback was not stopped.");
+        CPH.SetGlobalVar(PausedKey, false, false);
+        CPH.LogInfo($"RTS Action Replay: playlist ClearAll removed {cleared} item(s); active playback was not stopped; playlist pause state reset.");
         CPH.SendMessage("Playlist completely cleared.");
         return true;
     }
