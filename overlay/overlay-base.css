@@ -24,7 +24,8 @@ body {
 /* Information panels always render above the replay player. */
 #recent-list,
 #search-panel,
-#playlist-list {
+#playlist-list,
+#leaderboard-list {
   z-index: 40;
 }
 
