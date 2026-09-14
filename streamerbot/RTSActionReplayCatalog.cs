@@ -30,7 +30,7 @@ public class CPHInline
     {
         var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); if (parts.Length < 2 || !int.TryParse(parts[0], out var index) || index < 1 || !int.TryParse(parts[1], out var rating) || rating < 1 || rating > 5) { CPH.SendMessage("Usage: !rate-replay <catalog number> <1-5>"); return false; }
         var state = LoadUserState(); var results = Query(state); if (index > results.Count) { CPH.SendMessage("That catalog entry does not exist."); return false; } var userId = Arg("userId"); if (string.IsNullOrWhiteSpace(userId)) { CPH.SendMessage("A user account is required to rate a replay."); return false; }
-        var data = Load(); var replay = FindById(data, (string)results[index - 1]["id"]); if (replay == null) { CPH.SendMessage("That replay is no longer in the Catalog."); return false; } var ratings = replay["ratings"] as JObject ?? new JObject(); ratings[userId] = rating; replay["ratings"] = ratings; Save(data); CPH.SendMessage($"Rated {(string)replay["title"] ?? "Replay"} {rating}/5."); return true;
+        var data = Load(); var replayId = results[index - 1]["id"]?.ToString(); var replay = FindById(data, replayId); if (replay == null) { CPH.SendMessage("That replay is no longer in the Catalog."); return false; } var ratings = replay["ratings"] as JObject ?? new JObject(); ratings[userId] = rating; replay["ratings"] = ratings; Save(data); CPH.SendMessage($"Rated {(string)replay["title"] ?? "Replay"} {rating}/5."); return true;
     }
     private JObject BuildState(string type, string value, string sort, int amount = 0) { var state = new JObject { ["filterType"] = type, ["filter"] = value ?? "", ["sort"] = sort, ["amount"] = amount > 0 ? amount : MaxAmount(), ["page"] = 1, ["requesterId"] = Arg("userId"), ["requesterName"] = Arg("userName") }; SaveUserState(state); return state; }
     private bool MovePage(int delta) { var state = LoadUserState(); var results = Query(state); var amount = Math.Max(1, (int?)state["amount"] ?? MaxAmount()); var pages = Math.Max(1, (int)Math.Ceiling(results.Count / (double)amount)); state["page"] = Math.Max(1, Math.Min(pages, ((int?)state["page"] ?? 1) + delta)); SaveUserState(state); return Queue(state); }
@@ -60,7 +60,8 @@ public class CPHInline
     private JObject DefaultState(string userName) => new JObject { ["filterType"] = "all", ["filter"] = "", ["sort"] = "catalog", ["amount"] = MaxAmount(), ["page"] = 1, ["requesterName"] = userName };
     private void SaveUserState(JObject state) { var userId = Arg("userId"); if (!string.IsNullOrWhiteSpace(userId)) CPH.SetTwitchUserVarById(userId, UserStateKey, state.ToString(Newtonsoft.Json.Formatting.None), true); }
     private JObject FindById(JObject data, string id) => ((JArray)data["catalog"] ?? new JArray()).OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], id, StringComparison.OrdinalIgnoreCase));
-    private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); } }
+    private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); }
+    }
     private void Save(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
     private string Arg(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
     private int MaxAmount() => Math.Max(1, CPH.GetGlobalVar<int?>(MaxHistoryKey, true) ?? 20);
