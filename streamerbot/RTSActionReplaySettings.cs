@@ -31,7 +31,7 @@ public partial class CPHInline
     {
         ui.AddThemeSelector("Settings Theme", "Choose the RtsUI theme.", "General", "rts.actionreplay.uiTheme", "Dark");
         ui.BeginSection("Replay Source", "General"); ui.AddFolderPicker("Replay Folder", "Folder containing OBS Replay Buffer files. Twitch clips use a separate folder and are never written here.", "General", "rts.actionreplay.replayFolder", ""); ui.AddTextbox("Replay File Types", "Accepted extensions, separated by commas. e.g .mp4, .mov", "General", "rts.actionreplay.replayFileTypes", ".mp4, .mkv", false); ui.AddTextbox("HTTP Mapping", "Streamer.bot HTTP path mapped to the OBS replay folder.", "General", "rts.actionreplay.httpMapping", "replays", false); ui.AddNumericTextbox("HTTP Port", "Streamer.bot HTTP Server port used to serve replay files.", "General", "rts.actionreplay.httpPort", 7474, 1, 65535); ui.EndSection();
-        ui.AddClickableButton("Sync Overlay Settings", "Send the complete player, panel, animation and visual settings JSON to the Action Replay overlay.", "Sync Overlay", "blue", "General", RTSActionReplayOverlaySync.Send);
+        ui.AddClickableButton("Sync Overlay Settings", "Send the complete player, panel, animation and visual settings JSON to the Action Replay overlay.", "Sync Overlay", "blue", "General", SendAllSettingsToOverlay);
     }
 
     private void AddBrandingSettings(RtsUI ui)
