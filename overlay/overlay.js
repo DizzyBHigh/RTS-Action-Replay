@@ -22,6 +22,10 @@ RTSReplayOverlay.handleEvent = message => {
     window.RTSPlaylistList?.handle?.(data.args);
     return;
   }
+  if (data.args.replayCommand === 'leaderboard-panel') {
+    window.RTSLeaderboardList?.handle?.(data.args);
+    return;
+  }
   RTSReplayOverlay.handleReplayCommand(data.args);
   if (data.args.replayCommand === 'recent-list') RTSReplayOverlay.showRecentList?.(data.args);
 };
