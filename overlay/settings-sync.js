@@ -15,19 +15,22 @@ RTSReplaySettingsSync.apply = command => {
   RTSReplaySettingsSync.command = { ...(RTSReplaySettingsSync.command || {}), ...synced };
   RTSReplaySettingsSync.playerConfig = settings.player || null;
   RTSReplaySettingsSync.panelConfig = settings.panel || null;
+  RTSReplaySettingsSync.command.replayPlayerPositions = settings.player?.positions ? JSON.stringify(settings.player.positions) : RTSReplaySettingsSync.command.replayPlayerPositions;
+  RTSReplaySettingsSync.command.replayPanelPositions = settings.panel?.positions ? JSON.stringify(settings.panel.positions) : RTSReplaySettingsSync.command.replayPanelPositions;
+  RTSReplaySettingsSync.command.replayPanelAnimation = settings.panel?.animation ? JSON.stringify(settings.panel.animation) : RTSReplaySettingsSync.command.replayPanelAnimation;
 
   if (RTSReplaySettingsSync.player?.classList.contains('show')) {
-    RTSReplaySettingsSync.currentCommand = { ...(RTSReplaySettingsSync.currentCommand || {}), ...synced };
-    window.RTSReplayControls?.configure?.(RTSReplaySettingsSync.currentCommand);
-    window.RTSReplayElements?.configure?.(RTSReplaySettingsSync.currentCommand);
+    window.RTSReplay.command = { ...(window.RTSReplay.command || {}), ...RTSReplaySettingsSync.command };
+    if (window.RTSReplayVideo) window.RTSReplayVideo.currentCommand = window.RTSReplay.command;
+    window.RTSReplayControls?.configure?.(window.RTSReplay.command);
+    window.RTSReplayElements?.configure?.(window.RTSReplay.command);
   }
 
   const panel = RTSReplaySettingsSync.recentList;
   if (panel?.classList.contains('show') && window.RTSReplay?.showRecentList) {
-    const panelCommand = { ...(panel._rtsPanelAnimationCommand || {}), ...synced };
-    if (settings.panel?.width) panelCommand.replayPanelWidth = settings.panel.width;
-    if (settings.panel?.height) panelCommand.replayPanelHeight = settings.panel.height;
-    if (settings.panel?.positions) panelCommand.replayPanelPositions = JSON.stringify(settings.panel.positions);
+    const panelCommand = { ...(panel._rtsPanelAnimationCommand || {}), ...RTSReplaySettingsSync.command };
+    panelCommand.replayPanelWidth = settings.panel?.width ?? panelCommand.replayPanelWidth;
+    panelCommand.replayPanelHeight = settings.panel?.height ?? panelCommand.replayPanelHeight;
     panel._rtsPanelAnimationCommand = panelCommand;
     window.RTSReplay.showRecentList(panelCommand);
   }
