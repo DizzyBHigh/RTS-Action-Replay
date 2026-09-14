@@ -10,7 +10,6 @@ public class CPHInline
     private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
     private const string PlaybackProfileHandoffKey = "rts.actionreplay.handoff.playbackProfile";
     private const string AnimationProfileHandoffKey = "rts.actionreplay.handoff.animationProfile";
-    private const string PlayerPositionsHandoffKey = "rts.actionreplay.handoff.playerPositions";
 
     public bool Execute() => EnsureProfiles();
 
@@ -118,7 +117,7 @@ public class CPHInline
         if (handoffRequested)
         {
             CPH.SetGlobalVar(AnimationProfileHandoffKey, profileJson, false);
-            CPH.SetGlobalVar(PlayerPositionsHandoffKey, playerPositions, false);
+            CPH.SetGlobalVar("rts.actionreplay.positions", playerPositions, false);
         }
         return true;
     }
