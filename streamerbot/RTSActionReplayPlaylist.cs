@@ -45,7 +45,6 @@ public class CPHInline
         CPH.SetArgument("replayPlaylist", lines); CPH.SendMessage(lines); return true;
     }
 
-    // Clear removes waiting playlist items but keeps the currently active replay in the queue.
     public bool Clear()
     {
         var queue = LoadQueue();
@@ -66,7 +65,6 @@ public class CPHInline
         return true;
     }
 
-    // ClearAll removes every playlist item, including the active queue entry. It does not stop playback.
     public bool ClearAll()
     {
         var queue = LoadQueue();
@@ -98,12 +96,46 @@ public class CPHInline
 
     public bool PlaybackEnded()
     {
-        if (!CPH.TryGetArg("replayId", out string replayId)) return false;
-        CPH.TryGetArg("replayQueueEntryId", out string entryId); var queue = LoadQueue(); JObject current = null;
-        for (var i = 0; i < queue.Count; i++) { var item = queue[i] as JObject; if (item != null && string.Equals((string)item["replayId"], replayId, StringComparison.OrdinalIgnoreCase) && (string.IsNullOrWhiteSpace(entryId) || string.Equals((string)item["entryId"], entryId, StringComparison.OrdinalIgnoreCase))) { current = item; break; } }
-        if (current == null || !string.Equals((string)current["entryId"], ActiveId(), StringComparison.OrdinalIgnoreCase)) return false;
-        queue.Remove(current); SaveQueue(queue); CPH.SetGlobalVar(ActiveKey, "", false);
-        if (IsPaused()) return true; if (queue.Count == 0) { HidePlayer(); return true; } return PlayNext(queue);
+        CPH.LogInfo("RTS Action Replay TRACE: PlaybackEnded entered.");
+        if (!CPH.TryGetArg("replayId", out string replayId) || string.IsNullOrWhiteSpace(replayId))
+        {
+            CPH.LogWarn("RTS Action Replay TRACE: PlaybackEnded failed - replayId argument missing or empty.");
+            return false;
+        }
+        CPH.TryGetArg("replayQueueEntryId", out string entryId);
+        var activeId = ActiveId();
+        var queue = LoadQueue();
+        CPH.LogInfo($"RTS Action Replay TRACE: PlaybackEnded replayId={replayId}; queueEntryId={entryId ?? "<none>"}; active={activeId ?? "<none>"}; queueCount={queue.Count}.");
+        JObject current = null;
+        for (var i = 0; i < queue.Count; i++)
+        {
+            var item = queue[i] as JObject;
+            if (item != null && string.Equals((string)item["replayId"], replayId, StringComparison.OrdinalIgnoreCase) && (string.IsNullOrWhiteSpace(entryId) || string.Equals((string)item["entryId"], entryId, StringComparison.OrdinalIgnoreCase)))
+            {
+                current = item;
+                break;
+            }
+        }
+        if (current == null)
+        {
+            CPH.LogWarn("RTS Action Replay TRACE: PlaybackEnded failed - matching queue entry was not found.");
+            return false;
+        }
+        var currentEntryId = (string)current["entryId"];
+        if (!string.Equals(currentEntryId, activeId, StringComparison.OrdinalIgnoreCase))
+        {
+            CPH.LogWarn($"RTS Action Replay TRACE: PlaybackEnded failed - matching entry is not active; matching={currentEntryId}; active={activeId ?? "<none>"}.");
+            return false;
+        }
+        queue.Remove(current);
+        SaveQueue(queue);
+        CPH.SetGlobalVar(ActiveKey, "", false);
+        CPH.LogInfo($"RTS Action Replay TRACE: PlaybackEnded removed active entry {currentEntryId}; remaining={queue.Count}; paused={IsPaused()}.");
+        if (IsPaused()) return true;
+        if (queue.Count == 0) { HidePlayer(); CPH.LogInfo("RTS Action Replay TRACE: PlaybackEnded queue empty; hide requested."); return true; }
+        var started = PlayNext(queue);
+        CPH.LogInfo($"RTS Action Replay TRACE: PlaybackEnded PlayNext returned {started}; remaining={queue.Count}.");
+        return started;
     }
 
     private bool PlayNext(JArray queue)
