@@ -8,7 +8,6 @@ public class CPHInline
     private const string DataKey = "rts.actionreplay.data";
     private const string LegacyCatalogKey = "rts.actionreplay.catalog";
     private const string TitleKey = "rts.actionreplay.replayTitle";
-    private const string MaxHistoryKey = "rts.actionreplay.maxHistory";
     private const string PendingKey = "rts.actionreplay.pendingSaves";
     private const string FileTypesKey = "rts.actionreplay.replayFileTypes";
     private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
@@ -188,7 +187,7 @@ public class CPHInline
         CPH.SetArgument("replayId", id); CPH.SetArgument("replayFile", file); CPH.SetArgument("replayPath", path); CPH.SetArgument("replayName", Path.GetFileNameWithoutExtension(path)); CPH.SetArgument("replayNumber", 1); CPH.SetArgument("replayDate", now.ToString("yyyy-MM-dd")); CPH.SetArgument("replayTime", now.ToString("HH:mm:ss")); CPH.SetArgument("replayPlays", 0); CPH.SetArgument("replayUser", creatorName); CPH.SetArgument("replayUserId", creatorId); CPH.SetArgument("replayUserPlays", 0); CPH.SetArgument("replayTitle", "");
         var title = CPH.Parse(CPH.GetGlobalVar<string>(TitleKey, true) ?? "%replayName%"); if (string.IsNullOrWhiteSpace(title)) title = Path.GetFileNameWithoutExtension(path);
         var replay = new JObject { ["id"] = id, ["sourceType"] = "OBS", ["sourceId"] = id, ["file"] = file, ["filePath"] = path, ["title"] = title, ["customTitle"] = false, ["added"] = now.ToString("o"), ["captured"] = now.ToString("o"), ["acquisitionMethod"] = "OBSReplayBuffer", ["creator"] = new JObject { ["id"] = creatorId, ["name"] = creatorName }, ["plays"] = 0, ["users"] = new JObject() };
-        catalog.Insert(0, replay); AddRecent(data, id); TrimRecent(data); Save(data);
+        catalog.Insert(0, replay); Save(data);
         CPH.LogInfo($"RTS Action Replay: added {title} ({id})"); CPH.SetArgument("replayTitle", title); CPH.SetArgument("animationEntryPoint", "obs"); CPH.SetArgument("replayAutoPlay", CPH.GetGlobalVar<bool?>("rts.actionreplay.autoPlay", true) ?? false); SendStoreMessage("save"); return true;
     }
 
@@ -270,22 +269,12 @@ public class CPHInline
             if (item["plays"] == null) item["plays"] = 0;
             if (item["users"] == null) item["users"] = new JObject();
         }
-        data["version"] = 2; data["catalog"] = catalog; data["recentIds"] = data["recentIds"] as JArray ?? BuildRecent(catalog); data.Remove("replays"); return data;
-    }
-
-    private JArray BuildRecent(JArray catalog)
-    {
-        var recent = new JArray(); var max = CPH.GetGlobalVar<int?>(MaxHistoryKey, true) ?? 20;
-        foreach (var item in catalog.OfType<JObject>().OrderByDescending(x => ParseDate((string)x["added"])).Take(Math.Max(1, max))) recent.Add((string)item["id"]);
-        return recent;
+        data["version"] = 2; data["catalog"] = catalog; data.Remove("recentIds"); data.Remove("replays"); return data;
     }
 
     private JArray GetCatalog(JObject data) => (JArray)data["catalog"] ?? new JArray();
-    private void Save(JObject data) { data["version"] = 2; data["catalog"] = data["catalog"] as JArray ?? new JArray(); data["recentIds"] = data["recentIds"] as JArray ?? new JArray(); data.Remove("replays"); CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true); CPH.SetGlobalVar("rts.actionreplay.recentIds", ((JArray)data["recentIds"]).ToString(Newtonsoft.Json.Formatting.None), true); }
+    private void Save(JObject data) { data["version"] = 2; data["catalog"] = data["catalog"] as JArray ?? new JArray(); data.Remove("recentIds"); data.Remove("replays"); CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true); }
     private void MergeCatalog(JArray target, JArray source) { foreach (var token in source) { var item = token as JObject; if (item == null) continue; var id = (string)item["id"]; var type = (string)item["sourceType"] ?? "OBS"; var sourceId = (string)item["sourceId"]; if (target.OfType<JObject>().Any(x => (!string.IsNullOrWhiteSpace(id) && string.Equals((string)x["id"], id, StringComparison.OrdinalIgnoreCase)) || (!string.IsNullOrWhiteSpace(sourceId) && string.Equals((string)x["sourceType"] ?? "OBS", type, StringComparison.OrdinalIgnoreCase) && string.Equals((string)x["sourceId"], sourceId, StringComparison.OrdinalIgnoreCase)))) continue; var clone = (JObject)item.DeepClone(); if (string.IsNullOrWhiteSpace((string)clone["sourceType"])) clone["sourceType"] = "OBS"; if (string.IsNullOrWhiteSpace((string)clone["sourceId"])) clone["sourceId"] = (string)clone["id"] ?? ""; target.Add(clone); } }
-    private void AddRecent(JObject data, string id) { var recent = (JArray)data["recentIds"] ?? new JArray(); for (var i = recent.Count - 1; i >= 0; i--) if (string.Equals((string)recent[i], id, StringComparison.OrdinalIgnoreCase)) recent.RemoveAt(i); recent.Insert(0, id); data["recentIds"] = recent; }
-    private void TrimRecent(JObject data) { var recent = (JArray)data["recentIds"] ?? new JArray(); var max = CPH.GetGlobalVar<int?>(MaxHistoryKey, true) ?? 20; while (recent.Count > Math.Max(1, max)) recent.RemoveAt(recent.Count - 1); data["recentIds"] = recent; }
-    private DateTime ParseDate(string value) { DateTime parsed; return DateTime.TryParse(value, out parsed) ? parsed : DateTime.MinValue; }
     private string Get(string key) { string value; return CPH.TryGetArg(key, out value) ? value ?? "" : ""; }
     private bool Stable(string path) { for (var i = 0; i < 5; i++) { var a = new FileInfo(path).Length; CPH.Wait(500); var b = new FileInfo(path).Length; if (a == b) return true; } return false; }
     private void ApplyPendingCreator(ref string id, ref string name) { if (!string.IsNullOrWhiteSpace(id)) return; var raw = CPH.GetGlobalVar<string>(PendingKey, false); if (string.IsNullOrWhiteSpace(raw)) return; try { var queue = JArray.Parse(raw); if (queue.Count == 0) return; var item = (JObject)queue[0]; queue.RemoveAt(0); CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), false); DateTime queued; if (DateTime.TryParse((string)item["queued"], out queued) && DateTime.UtcNow - queued <= TimeSpan.FromSeconds(60)) { id = (string)item["id"] ?? ""; name = (string)item["name"] ?? ""; } } catch { } }
