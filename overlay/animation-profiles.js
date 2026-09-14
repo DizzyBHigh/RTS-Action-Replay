@@ -18,10 +18,16 @@ RTSReplayAnimation.readProfile = command => {
   } catch (_) { return null; }
 };
 
+RTSReplayAnimation.durationMs = value => {
+  const duration = Number(value);
+  if (!Number.isFinite(duration) || duration <= 0) return 0;
+  return duration < 10 ? duration * 1000 : duration;
+};
+
 RTSReplayAnimation.normaliseStep = step => ({
   position: step?.position || step?.name || 'Full Screen',
-  duration: Math.max(0, Number(step?.duration) || 0),
-  delay: Math.max(0, Number(step?.delay) || 0),
+  duration: RTSReplayAnimation.durationMs(step?.duration),
+  delay: RTSReplayAnimation.durationMs(step?.delay),
   easing: step?.easing || 'ease-in-out'
 });
 
