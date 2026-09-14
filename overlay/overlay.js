@@ -14,6 +14,10 @@ RTSReplayOverlay.handleEvent = message => {
     window.RTSReplaySettingsSync?.apply?.(data.args);
     return;
   }
+  if (data.args.replayCommand === 'search-panel') {
+    window.RTSSearchPanel?.handle?.(data.args);
+    return;
+  }
   RTSReplayOverlay.handleReplayCommand(data.args);
   if (data.args.replayCommand === 'recent-list') RTSReplayOverlay.showRecentList?.(data.args);
 };
