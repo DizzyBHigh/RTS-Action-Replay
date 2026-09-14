@@ -59,7 +59,7 @@ public class CPHInline
     }
     private JObject DefaultState(string userName) => new JObject { ["filterType"] = "all", ["filter"] = "", ["sort"] = "catalog", ["amount"] = MaxAmount(), ["page"] = 1, ["requesterName"] = userName };
     private void SaveUserState(JObject state) { var userId = Arg("userId"); if (!string.IsNullOrWhiteSpace(userId)) CPH.SetTwitchUserVarById(userId, UserStateKey, state.ToString(Newtonsoft.Json.Formatting.None), true); }
-    private JObject FindById(JObject data, string id) => ((JArray)data["catalog"] ?? new JArray()).OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], id, StringComparison.OrdinalIgnoreCase));
+    private JObject FindById(JToken data, string id) => ((JArray)data["catalog"] ?? new JArray()).OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], id, StringComparison.OrdinalIgnoreCase));
     private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); }
     }
     private void Save(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
