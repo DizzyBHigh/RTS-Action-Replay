@@ -3,6 +3,8 @@ const RTSSearchPanel = window.RTSSearchPanel || {};
 RTSSearchPanel.panel = document.getElementById('search-panel');
 RTSSearchPanel.timer = null;
 RTSSearchPanel.endTimer = null;
+RTSSearchPanel.scrollTimer = null;
+RTSSearchPanel.scrollInterval = null;
 
 RTSSearchPanel.notifyEnded = requestId => {
   if (!RTSReplay.socket || RTSReplay.socket.readyState !== WebSocket.OPEN) return;
@@ -11,6 +13,17 @@ RTSSearchPanel.notifyEnded = requestId => {
     action: { name: RTSReplay.config.searchEndedAction },
     args: { replaySearchRequestId: requestId || '' }
   }));
+};
+
+RTSSearchPanel.clearTimers = () => {
+  clearTimeout(RTSSearchPanel.timer);
+  clearTimeout(RTSSearchPanel.endTimer);
+  clearTimeout(RTSSearchPanel.scrollTimer);
+  clearInterval(RTSSearchPanel.scrollInterval);
+  RTSSearchPanel.timer = null;
+  RTSSearchPanel.endTimer = null;
+  RTSSearchPanel.scrollTimer = null;
+  RTSSearchPanel.scrollInterval = null;
 };
 
 RTSSearchPanel.show = command => {
@@ -35,15 +48,37 @@ RTSSearchPanel.show = command => {
   if (!entries.length) {
     const empty = document.createElement('div'); empty.className = 'rts-search-empty'; empty.textContent = 'No matching Catalog entries.'; list.appendChild(empty);
   }
-  clearTimeout(RTSSearchPanel.timer); clearTimeout(RTSSearchPanel.endTimer);
-  panel.classList.remove('show'); panel.setAttribute('aria-hidden', 'true'); void panel.offsetWidth;
+  RTSSearchPanel.clearTimers();
+  panel.classList.remove('show'); panel.setAttribute('aria-hidden', 'true');
+  list.scrollTop = 0;
+  void panel.offsetWidth;
   RTSInformationPanels.show(panel, command, command.replayPanelPosition || 'Centered');
-  const duration = Math.max(1000, Number(command.replaySearchDuration) || 10000);
+
   const requestId = String(command.replaySearchRequestId || '');
-  RTSSearchPanel.timer = setTimeout(() => {
+  const scrollable = list.scrollHeight > list.clientHeight;
+  const duration = Math.max(1000, Number(command.replaySearchDuration) || 10000);
+
+  const hidePanel = () => {
+    RTSSearchPanel.clearTimers();
     RTSInformationPanels.hide(panel, command);
     RTSSearchPanel.endTimer = setTimeout(() => RTSSearchPanel.notifyEnded(requestId), 700);
-  }, duration);
+  };
+
+  if (!scrollable) {
+    RTSSearchPanel.timer = setTimeout(hidePanel, duration);
+    return;
+  }
+
+  RTSSearchPanel.scrollTimer = setTimeout(() => {
+    RTSSearchPanel.scrollInterval = setInterval(() => {
+      if (list.scrollTop + list.clientHeight >= list.scrollHeight - 1) {
+        RTSSearchPanel.clearTimers();
+        RTSSearchPanel.timer = setTimeout(hidePanel, 3000);
+        return;
+      }
+      list.scrollTop += 1;
+    }, 35);
+  }, 3000);
 };
 
 RTSSearchPanel.handle = command => {
