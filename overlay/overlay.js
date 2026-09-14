@@ -18,6 +18,10 @@ RTSReplayOverlay.handleEvent = message => {
     window.RTSSearchPanel?.handle?.(data.args);
     return;
   }
+  if (data.args.replayCommand === 'playlist-panel' || (data.args.replayCommand === 'message' && data.args.replayPlaylist)) {
+    window.RTSPlaylistList?.handle?.(data.args);
+    return;
+  }
   RTSReplayOverlay.handleReplayCommand(data.args);
   if (data.args.replayCommand === 'recent-list') RTSReplayOverlay.showRecentList?.(data.args);
 };
