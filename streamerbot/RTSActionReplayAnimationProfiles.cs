@@ -173,7 +173,7 @@ public class CPHInline
         {
             ["id"] = profile, ["name"] = (string)item["name"] ?? "Default", ["start"] = start, ["end"] = end
         }.ToString(Newtonsoft.Json.Formatting.None));
-        CPH.ExecuteMethod("RTS - Action Replay - Panel Presets", "Apply");
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Panel Presets", "Apply");
         return true;
     }
 
