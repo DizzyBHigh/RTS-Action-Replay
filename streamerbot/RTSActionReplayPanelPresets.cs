@@ -4,6 +4,7 @@ public class CPHInline
 {
     private const string PanelKey = "rts.actionreplay.config.panel";
     private const string Prefix = "rts.actionreplay.panel.";
+    private const string BroadcastPrefix = "rts.actionreplay.broadcast.";
 
     public bool Execute()
     {
@@ -49,6 +50,15 @@ public class CPHInline
         CPH.SetArgument("replayPanelTitleColor", GetString("titleColor", "#FFFFFFFF"));
         CPH.SetArgument("replayPanelListSize", CPH.GetGlobalVar<int?>(Prefix + "listSize", true) ?? 15);
         CPH.SetArgument("replayPanelListColor", GetString("listColor", "#FFFFFFFF"));
+        CPH.SetArgument("replayBroadcastPrimaryColor", GetString(BroadcastPrefix + "primaryColor", "#0384CBFF"));
+        CPH.SetArgument("replayBroadcastSecondaryColor", GetString(BroadcastPrefix + "secondaryColor", "#FFD400FF"));
+        CPH.SetArgument("replayBroadcastChevronHeight", CPH.GetGlobalVar<int?>(BroadcastPrefix + "chevronHeight", true) ?? 42);
+        CPH.SetArgument("replayBroadcastRandomHeight", CPH.GetGlobalVar<bool?>(BroadcastPrefix + "randomHeight", true) ?? false);
+        CPH.SetArgument("replayBroadcastChevronWidth", CPH.GetGlobalVar<int?>(BroadcastPrefix + "chevronWidth", true) ?? 42);
+        CPH.SetArgument("replayBroadcastRandomWidth", CPH.GetGlobalVar<bool?>(BroadcastPrefix + "randomWidth", true) ?? false);
+        CPH.SetArgument("replayBroadcastChevronSpacing", CPH.GetGlobalVar<int?>(BroadcastPrefix + "chevronSpacing", true) ?? 0);
+        CPH.SetArgument("replayBroadcastRandomSpacing", CPH.GetGlobalVar<bool?>(BroadcastPrefix + "randomSpacing", true) ?? false);
+        CPH.SetArgument("replayBroadcastChevronSpeed", CPH.GetGlobalVar<int?>(BroadcastPrefix + "chevronSpeed", true) ?? 95);
         return true;
     }
 
