@@ -183,32 +183,10 @@ public class CPHInline
         if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) CPH.SendMessage(text);
         if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false)
         {
-            CPH.SetArgument("replayCommand", "message");
-            CPH.SetArgument("replayMessage", text);
-            SetMessageStyleArguments();
+            CPH.SetArgument("replayCommand", "playlist-panel");
+            CPH.SetArgument("replayPlaylist", text);
             CPH.TriggerEvent("RTS-Action Replay", true);
         }
-    }
-
-    private void SetMessageStyleArguments()
-    {
-        CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
-        CPH.SetArgument("replayMessageBoardColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.boardColor", true) ?? "#101416");
-        CPH.SetArgument("replayMessageStripeLight", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeLight", true) ?? "#EEEEEE");
-        CPH.SetArgument("replayMessageStripeDark", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeDark", true) ?? "#111111");
-        CPH.SetArgument("replayMessageAccent", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.accent", true) ?? "#0384CB");
-        CPH.SetArgument("replayMessageTextColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.textColor", true) ?? "#0384CB");
-        CPH.SetArgument("replayMessageFont", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.font", true) ?? "Arial, sans-serif");
-        CPH.SetArgument("replayMessageSize", GetSettingInt("rts.actionreplay.clapper.size", 100));
-        CPH.SetArgument("replayMessagePositionX", GetSettingInt("rts.actionreplay.clapper.positionX", 50));
-        CPH.SetArgument("replayMessagePositionY", GetSettingInt("rts.actionreplay.clapper.positionY", 50));
-        CPH.SetArgument("replayMessageDuration", GetSettingInt("rts.actionreplay.clapper.duration", 5000));
-    }
-
-    private int GetSettingInt(string key, int fallback)
-    {
-        try { object value = CPH.GetGlobalVar<object>(key, true); return value == null ? fallback : Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture); }
-        catch { return fallback; }
     }
 
     private string ReadArgumentOrGlobal(string argument, string globalKey) { if (CPH.TryGetArg(argument, out string value) && !string.IsNullOrWhiteSpace(value)) return value.Trim(); return CPH.GetGlobalVar<string>(globalKey, false); }
