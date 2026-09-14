@@ -1,11 +1,8 @@
 using Newtonsoft.Json.Linq;
 
-public static class RTSActionReplayOverlaySync
+public partial class CPHInline
 {
-    private const string PlayerKey = "rts.actionreplay.config.player";
-    private const string PanelKey = "rts.actionreplay.config.panel";
-
-    public static void Send()
+    private void SendAllSettingsToOverlay()
     {
         var payload = new JObject
         {
@@ -20,7 +17,7 @@ public static class RTSActionReplayOverlaySync
         CPH.LogInfo("RTS Action Replay: sent complete player/panel settings payload to overlay.");
     }
 
-    private static JObject BuildOverlayCommand()
+    private JObject BuildOverlayCommand()
     {
         var command = new JObject();
         AddBool(command, "replayShowControls", "rts.actionreplay.showControls", false); AddBool(command, "replayShowProgress", "rts.actionreplay.showProgress", true);
@@ -32,37 +29,28 @@ public static class RTSActionReplayOverlaySync
         AddBroadcast(command); AddCut(command); AddPanel(command); AddMessage(command); return command;
     }
 
-    private static void AddBroadcast(JObject command)
+    private void AddBroadcast(JObject command)
     {
-        AddString(command, "replayBroadcastPrimaryColor", "rts.actionreplay.broadcast.primaryColor", "#0384CBFF"); AddString(command, "replayBroadcastSecondaryColor", "rts.actionreplay.broadcast.secondaryColor", "#FFD400FF");
-        AddInt(command, "replayBroadcastChevronHeight", "rts.actionreplay.broadcast.chevronHeight", 42); AddBool(command, "replayBroadcastRandomHeight", "rts.actionreplay.broadcast.randomHeight", false); AddInt(command, "replayBroadcastChevronWidth", "rts.actionreplay.broadcast.chevronWidth", 42); AddBool(command, "replayBroadcastRandomWidth", "rts.actionreplay.broadcast.randomWidth", false);
-        AddInt(command, "replayBroadcastChevronSpacing", "rts.actionreplay.broadcast.chevronSpacing", 0); AddBool(command, "replayBroadcastRandomSpacing", "rts.actionreplay.broadcast.randomSpacing", false); AddInt(command, "replayBroadcastChevronSpeed", "rts.actionreplay.broadcast.chevronSpeed", 95); AddString(command, "replayBroadcastDecorationColor", "rts.actionreplay.broadcast.decorationColor", "#0384CBFF"); AddString(command, "replayBroadcastTitleColor", "rts.actionreplay.broadcast.titleColor", "#FFFFFFFF");
+        AddString(command, "replayBroadcastPrimaryColor", "rts.actionreplay.broadcast.primaryColor", "#0384CBFF"); AddString(command, "replayBroadcastSecondaryColor", "rts.actionreplay.broadcast.secondaryColor", "#FFD400FF"); AddInt(command, "replayBroadcastChevronHeight", "rts.actionreplay.broadcast.chevronHeight", 42); AddBool(command, "replayBroadcastRandomHeight", "rts.actionreplay.broadcast.randomHeight", false); AddInt(command, "replayBroadcastChevronWidth", "rts.actionreplay.broadcast.chevronWidth", 42); AddBool(command, "replayBroadcastRandomWidth", "rts.actionreplay.broadcast.randomWidth", false); AddInt(command, "replayBroadcastChevronSpacing", "rts.actionreplay.broadcast.chevronSpacing", 0); AddBool(command, "replayBroadcastRandomSpacing", "rts.actionreplay.broadcast.randomSpacing", false); AddInt(command, "replayBroadcastChevronSpeed", "rts.actionreplay.broadcast.chevronSpeed", 95); AddString(command, "replayBroadcastDecorationColor", "rts.actionreplay.broadcast.decorationColor", "#0384CBFF"); AddString(command, "replayBroadcastTitleColor", "rts.actionreplay.broadcast.titleColor", "#FFFFFFFF");
     }
 
-    private static void AddCut(JObject command)
+    private void AddCut(JObject command)
     {
         AddString(command, "replayCutPrimaryColor", "rts.actionreplay.cut.primaryColor", "#0384CBFF"); AddString(command, "replayCutSecondaryColor", "rts.actionreplay.cut.secondaryColor", "#FFD400FF"); AddInt(command, "replayCutBlockWidth", "rts.actionreplay.cut.blockWidth", 170); AddBool(command, "replayCutRandomWidth", "rts.actionreplay.cut.randomWidth", true); AddInt(command, "replayCutBarHeight", "rts.actionreplay.cut.barHeight", 5); AddString(command, "replayCutDecorationColor", "rts.actionreplay.cut.decorationColor", "#0384CBFF"); AddString(command, "replayCutTitleColor", "rts.actionreplay.cut.titleColor", "#FFFFFFFF");
     }
 
-    private static void AddPanel(JObject command)
+    private void AddPanel(JObject command)
     {
-        var panel = ReadConfig(PanelKey); command["replayPanelWidth"] = (int?)panel["width"] ?? CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500; command["replayPanelHeight"] = (int?)panel["height"] ?? CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700;
-        AddString(command, "replayPanelPreset", "rts.actionreplay.panel.preset", "Broadcast"); AddString(command, "replayPanelPrimaryColor", "rts.actionreplay.panel.primaryColor", "#0384CBFF"); AddString(command, "replayPanelSecondaryColor", "rts.actionreplay.panel.secondaryColor", "#101416FF"); AddString(command, "replayPanelTitleFont", "rts.actionreplay.panel.titleFont", "Inter"); AddInt(command, "replayPanelTitleSize", "rts.actionreplay.panel.titleSize", 24); AddString(command, "replayPanelTitleColor", "rts.actionreplay.panel.titleColor", "#FFFFFFFF"); AddInt(command, "replayPanelListSize", "rts.actionreplay.panel.listSize", 15); AddString(command, "replayPanelListColor", "rts.actionreplay.panel.listColor", "#FFFFFFFF");
+        var panel = ReadConfig(PanelKey); command["replayPanelWidth"] = (int?)panel["width"] ?? CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500; command["replayPanelHeight"] = (int?)panel["height"] ?? CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700; AddString(command, "replayPanelPreset", "rts.actionreplay.panel.preset", "Broadcast"); AddString(command, "replayPanelPrimaryColor", "rts.actionreplay.panel.primaryColor", "#0384CBFF"); AddString(command, "replayPanelSecondaryColor", "rts.actionreplay.panel.secondaryColor", "#101416FF"); AddString(command, "replayPanelTitleFont", "rts.actionreplay.panel.titleFont", "Inter"); AddInt(command, "replayPanelTitleSize", "rts.actionreplay.panel.titleSize", 24); AddString(command, "replayPanelTitleColor", "rts.actionreplay.panel.titleColor", "#FFFFFFFF"); AddInt(command, "replayPanelListSize", "rts.actionreplay.panel.listSize", 15); AddString(command, "replayPanelListColor", "rts.actionreplay.panel.listColor", "#FFFFFFFF");
     }
 
-    private static void AddMessage(JObject command)
+    private void AddMessage(JObject command)
     {
         AddString(command, "replayMessageBoardColor", "rts.actionreplay.clapper.boardColor", "#101416"); AddString(command, "replayMessageStripeLight", "rts.actionreplay.clapper.stripeLight", "#EEEEEE"); AddString(command, "replayMessageStripeDark", "rts.actionreplay.clapper.stripeDark", "#111111"); AddString(command, "replayMessageAccent", "rts.actionreplay.clapper.accent", "#0384CB"); AddString(command, "replayMessageTextColor", "rts.actionreplay.clapper.textColor", "#0384CB"); AddString(command, "replayMessageFont", "rts.actionreplay.clapper.font", "Inter"); AddInt(command, "replayMessageSize", "rts.actionreplay.clapper.size", 50); AddInt(command, "replayMessagePositionX", "rts.actionreplay.clapper.positionX", 50); AddInt(command, "replayMessagePositionY", "rts.actionreplay.clapper.positionY", 50);
     }
 
-    private static JObject ReadConfig(string key)
-    {
-        var raw = CPH.GetGlobalVar<string>(key, true);
-        try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); }
-    }
-
-    private static void AddString(JObject target, string name, string key, string fallback) => target[name] = CPH.GetGlobalVar<string>(key, true) ?? fallback;
-    private static void AddBool(JObject target, string name, string key, bool fallback) => target[name] = CPH.GetGlobalVar<bool?>(key, true) ?? fallback;
-    private static void AddInt(JObject target, string name, string key, int fallback) => target[name] = CPH.GetGlobalVar<int?>(key, true) ?? fallback;
-    private static void AddNumber(JObject target, string name, string key, double fallback) => target[name] = CPH.GetGlobalVar<double?>(key, true) ?? fallback;
+    private void AddString(JObject target, string name, string key, string fallback) => target[name] = CPH.GetGlobalVar<string>(key, true) ?? fallback;
+    private void AddBool(JObject target, string name, string key, bool fallback) => target[name] = CPH.GetGlobalVar<bool?>(key, true) ?? fallback;
+    private void AddInt(JObject target, string name, string key, int fallback) => target[name] = CPH.GetGlobalVar<int?>(key, true) ?? fallback;
+    private void AddNumber(JObject target, string name, string key, double fallback) => target[name] = CPH.GetGlobalVar<double?>(key, true) ?? fallback;
 }
