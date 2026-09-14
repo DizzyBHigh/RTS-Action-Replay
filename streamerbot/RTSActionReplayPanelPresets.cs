@@ -2,6 +2,7 @@ using Newtonsoft.Json.Linq;
 
 public class CPHInline
 {
+    private const string PanelKey = "rts.actionreplay.config.panel";
     private const string Prefix = "rts.actionreplay.panel.";
 
     public bool Execute()
@@ -19,6 +20,7 @@ public class CPHInline
     private void Build(RtsUI ui)
     {
         ui.BeginSection("Panel Design", "Information Panels");
+        ui.AddClickableButton("Preview Panel", "Preview the selected panel preset and typography.", "Preview Panel", "blue", "Information Panels", Preview);
         ui.AddDropdown("Panel Preset", "Choose the visual design used by information panels.", "Information Panels", Prefix + "preset", new[] { "Broadcast", "Cinematic", "Cut", "Minimal" }, "Broadcast");
         ui.BeginRow();
         ui.AddColorPicker("Primary Colour", "Primary accent colour used by the panel design.", "Information Panels", Prefix + "primaryColor", "#0384CBFF");
@@ -48,6 +50,21 @@ public class CPHInline
         CPH.SetArgument("replayPanelListSize", CPH.GetGlobalVar<int?>(Prefix + "listSize", true) ?? 15);
         CPH.SetArgument("replayPanelListColor", GetString("listColor", "#FFFFFFFF"));
         return true;
+    }
+
+    public void Preview()
+    {
+        var raw = CPH.GetGlobalVar<string>(PanelKey, true);
+        JObject panel;
+        try { panel = string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); }
+        catch { panel = new JObject(); }
+        Apply();
+        CPH.SetArgument("replayCommand", "panel-position-preview");
+        CPH.SetArgument("replayPanelPosition", "Centered");
+        CPH.SetArgument("replayPanelPositions", (panel["positions"] as JObject ?? new JObject()).ToString(Newtonsoft.Json.Formatting.None));
+        CPH.SetArgument("replayPanelWidth", (int?)panel["width"] ?? 500);
+        CPH.SetArgument("replayPanelHeight", (int?)panel["height"] ?? 700);
+        CPH.TriggerEvent("RTS-Action Replay", true);
     }
 
     private string GetString(string name, string fallback) => CPH.GetGlobalVar<string>(Prefix + name, true) ?? fallback;
