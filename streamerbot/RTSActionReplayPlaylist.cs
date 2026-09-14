@@ -39,10 +39,13 @@ public class CPHInline
 
     public bool View()
     {
-        var queue = LoadQueue(); if (queue.Count == 0) { CPH.SendMessage("Playlist is empty."); return true; }
+        var queue = LoadQueue();
+        if (queue.Count == 0) { SendPlaylistMessage("Playlist is empty."); return true; }
         var lines = "";
         for (var i = 0; i < queue.Count; i++) { var item = queue[i] as JObject; if (item == null) continue; var requester = (string)item["requesterName"]; if (string.IsNullOrWhiteSpace(requester)) requester = "Created automatically"; lines += (lines.Length == 0 ? "" : " | ") + "#" + (i + 1) + " " + (string)item["title"] + " — " + requester; }
-        CPH.SetArgument("replayPlaylist", lines); CPH.SendMessage(lines); return true;
+        CPH.SetArgument("replayPlaylist", lines);
+        SendPlaylistMessage(lines);
+        return true;
     }
 
     public bool Clear()
@@ -170,6 +173,42 @@ public class CPHInline
         CPH.SetGlobalVar(EntryPointHandoffKey, "playlist", false); CPH.UnsetGlobalVar(ResolvedProfileHandoffKey, false);
         if (CPH.ExecuteMethod(AnimationAction, "ResolveEntryPointProfile")) { var profile = CPH.GetGlobalVar<string>(ResolvedProfileHandoffKey, false); CPH.UnsetGlobalVar(ResolvedProfileHandoffKey, false); if (!string.IsNullOrWhiteSpace(profile)) return profile.Trim(); }
         return "default";
+    }
+
+    private void SendPlaylistMessage(string text)
+    {
+        var key = "rts.actionreplay.message.playlist";
+        var configured = CPH.GetGlobalVar<string>(key + ".text", true);
+        if (!string.IsNullOrWhiteSpace(configured)) text = CPH.Parse(configured);
+        if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) CPH.SendMessage(text);
+        if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false)
+        {
+            CPH.SetArgument("replayCommand", "message");
+            CPH.SetArgument("replayMessage", text);
+            SetMessageStyleArguments();
+            CPH.TriggerEvent("RTS-Action Replay", true);
+        }
+    }
+
+    private void SetMessageStyleArguments()
+    {
+        CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
+        CPH.SetArgument("replayMessageBoardColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.boardColor", true) ?? "#101416");
+        CPH.SetArgument("replayMessageStripeLight", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeLight", true) ?? "#EEEEEE");
+        CPH.SetArgument("replayMessageStripeDark", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeDark", true) ?? "#111111");
+        CPH.SetArgument("replayMessageAccent", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.accent", true) ?? "#0384CB");
+        CPH.SetArgument("replayMessageTextColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.textColor", true) ?? "#0384CB");
+        CPH.SetArgument("replayMessageFont", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.font", true) ?? "Arial, sans-serif");
+        CPH.SetArgument("replayMessageSize", GetSettingInt("rts.actionreplay.clapper.size", 100));
+        CPH.SetArgument("replayMessagePositionX", GetSettingInt("rts.actionreplay.clapper.positionX", 50));
+        CPH.SetArgument("replayMessagePositionY", GetSettingInt("rts.actionreplay.clapper.positionY", 50));
+        CPH.SetArgument("replayMessageDuration", GetSettingInt("rts.actionreplay.clapper.duration", 5000));
+    }
+
+    private int GetSettingInt(string key, int fallback)
+    {
+        try { object value = CPH.GetGlobalVar<object>(key, true); return value == null ? fallback : Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture); }
+        catch { return fallback; }
     }
 
     private string ReadArgumentOrGlobal(string argument, string globalKey) { if (CPH.TryGetArg(argument, out string value) && !string.IsNullOrWhiteSpace(value)) return value.Trim(); return CPH.GetGlobalVar<string>(globalKey, false); }
