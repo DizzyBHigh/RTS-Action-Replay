@@ -2,10 +2,13 @@ const RTSLeaderboardList = {};
 
 RTSLeaderboardList.panel = document.getElementById('leaderboard-list');
 RTSLeaderboardList.timer = null;
+RTSLeaderboardList.endTimer = null;
 
-RTSLeaderboardList.clearTimer = () => {
-  if (RTSLeaderboardList.timer) clearTimeout(RTSLeaderboardList.timer);
+RTSLeaderboardList.clearTimers = () => {
+  clearTimeout(RTSLeaderboardList.timer);
+  clearTimeout(RTSLeaderboardList.endTimer);
   RTSLeaderboardList.timer = null;
+  RTSLeaderboardList.endTimer = null;
 };
 
 RTSLeaderboardList.show = command => {
@@ -32,34 +35,32 @@ RTSLeaderboardList.show = command => {
     entries.forEach(entry => {
       const row = document.createElement('div');
       row.className = 'rts-panel-entry';
-      const rank = document.createElement('span');
-      rank.className = 'rts-panel-number';
-      rank.textContent = `#${entry.rank ?? ''}`;
-      const creator = document.createElement('strong');
-      creator.className = 'rts-panel-title';
-      creator.textContent = entry.creator || 'Unknown creator';
-      const count = document.createElement('span');
-      count.className = 'rts-leaderboard-count';
-      count.textContent = `${entry.count ?? 0} clip${Number(entry.count) === 1 ? '' : 's'}`;
-      row.append(rank, creator, count);
-      list.appendChild(row);
+      const rank = document.createElement('span'); rank.className = 'rts-panel-number'; rank.textContent = `#${entry.rank ?? ''}`;
+      const creator = document.createElement('strong'); creator.className = 'rts-panel-title'; creator.textContent = entry.creator || 'Unknown creator';
+      const count = document.createElement('span'); count.className = 'rts-leaderboard-count'; count.textContent = `${entry.count ?? 0} clip${Number(entry.count) === 1 ? '' : 's'}`;
+      row.append(rank, creator, count); list.appendChild(row);
     });
   }
 
-  RTSLeaderboardList.clearTimer();
+  RTSLeaderboardList.clearTimers();
   const messageCard = document.getElementById('message-card');
   if (messageCard) {
     messageCard.classList.remove('show');
     messageCard.setAttribute('aria-hidden', 'true');
   }
-  panel.classList.remove('show');
-  panel.setAttribute('aria-hidden', 'true');
+  panel.classList.remove('show'); panel.setAttribute('aria-hidden', 'true');
   void panel.offsetWidth;
 
   const panelPosition = command?.replayPanelPosition || 'Centered';
   const animationCommand = { ...command, replayPanelPreset: command?.replayPanelPreset || 'Broadcast' };
   RTSInformationPanels.show(panel, animationCommand, panelPosition);
-  RTSLeaderboardList.timer = setTimeout(() => RTSInformationPanels.hide(panel, animationCommand), 10000);
+
+  const requestId = String(command?.replaySearchRequestId || '');
+  RTSLeaderboardList.timer = setTimeout(() => {
+    RTSLeaderboardList.clearTimers();
+    RTSInformationPanels.hide(panel, animationCommand);
+    RTSLeaderboardList.endTimer = setTimeout(() => window.RTSSearchPanel?.notifyEnded?.(requestId), 700);
+  }, Math.max(1000, Number(command?.replaySearchDuration) || 10000));
 };
 
 RTSLeaderboardList.handle = command => {
