@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Newtonsoft.Json.Linq;
@@ -10,7 +11,7 @@ public class CPHInline
     private const string UserStateKey = "rts.actionreplay.catalogState";
     private const string SearchQueueAction = "RTS - Action Replay - Core - Search Queue";
     public bool Execute() => ListCatalog();
-    public bool ListCatalog() { var raw = Arg("rawInput").Trim(); return Queue(BuildState(string.IsNullOrWhiteSpace(raw) ? "all" : "search", raw, "catalog")); }
+    public bool ListCatalog() { var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var amount = ParseAmount(ref parts); var search = string.Join(" ", parts).Trim(); return Queue(BuildState(string.IsNullOrWhiteSpace(search) ? "all" : "search", search, "catalog", amount)); }
     public bool ListCatalogDate() { var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var amount = ParseAmount(ref parts); var period = string.Join(" ", parts).Trim(); if (string.IsNullOrWhiteSpace(period)) { CPH.SendMessage("Please provide a catalog date period."); return false; } return Queue(BuildState("date", period, "catalog", amount)); }
     public bool ListCatalogCreator() { var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var amount = ParseAmount(ref parts); var creator = string.Join(" ", parts).Trim(); if (string.IsNullOrWhiteSpace(creator)) { CPH.SendMessage("Please provide a creator name."); return false; } return Queue(BuildState("creator", creator, "catalog", amount)); }
     public bool ListCatalogMostViews() => Queue(BuildState("all", "", "plays", ParseAmount(Arg("rawInput"))));
@@ -54,10 +55,10 @@ public class CPHInline
     private string Parameters(JObject request) { var type = ((string)request["filterType"] ?? "all").ToLowerInvariant(); if (type == "search") return "SEARCH: " + ((string)request["filter"] ?? ""); if (type == "date") return "DATE: " + ((string)request["filter"] ?? ""); if (type == "creator") return "CREATOR: " + ((string)request["filter"] ?? ""); var sort = ((string)request["sort"] ?? "catalog").ToLowerInvariant(); return sort == "plays" ? "MOST VIEWS" : sort == "rating" ? "TOP RATED" : "CATALOG"; }
     private JObject LoadUserState()
     {
-        var userName = Arg("userName"); if (string.IsNullOrWhiteSpace(userName)) return DefaultState(""); var raw = CPH.GetUserVar<string>(userName, UserStateKey, true); try { return string.IsNullOrWhiteSpace(raw) ? DefaultState(userName) : JObject.Parse(raw); } catch { return DefaultState(userName); }
+        var userId = Arg("userId"); var userName = Arg("userName"); if (string.IsNullOrWhiteSpace(userId)) return DefaultState(userName); var raw = CPH.GetTwitchUserVarById(userId, UserStateKey, true); try { return string.IsNullOrWhiteSpace(raw) ? DefaultState(userName) : JObject.Parse(raw); } catch { return DefaultState(userName); }
     }
     private JObject DefaultState(string userName) => new JObject { ["filterType"] = "all", ["filter"] = "", ["sort"] = "catalog", ["amount"] = MaxAmount(), ["page"] = 1, ["requesterName"] = userName };
-    private void SaveUserState(JObject state) { var userName = Arg("userName"); if (!string.IsNullOrWhiteSpace(userName)) CPH.SetUserVar(userName, UserStateKey, state.ToString(Newtonsoft.Json.Formatting.None), true); }
+    private void SaveUserState(JObject state) { var userId = Arg("userId"); if (!string.IsNullOrWhiteSpace(userId)) CPH.SetTwitchUserVarById(userId, UserStateKey, state.ToString(Newtonsoft.Json.Formatting.None), true); }
     private JObject FindById(JObject data, string id) => ((JArray)data["catalog"] ?? new JArray()).OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], id, StringComparison.OrdinalIgnoreCase));
     private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); } }
     private void Save(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
