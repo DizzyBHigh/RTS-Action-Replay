@@ -187,6 +187,10 @@ public class CPHInline
         if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) CPH.SendMessage(chatText);
         if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false)
         {
+            CPH.SetArgument("replayPanelWidth", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500);
+            CPH.SetArgument("replayPanelHeight", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700);
+            CPH.SetArgument("panelType", "playlist");
+            CPH.ExecuteMethod(AnimationAction, "ResolvePanelAnimation");
             CPH.SetArgument("replayCommand", "playlist-panel");
             CPH.SetArgument("replayPlaylist", playlistText);
             CPH.TriggerEvent("RTS-Action Replay", true);
