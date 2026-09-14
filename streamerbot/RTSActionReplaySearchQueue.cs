@@ -5,7 +5,7 @@ public class CPHInline
 {
     private const string QueueKey = "rts.actionreplay.searchQueue";
     private const string ActiveKey = "rts.actionreplay.searchActive";
-    private const string CatalogAction = "RTS - Action Replay - Core - Catalog";
+    private const string CatalogAction = "RTS - Action Replay - Catalog - Search";
 
     public bool Execute() => Enqueue();
 
