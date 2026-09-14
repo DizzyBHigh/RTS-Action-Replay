@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
 public class CPHInline
@@ -43,7 +44,6 @@ public class CPHInline
         if (queue.Count == 0) { SendPlaylistMessage("Playlist is empty."); return true; }
         var lines = "";
         for (var i = 0; i < queue.Count; i++) { var item = queue[i] as JObject; if (item == null) continue; var requester = (string)item["requesterName"]; if (string.IsNullOrWhiteSpace(requester)) requester = "Created automatically"; lines += (lines.Length == 0 ? "" : " | ") + "#" + (i + 1) + " " + (string)item["title"] + " — " + requester; }
-        CPH.SetArgument("replayPlaylist", lines);
         SendPlaylistMessage(lines);
         return true;
     }
@@ -179,8 +179,11 @@ public class CPHInline
     {
         var key = "rts.actionreplay.message.playlist";
         var playlistText = text;
+        CPH.SetArgument("replayPlaylist", playlistText);
         var configured = CPH.GetGlobalVar<string>(key + ".text", true);
-        var chatText = string.IsNullOrWhiteSpace(configured) ? playlistText : CPH.Parse(configured);
+        var chatText = string.IsNullOrWhiteSpace(configured)
+            ? playlistText
+            : CPH.Parse(configured, new Dictionary<string, object> { ["replayPlaylist"] = playlistText });
         if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) CPH.SendMessage(chatText);
         if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false)
         {
