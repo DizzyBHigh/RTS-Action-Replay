@@ -61,6 +61,7 @@ public class CPHInline
 
     private void AddBroadcast(JObject c)
     {
+        AddBool(c, "replayBroadcastOverrideColours", "rts.actionreplay.broadcast.overrideColours", false);
         AddString(c, "replayBroadcastPrimaryColor", "rts.actionreplay.broadcast.primaryColor", "#0384CBFF");
         AddString(c, "replayBroadcastSecondaryColor", "rts.actionreplay.broadcast.secondaryColor", "#FFD400FF");
         AddInt(c, "replayBroadcastChevronHeight", "rts.actionreplay.broadcast.chevronHeight", 42);
@@ -76,6 +77,7 @@ public class CPHInline
 
     private void AddCut(JObject c)
     {
+        AddBool(c, "replayCutOverrideColours", "rts.actionreplay.cut.overrideColours", false);
         AddString(c, "replayCutPrimaryColor", "rts.actionreplay.cut.primaryColor", "#0384CBFF");
         AddString(c, "replayCutSecondaryColor", "rts.actionreplay.cut.secondaryColor", "#FFD400FF");
         AddInt(c, "replayCutBlockWidth", "rts.actionreplay.cut.blockWidth", 170);
