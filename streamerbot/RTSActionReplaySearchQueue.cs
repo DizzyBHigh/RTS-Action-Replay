@@ -13,9 +13,11 @@ public class CPHInline
     {
         var json = Arg("replaySearchRequest");
         if (string.IsNullOrWhiteSpace(json)) return false;
-        try { JObject.Parse(json); } catch { return false; }
+        JObject request;
+        try { request = JObject.Parse(json); } catch { return false; }
+        if (string.IsNullOrWhiteSpace((string)request["requestId"])) request["requestId"] = Guid.NewGuid().ToString("N");
         var queue = LoadQueue();
-        queue.Add(json);
+        queue.Add(request);
         SaveQueue(queue);
         if (!IsActive()) return ShowNext();
         return true;
@@ -24,7 +26,10 @@ public class CPHInline
     public bool SearchPanelEnded()
     {
         var queue = LoadQueue();
-        if (queue.Count > 0) queue.RemoveAt(0);
+        var requestId = Arg("replaySearchRequestId");
+        if (queue.Count == 0) return true;
+        if (!string.IsNullOrWhiteSpace(requestId) && !string.Equals(requestId, (string)queue[0]["requestId"], StringComparison.OrdinalIgnoreCase)) return false;
+        queue.RemoveAt(0);
         SaveQueue(queue);
         CPH.SetGlobalVar(ActiveKey, false, false);
         return ShowNext();
@@ -33,6 +38,7 @@ public class CPHInline
     public bool Clear()
     {
         SaveQueue(new JArray());
+        CPH.SetGlobalVar(ActiveKey, false, false);
         return true;
     }
 
@@ -44,10 +50,10 @@ public class CPHInline
             CPH.SetGlobalVar(ActiveKey, false, false);
             return true;
         }
-        var request = (string)queue[0];
-        if (string.IsNullOrWhiteSpace(request)) { queue.RemoveAt(0); SaveQueue(queue); return ShowNext(); }
+        var request = queue[0] as JObject;
+        if (request == null) { queue.RemoveAt(0); SaveQueue(queue); return ShowNext(); }
         CPH.SetGlobalVar(ActiveKey, true, false);
-        CPH.SetArgument("replaySearchRequest", request);
+        CPH.SetArgument("replaySearchRequest", request.ToString(Newtonsoft.Json.Formatting.None));
         var shown = CPH.ExecuteMethod(CatalogAction, "RenderSearchRequest");
         if (!shown)
         {
