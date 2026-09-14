@@ -4,6 +4,7 @@
   position: fixed; left: 50%; top: 50%; width: min(600px, calc(100vw - 80px));
   max-height: min(760px, calc(100vh - 120px)); padding: 0; box-sizing: border-box;
   overflow: hidden; opacity: 0; visibility: hidden; pointer-events: none;
+  z-index: 40;
   background: rgba(16, 20, 22, .97); border: 3px solid var(--panel-primary);
   box-shadow: 0 0 0 1px rgba(3, 132, 203, .25), 0 0 24px rgba(3, 132, 203, .35);
   color: #fff;
