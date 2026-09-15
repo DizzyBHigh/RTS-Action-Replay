@@ -73,18 +73,13 @@ public class CPHInline
         if (string.Equals(source, "Kick", StringComparison.OrdinalIgnoreCase))
         {
             url = ResolveKickUrl(replay);
-            if (!string.IsNullOrWhiteSpace(url))
-            {
-                replay["mediaUrl"] = url;
-                SaveData(data);
-                CPH.LogInfo($"RTS Action Replay TRACE: Kick media resolved and catalog updated; replayId={(string)replay["id"]}; url={url}.");
-            }
-            else
+            if (string.IsNullOrWhiteSpace(url))
             {
                 CPH.LogWarn($"RTS Action Replay TRACE: Kick media resolution failed for replay {(string)replay["id"]}.");
                 CPH.SendMessage("Unable to resolve Kick media file.");
                 return false;
             }
+            CPH.LogInfo($"RTS Action Replay TRACE: Kick media resolved for playback; replayId={(string)replay["id"]}; url={url}.");
         }
         CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay media resolution returned {(string.IsNullOrWhiteSpace(url) ? "<null>" : url)}.");
         if (string.IsNullOrWhiteSpace(url)) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - media URL unavailable for replay {(string)replay["id"]}; file={(string)replay["file"]}; filePath={(string)replay["filePath"]}."); CPH.SendMessage($"Replay media is unavailable: {(string)replay["title"]}"); return false; }
@@ -116,7 +111,7 @@ public class CPHInline
             var id = (string)replay["sourceId"];
             return string.IsNullOrWhiteSpace(id) ? null : "https://www.youtube.com/embed/" + CPH.UrlEncode(id);
         }
-        if (string.Equals(source, "Kick", StringComparison.OrdinalIgnoreCase)) return (string)replay["mediaUrl"];
+        if (string.Equals(source, "Kick", StringComparison.OrdinalIgnoreCase)) return null;
         var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true); var mapping = CPH.GetGlobalVar<string>("rts.actionreplay.httpMapping", true) ?? "replays"; var port = CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474;
         var file = (string)replay["file"]; var path = Path.Combine(folder ?? "", file ?? "");
         CPH.LogInfo($"RTS Action Replay TRACE: ResolveReplayUrl OBS; folder={folder ?? "<null>"}; file={file ?? "<null>"}; path={path}; exists={File.Exists(path)}; mapping={mapping}; port={port}.");
@@ -204,10 +199,10 @@ public class CPHInline
 
     private JArray GetCatalog(JObject data) => data["catalog"] as JArray ?? new JArray();
     private string Arg(string name) { try { CPH.TryGetArg(name, out string value); return value ?? ""; } catch { return ""; } }
+    private void SaveData(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
     private void SendMessage(string text) { if (!string.IsNullOrWhiteSpace(text)) CPH.SendMessage(text); }
     private bool PathsEqual(string a, string b) => string.Equals(Path.GetFullPath(a ?? "").TrimEnd(Path.DirectorySeparatorChar), Path.GetFullPath(b ?? "").TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase);
     private string Sanitize(string value) { foreach (var c in Path.GetInvalidFileNameChars()) value = value.Replace(c, '_'); return value; }
     private string GetTwitchPlaybackMode() => CPH.GetGlobalVar<string>(TwitchModeKey, true) ?? "Twitch URL";
-    private void SaveData(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
     private void ApplyPlayerSettings(string profile) { CPH.SetArgument("replayAnimationProfileId", profile); CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false) ?? ""); }
 }
