@@ -162,8 +162,8 @@ public class CPHInline
         CPH.SetGlobalVar(PlaybackQueueEntryHandoffKey, (string)item["entryId"] ?? "", false);
         CPH.SetGlobalVar(PlaybackProfileHandoffKey, profile, false);
         CPH.SetGlobalVar(PlaybackTitleProfileHandoffKey, titleProfile, false);
-        CPH.SetArgument("rawInput", (index + 1).ToString()); CPH.SetArgument("replayQueueEntryId", (string)item["entryId"]); CPH.SetArgument("replayAnimationProfileId", profile); CPH.SetArgument("replayTitleProfileId", titleProfile);
-        CPH.LogInfo($"RTS Action Replay TRACE: PlayNext calling Playback; catalogIndex={index + 1}; entryId={(string)item["entryId"]}; animationProfile={profile ?? "<null>"}; titleProfile={titleProfile ?? "<null>"}.");
+        CPH.SetArgument("rawInput", (index + 1).ToString()); CPH.SetArgument("replayQueueEntryId", (string)item["entryId"]); CPH.SetArgument("replayAnimationProfileId", profile); CPH.SetArgument("replayTitleProfileId", titleProfile); CPH.SetArgument("requesterPlatform", (string)item["requesterPlatform"] ?? ""); CPH.SetArgument("requesterBroadcastId", (string)item["requesterBroadcastId"] ?? "");
+        CPH.LogInfo($"RTS Action Replay TRACE: PlayNext calling Playback; catalogIndex={index + 1}; entryId={(string)item["entryId"]}; animationProfile={profile ?? "<null>"}; titleProfile={titleProfile ?? "<null>"}; requesterPlatform={(string)item["requesterPlatform"] ?? "<none>"}.");
         var started = CPH.ExecuteMethod(PlaybackCode, "PlayReplay");
         CPH.UnsetGlobalVar(ReplayIdHandoffKey, false); CPH.UnsetGlobalVar(PlaybackQueueEntryHandoffKey, false); CPH.UnsetGlobalVar(PlaybackProfileHandoffKey, false); CPH.UnsetGlobalVar(PlaybackTitleProfileHandoffKey, false);
         CPH.LogInfo($"RTS Action Replay TRACE: Playback PlayReplay returned {started}.");
