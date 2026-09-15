@@ -18,6 +18,14 @@ RTSReplayControls.updateControls = () => {
   RTSReplayControls.progressBar.style.width = duration ? `${(current / duration) * 100}%` : '0%';
 };
 
+RTSReplayControls.updateYouTubeControls = (current, duration) => {
+  current = Number(current) || 0;
+  duration = Number(duration) || 0;
+  RTSReplayControls.current.textContent = RTSReplayControls.formatTime(Math.max(0, current));
+  RTSReplayControls.duration.textContent = RTSReplayControls.formatTime(Math.max(0, duration));
+  RTSReplayControls.progressBar.style.width = duration ? `${Math.max(0, Math.min(100, current / duration * 100))}%` : '0%';
+};
+
 RTSReplayControls.configure = command => {
   const player = RTSReplayControls.player;
   const showControls = command.replayShowControls !== false;
