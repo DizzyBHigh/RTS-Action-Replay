@@ -23,16 +23,22 @@ public class CPHInline
         if (string.IsNullOrWhiteSpace(message)) message = Arg("rawInput");
 
         var kickBotUrl = ExtractKickBotUrl(message);
-        if (string.IsNullOrWhiteSpace(kickBotUrl)) return RequestKickBotClip(message);
+        if (string.IsNullOrWhiteSpace(kickBotUrl))
+        {
+            if (!Regex.IsMatch(message ?? "", @"^!create-clip(?:\s|$)", RegexOptions.IgnoreCase)) return false;
+            return RequestKickBotClip(message);
+        }
+
+        var pending = LoadPending();
+        if (pending == null) return false;
 
         var data = Load();
         var catalog = (JArray)data["catalog"] ?? new JArray();
         var kickBotId = ExtractKickBotId(kickBotUrl);
-        var pending = LoadPending();
-        var title = (string)pending?["title"] ?? "Kick Clip";
-        var duration = (int?)pending?["duration"] ?? 30;
-        var creatorId = (string)pending?["creatorId"] ?? "";
-        var creatorName = (string)pending?["creatorName"] ?? "";
+        var title = (string)pending["title"] ?? "Kick Clip";
+        var duration = (int?)pending["duration"] ?? 30;
+        var creatorId = (string)pending["creatorId"] ?? "";
+        var creatorName = (string)pending["creatorName"] ?? "";
 
         var existing = catalog.OfType<JObject>().FirstOrDefault(x =>
             string.Equals((string)x["sourceType"], "Kick", StringComparison.OrdinalIgnoreCase) &&
