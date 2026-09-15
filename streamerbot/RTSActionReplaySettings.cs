@@ -22,7 +22,7 @@ public class CPHInline
 
     private void BuildSettings(RtsUI ui)
     {
-        AddGeneralSettings(ui); AddBrandingSettings(ui); AddPlaylistSettings(ui); AddTwitchSettings(ui);
+        AddGeneralSettings(ui); AddBrandingSettings(ui); AddPlaylistSettings(ui); AddTwitchSettings(ui); AddYouTubeSettings(ui);
         CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "EnsureProfiles");
         AddPlayerSettings(ui); AddAppearanceSettings(ui); AddPositionSettings(ui); AddMessageSettings(ui);
     }
@@ -46,6 +46,11 @@ public class CPHInline
     private void AddTwitchSettings(RtsUI ui)
     {
         ui.BeginSection("Twitch Clips", "Twitch"); ui.AddDropdown("Twitch Clip Playback", "How Action Replay obtains Twitch media when a Twitch Catalog item is played.", "Twitch", "rts.actionreplay.twitch.playbackMode", new[] { "Twitch URL", "Download Locally", "Both" }, "Download Locally"); ui.AddFolderPicker("Twitch Clip Folder", "Folder used only for downloaded Twitch Clips. It must be separate from the OBS Replay Folder.", "Twitch", "rts.actionreplay.twitch.folder", ""); ui.AddTextbox("Twitch HTTP Mapping", "Streamer.bot HTTP path mapped to the Twitch Clip Folder.", "Twitch", "rts.actionreplay.twitch.httpMapping", "twitch", false); ui.AddNumericTextbox("Clip Duration", "Default duration used by !twitchclip, in seconds.", "Twitch", "rts.actionreplay.twitch.clipDuration", 30, 5, 60); ui.EndSection();
+    }
+
+    private void AddYouTubeSettings(RtsUI ui)
+    {
+        ui.BeginSection("YouTube Clips", "YouTube"); ui.AddNumericTextbox("Clip Duration", "Default duration used by !Create-clip when no duration is supplied, in seconds.", "YouTube", "rts.actionreplay.youtube.clipDuration", 30, 5, 60); ui.EndSection();
     }
 
     private void AddPlayerSettings(RtsUI ui)
