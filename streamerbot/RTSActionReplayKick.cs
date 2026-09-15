@@ -16,6 +16,16 @@ public class CPHInline
 
     public bool Execute() => CaptureKickBotClip();
 
+    public bool RequestKickBotClip()
+    {
+        var message = Arg("text");
+        if (string.IsNullOrWhiteSpace(message)) message = Arg("message");
+        if (string.IsNullOrWhiteSpace(message)) message = Arg("rawInput");
+        message = NormalizeCreateClipMessage(message);
+        if (!Regex.IsMatch(message ?? "", @"^!create-clip(?:\s|$)", RegexOptions.IgnoreCase)) return false;
+        return RequestKickBotClipInternal(message);
+    }
+
     public bool CaptureKickBotClip()
     {
         var message = Arg("text");
@@ -23,12 +33,7 @@ public class CPHInline
         if (string.IsNullOrWhiteSpace(message)) message = Arg("rawInput");
 
         var kickBotUrl = ExtractKickBotUrl(message);
-        if (string.IsNullOrWhiteSpace(kickBotUrl))
-        {
-            message = NormalizeCreateClipMessage(message);
-            if (!Regex.IsMatch(message ?? "", @"^!create-clip(?:\s|$)", RegexOptions.IgnoreCase)) return false;
-            return RequestKickBotClip(message);
-        }
+        if (string.IsNullOrWhiteSpace(kickBotUrl)) return false;
 
         var pending = LoadPending();
         if (pending == null) return false;
@@ -92,7 +97,7 @@ public class CPHInline
         return string.IsNullOrWhiteSpace(rawInput) ? command : command + " " + rawInput;
     }
 
-    private bool RequestKickBotClip(string message)
+    private bool RequestKickBotClipInternal(string message)
     {
         var duration = ParseDuration(message);
         var title = ParseTitle(message);
