@@ -192,6 +192,8 @@ RTSReplayVideo.loadReplay = command => {
     return;
   }
 
+  ++youtubeReplayToken;
+  stopYouTubeBoundaryTimer();
   const host = document.getElementById('youtube-player-host');
   host?.classList.remove('show');
   host?.setAttribute('aria-hidden', 'true');
@@ -227,7 +229,7 @@ RTSReplayVideo.showPlayer = () => {
 RTSReplayVideo.hideReplay = () => {
   const command = RTSReplayVideo.currentCommand || {};
   RTSReplayAnimation.cancelSequence(); stopYouTubeBoundaryTimer();
-  if (command.replaySource?.toLowerCase() === 'youtube') youtubePlayer?.pauseVideo?.(); else RTSReplayVideo.video.pause();
+  if (command.replaySource?.toLowerCase() === 'youtube') { ++youtubeReplayToken; youtubePlayer?.pauseVideo?.(); } else RTSReplayVideo.video.pause();
   RTSReplayVideo.visiblePosition = RTSReplayVideo.activePosition;
   const profile = RTSReplayAnimation.readProfile(command);
   if (Array.isArray(profile?.end) && profile.end.length) { RTSReplayAnimation.runEndSequence(profile.end, () => RTSReplayVideo.player.classList.remove('show')); return; }
