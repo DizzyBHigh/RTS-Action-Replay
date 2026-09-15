@@ -6,6 +6,8 @@ public class CPHInline
 {
     private const string DataKey = "rts.actionreplay.data";
     private const string MaxRecentKey = "rts.actionreplay.maxHistory";
+    private const string YouTubeBroadcastIdKey = "rts.actionreplay.youtube.broadcastId";
+    private const string YouTubeStartTimeKey = "rts.actionreplay.youtube.actualStartTime";
     private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
     private const string AnimationAction = "RTS - Action Replay - Core - Animation";
 
@@ -34,8 +36,11 @@ public class CPHInline
         if (string.IsNullOrWhiteSpace(videoId)) videoId = GetGlobalString("broadcast.id");
         if (string.IsNullOrWhiteSpace(videoId)) { CPH.SendMessage("I couldn't determine the current YouTube stream."); return false; }
 
-        var startTime = GetGlobalLong("streamTimeSeconds");
-        if (startTime < 0) { CPH.SendMessage("I couldn't determine the current YouTube timestamp."); return false; }
+        if (!TryGetStartTime(videoId, out var startTime))
+        {
+            CPH.SendMessage("I couldn't determine when the current YouTube stream started.");
+            return false;
+        }
 
         var data = Load();
         var catalog = (JArray)(data["catalog"] ?? new JArray());
@@ -58,6 +63,22 @@ public class CPHInline
         catalog.Insert(0, item); data["catalog"] = catalog; AddRecent(data, id); Save(data);
         CPH.LogInfo($"RTS Action Replay: added YouTube timestamp replay {id} ({startTime}s + {duration}s) title='{title}'.");
         return Broadcast(item);
+    }
+
+    private bool TryGetStartTime(string videoId, out long startTime)
+    {
+        startTime = 0;
+        var storedId = GetGlobalString(YouTubeBroadcastIdKey);
+        var storedIso = GetGlobalString(YouTubeStartTimeKey);
+        if (!string.Equals(storedId, videoId, StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(storedIso))
+            return false;
+        if (!DateTimeOffset.TryParse(storedIso, null, System.Globalization.DateTimeStyles.RoundtripKind, out var actualStart))
+            return false;
+
+        var elapsed = DateTimeOffset.UtcNow - actualStart.ToUniversalTime();
+        if (elapsed.TotalSeconds < 0) return false;
+        startTime = (long)Math.Floor(elapsed.TotalSeconds);
+        return true;
     }
 
     private bool Broadcast(JObject item)
@@ -89,8 +110,7 @@ public class CPHInline
 
     private void Save(JObject data) { data["version"] = 2; data["catalog"] = data["catalog"] as JArray ?? new JArray(); data["recentIds"] = data["recentIds"] as JArray ?? new JArray(); CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true); CPH.SetGlobalVar("rts.actionreplay.recentIds", ((JArray)data["recentIds"]).ToString(Newtonsoft.Json.Formatting.None), true); }
     private int GetSettingInt(string key, int fallback) { try { return CPH.GetGlobalVar<int?>(key, true) ?? fallback; } catch { return fallback; } }
-    private string GetGlobalString(string key) { try { return CPH.GetGlobalVar<string>(key, false) ?? ""; } catch { return ""; } }
-    private long GetGlobalLong(string key) { try { return CPH.GetGlobalVar<long?>(key, false) ?? 0L; } catch { return 0L; } }
+    private string GetGlobalString(string key) { try { return CPH.GetGlobalVar<string>(key, true) ?? ""; } catch { return ""; } }
     private string NormalizePlatform(string userType) => string.Equals(userType, "YouTube", StringComparison.OrdinalIgnoreCase) ? "YouTube" : string.Equals(userType, "Kick", StringComparison.OrdinalIgnoreCase) ? "Kick" : "Twitch";
     private string Arg(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
 }
