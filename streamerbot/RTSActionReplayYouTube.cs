@@ -21,7 +21,7 @@ public class CPHInline
             var parts = rawInput.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length < 1 || !int.TryParse(parts[0], out var requested))
             {
-                CPH.SendMessage("Usage: !Create-clip [5-60] [title]");
+                CPH.SendMessage("Usage: !create-clip [5-60] [title]");
                 return false;
             }
 
@@ -30,8 +30,8 @@ public class CPHInline
                 title = string.Join(" ", parts.Skip(1));
         }
 
-        var videoId = Arg("broadcastId").Trim();
-        if (string.IsNullOrWhiteSpace(videoId)) videoId = GetGlobalString("broadcastId");
+        var videoId = Arg("broadcast.id").Trim();
+        if (string.IsNullOrWhiteSpace(videoId)) videoId = GetGlobalString("broadcast.id");
         if (string.IsNullOrWhiteSpace(videoId)) { CPH.SendMessage("I couldn't determine the current YouTube stream."); return false; }
 
         var startTime = GetGlobalLong("streamTimeSeconds");
