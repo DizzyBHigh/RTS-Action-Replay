@@ -23,6 +23,14 @@ const stopYouTubeBoundaryTimer = () => {
   youtubeBoundaryTimer = null;
 };
 
+const updateYouTubeControls = command => {
+  if (!youtubePlayer || !command) return;
+  const start = Number(command.replayStartTime || 0);
+  const duration = Number(command.replayDuration || 0);
+  const current = Number(youtubePlayer.getCurrentTime?.() || 0);
+  RTSReplayControls.updateYouTubeControls?.(Math.max(0, current - start), duration);
+};
+
 const notifyEndedOnce = command => {
   if (youtubeEndedNotified) return;
   youtubeEndedNotified = true;
@@ -33,6 +41,7 @@ const startYouTubeBoundaryTimer = command => {
   stopYouTubeBoundaryTimer();
   youtubeBoundaryTimer = setInterval(() => {
     if (!youtubePlayer || !command) return;
+    updateYouTubeControls(command);
     const current = Number(youtubePlayer.getCurrentTime?.() || 0);
     const end = Number(command.replayStartTime || 0) + Number(command.replayDuration || 0);
     if (end > 0 && current >= end - 0.05) {
@@ -65,6 +74,7 @@ const loadYouTubePlayer = async command => {
           event.target.seekTo(start, true);
           const speed = Number(command.replayPlaybackSpeed) || 1;
           event.target.setPlaybackRate(speed);
+          updateYouTubeControls(command);
           if (command.replayAutoplay) {
             event.target.playVideo();
             startYouTubeBoundaryTimer(command);
@@ -74,7 +84,7 @@ const loadYouTubePlayer = async command => {
         },
         onStateChange: event => {
           if (event.data === YT.PlayerState.PLAYING) startYouTubeBoundaryTimer(command);
-          if (event.data === YT.PlayerState.ENDED) { stopYouTubeBoundaryTimer(); notifyEndedOnce(command); }
+          if (event.data === YT.PlayerState.ENDED) { stopYouTubeBoundaryTimer(); updateYouTubeControls(command); notifyEndedOnce(command); }
         },
         onError: event => replayDevLog('YouTube player error', { replayId: command.replayId, error: event.data })
       }
@@ -84,6 +94,7 @@ const loadYouTubePlayer = async command => {
   if (youtubePlayer?.loadVideoById) {
     youtubePlayer.loadVideoById({ videoId, startSeconds: Number(command.replayStartTime || 0) });
     youtubePlayer.setPlaybackRate(Number(command.replayPlaybackSpeed) || 1);
+    updateYouTubeControls(command);
     if (command.replayAutoplay) { youtubePlayer.playVideo(); startYouTubeBoundaryTimer(command); }
   } else create();
 };
