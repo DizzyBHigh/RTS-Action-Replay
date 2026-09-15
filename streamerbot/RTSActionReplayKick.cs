@@ -84,9 +84,9 @@ public class CPHInline
         };
         CPH.SetGlobalVar(PendingKey, pending.ToString(Newtonsoft.Json.Formatting.None), false);
 
-        var sent = CPH.SendKickMessage("!clip " + duration, true, true);
-        CPH.LogInfo($"RTS Action Replay: KickBot clip requested; duration={duration}; title={title}; sent={sent}.");
-        return sent;
+        CPH.SendKickMessage("!clip " + duration, true, true);
+        CPH.LogInfo($"RTS Action Replay: KickBot clip requested; duration={duration}; title={title}.");
+        return true;
     }
 
     private int ParseDuration(string message)
