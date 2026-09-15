@@ -7,6 +7,7 @@ let youtubeReady = false;
 let youtubeReadyWaiters = [];
 let youtubeBoundaryTimer = null;
 let youtubeEndedNotified = false;
+let hlsPlayer = null;
 
 window.onYouTubeIframeAPIReady = () => {
   youtubeReady = true;
@@ -53,6 +54,42 @@ const startYouTubeBoundaryTimer = command => {
   }, 100);
 };
 
+const destroyHls = () => {
+  if (hlsPlayer) hlsPlayer.destroy();
+  hlsPlayer = null;
+};
+
+const isHlsUrl = url => /\.m3u8(?:\?|$)/i.test(url || '');
+
+const loadHlsReplay = (url, command) => {
+  destroyHls();
+  if (window.Hls?.isSupported?.()) {
+    hlsPlayer = new Hls({ enableWorker: true });
+    hlsPlayer.loadSource(url);
+    hlsPlayer.attachMedia(RTSReplayVideo.video);
+    hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => {
+      replayDevLog('Kick HLS manifest loaded', { replayId: command.replayId });
+      if (command.replayAutoplay) RTSReplayVideo.playReplay(command);
+    });
+    hlsPlayer.on(Hls.Events.ERROR, (_, data) => replayDevLog('Kick HLS playback error', data));
+    return;
+  }
+  if (RTSReplayVideo.video.canPlayType('application/vnd.apple.mpegurl')) {
+    RTSReplayVideo.video.src = url;
+    RTSReplayVideo.video.load();
+    if (command.replayAutoplay) RTSReplayVideo.video.addEventListener('canplay', () => RTSReplayVideo.playReplay(command), { once: true });
+    return;
+  }
+  replayDevLog('Kick HLS playback unsupported by browser', { replayId: command.replayId });
+};
+
+const loadNativeReplay = (url, command) => {
+  destroyHls();
+  RTSReplayVideo.video.src = url;
+  RTSReplayVideo.video.load();
+  if (command.replayAutoplay) RTSReplayVideo.video.addEventListener('canplay', () => RTSReplayVideo.playReplay(command), { once: true });
+};
+
 const loadYouTubePlayer = async command => {
   await waitForYouTube();
   const videoId = command.replaySourceId;
@@ -75,10 +112,7 @@ const loadYouTubePlayer = async command => {
           const speed = Number(command.replayPlaybackSpeed) || 1;
           event.target.setPlaybackRate(speed);
           updateYouTubeControls(command);
-          if (command.replayAutoplay) {
-            event.target.playVideo();
-            startYouTubeBoundaryTimer(command);
-          }
+          if (command.replayAutoplay) { event.target.playVideo(); startYouTubeBoundaryTimer(command); }
           replayDevLog('YouTube player ready', { replayId: command.replayId, videoId, startTime: start, duration: command.replayDuration });
           RTSReplayVideo.confirmPlayback(command.replayId, command.replayUserId, command.replayUserName);
         },
@@ -134,6 +168,7 @@ RTSReplayVideo.loadReplay = command => {
   const endPosition = startSequence.length ? RTSReplayAnimation.getPosition(startSequence[startSequence.length - 1].position) : RTSReplayVideo.getPosition(endName);
 
   if (isYouTube) {
+    destroyHls();
     RTSReplayVideo.video.style.display = 'none';
     RTSReplayVideo.visiblePosition = endPosition;
     RTSReplayVideo.player.classList.add('show');
@@ -145,15 +180,13 @@ RTSReplayVideo.loadReplay = command => {
   const host = document.getElementById('youtube-player-host');
   host?.classList.remove('show');
   host?.setAttribute('aria-hidden', 'true');
-  RTSReplayVideo.video.src = command.replayUrl;
   RTSReplayVideo.video.style.display = 'block';
   RTSReplayVideo.visiblePosition = endPosition;
   const alreadyVisible = RTSReplayVideo.player.classList.contains('show');
-  RTSReplayVideo.video.load();
   if (alreadyVisible) { RTSReplayAnimation.cancelSequence(); RTSReplayVideo.applyPosition(endPosition, true); RTSReplayVideo.activePosition = endPosition; }
   else if (startSequence.length) { RTSReplayAnimation.runSequence(startSequence); RTSReplayVideo.player.classList.add('show'); }
   else RTSReplayVideo.animateIn(startPosition, endPosition);
-  if (command.replayAutoplay) RTSReplayVideo.video.addEventListener('canplay', () => RTSReplayVideo.playReplay(command), { once: true });
+  if (isHlsUrl(command.replayUrl)) loadHlsReplay(command.replayUrl, command); else loadNativeReplay(command.replayUrl, command);
 };
 
 RTSReplayVideo.testTitle = command => {
@@ -182,10 +215,7 @@ RTSReplayVideo.hideReplay = () => {
   if (command.replaySource?.toLowerCase() === 'youtube') youtubePlayer?.pauseVideo?.(); else RTSReplayVideo.video.pause();
   RTSReplayVideo.visiblePosition = RTSReplayVideo.activePosition;
   const profile = RTSReplayAnimation.readProfile(command);
-  if (Array.isArray(profile?.end) && profile.end.length) {
-    RTSReplayAnimation.runEndSequence(profile.end, () => RTSReplayVideo.player.classList.remove('show'));
-    return;
-  }
+  if (Array.isArray(profile?.end) && profile.end.length) { RTSReplayAnimation.runEndSequence(profile.end, () => RTSReplayVideo.player.classList.remove('show')); return; }
   RTSReplayVideo.animateOut();
 };
 
