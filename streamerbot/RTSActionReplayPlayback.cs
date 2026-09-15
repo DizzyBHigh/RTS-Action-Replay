@@ -131,7 +131,43 @@ public class CPHInline
 
         var directMp4 = "https://clips.kickbotcdn.com/kickbot-hls/" + clipId + "/" + clipId + ".mp4";
         CPH.LogInfo($"RTS Action Replay TRACE: KickBot media candidate generated; clipId={clipId}; url={directMp4}.");
+        if (!WaitForKickBotMedia(directMp4, clipId)) return null;
         return directMp4;
+    }
+
+    private bool WaitForKickBotMedia(string url, string clipId)
+    {
+        for (var attempt = 1; attempt <= 15; attempt++)
+        {
+            try
+            {
+                var request = (HttpWebRequest)WebRequest.Create(url);
+                request.Method = "GET";
+                request.AddRange(0, 0);
+                request.Timeout = 5000;
+                request.ReadWriteTimeout = 5000;
+                request.UserAgent = "RTS-Action-Replay";
+                using (var response = (HttpWebResponse)request.GetResponse())
+                using (var stream = response.GetResponseStream())
+                {
+                    var status = (int)response.StatusCode;
+                    var contentType = response.ContentType ?? "";
+                    if (status >= 200 && status < 300 && !contentType.StartsWith("text/", StringComparison.OrdinalIgnoreCase))
+                    {
+                        CPH.LogInfo($"RTS Action Replay TRACE: KickBot media ready; clipId={clipId}; attempt={attempt}; status={status}; contentType={contentType}.");
+                        return true;
+                    }
+                    CPH.LogInfo($"RTS Action Replay TRACE: KickBot media not ready; clipId={clipId}; attempt={attempt}; status={status}; contentType={contentType}.");
+                }
+            }
+            catch (WebException ex)
+            {
+                CPH.LogInfo($"RTS Action Replay TRACE: KickBot media not ready; clipId={clipId}; attempt={attempt}; error={ex.Message}.");
+            }
+            if (attempt < 15) CPH.Wait(2000);
+        }
+        CPH.LogWarn($"RTS Action Replay TRACE: KickBot media did not become ready within 30 seconds; clipId={clipId}.");
+        return false;
     }
 
     private string ExtractKickClipId(string value)
