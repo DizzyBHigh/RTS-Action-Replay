@@ -13,6 +13,8 @@ public class CPHInline
     private const string TwitchFolderKey = "rts.actionreplay.twitch.folder";
     private const string TwitchMappingKey = "rts.actionreplay.twitch.httpMapping";
     private const string TwitchModeKey = "rts.actionreplay.twitch.playbackMode";
+    private const string KickFolderKey = "rts.actionreplay.kick.folder";
+    private const string KickMappingKey = "rts.actionreplay.kick.httpMapping";
     private const string AnimationAction = "RTS - Action Replay - Core - Animation";
     private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
@@ -99,11 +101,21 @@ public class CPHInline
             var id = (string)replay["sourceId"];
             return string.IsNullOrWhiteSpace(id) ? null : "https://www.youtube.com/embed/" + CPH.UrlEncode(id);
         }
+        if (string.Equals(source, "Kick", StringComparison.OrdinalIgnoreCase)) return ResolveKickUrl(replay);
         var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true); var mapping = CPH.GetGlobalVar<string>("rts.actionreplay.httpMapping", true) ?? "replays"; var port = CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474;
         var file = (string)replay["file"]; var path = Path.Combine(folder ?? "", file ?? "");
         CPH.LogInfo($"RTS Action Replay TRACE: ResolveReplayUrl OBS; folder={folder ?? "<null>"}; file={file ?? "<null>"}; path={path}; exists={File.Exists(path)}; mapping={mapping}; port={port}.");
         if (!File.Exists(path)) return null;
         return "http://localhost:" + port + "/" + mapping.Trim('/') + "/" + CPH.UrlEncode(file ?? "");
+    }
+
+    private string ResolveKickUrl(JObject replay)
+    {
+        var folder = CPH.GetGlobalVar<string>(KickFolderKey, true); var file = (string)replay["file"]; var path = (string)replay["filePath"];
+        if (string.IsNullOrWhiteSpace(path)) path = Path.IsPathRooted(file ?? "") ? file : Path.Combine(folder ?? "", file ?? "");
+        if (!File.Exists(path)) return null;
+        var mapping = CPH.GetGlobalVar<string>(KickMappingKey, true) ?? "kick"; var port = CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474;
+        return "http://localhost:" + port + "/" + mapping.Trim('/') + "/" + CPH.UrlEncode(Path.GetFileName(path));
     }
 
     private string ResolveTwitchUrl(JObject replay)
