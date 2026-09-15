@@ -1,4 +1,6 @@
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
@@ -9,6 +11,9 @@ public class CPHInline
     private const string DataKey = "rts.actionreplay.data";
     private const string MaxRecentKey = "rts.actionreplay.maxHistory";
     private const string PendingKey = "rts.actionreplay.kick.pending";
+    private const string KickFolderKey = "rts.actionreplay.kick.folder";
+    private const string KickMappingKey = "rts.actionreplay.kick.httpMapping";
+    private const string KickModeKey = "rts.actionreplay.kick.playbackMode";
     private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
     private const string AnimationAction = "RTS - Action Replay - Core - Animation";
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
@@ -176,7 +181,8 @@ public class CPHInline
 
     private string ExtractKickClipId(string value)
     {
-        var match = Regex.Match(value ?? "", @"/clips/(clip_[A-Za-z0-9_-]+)", RegexOptions.IgnoreCase); return match.Success ? match.Groups[1].Value : null;
+        var match = Regex.Match(value ?? "", @"^clip_[A-Za-z0-9_-]+$", RegexOptions.IgnoreCase); if (match.Success) return match.Value;
+        match = Regex.Match(value ?? "", @"/clips?/(clip_[A-Za-z0-9_-]+)", RegexOptions.IgnoreCase); return match.Success ? match.Groups[1].Value : null;
     }
 
     private string DownloadString(string url)
