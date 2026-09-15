@@ -137,7 +137,7 @@ public class CPHInline
 
     private bool WaitForKickBotMedia(string url, string clipId)
     {
-        for (var attempt = 1; attempt <= 15; attempt++)
+        for (var attempt = 1; attempt <= 40; attempt++)
         {
             try
             {
@@ -164,9 +164,9 @@ public class CPHInline
             {
                 CPH.LogInfo($"RTS Action Replay TRACE: KickBot media not ready; clipId={clipId}; attempt={attempt}; error={ex.Message}.");
             }
-            if (attempt < 15) CPH.Wait(2000);
+            if (attempt < 40) CPH.Wait(5000);
         }
-        CPH.LogWarn($"RTS Action Replay TRACE: KickBot media did not become ready within 30 seconds; clipId={clipId}.");
+        CPH.LogWarn($"RTS Action Replay TRACE: KickBot media did not become ready within 200 seconds; clipId={clipId}.");
         return false;
     }
 
@@ -206,7 +206,7 @@ public class CPHInline
         if (!CPH.TryGetArg("rawInput", out string input) || string.IsNullOrWhiteSpace(input)) return false;
         var parts = input.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); if (parts.Length == 0) return false;
         var duration = 1000; if (parts.Length > 1 && int.TryParse(parts[1], out var requested) && requested >= 0) duration = requested;
-        CPH.SetArgument("replayCommand", "move"); CPH.SetArgument("replayPosition", parts[0]); CPH.SetArgument("replayAnimationDuration", duration); CPH.SetArgument("replayAnimationEasing", CPH.GetGlobalVar<string>("rts.actionreplay.animation.default.easing", true) ?? "ease-in-out"); CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>("rts.actionreplay.positions", true) ?? "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}"); CPH.TriggerEvent(EventName, true); return true;
+        CPH.SetArgument("replayCommand", "move"); CPH.SetArgument("replayPosition", parts[0]); CPH.SetArgument("replayAnimationDuration", duration); CPH.SetArgument("replayAnimationEasing", CPH.GetGlobalVar<string>("rts.actionreplay.animation.default.easing", true) ?? "ease-in-out"); CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, true) ?? "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}"); CPH.TriggerEvent(EventName, true); return true;
     }
 
     public bool HidePlayer() { CPH.SetArgument("replayCommand", "hide"); CPH.TriggerEvent(EventName, true); return true; }
