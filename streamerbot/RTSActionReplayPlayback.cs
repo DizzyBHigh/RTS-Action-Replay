@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 
 public class CPHInline
@@ -13,8 +14,6 @@ public class CPHInline
     private const string TwitchFolderKey = "rts.actionreplay.twitch.folder";
     private const string TwitchMappingKey = "rts.actionreplay.twitch.httpMapping";
     private const string TwitchModeKey = "rts.actionreplay.twitch.playbackMode";
-    private const string KickFolderKey = "rts.actionreplay.kick.folder";
-    private const string KickMappingKey = "rts.actionreplay.kick.httpMapping";
     private const string AnimationAction = "RTS - Action Replay - Core - Animation";
     private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
@@ -69,12 +68,28 @@ public class CPHInline
             return CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay");
         }
 
+        var source = (string)replay["sourceType"] ?? "OBS";
         var url = ResolveReplayUrl(replay);
+        if (string.Equals(source, "Kick", StringComparison.OrdinalIgnoreCase))
+        {
+            url = ResolveKickUrl(replay);
+            if (!string.IsNullOrWhiteSpace(url))
+            {
+                replay["mediaUrl"] = url;
+                Save(data);
+                CPH.LogInfo($"RTS Action Replay TRACE: Kick MP4 resolved and catalog updated; replayId={(string)replay["id"]}; url={url}.");
+            }
+            else
+            {
+                CPH.LogWarn($"RTS Action Replay TRACE: Kick MP4 resolution failed for replay {(string)replay["id"]}.");
+                CPH.SendMessage("Unable to resolve Kick MP4 file.");
+                return false;
+            }
+        }
         CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay media resolution returned {(string.IsNullOrWhiteSpace(url) ? "<null>" : url)}.");
         if (string.IsNullOrWhiteSpace(url)) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - media URL unavailable for replay {(string)replay["id"]}; file={(string)replay["file"]}; filePath={(string)replay["filePath"]}."); CPH.SendMessage($"Replay media is unavailable: {(string)replay["title"]}"); return false; }
         CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName);
         var creator = replay["creator"] as JObject; var creatorName = (string)creator?["name"] ?? "";
-        var source = (string)replay["sourceType"] ?? "OBS";
         CPH.SetArgument("replayCommand", "load"); CPH.SetArgument("replayId", (string)replay["id"]); CPH.SetArgument("replayUrl", url); CPH.SetArgument("replayAutoplay", true);
         CPH.SetArgument("replayQueueEntryId", queueEntryId); CPH.SetArgument("replayUserId", userId ?? ""); CPH.SetArgument("replayUserName", userName ?? ""); CPH.SetArgument("replayDirector", creatorName);
         CPH.SetArgument("replayNumber", Array.IndexOf(list.ToArray(), replay) + 1); CPH.SetArgument("replayTitle", (string)replay["title"] ?? ""); CPH.SetArgument("replayPlayedCount", ((int?)replay["plays"] ?? 0) + 1);
@@ -101,7 +116,7 @@ public class CPHInline
             var id = (string)replay["sourceId"];
             return string.IsNullOrWhiteSpace(id) ? null : "https://www.youtube.com/embed/" + CPH.UrlEncode(id);
         }
-        if (string.Equals(source, "Kick", StringComparison.OrdinalIgnoreCase)) return ResolveKickUrl(replay);
+        if (string.Equals(source, "Kick", StringComparison.OrdinalIgnoreCase)) return (string)replay["mediaUrl"];
         var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true); var mapping = CPH.GetGlobalVar<string>("rts.actionreplay.httpMapping", true) ?? "replays"; var port = CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474;
         var file = (string)replay["file"]; var path = Path.Combine(folder ?? "", file ?? "");
         CPH.LogInfo($"RTS Action Replay TRACE: ResolveReplayUrl OBS; folder={folder ?? "<null>"}; file={file ?? "<null>"}; path={path}; exists={File.Exists(path)}; mapping={mapping}; port={port}.");
@@ -111,26 +126,42 @@ public class CPHInline
 
     private string ResolveKickUrl(JObject replay)
     {
-        var folder = CPH.GetGlobalVar<string>(KickFolderKey, true); var file = (string)replay["file"]; var path = (string)replay["filePath"];
-        if (string.IsNullOrWhiteSpace(path)) path = Path.IsPathRooted(file ?? "") ? file : Path.Combine(folder ?? "", file ?? "");
-        if (!File.Exists(path)) return null;
-        var mapping = CPH.GetGlobalVar<string>(KickMappingKey, true) ?? "kick"; var port = CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474;
-        return "http://localhost:" + port + "/" + mapping.Trim('/') + "/" + CPH.UrlEncode(Path.GetFileName(path));
+        var sourceUrl = (string)replay["sourceUrl"];
+        var sourceId = (string)replay["sourceId"];
+        var html = DownloadString(sourceUrl);
+        var clipId = ExtractKickClipId(sourceId);
+        if (string.IsNullOrWhiteSpace(clipId)) clipId = ExtractKickClipId(html);
+        if (!string.IsNullOrWhiteSpace(clipId))
+        {
+            var media = TryReadClipUrl(DownloadString("https://kick.com/api/v2/clips/" + clipId + "/play"));
+            if (IsMp4(media)) return media;
+        }
+        var mp4 = Regex.Match(html ?? "", @"https?://[^\"'<>\s]+\.mp4(?:\?[^\"'<>\s]*)?", RegexOptions.IgnoreCase);
+        return mp4.Success && IsMp4(mp4.Value) ? mp4.Value : null;
     }
 
-    private string ResolveTwitchUrl(JObject replay)
+    private string TryReadClipUrl(string json)
     {
-        var mode = GetTwitchPlaybackMode(); var clipId = (string)replay["sourceId"]; if (string.IsNullOrWhiteSpace(clipId)) return null;
-        if (string.Equals(mode, "Twitch URL", StringComparison.OrdinalIgnoreCase)) return GetTwitchMediaUrl(clipId);
-        var folder = CPH.GetGlobalVar<string>(TwitchFolderKey, true); var localPath = (string)replay["filePath"]; if (string.IsNullOrWhiteSpace(localPath)) localPath = (string)replay["file"];
-        if (!string.IsNullOrWhiteSpace(localPath)) { var fullPath = Path.IsPathRooted(localPath) ? localPath : Path.Combine(folder ?? "", localPath); if (File.Exists(fullPath)) return BuildTwitchHttpUrl(Path.GetFileName(fullPath)); }
-        var downloaded = DownloadTwitchClip(clipId); if (!string.IsNullOrWhiteSpace(downloaded)) { replay["file"] = Path.GetFileName(downloaded); replay["filePath"] = downloaded; return BuildTwitchHttpUrl(Path.GetFileName(downloaded)); }
-        return GetTwitchMediaUrl(clipId);
+        try { return (string)JObject.Parse(json ?? "")["clip"]?["clip_url"]; }
+        catch { return null; }
     }
 
-    private string BuildTwitchHttpUrl(string fileName) { var mapping = CPH.GetGlobalVar<string>(TwitchMappingKey, true) ?? "twitch"; var port = CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474; return "http://localhost:" + port + "/" + mapping.Trim('/') + "/" + CPH.UrlEncode(fileName ?? ""); }
-    private string GetTwitchMediaUrl(string clipId) { for (var attempt = 1; attempt <= 10; attempt++) { try { var urls = CPH.TwitchGetClipDownloadUrls(clipId); var url = urls == null ? null : urls.LandscapeDownloadUrl; if (string.IsNullOrWhiteSpace(url)) url = urls == null ? null : urls.PortraitDownloadUrl; if (!string.IsNullOrWhiteSpace(url)) return url; } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: Twitch media URL attempt " + attempt + " failed for " + clipId + ": " + ex.Message); } if (attempt < 10) CPH.Wait(2000); } return null; }
-    private string DownloadTwitchClip(string clipId) { var folder = CPH.GetGlobalVar<string>(TwitchFolderKey, true); var replayFolder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true); if (string.IsNullOrWhiteSpace(folder)) return null; if (!string.IsNullOrWhiteSpace(replayFolder) && PathsEqual(folder, replayFolder)) { CPH.LogError("RTS Action Replay: Twitch Clip Folder must be different from the OBS Replay Folder."); return null; } Directory.CreateDirectory(folder); var destination = Path.Combine(folder, "twitch-" + Sanitize(clipId) + ".mp4"); if (File.Exists(destination) && new FileInfo(destination).Length > 0) return destination; var url = GetTwitchMediaUrl(clipId); if (string.IsNullOrWhiteSpace(url)) return null; try { using (var client = new WebClient()) client.DownloadFile(url, destination + ".tmp"); if (File.Exists(destination + ".tmp") && new FileInfo(destination + ".tmp").Length > 0) { if (File.Exists(destination)) File.Delete(destination); File.Move(destination + ".tmp", destination); return destination; } } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: Twitch clip download failed for " + clipId + ": " + ex.Message); } try { if (File.Exists(destination + ".tmp")) File.Delete(destination + ".tmp"); } catch { } return null; }
+    private bool IsMp4(string url) => !string.IsNullOrWhiteSpace(url) && url.IndexOf(".mp4", StringComparison.OrdinalIgnoreCase) >= 0;
+
+    private string ExtractKickClipId(string value)
+    {
+        var match = Regex.Match(value ?? "", @"[?&]clip=(clip_[A-Za-z0-9]+)", RegexOptions.IgnoreCase);
+        if (match.Success) return match.Groups[1].Value;
+        match = Regex.Match(value ?? "", @"/clips?/(clip_[A-Za-z0-9]+)", RegexOptions.IgnoreCase);
+        return match.Success ? match.Groups[1].Value : null;
+    }
+
+    private string DownloadString(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return null;
+        try { using (var client = new WebClient()) { client.Headers[HttpRequestHeader.UserAgent] = "RTS-Action-Replay"; return client.DownloadString(url); } }
+        catch (Exception ex) { CPH.LogWarn("RTS Action Replay: Kick request failed: " + ex.Message); return null; }
+    }
 
     public bool SetPlayerPosition()
     {
