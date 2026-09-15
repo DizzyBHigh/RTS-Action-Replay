@@ -15,11 +15,19 @@ public class CPHInline
     {
         var duration = Math.Max(5, Math.Min(60, GetSettingInt("rts.actionreplay.youtube.clipDuration", 30)));
         var rawInput = Arg("rawInput").Trim();
+        var title = "YouTube Clip";
         if (!string.IsNullOrWhiteSpace(rawInput))
         {
             var parts = rawInput.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length != 1 || !int.TryParse(parts[0], out var requested)) { CPH.SendMessage("Usage: !Create-clip [5-60]"); return false; }
+            if (parts.Length < 1 || !int.TryParse(parts[0], out var requested))
+            {
+                CPH.SendMessage("Usage: !Create-clip [5-60] [title]");
+                return false;
+            }
+
             duration = Math.Max(5, Math.Min(60, requested));
+            if (parts.Length > 1)
+                title = string.Join(" ", parts.Skip(1));
         }
 
         var videoId = Arg("broadcastId").Trim();
@@ -42,13 +50,13 @@ public class CPHInline
             ["id"] = id, ["sourceType"] = "YouTube", ["sourceId"] = videoId,
             ["sourceUrl"] = "https://youtu.be/" + videoId,
             ["startTime"] = startTime, ["duration"] = duration,
-            ["title"] = "YouTube Clip", ["customTitle"] = false,
+            ["title"] = title, ["customTitle"] = title != "YouTube Clip",
             ["added"] = now.ToString("o"), ["captured"] = now.ToString("o"), ["acquisitionMethod"] = "YouTubeCommand",
             ["creator"] = new JObject { ["platform"] = creatorPlatform, ["id"] = Arg("userId"), ["name"] = Arg("userName") },
             ["plays"] = 0, ["users"] = new JObject()
         };
         catalog.Insert(0, item); data["catalog"] = catalog; AddRecent(data, id); Save(data);
-        CPH.LogInfo($"RTS Action Replay: added YouTube timestamp replay {id} ({startTime}s + {duration}s).");
+        CPH.LogInfo($"RTS Action Replay: added YouTube timestamp replay {id} ({startTime}s + {duration}s) title='{title}'.");
         return Broadcast(item);
     }
 
