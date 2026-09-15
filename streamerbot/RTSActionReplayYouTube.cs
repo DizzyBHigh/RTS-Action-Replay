@@ -13,6 +13,26 @@ public class CPHInline
 
     public bool Execute() => CreateYouTubeClip();
 
+    public bool BroadcastStarted()
+    {
+        var broadcastId = Arg("broadcast.id").Trim();
+        var startTime = Arg("broadcast.actualStartTime").Trim();
+        if (string.IsNullOrWhiteSpace(broadcastId))
+        {
+            CPH.LogWarn("RTS Action Replay: YouTube Broadcast Started event did not provide broadcast.id.");
+            return false;
+        }
+        if (!DateTimeOffset.TryParse(startTime, null, System.Globalization.DateTimeStyles.RoundtripKind, out var actualStartTime))
+        {
+            CPH.LogWarn($"RTS Action Replay: invalid YouTube broadcast.actualStartTime '{startTime}'.");
+            return false;
+        }
+        CPH.SetGlobalVar(YouTubeBroadcastIdKey, broadcastId, true);
+        CPH.SetGlobalVar(YouTubeStartTimeKey, actualStartTime.ToUniversalTime().ToString("o"), true);
+        CPH.LogInfo($"RTS Action Replay: YouTube broadcast {broadcastId} started at {actualStartTime.ToUniversalTime():o}.");
+        return true;
+    }
+
     public bool CreateYouTubeClip()
     {
         var duration = Math.Max(5, Math.Min(60, GetSettingInt("rts.actionreplay.youtube.clipDuration", 30)));
@@ -26,16 +46,13 @@ public class CPHInline
                 CPH.SendMessage("Usage: !create-clip [5-60] [title]");
                 return false;
             }
-
             duration = Math.Max(5, Math.Min(60, requested));
-            if (parts.Length > 1)
-                title = string.Join(" ", parts.Skip(1));
+            if (parts.Length > 1) title = string.Join(" ", parts.Skip(1));
         }
 
         var videoId = Arg("broadcast.id").Trim();
         if (string.IsNullOrWhiteSpace(videoId)) videoId = GetGlobalString("broadcast.id");
         if (string.IsNullOrWhiteSpace(videoId)) { CPH.SendMessage("I couldn't determine the current YouTube stream."); return false; }
-
         if (!TryGetStartTime(videoId, out var startTime))
         {
             CPH.SendMessage("I couldn't determine when the current YouTube stream started.");
@@ -47,7 +64,6 @@ public class CPHInline
         var id = "youtube-" + videoId + "-" + startTime + "-" + duration;
         var existing = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], id, StringComparison.OrdinalIgnoreCase));
         if (existing != null) return Broadcast(existing);
-
         var creatorPlatform = NormalizePlatform(Arg("userType"));
         var now = DateTime.Now;
         var item = new JObject
@@ -70,11 +86,8 @@ public class CPHInline
         startTime = 0;
         var storedId = GetGlobalString(YouTubeBroadcastIdKey);
         var storedIso = GetGlobalString(YouTubeStartTimeKey);
-        if (!string.Equals(storedId, videoId, StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(storedIso))
-            return false;
-        if (!DateTimeOffset.TryParse(storedIso, null, System.Globalization.DateTimeStyles.RoundtripKind, out var actualStart))
-            return false;
-
+        if (!string.Equals(storedId, videoId, StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(storedIso)) return false;
+        if (!DateTimeOffset.TryParse(storedIso, null, System.Globalization.DateTimeStyles.RoundtripKind, out var actualStart)) return false;
         var elapsed = DateTimeOffset.UtcNow - actualStart.ToUniversalTime();
         if (elapsed.TotalSeconds < 0) return false;
         startTime = (long)Math.Floor(elapsed.TotalSeconds);
