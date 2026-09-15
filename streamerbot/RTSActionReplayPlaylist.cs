@@ -11,10 +11,13 @@ public class CPHInline
     private const string DataKey = "rts.actionreplay.data";
     private const string PlaybackCode = "RTS - Action Replay - Core - Playback";
     private const string AnimationAction = "RTS - Action Replay - Core - Animation";
+    private const string TitleAction = "RTS - Action Replay - Core - Title";
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
     private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
     private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
     private const string PlaybackProfileHandoffKey = "rts.actionreplay.handoff.playbackProfile";
+    private const string ResolvedTitleProfileHandoffKey = "rts.actionreplay.handoff.resolvedTitleProfile";
+    private const string PlaybackTitleProfileHandoffKey = "rts.actionreplay.handoff.playbackTitleProfile";
     private const string PlaybackQueueEntryHandoffKey = "rts.actionreplay.handoff.playbackQueueEntryId";
 
     public bool Execute() => View();
@@ -26,13 +29,15 @@ public class CPHInline
         if (string.IsNullOrWhiteSpace(replayId)) { CPH.LogWarn("RTS Action Replay TRACE: EnqueueCurrentReplay failed - replayId argument/handoff missing or empty."); return false; }
         CPH.LogInfo($"RTS Action Replay TRACE: EnqueueCurrentReplay replayId={replayId}.");
         var replay = FindReplay(Catalog(Load()), replayId);
-        if (replay == null) { CPH.LogWarn($"RTS Action Replay TRACE: EnqueueCurrentReplay failed - replay {replayId} not found in catalog."); ClearHandoff(ReplayIdHandoffKey, ResolvedProfileHandoffKey); return false; }
+        if (replay == null) { CPH.LogWarn($"RTS Action Replay TRACE: EnqueueCurrentReplay failed - replay {replayId} not found in catalog."); ClearHandoff(ReplayIdHandoffKey, ResolvedProfileHandoffKey, ResolvedTitleProfileHandoffKey); return false; }
         CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName);
         var creator = replay["creator"] as JObject; var requester = string.IsNullOrWhiteSpace(userName) ? (string)creator?["name"] ?? "" : userName;
-        var profile = ResolveRequestedProfile(); CPH.LogInfo($"RTS Action Replay TRACE: EnqueueCurrentReplay resolved profile={profile ?? "<null>"}.");
+        var profile = ResolveRequestedProfile();
+        var titleProfile = ResolveRequestedTitleProfile(replay);
+        CPH.LogInfo($"RTS Action Replay TRACE: EnqueueCurrentReplay resolved animationProfile={profile ?? "<null>"}; titleProfile={titleProfile ?? "<null>"}.");
         var queue = LoadQueue();
-        queue.Add(new JObject { ["entryId"] = Guid.NewGuid().ToString("N"), ["replayId"] = replayId, ["title"] = (string)replay["title"] ?? "Replay", ["requesterId"] = userId ?? "", ["requesterName"] = requester, ["animationProfileId"] = profile, ["queued"] = DateTime.Now.ToString("o") });
-        SaveQueue(queue); ClearHandoff(ReplayIdHandoffKey, ResolvedProfileHandoffKey);
+        queue.Add(new JObject { ["entryId"] = Guid.NewGuid().ToString("N"), ["replayId"] = replayId, ["title"] = (string)replay["title"] ?? "Replay", ["requesterId"] = userId ?? "", ["requesterName"] = requester, ["animationProfileId"] = profile, ["titleProfileId"] = titleProfile, ["queued"] = DateTime.Now.ToString("o") });
+        SaveQueue(queue); ClearHandoff(ReplayIdHandoffKey, ResolvedProfileHandoffKey, ResolvedTitleProfileHandoffKey);
         CPH.LogInfo($"RTS Action Replay TRACE: EnqueueCurrentReplay queued replay {replayId}; queueCount={queue.Count}; paused={IsPaused()}; active={ActiveId() ?? "<none>"}.");
         if (!IsPaused() && ActiveId() == null) { var started = PlayNext(queue); CPH.LogInfo($"RTS Action Replay TRACE: EnqueueCurrentReplay PlayNext returned {started}."); return started; }
         return true;
@@ -95,7 +100,8 @@ public class CPHInline
     {
         CPH.SetGlobalVar(PausedKey, false, false); var queue = LoadQueue();
         if (ActiveId() != null || queue.Count == 0) return true;
-        queue[0]["animationProfileId"] = ResolvePlaylistProfile(); SaveQueue(queue); return PlayNext(queue);
+        queue[0]["animationProfileId"] = ResolvePlaylistProfile();
+        queue[0]["titleProfileId"] = ResolvePlaylistTitleProfile(); SaveQueue(queue); return PlayNext(queue);
     }
 
     public bool PlaybackEnded()
@@ -150,13 +156,15 @@ public class CPHInline
         for (var i = 0; i < catalog.Count; i++) { var replay = catalog[i] as JObject; if (replay != null && string.Equals((string)replay["id"], (string)item["replayId"], StringComparison.OrdinalIgnoreCase)) { index = i; break; } }
         if (index < 0) { CPH.LogWarn($"RTS Action Replay TRACE: PlayNext failed - replay {(string)item["replayId"]} not found in catalog."); return false; }
         var profile = (string)item["animationProfileId"]; if (string.IsNullOrWhiteSpace(profile)) profile = ResolvePlaylistProfile();
+        var titleProfile = (string)item["titleProfileId"]; if (string.IsNullOrWhiteSpace(titleProfile)) titleProfile = ResolvePlaylistTitleProfile();
         CPH.SetGlobalVar(ReplayIdHandoffKey, (string)item["replayId"] ?? "", false);
         CPH.SetGlobalVar(PlaybackQueueEntryHandoffKey, (string)item["entryId"] ?? "", false);
         CPH.SetGlobalVar(PlaybackProfileHandoffKey, profile, false);
-        CPH.SetArgument("rawInput", (index + 1).ToString()); CPH.SetArgument("replayQueueEntryId", (string)item["entryId"]); CPH.SetArgument("replayAnimationProfileId", profile);
-        CPH.LogInfo($"RTS Action Replay TRACE: PlayNext calling Playback; catalogIndex={index + 1}; entryId={(string)item["entryId"]}; profile={profile ?? "<null>"}.");
+        CPH.SetGlobalVar(PlaybackTitleProfileHandoffKey, titleProfile, false);
+        CPH.SetArgument("rawInput", (index + 1).ToString()); CPH.SetArgument("replayQueueEntryId", (string)item["entryId"]); CPH.SetArgument("replayAnimationProfileId", profile); CPH.SetArgument("replayTitleProfileId", titleProfile);
+        CPH.LogInfo($"RTS Action Replay TRACE: PlayNext calling Playback; catalogIndex={index + 1}; entryId={(string)item["entryId"]}; animationProfile={profile ?? "<null>"}; titleProfile={titleProfile ?? "<null>"}.");
         var started = CPH.ExecuteMethod(PlaybackCode, "PlayReplay");
-        CPH.UnsetGlobalVar(ReplayIdHandoffKey, false); CPH.UnsetGlobalVar(PlaybackQueueEntryHandoffKey, false); CPH.UnsetGlobalVar(PlaybackProfileHandoffKey, false);
+        CPH.UnsetGlobalVar(ReplayIdHandoffKey, false); CPH.UnsetGlobalVar(PlaybackQueueEntryHandoffKey, false); CPH.UnsetGlobalVar(PlaybackProfileHandoffKey, false); CPH.UnsetGlobalVar(PlaybackTitleProfileHandoffKey, false);
         CPH.LogInfo($"RTS Action Replay TRACE: Playback PlayReplay returned {started}.");
         if (started) CPH.SetGlobalVar(ActiveKey, (string)item["entryId"], false); return started;
     }
@@ -168,11 +176,43 @@ public class CPHInline
         return ResolvePlaylistProfile();
     }
 
+    private string ResolveRequestedTitleProfile(JObject replay)
+    {
+        if (CPH.TryGetArg("replayTitleProfileId", out string requested) && !string.IsNullOrWhiteSpace(requested)) return requested.Trim();
+        var resolved = CPH.GetGlobalVar<string>(ResolvedTitleProfileHandoffKey, false); if (!string.IsNullOrWhiteSpace(resolved)) return resolved.Trim();
+        var entryPoint = CPH.TryGetArg("replayTitleEntryPoint", out string requestedEntry) && !string.IsNullOrWhiteSpace(requestedEntry) ? requestedEntry.Trim() : SourceEntryPoint((string)replay["sourceType"]);
+        if (!string.IsNullOrWhiteSpace(entryPoint)) return ResolveTitleEntryPoint(entryPoint);
+        return "default";
+    }
+
+    private string ResolveTitleEntryPoint(string entryPoint)
+    {
+        CPH.SetArgument("titleEntryPoint", entryPoint); CPH.UnsetGlobalVar(ResolvedTitleProfileHandoffKey, false);
+        if (CPH.ExecuteMethod(TitleAction, "ResolveEntryPointProfile")) { var profile = CPH.GetGlobalVar<string>(ResolvedTitleProfileHandoffKey, false); CPH.UnsetGlobalVar(ResolvedTitleProfileHandoffKey, false); if (!string.IsNullOrWhiteSpace(profile)) return profile.Trim(); }
+        return "default";
+    }
+
     private string ResolvePlaylistProfile()
     {
         CPH.SetGlobalVar(EntryPointHandoffKey, "playlist", false); CPH.UnsetGlobalVar(ResolvedProfileHandoffKey, false);
         if (CPH.ExecuteMethod(AnimationAction, "ResolveEntryPointProfile")) { var profile = CPH.GetGlobalVar<string>(ResolvedProfileHandoffKey, false); CPH.UnsetGlobalVar(ResolvedProfileHandoffKey, false); if (!string.IsNullOrWhiteSpace(profile)) return profile.Trim(); }
         return "default";
+    }
+
+    private string ResolvePlaylistTitleProfile()
+    {
+        CPH.SetArgument("titleEntryPoint", "playlist"); CPH.UnsetGlobalVar(ResolvedTitleProfileHandoffKey, false);
+        if (CPH.ExecuteMethod(TitleAction, "ResolveEntryPointProfile")) { var profile = CPH.GetGlobalVar<string>(ResolvedTitleProfileHandoffKey, false); CPH.UnsetGlobalVar(ResolvedTitleProfileHandoffKey, false); if (!string.IsNullOrWhiteSpace(profile)) return profile.Trim(); }
+        return "default";
+    }
+
+    private string SourceEntryPoint(string source)
+    {
+        if (string.Equals(source, "Kick", StringComparison.OrdinalIgnoreCase)) return "kick";
+        if (string.Equals(source, "YouTube", StringComparison.OrdinalIgnoreCase)) return "youtube";
+        if (string.Equals(source, "Twitch", StringComparison.OrdinalIgnoreCase)) return "twitch";
+        if (string.Equals(source, "OBS", StringComparison.OrdinalIgnoreCase)) return "obs";
+        return "catalog";
     }
 
     private void SendPlaylistMessage(string text)
