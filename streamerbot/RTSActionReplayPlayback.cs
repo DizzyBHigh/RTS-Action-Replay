@@ -136,8 +136,8 @@ public class CPHInline
             var media = TryReadClipUrl(DownloadString("https://kick.com/api/v2/clips/" + clipId + "/play"));
             if (IsMp4(media)) return media;
         }
-        var mp4 = Regex.Match(html ?? "", @"https?://[^\"'<>\s]+\.mp4(?:\?[^\"'<>\s]*)?", RegexOptions.IgnoreCase);
-        return mp4.Success && IsMp4(mp4.Value) ? mp4.Value : null;
+        var mp4 = Regex.Match(html ?? "", "https?://[^\\s]+\\.mp4", RegexOptions.IgnoreCase);
+        return mp4.Success ? mp4.Value.TrimEnd('"', '\'', '>', '<') : null;
     }
 
     private string TryReadClipUrl(string json)
