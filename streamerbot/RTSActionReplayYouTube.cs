@@ -39,7 +39,7 @@ public class CPHInline
             var parts = rawInput.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length < 1 || !int.TryParse(parts[0], out var requested))
             {
-                CPH.SendMessage("Usage: !create-clip [5-60] [title]");
+                SendOriginMessage("Usage: !create-clip [5-60] [title]");
                 return false;
             }
             duration = Math.Max(5, Math.Min(60, requested));
@@ -48,10 +48,10 @@ public class CPHInline
 
         var videoId = Arg("broadcast.id").Trim();
         if (string.IsNullOrWhiteSpace(videoId)) videoId = GetGlobalString("broadcast.id");
-        if (string.IsNullOrWhiteSpace(videoId)) { CPH.SendMessage("I couldn't determine the current YouTube stream."); return false; }
+        if (string.IsNullOrWhiteSpace(videoId)) { SendOriginMessage("I couldn't determine the current YouTube stream."); return false; }
         if (!TryGetStartTime(videoId, out var startTime))
         {
-            CPH.SendMessage("I couldn't determine when the current YouTube stream started.");
+            SendOriginMessage("I couldn't determine when the current YouTube stream started.");
             return false;
         }
 
@@ -122,4 +122,20 @@ public class CPHInline
     private long GetGlobalLong(string key) { try { return CPH.GetGlobalVar<long?>(key, true) ?? 0L; } catch { return 0L; } }
     private string NormalizePlatform(string userType) => string.Equals(userType, "YouTube", StringComparison.OrdinalIgnoreCase) ? "YouTube" : string.Equals(userType, "Kick", StringComparison.OrdinalIgnoreCase) ? "Kick" : "Twitch";
     private string Arg(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
+
+    private void SendOriginMessage(string message)
+    {
+        var platform = Arg("userType");
+        if (string.Equals(platform, "Kick", StringComparison.OrdinalIgnoreCase))
+        {
+            CPH.SendKickMessage(message);
+            return;
+        }
+        if (string.Equals(platform, "YouTube", StringComparison.OrdinalIgnoreCase))
+        {
+            CPH.SendYouTubeMessageToLatestMonitored(message);
+            return;
+        }
+        CPH.SendMessage(message);
+    }
 }
