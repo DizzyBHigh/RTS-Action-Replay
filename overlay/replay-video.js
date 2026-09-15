@@ -112,6 +112,7 @@ const loadYouTubePlayer = async command => {
   const configureQueuedVideo = player => {
     if (token !== youtubeReplayToken) return;
     player.cueVideoById({ videoId, startSeconds: start, endSeconds: end });
+    replayDevLog('YouTube replay cued', { replayId: command.replayId, startTime: start, duration: command.replayDuration });
   };
 
   const create = () => {
@@ -127,38 +128,34 @@ const loadYouTubePlayer = async command => {
           RTSReplayVideo.confirmPlayback(command.replayId, command.replayUserId, command.replayUserName);
         },
         onStateChange: event => {
-          const activeCommand = RTSReplayVideo.currentCommand;
-          if (!activeCommand || activeCommand.replaySource?.toLowerCase() !== 'youtube') return;
-          const activeToken = youtubeReplayToken;
-          const activeSpeed = Number(activeCommand.replayPlaybackSpeed) || 1;
+          const activeCommand = RTSReplayVideo.currentCommand || command;
+          if (token !== youtubeReplayToken) return;
           if (event.data === YT.PlayerState.CUED) {
-            event.target.setPlaybackRate(activeSpeed);
+            event.target.setPlaybackRate(speed);
             updateYouTubeControls(activeCommand);
-            replayDevLog('YouTube replay cued', { replayId: activeCommand.replayId, startTime: activeCommand.replayStartTime, duration: activeCommand.replayDuration });
-            if (activeCommand.replayAutoplay) { event.target.playVideo(); startYouTubeBoundaryTimer(activeCommand, activeToken); }
+            if (activeCommand.replayAutoplay) { event.target.playVideo(); startYouTubeBoundaryTimer(activeCommand, token); }
           }
           if (event.data === YT.PlayerState.PLAYING) {
             replayDevLog('YouTube replay playing', { replayId: activeCommand.replayId, currentTime: Number(event.target.getCurrentTime?.() || 0) });
-            startYouTubeBoundaryTimer(activeCommand, activeToken);
+            startYouTubeBoundaryTimer(activeCommand, token);
           }
           if (event.data === YT.PlayerState.ENDED) {
             stopYouTubeBoundaryTimer();
             updateYouTubeControls(activeCommand);
             replayDevLog('YouTube replay ended', { replayId: activeCommand.replayId });
-            notifyEndedOnce(activeCommand, activeToken);
+            notifyEndedOnce(activeCommand, token);
           }
         },
         onError: event => {
-          const activeCommand = RTSReplayVideo.currentCommand;
-          if (activeCommand?.replaySource?.toLowerCase() === 'youtube') replayDevLog('YouTube player error', { replayId: activeCommand.replayId, error: event.data });
+          if (token === youtubeReplayToken) replayDevLog('YouTube player error', { replayId: command.replayId, error: event.data });
         }
       }
     });
   };
 
   if (youtubePlayer?.cueVideoById) {
-    configureQueuedVideo(youtubePlayer);
     replayDevLog('YouTube player reused', { replayId: command.replayId, videoId, startTime: start, duration: command.replayDuration });
+    configureQueuedVideo(youtubePlayer);
   } else create();
 };
 
@@ -195,13 +192,24 @@ RTSReplayVideo.loadReplay = command => {
   const endName = command.replayEndPosition || startName;
   const startPosition = startSequence.length ? RTSReplayAnimation.getPosition(startSequence[0].position) : RTSReplayVideo.getPosition(startName);
   const endPosition = startSequence.length ? RTSReplayAnimation.getPosition(startSequence[startSequence.length - 1].position) : RTSReplayVideo.getPosition(endName);
+  const alreadyVisible = RTSReplayVideo.player.classList.contains('show');
 
   if (isYouTube) {
     destroyHls();
     RTSReplayVideo.video.style.display = 'none';
     RTSReplayVideo.visiblePosition = endPosition;
     RTSReplayVideo.player.classList.add('show');
-    if (startSequence.length) RTSReplayAnimation.runSequence(startSequence); else RTSReplayVideo.applyPosition(startPosition, true);
+    if (alreadyVisible) {
+      RTSReplayAnimation.cancelSequence();
+      RTSReplayVideo.applyPosition(endPosition, true);
+      RTSReplayVideo.activePosition = endPosition;
+      replayDevLog('YouTube replay loaded while player already visible', { replayId: command.replayId, position: endPosition.name || endName });
+    } else if (startSequence.length) {
+      RTSReplayAnimation.runSequence(startSequence);
+    } else {
+      RTSReplayVideo.applyPosition(startPosition, true);
+      RTSReplayVideo.activePosition = startPosition;
+    }
     loadYouTubePlayer(command);
     return;
   }
@@ -213,7 +221,6 @@ RTSReplayVideo.loadReplay = command => {
   host?.setAttribute('aria-hidden', 'true');
   RTSReplayVideo.video.style.display = 'block';
   RTSReplayVideo.visiblePosition = endPosition;
-  const alreadyVisible = RTSReplayVideo.player.classList.contains('show');
   if (alreadyVisible) { RTSReplayAnimation.cancelSequence(); RTSReplayVideo.applyPosition(endPosition, true); RTSReplayVideo.activePosition = endPosition; }
   else if (startSequence.length) { RTSReplayAnimation.runSequence(startSequence); RTSReplayVideo.player.classList.add('show'); }
   else RTSReplayVideo.animateIn(startPosition, endPosition);
