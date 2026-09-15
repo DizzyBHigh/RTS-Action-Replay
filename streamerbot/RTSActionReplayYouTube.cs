@@ -22,10 +22,10 @@ public class CPHInline
             return false;
         }
 
-        var actualStartTime = DateTimeOffset.UtcNow;
+        var startTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         CPH.SetGlobalVar(YouTubeBroadcastIdKey, broadcastId, true);
-        CPH.SetGlobalVar(YouTubeStartTimeKey, actualStartTime.ToString("o"), true);
-        CPH.LogInfo($"RTS Action Replay: YouTube broadcast {broadcastId} started at {actualStartTime:o}.");
+        CPH.SetGlobalVar(YouTubeStartTimeKey, startTime, true);
+        CPH.LogInfo($"RTS Action Replay: YouTube broadcast {broadcastId} started at Unix timestamp {startTime}.");
         return true;
     }
 
@@ -81,13 +81,12 @@ public class CPHInline
     {
         startTime = 0;
         var storedId = GetGlobalString(YouTubeBroadcastIdKey);
-        var storedIso = GetGlobalString(YouTubeStartTimeKey);
-        if (!string.Equals(storedId, videoId, StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(storedIso)) return false;
-        if (!DateTimeOffset.TryParse(storedIso, null, System.Globalization.DateTimeStyles.RoundtripKind, out var actualStart)) return false;
-        var elapsed = DateTimeOffset.UtcNow - actualStart.ToUniversalTime();
-        if (elapsed.TotalSeconds < 0) return false;
-        startTime = (long)Math.Floor(elapsed.TotalSeconds);
-        return true;
+        var actualStart = GetGlobalLong(YouTubeStartTimeKey);
+        if (!string.Equals(storedId, videoId, StringComparison.OrdinalIgnoreCase) || actualStart <= 0) return false;
+
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        startTime = now - actualStart;
+        return startTime >= 0;
     }
 
     private bool Broadcast(JObject item)
@@ -120,6 +119,7 @@ public class CPHInline
     private void Save(JObject data) { data["version"] = 2; data["catalog"] = data["catalog"] as JArray ?? new JArray(); data["recentIds"] = data["recentIds"] as JArray ?? new JArray(); CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true); CPH.SetGlobalVar("rts.actionreplay.recentIds", ((JArray)data["recentIds"]).ToString(Newtonsoft.Json.Formatting.None), true); }
     private int GetSettingInt(string key, int fallback) { try { return CPH.GetGlobalVar<int?>(key, true) ?? fallback; } catch { return fallback; } }
     private string GetGlobalString(string key) { try { return CPH.GetGlobalVar<string>(key, true) ?? ""; } catch { return ""; } }
+    private long GetGlobalLong(string key) { try { return CPH.GetGlobalVar<long?>(key, true) ?? 0L; } catch { return 0L; } }
     private string NormalizePlatform(string userType) => string.Equals(userType, "YouTube", StringComparison.OrdinalIgnoreCase) ? "YouTube" : string.Equals(userType, "Kick", StringComparison.OrdinalIgnoreCase) ? "Kick" : "Twitch";
     private string Arg(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
 }
