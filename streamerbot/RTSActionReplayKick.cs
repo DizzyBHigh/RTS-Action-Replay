@@ -7,6 +7,7 @@ public class CPHInline
 {
     private const string DataKey = "rts.actionreplay.data";
     private const string MaxRecentKey = "rts.actionreplay.maxHistory";
+    private const string PendingKey = "rts.actionreplay.kick.pending";
     private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
     private const string AnimationAction = "RTS - Action Replay - Core - Animation";
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
@@ -20,16 +21,29 @@ public class CPHInline
         var message = Arg("text");
         if (string.IsNullOrWhiteSpace(message)) message = Arg("message");
         if (string.IsNullOrWhiteSpace(message)) message = Arg("rawInput");
+
         var kickBotUrl = ExtractKickBotUrl(message);
-        if (string.IsNullOrWhiteSpace(kickBotUrl)) return false;
+        if (string.IsNullOrWhiteSpace(kickBotUrl)) return RequestKickBotClip(message);
 
         var data = Load();
         var catalog = (JArray)data["catalog"] ?? new JArray();
         var kickBotId = ExtractKickBotId(kickBotUrl);
+        var pending = LoadPending();
+        var title = (string)pending?["title"] ?? "Kick Clip";
+        var duration = (int?)pending?["duration"] ?? 30;
+
         var existing = catalog.OfType<JObject>().FirstOrDefault(x =>
             string.Equals((string)x["sourceType"], "Kick", StringComparison.OrdinalIgnoreCase) &&
             string.Equals((string)x["sourceUrl"], kickBotUrl, StringComparison.OrdinalIgnoreCase));
-        if (existing != null) return BroadcastReplay(existing);
+        if (existing != null)
+        {
+            existing["title"] = title;
+            existing["customTitle"] = title != "Kick Clip";
+            existing["duration"] = duration;
+            ClearPending();
+            Save(data);
+            return BroadcastReplay(existing);
+        }
 
         CPH.TryGetArg("userId", out string userId);
         CPH.TryGetArg("userName", out string userName);
@@ -40,8 +54,9 @@ public class CPHInline
             ["sourceType"] = "Kick",
             ["sourceId"] = kickBotId ?? "",
             ["sourceUrl"] = kickBotUrl,
-            ["title"] = "Kick Clip",
-            ["customTitle"] = false,
+            ["title"] = title,
+            ["customTitle"] = title != "Kick Clip",
+            ["duration"] = duration,
             ["added"] = DateTime.Now.ToString("o"),
             ["captured"] = DateTime.Now.ToString("o"),
             ["acquisitionMethod"] = "KickBot",
@@ -52,9 +67,61 @@ public class CPHInline
         catalog.Insert(0, item);
         data["catalog"] = catalog;
         AddRecent(data, (string)item["id"]);
+        ClearPending();
         Save(data);
         return BroadcastReplay(item);
     }
+
+    private bool RequestKickBotClip(string message)
+    {
+        var duration = ParseDuration(message);
+        var title = ParseTitle(message);
+        var pending = new JObject
+        {
+            ["duration"] = duration,
+            ["title"] = title,
+            ["requestedAt"] = DateTime.Now.ToString("o")
+        };
+        CPH.SetGlobalVar(PendingKey, pending.ToString(Newtonsoft.Json.Formatting.None), false);
+
+        var sent = CPH.SendKickMessage("!clip " + duration, true, true);
+        CPH.LogInfo($"RTS Action Replay: KickBot clip requested; duration={duration}; title={title}; sent={sent}.");
+        return sent;
+    }
+
+    private int ParseDuration(string message)
+    {
+        var match = Regex.Match(message ?? "", @"^!create-clip(?:\s+(\d+))?", RegexOptions.IgnoreCase);
+        if (!match.Success || !int.TryParse(match.Groups[1].Value, out var duration)) return 30;
+        return Math.Max(5, Math.Min(240, duration));
+    }
+
+    private string ParseTitle(string message)
+    {
+        var match = Regex.Match(message ?? "", @"^!create-clip(?:\s+\d+)?(?:\s+(.*))?$", RegexOptions.IgnoreCase);
+        var title = match.Success ? match.Groups[1].Value.Trim() : "";
+        return string.IsNullOrWhiteSpace(title) ? "Kick Clip" : title;
+    }
+
+    private JObject LoadPending()
+    {
+        var raw = CPH.GetGlobalVar<string>(PendingKey, false);
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+        try
+        {
+            var pending = JObject.Parse(raw);
+            if (DateTime.TryParse((string)pending["requestedAt"], out var requestedAt) &&
+                DateTime.Now - requestedAt > TimeSpan.FromMinutes(5))
+            {
+                ClearPending();
+                return null;
+            }
+            return pending;
+        }
+        catch { return null; }
+    }
+
+    private void ClearPending() => CPH.UnsetGlobalVar(PendingKey, false);
 
     private bool BroadcastReplay(JObject item)
     {
