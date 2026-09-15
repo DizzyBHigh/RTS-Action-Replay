@@ -63,7 +63,7 @@ public class CPHInline
     private bool Broadcast(JObject item)
     {
         CPH.SetGlobalVar("rts.actionreplay.handoff.replayId", (string)item["id"] ?? "", false);
-        CPH.SetGlobalVar("rts.actionreplay.handoff.entryPoint", "catalog", false);
+        CPH.SetGlobalVar("rts.actionreplay.handoff.entryPoint", "youtube", false);
         CPH.UnsetGlobalVar("rts.actionreplay.handoff.resolvedProfile", false);
         if (!CPH.ExecuteMethod(AnimationAction, "ResolveEntryPointProfile")) return false;
         return CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay");
