@@ -59,7 +59,7 @@ public class CPHInline
         var entryPoint = CPH.TryGetArg("animationEntryPoint", out string requested) && !string.IsNullOrWhiteSpace(requested) ? requested.Trim() : CPH.GetGlobalVar<string>(EntryPointHandoffKey, false);
         CPH.UnsetGlobalVar(EntryPointHandoffKey, false); if (string.IsNullOrWhiteSpace(entryPoint)) return false;
         var player = ReadConfig(PlayerKey, CreatePlayerDefaults()); var profiles = NormalizeProfiles(player["animationProfiles"] as JArray); var animation = player["animation"] as JObject ?? new JObject(); var entries = animation["entryPoints"] as JObject ?? new JObject(); var profile = ResolveProfileId(profiles, (string)entries[entryPoint.ToLowerInvariant()]) ?? "default";
-        CPH.SetGlobalVar(ResolvedProfileHandoffKey, profile, false); CPH.SetArgument("replayAnimationProfileId", profile); return true;
+        CPH.SetArgument("replayTitleEntryPoint", entryPoint.ToLowerInvariant()); CPH.SetGlobalVar(ResolvedProfileHandoffKey, profile, false); CPH.SetArgument("replayAnimationProfileId", profile); return true;
     }
 
     public bool ApplyProfile()
