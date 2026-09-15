@@ -49,7 +49,7 @@ public class CPHInline
         if (!string.IsNullOrWhiteSpace(handoffQueueEntryId) && !string.IsNullOrWhiteSpace(handoffReplayId))
         {
             replay = list.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], handoffReplayId, StringComparison.OrdinalIgnoreCase));
-            if (replay == null) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - handoff replay {handoffReplayId} not found in catalog."); CPH.SendMessage("Replay not found."); return false; }
+            if (replay == null) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - handoff replay {handoffReplayId} not found in catalog."); SendMessage("Replay not found."); return false; }
         }
         else
         {
@@ -57,7 +57,7 @@ public class CPHInline
             selector = selector.Trim();
             if (int.TryParse(selector, out var index) && index > 0 && index <= list.Count) replay = (JObject)list[index - 1];
             else replay = list.OfType<JObject>().FirstOrDefault(x => ((bool?)x["customTitle"] ?? false) && string.Equals((string)x["title"], selector, StringComparison.OrdinalIgnoreCase));
-            if (replay == null) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - selector '{selector}' did not resolve to a replay."); CPH.SendMessage("Replay not found."); return false; }
+            if (replay == null) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - selector '{selector}' did not resolve to a replay."); SendMessage("Replay not found."); return false; }
         }
 
         var queueEntryId = handoffQueueEntryId;
@@ -76,11 +76,11 @@ public class CPHInline
         if (string.Equals(source, "Kick", StringComparison.OrdinalIgnoreCase))
         {
             url = ResolveKickUrl(replay);
-            if (string.IsNullOrWhiteSpace(url)) { CPH.LogWarn($"RTS Action Replay TRACE: Kick media resolution failed for replay {(string)replay["id"]}."); CPH.SendMessage("Unable to resolve Kick media file."); return false; }
+            if (string.IsNullOrWhiteSpace(url)) { CPH.LogWarn($"RTS Action Replay TRACE: Kick media resolution failed for replay {(string)replay["id"]}."); SendMessage("Unable to resolve Kick media file."); return false; }
             CPH.LogInfo($"RTS Action Replay TRACE: Kick media resolved for playback; replayId={(string)replay["id"]}; url={url}.");
         }
         CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay media resolution returned {(string.IsNullOrWhiteSpace(url) ? "<null>" : url)}.");
-        if (string.IsNullOrWhiteSpace(url)) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - media URL unavailable for replay {(string)replay["id"]}; file={(string)replay["file"]}; filePath={(string)replay["filePath"]}."); CPH.SendMessage($"Replay media is unavailable: {(string)replay["title"]}"); return false; }
+        if (string.IsNullOrWhiteSpace(url)) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - media URL unavailable for replay {(string)replay["id"]}; file={(string)replay["file"]}; filePath={(string)replay["filePath"]}."); SendMessage($"Replay media is unavailable: {(string)replay["title"]}"); return false; }
         CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName); var creator = replay["creator"] as JObject; var creatorName = (string)creator?["name"] ?? "";
         CPH.SetArgument("replayCommand", "load"); CPH.SetArgument("replayId", (string)replay["id"]); CPH.SetArgument("replayUrl", url); CPH.SetArgument("replayAutoplay", true); CPH.SetArgument("replayQueueEntryId", queueEntryId); CPH.SetArgument("replayUserId", userId ?? ""); CPH.SetArgument("replayUserName", userName ?? ""); CPH.SetArgument("replayDirector", creatorName);
         CPH.SetArgument("replayNumber", Array.IndexOf(list.ToArray(), replay) + 1); CPH.SetArgument("replayTitle", (string)replay["title"] ?? ""); CPH.SetArgument("replayPlayedCount", ((int?)replay["plays"] ?? 0) + 1); CPH.SetArgument("replaySource", source); CPH.SetArgument("replaySourceId", (string)replay["sourceId"] ?? "");
@@ -188,7 +188,7 @@ public class CPHInline
     private void SaveReplayFile(JObject replay) { try { var data = Load(); var item = GetCatalog(data).OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], (string)replay["id"], StringComparison.OrdinalIgnoreCase)); if (item == null) return; item["file"] = (string)replay["file"] ?? ""; item["filePath"] = (string)replay["filePath"] ?? ""; SaveData(data); } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: could not save Kick local file metadata: " + ex.Message); } }
 
     private string ExtractKickClipId(string value) { var match = Regex.Match(value ?? "", @"^clip_[A-Za-z0-9_-]+$", RegexOptions.IgnoreCase); if (match.Success) return match.Value; match = Regex.Match(value ?? "", @"[?&]clip=(clip_[A-Za-z0-9_-]+)", RegexOptions.IgnoreCase); if (match.Success) return match.Groups[1].Value; match = Regex.Match(value ?? "", @"/clips?/(clip_[A-Za-z0-9_-]+)", RegexOptions.IgnoreCase); return match.Success ? match.Groups[1].Value : null; }
-    private string ExtractKickBotClipId(string value) { var match = Regex.Match(value ?? "", @"(?:kickbot\.com|kickbot\.app)/clip/([A-Za-z0-9]+)", RegexOptions.IgnoreCase); return match.Success ? match.Groups[1].Value : null; }
+    private string ExtractKickBotClipId(string value) { var match = Regex.Match(value ?? "", @"(?:kickbot\\.com|kickbot\\.app)/clip/([A-Za-z0-9]+)", RegexOptions.IgnoreCase); return match.Success ? match.Groups[1].Value : null; }
     private string DownloadString(string url) { if (string.IsNullOrWhiteSpace(url)) return null; try { using (var client = new WebClient()) { client.Headers[HttpRequestHeader.UserAgent] = "RTS-Action-Replay"; return client.DownloadString(url); } } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: Kick request failed: " + ex.Message); return null; } }
 
     private string ResolveTwitchUrl(JObject replay)
@@ -210,9 +210,24 @@ public class CPHInline
     public bool ConfirmPlayback() { var replayId = Arg("replayId"); if (string.IsNullOrWhiteSpace(replayId)) return false; var data = Load(); var list = GetCatalog(data); var replay = list.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase)); if (replay == null) return false; replay["plays"] = ((int?)replay["plays"] ?? 0) + 1; SaveData(data); return true; }
     private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); if (string.IsNullOrWhiteSpace(raw)) raw = CPH.GetGlobalVar<string>(LegacyCatalogKey, true); if (string.IsNullOrWhiteSpace(raw)) return new JObject { ["version"] = 2, ["catalog"] = new JArray(), ["recentIds"] = new JArray() }; try { return JObject.Parse(raw); } catch { return new JObject { ["version"] = 2, ["catalog"] = new JArray(), ["recentIds"] = new JArray() }; } }
     private JArray GetCatalog(JObject data) => data["catalog"] as JArray ?? new JArray();
-    private string Arg(string name) { try { CPH.TryGetArg(name, out string value); return value ?? ""; } catch { return ""; } }
+    private string Arg(string name) { try { CPH.TryGetArg(name, out string value); return value ?? ""; } catch { return ""; }
+    }
     private void SaveData(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
-    private void SendMessage(string text) { if (!string.IsNullOrWhiteSpace(text)) CPH.SendMessage(text); }
+    private void SendMessage(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return;
+        var platform = Arg("requesterPlatform");
+        if (string.IsNullOrWhiteSpace(platform)) platform = Arg("userType");
+        if (string.Equals(platform, "Kick", StringComparison.OrdinalIgnoreCase)) { CPH.SendKickMessage(text); return; }
+        if (string.Equals(platform, "YouTube", StringComparison.OrdinalIgnoreCase))
+        {
+            var broadcastId = Arg("requesterBroadcastId");
+            if (!string.IsNullOrWhiteSpace(broadcastId)) { CPH.SendYouTubeMessage(text, true, true, broadcastId); return; }
+            CPH.SendYouTubeMessageToLatestMonitored(text); return;
+        }
+        if (string.Equals(platform, "Twitch", StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage(text); return; }
+        CPH.LogWarn("RTS Action Replay: unable to route playback chat response because the originating platform is unknown.");
+    }
     private bool PathsEqual(string a, string b) => string.Equals(Path.GetFullPath(a ?? "").TrimEnd(Path.DirectorySeparatorChar), Path.GetFullPath(b ?? "").TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase);
     private string Sanitize(string value) { foreach (var c in Path.GetInvalidFileNameChars()) value = value.Replace(c, '_'); return value; }
     private string GetTwitchPlaybackMode() => CPH.GetGlobalVar<string>(TwitchModeKey, true) ?? "Twitch URL";
