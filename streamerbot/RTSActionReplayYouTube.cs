@@ -22,9 +22,11 @@ public class CPHInline
             duration = Math.Max(5, Math.Min(60, requested));
         }
 
-        var videoId = Arg("broadcastId").Trim();
+        var videoId = Var("broadcastId", "").Trim();
+        if (string.IsNullOrWhiteSpace(videoId)) videoId = Arg("broadcastId").Trim();
         if (string.IsNullOrWhiteSpace(videoId)) { CPH.SendMessage("I couldn't determine the current YouTube stream."); return false; }
-        var startTime = CPH.GetGlobalVar<long?>("streamTimeSeconds", false) ?? 0;
+
+        var startTime = Var("streamTimeSeconds", 0L);
         if (startTime < 0) { CPH.SendMessage("I couldn't determine the current YouTube timestamp."); return false; }
 
         var data = Load();
@@ -53,7 +55,7 @@ public class CPHInline
     private bool Broadcast(JObject item)
     {
         CPH.SetGlobalVar("rts.actionreplay.handoff.replayId", (string)item["id"] ?? "", false);
-        CPH.SetGlobalVar("rts.actionreplay.handoff.entryPoint", "youtube", false);
+        CPH.SetGlobalVar("rts.actionreplay.handoff.entryPoint", "catalog", false);
         CPH.UnsetGlobalVar("rts.actionreplay.handoff.resolvedProfile", false);
         if (!CPH.ExecuteMethod(AnimationAction, "ResolveEntryPointProfile")) return false;
         return CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay");
@@ -79,6 +81,7 @@ public class CPHInline
 
     private void Save(JObject data) { data["version"] = 2; data["catalog"] = data["catalog"] as JArray ?? new JArray(); data["recentIds"] = data["recentIds"] as JArray ?? new JArray(); CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true); CPH.SetGlobalVar("rts.actionreplay.recentIds", ((JArray)data["recentIds"]).ToString(Newtonsoft.Json.Formatting.None), true); }
     private int GetSettingInt(string key, int fallback) { try { return CPH.GetGlobalVar<int?>(key, true) ?? fallback; } catch { return fallback; } }
+    private T Var<T>(string name, T fallback) { try { var value = CPH.GetVar<T>(name); return value == null ? fallback : value; } catch { return fallback; } }
     private string NormalizePlatform(string userType) => string.Equals(userType, "YouTube", StringComparison.OrdinalIgnoreCase) ? "YouTube" : string.Equals(userType, "Kick", StringComparison.OrdinalIgnoreCase) ? "Kick" : "Twitch";
     private string Arg(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
 }
