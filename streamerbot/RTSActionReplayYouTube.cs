@@ -22,11 +22,11 @@ public class CPHInline
             duration = Math.Max(5, Math.Min(60, requested));
         }
 
-        var videoId = Var("broadcastId", "").Trim();
-        if (string.IsNullOrWhiteSpace(videoId)) videoId = Arg("broadcastId").Trim();
+        var videoId = Arg("broadcastId").Trim();
+        if (string.IsNullOrWhiteSpace(videoId)) videoId = GetGlobalString("broadcastId");
         if (string.IsNullOrWhiteSpace(videoId)) { CPH.SendMessage("I couldn't determine the current YouTube stream."); return false; }
 
-        var startTime = Var("streamTimeSeconds", 0L);
+        var startTime = GetGlobalLong("streamTimeSeconds");
         if (startTime < 0) { CPH.SendMessage("I couldn't determine the current YouTube timestamp."); return false; }
 
         var data = Load();
@@ -81,7 +81,8 @@ public class CPHInline
 
     private void Save(JObject data) { data["version"] = 2; data["catalog"] = data["catalog"] as JArray ?? new JArray(); data["recentIds"] = data["recentIds"] as JArray ?? new JArray(); CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true); CPH.SetGlobalVar("rts.actionreplay.recentIds", ((JArray)data["recentIds"]).ToString(Newtonsoft.Json.Formatting.None), true); }
     private int GetSettingInt(string key, int fallback) { try { return CPH.GetGlobalVar<int?>(key, true) ?? fallback; } catch { return fallback; } }
-    private T Var<T>(string name, T fallback) { try { var value = CPH.GetVar<T>(name); return value == null ? fallback : value; } catch { return fallback; } }
+    private string GetGlobalString(string key) { try { return CPH.GetGlobalVar<string>(key, false) ?? ""; } catch { return ""; } }
+    private long GetGlobalLong(string key) { try { return CPH.GetGlobalVar<long?>(key, false) ?? 0L; } catch { return 0L; } }
     private string NormalizePlatform(string userType) => string.Equals(userType, "YouTube", StringComparison.OrdinalIgnoreCase) ? "YouTube" : string.Equals(userType, "Kick", StringComparison.OrdinalIgnoreCase) ? "Kick" : "Twitch";
     private string Arg(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
 }
