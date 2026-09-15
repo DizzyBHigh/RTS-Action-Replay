@@ -2,186 +2,201 @@ const RTSReplayVideo = window.RTSReplay;
 
 const replayDevLog = (message, details) => window.RTSDevToolbar?.log?.(message, details);
 
+let youtubePlayer = null;
+let youtubeReady = false;
+let youtubeReadyWaiters = [];
+let youtubeBoundaryTimer = null;
+let youtubeEndedNotified = false;
+
+window.onYouTubeIframeAPIReady = () => {
+  youtubeReady = true;
+  youtubeReadyWaiters.splice(0).forEach(resolve => resolve());
+};
+
+const waitForYouTube = () => {
+  if (youtubeReady || window.YT?.Player) return Promise.resolve();
+  return new Promise(resolve => youtubeReadyWaiters.push(resolve));
+};
+
+const stopYouTubeBoundaryTimer = () => {
+  if (youtubeBoundaryTimer) clearInterval(youtubeBoundaryTimer);
+  youtubeBoundaryTimer = null;
+};
+
+const notifyEndedOnce = command => {
+  if (youtubeEndedNotified) return;
+  youtubeEndedNotified = true;
+  RTSReplayVideo.notifyPlaybackEnded(command);
+};
+
+const startYouTubeBoundaryTimer = command => {
+  stopYouTubeBoundaryTimer();
+  youtubeBoundaryTimer = setInterval(() => {
+    if (!youtubePlayer || !command) return;
+    const current = Number(youtubePlayer.getCurrentTime?.() || 0);
+    const end = Number(command.replayStartTime || 0) + Number(command.replayDuration || 0);
+    if (end > 0 && current >= end - 0.05) {
+      stopYouTubeBoundaryTimer();
+      youtubePlayer.pauseVideo();
+      replayDevLog('YouTube replay boundary reached', { replayId: command.replayId, currentTime: current, endTime: end });
+      notifyEndedOnce(command);
+    }
+  }, 100);
+};
+
+const loadYouTubePlayer = async command => {
+  await waitForYouTube();
+  const videoId = command.replaySourceId;
+  if (!videoId) return;
+  const host = document.getElementById('youtube-player-host');
+  if (!host) return;
+  host.classList.add('show');
+  host.setAttribute('aria-hidden', 'false');
+  RTSReplayVideo.video.style.display = 'none';
+  youtubeEndedNotified = false;
+
+  const create = () => {
+    youtubePlayer = new YT.Player(host, {
+      width: '100%', height: '100%', videoId,
+      playerVars: { autoplay: 0, controls: command.replayShowControls !== false ? 1 : 0, playsinline: 1, rel: 0 },
+      events: {
+        onReady: event => {
+          const start = Number(command.replayStartTime || 0);
+          event.target.seekTo(start, true);
+          const speed = Number(command.replayPlaybackSpeed) || 1;
+          event.target.setPlaybackRate(speed);
+          if (command.replayAutoplay) {
+            event.target.playVideo();
+            startYouTubeBoundaryTimer(command);
+          }
+          replayDevLog('YouTube player ready', { replayId: command.replayId, videoId, startTime: start, duration: command.replayDuration });
+          RTSReplayVideo.confirmPlayback(command.replayId, command.replayUserId, command.replayUserName);
+        },
+        onStateChange: event => {
+          if (event.data === YT.PlayerState.PLAYING) startYouTubeBoundaryTimer(command);
+          if (event.data === YT.PlayerState.ENDED) { stopYouTubeBoundaryTimer(); notifyEndedOnce(command); }
+        },
+        onError: event => replayDevLog('YouTube player error', { replayId: command.replayId, error: event.data })
+      }
+    });
+  };
+
+  if (youtubePlayer?.loadVideoById) {
+    youtubePlayer.loadVideoById({ videoId, startSeconds: Number(command.replayStartTime || 0) });
+    youtubePlayer.setPlaybackRate(Number(command.replayPlaybackSpeed) || 1);
+    if (command.replayAutoplay) { youtubePlayer.playVideo(); startYouTubeBoundaryTimer(command); }
+  } else create();
+};
+
 RTSReplayVideo.confirmPlayback = (replayId, userId, userName) => {
   if (!replayId || !RTSReplayVideo.socket || RTSReplayVideo.socket.readyState !== WebSocket.OPEN) return;
-  RTSReplayVideo.socket.send(JSON.stringify({
-    request: 'DoAction', id: `rts-replay-confirm-${Date.now()}`,
-    action: { name: RTSReplayVideo.config.confirmAction },
-    args: { replayId, userId: userId || '', userName: userName || '' }
-  }));
+  RTSReplayVideo.socket.send(JSON.stringify({ request: 'DoAction', id: `rts-replay-confirm-${Date.now()}`, action: { name: RTSReplayVideo.config.confirmAction }, args: { replayId, userId: userId || '', userName: userName || '' } }));
 };
 
 RTSReplayVideo.notifyPlaybackEnded = command => {
-  if (!command?.replayId) {
-    replayDevLog('ended action skipped: missing replayId');
-    return;
-  }
-  if (!RTSReplayVideo.socket) {
-    replayDevLog('ended action skipped: socket unavailable');
-    return;
-  }
-  if (RTSReplayVideo.socket.readyState !== WebSocket.OPEN) {
-    replayDevLog('ended action skipped: socket not open', { readyState: RTSReplayVideo.socket.readyState });
-    return;
-  }
-  replayDevLog('sending playback ended action', {
-    action: RTSReplayVideo.config.endedAction,
-    replayId: command.replayId,
-    replayQueueEntryId: command.replayQueueEntryId || ''
-  });
-  RTSReplayVideo.socket.send(JSON.stringify({
-    request: 'DoAction', id: `rts-replay-ended-${Date.now()}`,
-    action: { name: RTSReplayVideo.config.endedAction },
-    args: { replayId: command.replayId, replayQueueEntryId: command.replayQueueEntryId || '' }
-  }));
+  if (!command?.replayId || !RTSReplayVideo.socket || RTSReplayVideo.socket.readyState !== WebSocket.OPEN) return;
+  replayDevLog('sending playback ended action', { action: RTSReplayVideo.config.endedAction, replayId: command.replayId, replayQueueEntryId: command.replayQueueEntryId || '' });
+  RTSReplayVideo.socket.send(JSON.stringify({ request: 'DoAction', id: `rts-replay-ended-${Date.now()}`, action: { name: RTSReplayVideo.config.endedAction }, args: { replayId: command.replayId, replayQueueEntryId: command.replayQueueEntryId || '' } }));
 };
 
 RTSReplayVideo.playReplay = command => {
-  replayDevLog('play() requested', { replayId: command?.replayId, src: RTSReplayVideo.video.currentSrc, readyState: RTSReplayVideo.video.readyState });
-  RTSReplayVideo.video.play().then(() => {
-    replayDevLog('play() resolved', { replayId: command?.replayId, currentTime: RTSReplayVideo.video.currentTime });
-    RTSReplayVideo.confirmPlayback(command.replayId, command.replayUserId, command.replayUserName);
-  }).catch(error => {
-    replayDevLog('play() rejected', { name: error?.name, message: error?.message });
-    console.warn('Replay play failed', error);
-  });
+  if (command?.replaySource?.toLowerCase() === 'youtube') {
+    if (youtubePlayer?.playVideo) { youtubePlayer.playVideo(); startYouTubeBoundaryTimer(command); }
+    return;
+  }
+  RTSReplayVideo.video.play().then(() => RTSReplayVideo.confirmPlayback(command.replayId, command.replayUserId, command.replayUserName)).catch(error => console.warn('Replay play failed', error));
 };
 
 RTSReplayVideo.loadReplay = command => {
-  if (!command.replayUrl) {
-    replayDevLog('loadReplay skipped: missing replayUrl');
-    return;
-  }
-  replayDevLog('loadReplay entered', { replayId: command.replayId, url: command.replayUrl, autoplay: !!command.replayAutoplay });
+  const isYouTube = command?.replaySource?.toLowerCase() === 'youtube';
+  if (!isYouTube && !command.replayUrl) return;
   RTSReplayVideo.currentCommand = command;
   window.RTSDevToolbar?.updateClapper?.(command);
   RTSReplayControls.configure(command);
   RTSReplayElements.configure(command);
 
   const profile = RTSReplayAnimation.readProfile(command);
-  const startSequence = profile?.start;
-  const startSteps = Array.isArray(startSequence) ? startSequence : [];
+  const startSequence = Array.isArray(profile?.start) ? profile.start : [];
   const startName = command.replayStartPosition || command.replayPosition || 'Full Screen';
   const endName = command.replayEndPosition || startName;
-  const startPosition = startSteps.length ? RTSReplayAnimation.getPosition(startSteps[0].position) : RTSReplayVideo.getPosition(startName);
-  const endPosition = startSteps.length ? RTSReplayAnimation.getPosition(startSteps[startSteps.length - 1].position) : RTSReplayVideo.getPosition(endName);
+  const startPosition = startSequence.length ? RTSReplayAnimation.getPosition(startSequence[0].position) : RTSReplayVideo.getPosition(startName);
+  const endPosition = startSequence.length ? RTSReplayAnimation.getPosition(startSequence[startSequence.length - 1].position) : RTSReplayVideo.getPosition(endName);
 
+  if (isYouTube) {
+    RTSReplayVideo.video.style.display = 'none';
+    RTSReplayVideo.visiblePosition = endPosition;
+    RTSReplayVideo.player.classList.add('show');
+    if (startSequence.length) RTSReplayAnimation.runSequence(startSequence); else RTSReplayVideo.applyPosition(startPosition, true);
+    loadYouTubePlayer(command);
+    return;
+  }
+
+  const host = document.getElementById('youtube-player-host');
+  host?.classList.remove('show');
+  host?.setAttribute('aria-hidden', 'true');
   RTSReplayVideo.video.src = command.replayUrl;
-  replayDevLog('video src assigned', { currentSrc: RTSReplayVideo.video.currentSrc, readyState: RTSReplayVideo.video.readyState, networkState: RTSReplayVideo.video.networkState });
   RTSReplayVideo.video.style.display = 'block';
   RTSReplayVideo.visiblePosition = endPosition;
   const alreadyVisible = RTSReplayVideo.player.classList.contains('show');
   RTSReplayVideo.video.load();
-  replayDevLog('video.load() called', { readyState: RTSReplayVideo.video.readyState, networkState: RTSReplayVideo.video.networkState, alreadyVisible, hasStartSequence: startSteps.length > 0 });
-  if (alreadyVisible) {
-    RTSReplayAnimation.cancelSequence();
-    RTSReplayVideo.applyPosition(endPosition, true);
-    RTSReplayVideo.activePosition = endPosition;
-  } else if (startSteps.length) {
-    RTSReplayAnimation.runSequence(startSequence);
-    RTSReplayVideo.player.classList.add('show');
-  } else {
-    RTSReplayVideo.animateIn(startPosition, endPosition);
-  }
-
-  if (command.replayAutoplay) {
-    replayDevLog('waiting for canplay');
-    RTSReplayVideo.video.addEventListener('canplay', () => {
-      replayDevLog('canplay handler fired', { readyState: RTSReplayVideo.video.readyState });
-      RTSReplayVideo.playReplay(command);
-    }, { once: true });
-  }
+  if (alreadyVisible) { RTSReplayAnimation.cancelSequence(); RTSReplayVideo.applyPosition(endPosition, true); RTSReplayVideo.activePosition = endPosition; }
+  else if (startSequence.length) { RTSReplayAnimation.runSequence(startSequence); RTSReplayVideo.player.classList.add('show'); }
+  else RTSReplayVideo.animateIn(startPosition, endPosition);
+  if (command.replayAutoplay) RTSReplayVideo.video.addEventListener('canplay', () => RTSReplayVideo.playReplay(command), { once: true });
 };
 
 RTSReplayVideo.testTitle = command => {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('dev') !== 'true') return;
-  RTSReplayVideo.currentCommand = command;
-  RTSReplayControls.configure(command);
-  RTSReplayElements.configure(command);
-  RTSReplayVideo.player.classList.add('dev-player', 'show');
-  RTSReplayVideo.player.style.opacity = '1';
-  RTSReplayVideo.player.style.visibility = 'visible';
-  RTSReplayVideo.frame?.classList.add('dev-frame');
-  window.RTSDevToolbar?.refreshPositions?.();
+  const params = new URLSearchParams(window.location.search); if (params.get('dev') !== 'true') return;
+  RTSReplayVideo.currentCommand = command; RTSReplayControls.configure(command); RTSReplayElements.configure(command); RTSReplayVideo.player.classList.add('dev-player', 'show'); RTSReplayVideo.player.style.opacity = '1'; RTSReplayVideo.player.style.visibility = 'visible'; RTSReplayVideo.frame?.classList.add('dev-frame'); window.RTSDevToolbar?.refreshPositions?.();
 };
 
 RTSReplayVideo.moveReplay = command => {
   RTSReplayVideo.currentCommand = { ...(RTSReplayVideo.currentCommand || {}), ...command };
-  const position = RTSReplayVideo.getPosition(command.replayPosition || 'Full Screen');
-  const current = RTSReplayVideo.activePosition;
+  const position = RTSReplayVideo.getPosition(command.replayPosition || 'Full Screen'); const current = RTSReplayVideo.activePosition;
   if (current && RTSReplayVideo.positionsEqual?.(current, position)) return;
   RTSReplayVideo.player.classList.add('show');
-  if (!current) {
-    RTSReplayVideo.applyPosition(position, true);
-    RTSReplayVideo.activePosition = position;
-    return;
-  }
-  RTSReplayVideo.animatePosition(current, position, () => {
-    RTSReplayVideo.activePosition = position;
-  });
+  if (!current) { RTSReplayVideo.applyPosition(position, true); RTSReplayVideo.activePosition = position; return; }
+  RTSReplayVideo.animatePosition(current, position, () => { RTSReplayVideo.activePosition = position; });
 };
 
 RTSReplayVideo.showPlayer = () => {
+  const command = RTSReplayVideo.currentCommand || {};
   const target = RTSReplayVideo.visiblePosition || RTSReplayVideo.activePosition || RTSReplayVideo.getPosition('Full Screen');
-  RTSReplayVideo.video.style.display = 'block';
-  RTSReplayVideo.player.classList.add('show');
-  RTSReplayVideo.applyPosition(target, true);
-  RTSReplayVideo.activePosition = target;
-  RTSReplayVideo.playReplay(RTSReplayVideo.currentCommand || {});
+  RTSReplayVideo.player.classList.add('show'); RTSReplayVideo.applyPosition(target, true); RTSReplayVideo.activePosition = target; RTSReplayVideo.playReplay(command);
 };
 
 RTSReplayVideo.hideReplay = () => {
   const command = RTSReplayVideo.currentCommand || {};
-  const profile = RTSReplayAnimation.readProfile(command);
-  replayDevLog('hideReplay entered', {
-    replayId: command.replayId,
-    showClass: RTSReplayVideo.player.classList.contains('show'),
-    activePosition: RTSReplayVideo.activePosition,
-    visiblePosition: RTSReplayVideo.visiblePosition,
-    hasEndSequence: Array.isArray(profile?.end) && profile.end.length > 0
-  });
-  RTSReplayAnimation.cancelSequence();
-  RTSReplayVideo.video.pause();
+  RTSReplayAnimation.cancelSequence(); stopYouTubeBoundaryTimer();
+  if (command.replaySource?.toLowerCase() === 'youtube') youtubePlayer?.pauseVideo?.(); else RTSReplayVideo.video.pause();
   RTSReplayVideo.visiblePosition = RTSReplayVideo.activePosition;
+  const profile = RTSReplayAnimation.readProfile(command);
   if (Array.isArray(profile?.end) && profile.end.length) {
-    replayDevLog('hideReplay starting end sequence', { steps: profile.end.length });
-    RTSReplayAnimation.runEndSequence(profile.end, () => {
-      RTSReplayVideo.player.classList.remove('show');
-      replayDevLog('hideReplay end sequence complete', { showClass: RTSReplayVideo.player.classList.contains('show'), activePosition: RTSReplayVideo.activePosition });
-    });
+    RTSReplayAnimation.runEndSequence(profile.end, () => RTSReplayVideo.player.classList.remove('show'));
     return;
   }
-  replayDevLog('hideReplay using animateOut');
   RTSReplayVideo.animateOut();
 };
 
 RTSReplayVideo.handleReplayCommand = command => {
-  replayDevLog('command received', { replayCommand: command?.replayCommand, replayId: command?.replayId });
   if (command.replayCommand === 'message') RTSReplayVideo.showMessage(command);
   if (command.replayCommand === 'load') RTSReplayVideo.loadReplay(command);
   if (command.replayCommand === 'title-test') RTSReplayVideo.testTitle(command);
   if (command.replayCommand === 'play') RTSReplayVideo.playReplay(command);
-  if (command.replayCommand === 'pause') RTSReplayVideo.video.pause();
+  if (command.replayCommand === 'pause') command.replaySource?.toLowerCase() === 'youtube' ? youtubePlayer?.pauseVideo?.() : RTSReplayVideo.video.pause();
   if (command.replayCommand === 'speed') {
     const speed = Math.max(0.25, Math.min(4, Number(command.replayPlaybackSpeed) || 1));
-    RTSReplayVideo.video.playbackRate = speed;
+    if (command.replaySource?.toLowerCase() === 'youtube') youtubePlayer?.setPlaybackRate?.(speed); else RTSReplayVideo.video.playbackRate = speed;
   }
   if (command.replayCommand === 'move') RTSReplayVideo.moveReplay(command);
   if (command.replayCommand === 'hide') RTSReplayVideo.hideReplay();
   if (command.replayCommand === 'show') RTSReplayVideo.showPlayer();
-  if (command.replayCommand === 'stop') {
-    RTSReplayVideo.video.pause();
-    RTSReplayVideo.video.currentTime = 0;
-  }
-  if (command.replayCommand === 'replay') {
-    RTSReplayVideo.video.currentTime = 0;
-    RTSReplayVideo.playReplay(command);
-  }
+  if (command.replayCommand === 'stop') { if (command.replaySource?.toLowerCase() === 'youtube') youtubePlayer?.stopVideo?.(); else { RTSReplayVideo.video.pause(); RTSReplayVideo.video.currentTime = 0; } }
+  if (command.replayCommand === 'replay') { if (command.replaySource?.toLowerCase() === 'youtube') { youtubeEndedNotified = false; youtubePlayer?.seekTo?.(Number(command.replayStartTime || 0), true); RTSReplayVideo.playReplay(command); } else { RTSReplayVideo.video.currentTime = 0; RTSReplayVideo.playReplay(command); } }
 };
 
 RTSReplayVideo.video.addEventListener('ended', () => {
   const command = RTSReplayVideo.currentCommand;
-  replayDevLog('video ended', { replayId: command?.replayId, currentTime: RTSReplayVideo.video.currentTime });
+  if (command?.replaySource?.toLowerCase() === 'youtube') return;
   if (command) RTSReplayVideo.notifyPlaybackEnded(command);
 });
