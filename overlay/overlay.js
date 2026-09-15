@@ -10,6 +10,22 @@ RTSReplayOverlay.handleEvent = message => {
     replayId: data.args?.replayId,
     queueEntryId: data.args?.replayQueueEntryId
   });
+  if (data.args.replayCommand === 'settings-sync') {
+    window.RTSReplaySettingsSync?.apply?.(data.args);
+    return;
+  }
+  if (data.args.replayCommand === 'search-panel') {
+    window.RTSSearchPanel?.handle?.(data.args);
+    return;
+  }
+  if (data.args.replayCommand === 'playlist-panel' || (data.args.replayCommand === 'message' && data.args.replayPlaylist)) {
+    window.RTSPlaylistList?.handle?.(data.args);
+    return;
+  }
+  if (data.args.replayCommand === 'leaderboard-panel') {
+    window.RTSLeaderboardList?.handle?.(data.args);
+    return;
+  }
   RTSReplayOverlay.handleReplayCommand(data.args);
   if (data.args.replayCommand === 'recent-list') RTSReplayOverlay.showRecentList?.(data.args);
 };

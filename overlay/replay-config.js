@@ -5,7 +5,8 @@ RTSReplay.config = {
   port: 8080,
   eventName: 'RTS-Action Replay',
   confirmAction: 'RTS Action Replay - Playback Confirm',
-  endedAction: 'RTS - Action Replay - Playback Ended',
+  endedAction: 'RTS - Action Replay - Playlist - Playback Ended',
+  searchEndedAction: 'RTS - Action Replay - Search Panel Ended',
   reconnectDelay: 3000,
   messageDuration: 5000
 };
@@ -18,6 +19,8 @@ RTSReplay.controls = document.getElementById('player-controls');
 RTSReplay.state = document.getElementById('player-state');
 RTSReplay.progress = document.getElementById('player-progress');
 RTSReplay.progressBar = document.getElementById('player-progress-bar');
+RTSReplay.current = document.getElementById('player-current');
+RTSReplay.duration = document.getElementById('player-duration');
 RTSReplay.time = document.getElementById('player-time');
 RTSReplay.speed = document.getElementById('player-speed');
 RTSReplay.messageCard = document.getElementById('message-card');

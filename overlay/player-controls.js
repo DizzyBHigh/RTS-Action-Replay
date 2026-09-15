@@ -33,6 +33,8 @@ RTSReplayControls.configure = command => {
   RTSReplayControls.video.playbackRate = speed;
 };
 
+RTSReplayControls.configureControls = RTSReplayControls.configure;
+
 ['loadedmetadata', 'timeupdate', 'play', 'pause', 'ended', 'durationchange'].forEach(event => {
   RTSReplayControls.video.addEventListener(event, RTSReplayControls.updateControls);
 });

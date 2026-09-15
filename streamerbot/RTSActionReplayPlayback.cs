@@ -21,6 +21,7 @@ public class CPHInline
     private const string PlaybackProfileHandoffKey = "rts.actionreplay.handoff.playbackProfile";
     private const string PlaybackQueueEntryHandoffKey = "rts.actionreplay.handoff.playbackQueueEntryId";
     private const string AnimationProfileHandoffKey = "rts.actionreplay.handoff.animationProfile";
+    private const string PlayerPositionsHandoffKey = "rts.actionreplay.handoff.playerPositions";
 
     public bool Execute() => PlayReplay();
 
@@ -138,8 +139,11 @@ public class CPHInline
         CPH.SetArgument("profileId", profile);
         if (!CPH.ExecuteMethod(AnimationAction, "ApplyProfile")) CPH.LogWarn("RTS Action Replay: animation profile action is not available.");
         var animationProfile = CPH.GetGlobalVar<string>(AnimationProfileHandoffKey, false);
+        var playerPositions = CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false);
         if (!string.IsNullOrWhiteSpace(animationProfile)) CPH.SetArgument("replayAnimationProfile", animationProfile);
+        if (!string.IsNullOrWhiteSpace(playerPositions)) CPH.SetArgument("replayPlayerPositions", playerPositions);
         CPH.UnsetGlobalVar(AnimationProfileHandoffKey, false);
+        CPH.UnsetGlobalVar(PlayerPositionsHandoffKey, false);
         CPH.UnsetGlobalVar(PlaybackProfileHandoffKey, false);
         CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>("rts.actionreplay.positions", true) ?? "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
         CPH.SetArgument("replayShowBranding", CPH.GetGlobalVar<bool?>("rts.actionreplay.showBranding", true) ?? true); CPH.SetArgument("replayBrandLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? ""); CPH.SetArgument("replayBrandFallbackText", CPH.GetGlobalVar<string>("rts.actionreplay.brandFallbackText", true) ?? "RTS"); CPH.SetArgument("replayBrandFallbackTextColor", CPH.GetGlobalVar<string>("rts.actionreplay.brandFallbackTextColor", true) ?? "#0384CBFF"); CPH.SetArgument("replayBrandLabel", CPH.GetGlobalVar<string>("rts.actionreplay.brandLabel", true) ?? "ACTION REPLAY"); CPH.SetArgument("replayBrandLabelColor", CPH.GetGlobalVar<string>("rts.actionreplay.brandLabelColor", true) ?? "#FFFFFFFF");

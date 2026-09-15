@@ -1,0 +1,3 @@
+/* Keep live overlay elements above the in-flow player controls. */
+#replay-player:not(.dev-player) #player-elements { bottom: 30px; }
+#replay-player.controls-hidden:not(.dev-player) #player-elements { bottom: 0; }

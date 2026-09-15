@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
 public class CPHInline
@@ -39,13 +40,14 @@ public class CPHInline
 
     public bool View()
     {
-        var queue = LoadQueue(); if (queue.Count == 0) { CPH.SendMessage("Playlist is empty."); return true; }
+        var queue = LoadQueue();
+        if (queue.Count == 0) { SendPlaylistMessage("Playlist is empty."); return true; }
         var lines = "";
         for (var i = 0; i < queue.Count; i++) { var item = queue[i] as JObject; if (item == null) continue; var requester = (string)item["requesterName"]; if (string.IsNullOrWhiteSpace(requester)) requester = "Created automatically"; lines += (lines.Length == 0 ? "" : " | ") + "#" + (i + 1) + " " + (string)item["title"] + " — " + requester; }
-        CPH.SetArgument("replayPlaylist", lines); CPH.SendMessage(lines); return true;
+        SendPlaylistMessage(lines);
+        return true;
     }
 
-    // Clear removes waiting playlist items but keeps the currently active replay in the queue.
     public bool Clear()
     {
         var queue = LoadQueue();
@@ -66,7 +68,6 @@ public class CPHInline
         return true;
     }
 
-    // ClearAll removes every playlist item, including the active queue entry. It does not stop playback.
     public bool ClearAll()
     {
         var queue = LoadQueue();
@@ -74,7 +75,8 @@ public class CPHInline
         queue.Clear();
         SaveQueueAndClearOtherStore(queue);
         CPH.SetGlobalVar(ActiveKey, "", false);
-        CPH.LogInfo($"RTS Action Replay: playlist ClearAll removed {cleared} item(s); active playback was not stopped.");
+        CPH.SetGlobalVar(PausedKey, false, false);
+        CPH.LogInfo($"RTS Action Replay: playlist ClearAll removed {cleared} item(s); active playback was not stopped; playlist pause state reset.");
         CPH.SendMessage("Playlist completely cleared.");
         return true;
     }
@@ -98,12 +100,46 @@ public class CPHInline
 
     public bool PlaybackEnded()
     {
-        if (!CPH.TryGetArg("replayId", out string replayId)) return false;
-        CPH.TryGetArg("replayQueueEntryId", out string entryId); var queue = LoadQueue(); JObject current = null;
-        for (var i = 0; i < queue.Count; i++) { var item = queue[i] as JObject; if (item != null && string.Equals((string)item["replayId"], replayId, StringComparison.OrdinalIgnoreCase) && (string.IsNullOrWhiteSpace(entryId) || string.Equals((string)item["entryId"], entryId, StringComparison.OrdinalIgnoreCase))) { current = item; break; } }
-        if (current == null || !string.Equals((string)current["entryId"], ActiveId(), StringComparison.OrdinalIgnoreCase)) return false;
-        queue.Remove(current); SaveQueue(queue); CPH.SetGlobalVar(ActiveKey, "", false);
-        if (IsPaused()) return true; if (queue.Count == 0) { HidePlayer(); return true; } return PlayNext(queue);
+        CPH.LogInfo("RTS Action Replay TRACE: PlaybackEnded entered.");
+        if (!CPH.TryGetArg("replayId", out string replayId) || string.IsNullOrWhiteSpace(replayId))
+        {
+            CPH.LogWarn("RTS Action Replay TRACE: PlaybackEnded failed - replayId argument missing or empty.");
+            return false;
+        }
+        CPH.TryGetArg("replayQueueEntryId", out string entryId);
+        var activeId = ActiveId();
+        var queue = LoadQueue();
+        CPH.LogInfo($"RTS Action Replay TRACE: PlaybackEnded replayId={replayId}; queueEntryId={entryId ?? "<none>"}; active={activeId ?? "<none>"}; queueCount={queue.Count}.");
+        JObject current = null;
+        for (var i = 0; i < queue.Count; i++)
+        {
+            var item = queue[i] as JObject;
+            if (item != null && string.Equals((string)item["replayId"], replayId, StringComparison.OrdinalIgnoreCase) && (string.IsNullOrWhiteSpace(entryId) || string.Equals((string)item["entryId"], entryId, StringComparison.OrdinalIgnoreCase)))
+            {
+                current = item;
+                break;
+            }
+        }
+        if (current == null)
+        {
+            CPH.LogWarn("RTS Action Replay TRACE: PlaybackEnded failed - matching queue entry was not found.");
+            return false;
+        }
+        var currentEntryId = (string)current["entryId"];
+        if (!string.Equals(currentEntryId, activeId, StringComparison.OrdinalIgnoreCase))
+        {
+            CPH.LogWarn($"RTS Action Replay TRACE: PlaybackEnded failed - matching entry is not active; matching={currentEntryId}; active={activeId ?? "<none>"}.");
+            return false;
+        }
+        queue.Remove(current);
+        SaveQueue(queue);
+        CPH.SetGlobalVar(ActiveKey, "", false);
+        CPH.LogInfo($"RTS Action Replay TRACE: PlaybackEnded removed active entry {currentEntryId}; remaining={queue.Count}; paused={IsPaused()}.");
+        if (IsPaused()) return true;
+        if (queue.Count == 0) { HidePlayer(); CPH.LogInfo("RTS Action Replay TRACE: PlaybackEnded queue empty; hide requested."); return true; }
+        var started = PlayNext(queue);
+        CPH.LogInfo($"RTS Action Replay TRACE: PlaybackEnded PlayNext returned {started}; remaining={queue.Count}.");
+        return started;
     }
 
     private bool PlayNext(JArray queue)
@@ -137,6 +173,28 @@ public class CPHInline
         CPH.SetGlobalVar(EntryPointHandoffKey, "playlist", false); CPH.UnsetGlobalVar(ResolvedProfileHandoffKey, false);
         if (CPH.ExecuteMethod(AnimationAction, "ResolveEntryPointProfile")) { var profile = CPH.GetGlobalVar<string>(ResolvedProfileHandoffKey, false); CPH.UnsetGlobalVar(ResolvedProfileHandoffKey, false); if (!string.IsNullOrWhiteSpace(profile)) return profile.Trim(); }
         return "default";
+    }
+
+    private void SendPlaylistMessage(string text)
+    {
+        var key = "rts.actionreplay.message.playlist";
+        var playlistText = text;
+        CPH.SetArgument("replayPlaylist", playlistText);
+        var configured = CPH.GetGlobalVar<string>(key + ".text", true);
+        var chatText = string.IsNullOrWhiteSpace(configured)
+            ? playlistText
+            : CPH.Parse(configured, new Dictionary<string, object> { ["replayPlaylist"] = playlistText });
+        if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) CPH.SendMessage(chatText);
+        if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false)
+        {
+            CPH.SetArgument("replayPanelWidth", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500);
+            CPH.SetArgument("replayPanelHeight", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700);
+            CPH.SetArgument("panelType", "playlist");
+            CPH.ExecuteMethod(AnimationAction, "ResolvePanelAnimation");
+            CPH.SetArgument("replayCommand", "playlist-panel");
+            CPH.SetArgument("replayPlaylist", playlistText);
+            CPH.TriggerEvent("RTS-Action Replay", true);
+        }
     }
 
     private string ReadArgumentOrGlobal(string argument, string globalKey) { if (CPH.TryGetArg(argument, out string value) && !string.IsNullOrWhiteSpace(value)) return value.Trim(); return CPH.GetGlobalVar<string>(globalKey, false); }

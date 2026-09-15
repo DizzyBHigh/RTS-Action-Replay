@@ -8,7 +8,8 @@
   const button = document.createElement('button');
   button.dataset.action = 'log';
   button.textContent = 'Show Log';
-  bar.insertBefore(button, bar.querySelector('.spacer'));
+  const label = bar.querySelector('.dev-label');
+  bar.insertBefore(button, label ? label.nextSibling : bar.firstChild);
 
   const panel = document.createElement('div');
   panel.id = 'rts-dev-log';
