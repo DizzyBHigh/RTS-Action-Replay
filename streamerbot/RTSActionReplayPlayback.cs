@@ -127,28 +127,20 @@ public class CPHInline
         var clipId = ExtractKickClipId(sourceId);
         if (string.IsNullOrWhiteSpace(clipId)) clipId = ExtractKickClipId(sourceUrl);
         if (string.IsNullOrWhiteSpace(clipId)) clipId = ExtractKickClipId(html);
-        if (!string.IsNullOrWhiteSpace(clipId))
-        {
-            var media = TryReadClipUrl(DownloadString("https://kick.com/api/v2/clips/" + clipId + "/play"));
-            if (IsMediaUrl(media)) return media;
-        }
-        var mediaMatch = Regex.Match(html ?? "", "https?://[^\\s\\\"'<>]+\\.(?:mp4|m3u8)(?:\\?[^\\s\\\"'<>]+)?", RegexOptions.IgnoreCase);
-        return mediaMatch.Success ? mediaMatch.Value : null;
-    }
+        if (string.IsNullOrWhiteSpace(clipId)) return null;
 
-    private string TryReadClipUrl(string json)
-    {
-        try { return (string)JObject.Parse(json ?? "")["clip"]?["clip_url"]; }
-        catch { return null; }
+        var directMp4 = "https://clips.kickbotcdn.com/kickbot-hls/" + clipId + "/" + clipId + ".mp4";
+        CPH.LogInfo($"RTS Action Replay TRACE: KickBot media candidate generated; clipId={clipId}; url={directMp4}.");
+        return directMp4;
     }
-
-    private bool IsMediaUrl(string url) => !string.IsNullOrWhiteSpace(url) && (url.IndexOf(".mp4", StringComparison.OrdinalIgnoreCase) >= 0 || url.IndexOf(".m3u8", StringComparison.OrdinalIgnoreCase) >= 0);
 
     private string ExtractKickClipId(string value)
     {
         var match = Regex.Match(value ?? "", @"[?&]clip=(clip_[A-Za-z0-9]+)", RegexOptions.IgnoreCase);
         if (match.Success) return match.Groups[1].Value;
         match = Regex.Match(value ?? "", @"/clips?/(clip_[A-Za-z0-9]+)", RegexOptions.IgnoreCase);
+        if (match.Success) return match.Groups[1].Value;
+        match = Regex.Match(value ?? "", @"(?:kickbot\.com|kickbot\.app)/clip/([A-Za-z0-9]+)", RegexOptions.IgnoreCase);
         return match.Success ? match.Groups[1].Value : null;
     }
 
