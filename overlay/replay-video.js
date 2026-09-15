@@ -127,17 +127,30 @@ const loadYouTubePlayer = async command => {
           RTSReplayVideo.confirmPlayback(command.replayId, command.replayUserId, command.replayUserName);
         },
         onStateChange: event => {
-          if (token !== youtubeReplayToken) return;
+          const activeCommand = RTSReplayVideo.currentCommand;
+          if (!activeCommand || activeCommand.replaySource?.toLowerCase() !== 'youtube') return;
+          const activeToken = youtubeReplayToken;
+          const activeSpeed = Number(activeCommand.replayPlaybackSpeed) || 1;
           if (event.data === YT.PlayerState.CUED) {
-            event.target.setPlaybackRate(speed);
-            updateYouTubeControls(command);
-            if (command.replayAutoplay) { event.target.playVideo(); startYouTubeBoundaryTimer(command, token); }
+            event.target.setPlaybackRate(activeSpeed);
+            updateYouTubeControls(activeCommand);
+            replayDevLog('YouTube replay cued', { replayId: activeCommand.replayId, startTime: activeCommand.replayStartTime, duration: activeCommand.replayDuration });
+            if (activeCommand.replayAutoplay) { event.target.playVideo(); startYouTubeBoundaryTimer(activeCommand, activeToken); }
           }
-          if (event.data === YT.PlayerState.PLAYING) startYouTubeBoundaryTimer(command, token);
-          if (event.data === YT.PlayerState.ENDED) { stopYouTubeBoundaryTimer(); updateYouTubeControls(command); notifyEndedOnce(command, token); }
+          if (event.data === YT.PlayerState.PLAYING) {
+            replayDevLog('YouTube replay playing', { replayId: activeCommand.replayId, currentTime: Number(event.target.getCurrentTime?.() || 0) });
+            startYouTubeBoundaryTimer(activeCommand, activeToken);
+          }
+          if (event.data === YT.PlayerState.ENDED) {
+            stopYouTubeBoundaryTimer();
+            updateYouTubeControls(activeCommand);
+            replayDevLog('YouTube replay ended', { replayId: activeCommand.replayId });
+            notifyEndedOnce(activeCommand, activeToken);
+          }
         },
         onError: event => {
-          if (token === youtubeReplayToken) replayDevLog('YouTube player error', { replayId: command.replayId, error: event.data });
+          const activeCommand = RTSReplayVideo.currentCommand;
+          if (activeCommand?.replaySource?.toLowerCase() === 'youtube') replayDevLog('YouTube player error', { replayId: activeCommand.replayId, error: event.data });
         }
       }
     });
@@ -145,6 +158,7 @@ const loadYouTubePlayer = async command => {
 
   if (youtubePlayer?.cueVideoById) {
     configureQueuedVideo(youtubePlayer);
+    replayDevLog('YouTube player reused', { replayId: command.replayId, videoId, startTime: start, duration: command.replayDuration });
   } else create();
 };
 
