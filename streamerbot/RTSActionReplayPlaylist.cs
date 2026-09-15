@@ -30,13 +30,14 @@ public class CPHInline
         CPH.LogInfo($"RTS Action Replay TRACE: EnqueueCurrentReplay replayId={replayId}.");
         var replay = FindReplay(Catalog(Load()), replayId);
         if (replay == null) { CPH.LogWarn($"RTS Action Replay TRACE: EnqueueCurrentReplay failed - replay {replayId} not found in catalog."); ClearHandoff(ReplayIdHandoffKey, ResolvedProfileHandoffKey, ResolvedTitleProfileHandoffKey); return false; }
-        CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName);
+        CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName); CPH.TryGetArg("userType", out string userType); CPH.TryGetArg("broadcast.id", out string broadcastId);
         var creator = replay["creator"] as JObject; var requester = string.IsNullOrWhiteSpace(userName) ? (string)creator?["name"] ?? "" : userName;
+        var requesterPlatform = NormalizePlatform(userType);
         var profile = ResolveRequestedProfile();
         var titleProfile = ResolveRequestedTitleProfile(replay);
-        CPH.LogInfo($"RTS Action Replay TRACE: EnqueueCurrentReplay resolved animationProfile={profile ?? "<null>"}; titleProfile={titleProfile ?? "<null>"}.");
+        CPH.LogInfo($"RTS Action Replay TRACE: EnqueueCurrentReplay resolved animationProfile={profile ?? "<null>"}; titleProfile={titleProfile ?? "<null>"}; requesterPlatform={requesterPlatform ?? "<none>"}.");
         var queue = LoadQueue();
-        queue.Add(new JObject { ["entryId"] = Guid.NewGuid().ToString("N"), ["replayId"] = replayId, ["title"] = (string)replay["title"] ?? "Replay", ["requesterId"] = userId ?? "", ["requesterName"] = requester, ["animationProfileId"] = profile, ["titleProfileId"] = titleProfile, ["queued"] = DateTime.Now.ToString("o") });
+        queue.Add(new JObject { ["entryId"] = Guid.NewGuid().ToString("N"), ["replayId"] = replayId, ["title"] = (string)replay["title"] ?? "Replay", ["requesterId"] = userId ?? "", ["requesterName"] = requester, ["requesterPlatform"] = requesterPlatform ?? "", ["requesterBroadcastId"] = broadcastId ?? "", ["animationProfileId"] = profile, ["titleProfileId"] = titleProfile, ["queued"] = DateTime.Now.ToString("o") });
         SaveQueue(queue); ClearHandoff(ReplayIdHandoffKey, ResolvedProfileHandoffKey, ResolvedTitleProfileHandoffKey);
         CPH.LogInfo($"RTS Action Replay TRACE: EnqueueCurrentReplay queued replay {replayId}; queueCount={queue.Count}; paused={IsPaused()}; active={ActiveId() ?? "<none>"}.");
         if (!IsPaused() && ActiveId() == null) { var started = PlayNext(queue); CPH.LogInfo($"RTS Action Replay TRACE: EnqueueCurrentReplay PlayNext returned {started}."); return started; }
@@ -69,7 +70,7 @@ public class CPHInline
         }
         SaveQueueAndClearOtherStore(queue);
         CPH.LogInfo($"RTS Action Replay: playlist Clear removed {cleared} waiting item(s); active={(string.IsNullOrWhiteSpace(activeId) ? "<none>" : activeId)}; remaining={queue.Count}.");
-        CPH.SendMessage(queue.Count == 0 ? "Playlist cleared." : "Playlist cleared; active replay retained.");
+        SendPlaylistMessage(queue.Count == 0 ? "Playlist cleared." : "Playlist cleared; active replay retained.");
         return true;
     }
 
@@ -82,7 +83,7 @@ public class CPHInline
         CPH.SetGlobalVar(ActiveKey, "", false);
         CPH.SetGlobalVar(PausedKey, false, false);
         CPH.LogInfo($"RTS Action Replay: playlist ClearAll removed {cleared} item(s); active playback was not stopped; playlist pause state reset.");
-        CPH.SendMessage("Playlist completely cleared.");
+        SendPlaylistMessage("Playlist completely cleared.");
         return true;
     }
 
@@ -224,7 +225,7 @@ public class CPHInline
         var chatText = string.IsNullOrWhiteSpace(configured)
             ? playlistText
             : CPH.Parse(configured, new Dictionary<string, object> { ["replayPlaylist"] = playlistText });
-        if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) CPH.SendMessage(chatText);
+        if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) SendOriginMessage(chatText);
         if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false)
         {
             CPH.SetArgument("replayPanelWidth", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500);
@@ -235,6 +236,29 @@ public class CPHInline
             CPH.SetArgument("replayPlaylist", playlistText);
             CPH.TriggerEvent("RTS-Action Replay", true);
         }
+    }
+
+    private void SendOriginMessage(string message)
+    {
+        var platform = GetRequestPlatform();
+        if (string.Equals(platform, "Kick", StringComparison.OrdinalIgnoreCase)) { CPH.SendKickMessage(message); return; }
+        if (string.Equals(platform, "YouTube", StringComparison.OrdinalIgnoreCase)) { CPH.SendYouTubeMessageToLatestMonitored(message); return; }
+        if (string.Equals(platform, "Twitch", StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage(message); return; }
+        CPH.LogWarn("RTS Action Replay: unable to route playlist chat response because the originating platform is unknown.");
+    }
+
+    private string GetRequestPlatform()
+    {
+        if (CPH.TryGetArg("userType", out string userType) && !string.IsNullOrWhiteSpace(userType)) return NormalizePlatform(userType);
+        try { return NormalizePlatform(CPH.GetSource().ToString()); } catch { return null; }
+    }
+
+    private string NormalizePlatform(string platform)
+    {
+        if (string.Equals(platform, "Kick", StringComparison.OrdinalIgnoreCase)) return "Kick";
+        if (string.Equals(platform, "YouTube", StringComparison.OrdinalIgnoreCase)) return "YouTube";
+        if (string.Equals(platform, "Twitch", StringComparison.OrdinalIgnoreCase)) return "Twitch";
+        return null;
     }
 
     private string ReadArgumentOrGlobal(string argument, string globalKey) { if (CPH.TryGetArg(argument, out string value) && !string.IsNullOrWhiteSpace(value)) return value.Trim(); return CPH.GetGlobalVar<string>(globalKey, false); }
