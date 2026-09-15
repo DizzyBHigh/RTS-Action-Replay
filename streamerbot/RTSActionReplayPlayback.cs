@@ -97,7 +97,12 @@ public class CPHInline
         var profile = CPH.TryGetArg("replayAnimationProfileId", out string requestedProfile) && !string.IsNullOrWhiteSpace(requestedProfile) ? requestedProfile.Trim() : CPH.GetGlobalVar<string>(PlaybackProfileHandoffKey, false);
         if (string.IsNullOrWhiteSpace(profile)) profile = "default";
         CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay dispatching load; replayId={(string)replay["id"]}; url={url}; profile={profile}; queueEntryId={queueEntryId}; source={source}.");
-        ApplyPlayerSettings(profile); CPH.TriggerEvent(EventName, true); SendMessage("play");
+        if (!ApplyPlayerSettings(profile))
+        {
+            CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - animation profile '{profile}' could not be applied.");
+            return false;
+        }
+        CPH.TriggerEvent(EventName, true); SendMessage("play");
         CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay completed dispatch for replay {(string)replay["id"]}.");
         return true;
     }
@@ -232,5 +237,9 @@ public class CPHInline
     private bool PathsEqual(string a, string b) => string.Equals(Path.GetFullPath(a ?? "").TrimEnd(Path.DirectorySeparatorChar), Path.GetFullPath(b ?? "").TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase);
     private string Sanitize(string value) { foreach (var c in Path.GetInvalidFileNameChars()) value = value.Replace(c, '_'); return value; }
     private string GetTwitchPlaybackMode() => CPH.GetGlobalVar<string>(TwitchModeKey, true) ?? "Twitch URL";
-    private void ApplyPlayerSettings(string profile) { CPH.SetArgument("replayAnimationProfileId", profile); CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false) ?? ""); }
+    private bool ApplyPlayerSettings(string profile)
+    {
+        CPH.SetArgument("replayAnimationProfileId", profile);
+        return CPH.ExecuteMethod(AnimationAction, "ApplyProfile");
+    }
 }
