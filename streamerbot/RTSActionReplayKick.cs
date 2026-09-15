@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Net;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 
@@ -31,120 +32,104 @@ public class CPHInline
         var message = Arg("text");
         if (string.IsNullOrWhiteSpace(message)) message = Arg("message");
         if (string.IsNullOrWhiteSpace(message)) message = Arg("rawInput");
-
         var kickBotUrl = ExtractKickBotUrl(message);
         if (string.IsNullOrWhiteSpace(kickBotUrl)) return false;
-
         var pending = LoadPending();
         if (pending == null) return false;
 
-        var data = Load();
-        var catalog = (JArray)data["catalog"] ?? new JArray();
-        var kickBotId = ExtractKickBotId(kickBotUrl);
-        var title = (string)pending["title"] ?? "Kick Clip";
-        var duration = (int?)pending["duration"] ?? 30;
-        var creatorId = (string)pending["creatorId"] ?? "";
-        var creatorName = (string)pending["creatorName"] ?? "";
-
-        var existing = catalog.OfType<JObject>().FirstOrDefault(x =>
-            string.Equals((string)x["sourceType"], "Kick", StringComparison.OrdinalIgnoreCase) &&
-            string.Equals((string)x["sourceUrl"], kickBotUrl, StringComparison.OrdinalIgnoreCase));
-        if (existing != null)
-        {
-            existing["title"] = title;
-            existing["customTitle"] = title != "Kick Clip";
-            existing["duration"] = duration;
-            ClearPending();
-            Save(data);
-            return BroadcastReplay(existing);
-        }
-
+        var data = Load(); var catalog = (JArray)data["catalog"] ?? new JArray();
+        var kickBotId = ExtractKickBotId(kickBotUrl); var title = (string)pending["title"] ?? "Kick Clip";
+        var duration = (int?)pending["duration"] ?? 30; var creatorId = (string)pending["creatorId"] ?? ""; var creatorName = (string)pending["creatorName"] ?? "";
+        var existing = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["sourceType"], "Kick", StringComparison.OrdinalIgnoreCase) && string.Equals((string)x["sourceUrl"], kickBotUrl, StringComparison.OrdinalIgnoreCase));
+        if (existing != null) { existing["title"] = title; existing["customTitle"] = title != "Kick Clip"; existing["duration"] = duration; ClearPending(); Save(data); return BroadcastReplay(existing); }
         if (string.IsNullOrWhiteSpace(creatorId)) CPH.TryGetArg("userId", out creatorId);
         if (string.IsNullOrWhiteSpace(creatorName)) CPH.TryGetArg("userName", out creatorName);
         var creator = new JObject { ["platform"] = "Kick", ["id"] = creatorId ?? "", ["name"] = creatorName ?? "" };
         var item = new JObject
         {
-            ["id"] = "kick-" + (kickBotId ?? Guid.NewGuid().ToString("N")),
-            ["sourceType"] = "Kick",
-            ["sourceId"] = kickBotId ?? "",
-            ["sourceUrl"] = kickBotUrl,
-            ["title"] = title,
-            ["customTitle"] = title != "Kick Clip",
-            ["duration"] = duration,
-            ["added"] = DateTime.Now.ToString("o"),
-            ["captured"] = DateTime.Now.ToString("o"),
-            ["acquisitionMethod"] = "KickBot",
-            ["creator"] = creator,
-            ["plays"] = 0,
-            ["users"] = new JObject()
+            ["id"] = "kick-" + (kickBotId ?? Guid.NewGuid().ToString("N")), ["sourceType"] = "Kick", ["sourceId"] = kickBotId ?? "", ["sourceUrl"] = kickBotUrl,
+            ["title"] = title, ["customTitle"] = title != "Kick Clip", ["duration"] = duration, ["added"] = DateTime.Now.ToString("o"), ["captured"] = DateTime.Now.ToString("o"),
+            ["acquisitionMethod"] = "KickBot", ["creator"] = creator, ["plays"] = 0, ["users"] = new JObject()
         };
-        catalog.Insert(0, item);
-        data["catalog"] = catalog;
-        AddRecent(data, (string)item["id"]);
-        ClearPending();
-        Save(data);
+        catalog.Insert(0, item); data["catalog"] = catalog; AddRecent(data, (string)item["id"]); ClearPending(); Save(data); return BroadcastReplay(item);
+    }
+
+    public bool CaptureKickClip()
+    {
+        var message = Arg("text");
+        if (string.IsNullOrWhiteSpace(message)) message = Arg("message");
+        if (string.IsNullOrWhiteSpace(message)) message = Arg("rawInput");
+        var url = ExtractKickClipUrl(message);
+        if (string.IsNullOrWhiteSpace(url)) return false;
+        var clipId = ExtractKickClipId(url);
+        if (string.IsNullOrWhiteSpace(clipId)) return false;
+
+        var data = Load(); var catalog = (JArray)data["catalog"] ?? new JArray();
+        var existing = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["sourceType"], "Kick", StringComparison.OrdinalIgnoreCase) && string.Equals((string)x["sourceId"], clipId, StringComparison.OrdinalIgnoreCase));
+        if (existing != null) return BroadcastReplay(existing);
+
+        var title = "Kick Clip"; var duration = 0; var creatorId = Arg("userId"); var creatorName = Arg("userName");
+        var metadata = GetNativeKickClipMetadata(clipId);
+        var clip = metadata?["clip"] as JObject;
+        if (!string.IsNullOrWhiteSpace((string)clip?["title"])) title = (string)clip["title"];
+        duration = (int)Math.Round((double?)clip?["duration"] ?? 0);
+        var creator = clip?["creator"] as JObject;
+        if (string.IsNullOrWhiteSpace(creatorId)) creatorId = creator?["id"]?.ToString() ?? "";
+        if (string.IsNullOrWhiteSpace(creatorName)) creatorName = creator?["username"]?.ToString() ?? "";
+        var creatorInfo = new JObject { ["platform"] = "Kick", ["id"] = creatorId ?? "", ["name"] = creatorName ?? "" };
+        var item = new JObject
+        {
+            ["id"] = "kick-" + clipId, ["sourceType"] = "Kick", ["sourceId"] = clipId, ["sourceUrl"] = url,
+            ["title"] = title, ["customTitle"] = false, ["duration"] = duration, ["added"] = DateTime.Now.ToString("o"), ["captured"] = DateTime.Now.ToString("o"),
+            ["acquisitionMethod"] = "Kick", ["creator"] = creatorInfo, ["plays"] = 0, ["users"] = new JObject()
+        };
+        catalog.Insert(0, item); data["catalog"] = catalog; AddRecent(data, (string)item["id"]); Save(data);
+        CPH.LogInfo($"RTS Action Replay: native Kick clip captured; clipId={clipId}; title={title}; duration={duration}.");
         return BroadcastReplay(item);
+    }
+
+    private JObject GetNativeKickClipMetadata(string clipId)
+    {
+        var json = DownloadString("https://kick.com/api/v2/clips/" + CPH.UrlEncode(clipId) + "/play");
+        if (string.IsNullOrWhiteSpace(json)) return null;
+        try { return JObject.Parse(json); }
+        catch (Exception ex) { CPH.LogWarn("RTS Action Replay: native Kick clip metadata could not be parsed: " + ex.Message); return null; }
     }
 
     private string NormalizeCreateClipMessage(string message)
     {
         if (Regex.IsMatch(message ?? "", @"^!create-clip(?:\s|$)", RegexOptions.IgnoreCase)) return message;
-
-        var command = Arg("command");
-        if (!string.Equals(command, "!create-clip", StringComparison.OrdinalIgnoreCase)) return message;
-
-        var rawInput = Arg("rawInput");
-        return string.IsNullOrWhiteSpace(rawInput) ? command : command + " " + rawInput;
+        var command = Arg("command"); if (!string.Equals(command, "!create-clip", StringComparison.OrdinalIgnoreCase)) return message;
+        var rawInput = Arg("rawInput"); return string.IsNullOrWhiteSpace(rawInput) ? command : command + " " + rawInput;
     }
 
     private bool RequestKickBotClipInternal(string message)
     {
-        var duration = ParseDuration(message);
-        var title = ParseTitle(message);
-        CPH.TryGetArg("userId", out string userId);
-        CPH.TryGetArg("userName", out string userName);
-        var pending = new JObject
-        {
-            ["duration"] = duration,
-            ["title"] = title,
-            ["creatorId"] = userId ?? "",
-            ["creatorName"] = userName ?? "",
-            ["requestedAt"] = DateTime.Now.ToString("o")
-        };
-        CPH.SetGlobalVar(PendingKey, pending.ToString(Newtonsoft.Json.Formatting.None), false);
-
-        CPH.SendKickMessage("!clip " + duration, true, true);
-        CPH.LogInfo($"RTS Action Replay: KickBot clip requested; duration={duration}; title={title}; creator={userName}.");
-        return true;
+        var duration = ParseDuration(message); var title = ParseTitle(message); CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName);
+        var pending = new JObject { ["duration"] = duration, ["title"] = title, ["creatorId"] = userId ?? "", ["creatorName"] = userName ?? "", ["requestedAt"] = DateTime.Now.ToString("o") };
+        CPH.SetGlobalVar(PendingKey, pending.ToString(Newtonsoft.Json.Formatting.None), false); CPH.SendKickMessage("!clip " + duration, true, true);
+        CPH.LogInfo($"RTS Action Replay: KickBot clip requested; duration={duration}; title={title}; creator={userName}."); return true;
     }
 
     private int ParseDuration(string message)
     {
         var match = Regex.Match(message ?? "", @"^!create-clip(?:\s+(\d+))?", RegexOptions.IgnoreCase);
-        if (!match.Success || !int.TryParse(match.Groups[1].Value, out var duration)) return 30;
-        return Math.Max(5, Math.Min(240, duration));
+        if (!match.Success || !int.TryParse(match.Groups[1].Value, out var duration)) return 30; return Math.Max(5, Math.Min(240, duration));
     }
 
     private string ParseTitle(string message)
     {
         var match = Regex.Match(message ?? "", @"^!create-clip(?:\s+\d+)?(?:\s+(.*))?$", RegexOptions.IgnoreCase);
-        var title = match.Success ? match.Groups[1].Value.Trim() : "";
-        return string.IsNullOrWhiteSpace(title) ? "Kick Clip" : title;
+        var title = match.Success ? match.Groups[1].Value.Trim() : ""; return string.IsNullOrWhiteSpace(title) ? "Kick Clip" : title;
     }
 
     private JObject LoadPending()
     {
-        var raw = CPH.GetGlobalVar<string>(PendingKey, false);
-        if (string.IsNullOrWhiteSpace(raw)) return null;
+        var raw = CPH.GetGlobalVar<string>(PendingKey, false); if (string.IsNullOrWhiteSpace(raw)) return null;
         try
         {
             var pending = JObject.Parse(raw);
-            if (DateTime.TryParse((string)pending["requestedAt"], out var requestedAt) &&
-                DateTime.Now - requestedAt > TimeSpan.FromMinutes(5))
-            {
-                ClearPending();
-                return null;
-            }
+            if (DateTime.TryParse((string)pending["requestedAt"], out var requestedAt) && DateTime.Now - requestedAt > TimeSpan.FromMinutes(5)) { ClearPending(); return null; }
             return pending;
         }
         catch { return null; }
@@ -154,24 +139,14 @@ public class CPHInline
 
     private bool BroadcastReplay(JObject item)
     {
-        CPH.SetGlobalVar(ReplayIdHandoffKey, (string)item["id"] ?? "", false);
-        CPH.SetGlobalVar(EntryPointHandoffKey, "kick", false);
-        CPH.UnsetGlobalVar(ResolvedProfileHandoffKey, false);
-        if (!CPH.ExecuteMethod(AnimationAction, "ResolveEntryPointProfile")) return false;
-        return CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay");
+        CPH.SetGlobalVar(ReplayIdHandoffKey, (string)item["id"] ?? "", false); CPH.SetGlobalVar(EntryPointHandoffKey, "kick", false); CPH.UnsetGlobalVar(ResolvedProfileHandoffKey, false);
+        if (!CPH.ExecuteMethod(AnimationAction, "ResolveEntryPointProfile")) return false; return CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay");
     }
 
     private JObject Load()
     {
-        var raw = CPH.GetGlobalVar<string>(DataKey, true);
-        if (string.IsNullOrWhiteSpace(raw)) return new JObject { ["version"] = 2, ["catalog"] = new JArray(), ["recentIds"] = new JArray() };
-        try
-        {
-            var data = JObject.Parse(raw);
-            data["catalog"] = data["catalog"] as JArray ?? new JArray();
-            data["recentIds"] = data["recentIds"] as JArray ?? new JArray();
-            return data;
-        }
+        var raw = CPH.GetGlobalVar<string>(DataKey, true); if (string.IsNullOrWhiteSpace(raw)) return new JObject { ["version"] = 2, ["catalog"] = new JArray(), ["recentIds"] = new JArray() };
+        try { var data = JObject.Parse(raw); data["catalog"] = data["catalog"] as JArray ?? new JArray(); data["recentIds"] = data["recentIds"] as JArray ?? new JArray(); return data; }
         catch { return new JObject { ["version"] = 2, ["catalog"] = new JArray(), ["recentIds"] = new JArray() }; }
     }
 
@@ -181,22 +156,34 @@ public class CPHInline
     {
         var recent = (JArray)data["recentIds"] ?? new JArray();
         for (var i = recent.Count - 1; i >= 0; i--) if (string.Equals((string)recent[i], id, StringComparison.OrdinalIgnoreCase)) recent.RemoveAt(i);
-        recent.Insert(0, id);
-        var max = CPH.GetGlobalVar<int?>(MaxRecentKey, true) ?? 20;
-        while (recent.Count > Math.Max(1, max)) recent.RemoveAt(recent.Count - 1);
-        data["recentIds"] = recent;
+        recent.Insert(0, id); var max = CPH.GetGlobalVar<int?>(MaxRecentKey, true) ?? 20; while (recent.Count > Math.Max(1, max)) recent.RemoveAt(recent.Count - 1); data["recentIds"] = recent;
     }
 
     private string ExtractKickBotUrl(string text)
     {
-        var match = Regex.Match(text ?? "", @"https?://(?:www\.)?kickbot\.com/clip/[A-Za-z0-9]+", RegexOptions.IgnoreCase);
-        return match.Success ? match.Value : null;
+        var match = Regex.Match(text ?? "", @"https?://(?:www\.)?kickbot\.com/clip/[A-Za-z0-9]+", RegexOptions.IgnoreCase); return match.Success ? match.Value : null;
     }
 
     private string ExtractKickBotId(string url)
     {
-        var match = Regex.Match(url ?? "", @"kickbot\.com/clip/([A-Za-z0-9]+)", RegexOptions.IgnoreCase);
-        return match.Success ? match.Groups[1].Value : null;
+        var match = Regex.Match(url ?? "", @"kickbot\.com/clip/([A-Za-z0-9]+)", RegexOptions.IgnoreCase); return match.Success ? match.Groups[1].Value : null;
+    }
+
+    private string ExtractKickClipUrl(string text)
+    {
+        var match = Regex.Match(text ?? "", @"https?://(?:www\.)?kick\.com/[A-Za-z0-9_-]+/clips/clip_[A-Za-z0-9_-]+", RegexOptions.IgnoreCase); return match.Success ? match.Value : null;
+    }
+
+    private string ExtractKickClipId(string value)
+    {
+        var match = Regex.Match(value ?? "", @"/clips/(clip_[A-Za-z0-9_-]+)", RegexOptions.IgnoreCase); return match.Success ? match.Groups[1].Value : null;
+    }
+
+    private string DownloadString(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return null;
+        try { using (var client = new WebClient()) { client.Headers[HttpRequestHeader.Accept] = "application/json"; client.Headers[HttpRequestHeader.UserAgent] = "RTS-Action-Replay"; return client.DownloadString(url); } }
+        catch (Exception ex) { CPH.LogWarn("RTS Action Replay: Kick request failed: " + ex.Message); return null; }
     }
 
     private string Arg(string name)
