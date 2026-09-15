@@ -136,7 +136,7 @@ public class CPHInline
         }
         var legacy = CreateProfile("default", "Default");
         var existing = FindProfile(result, "default");
-        if (existing == null) result.Insert(0, legacy); else result.Remove(existing);
+        if (existing != null) result.Remove(existing);
         result.Insert(0, existing ?? legacy);
         return result;
     }
