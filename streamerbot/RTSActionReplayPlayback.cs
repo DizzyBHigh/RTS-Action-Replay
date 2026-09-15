@@ -240,6 +240,8 @@ public class CPHInline
     private bool ApplyPlayerSettings(string profile)
     {
         CPH.SetArgument("replayAnimationProfileId", profile);
-        return CPH.ExecuteMethod(AnimationAction, "ApplyProfile");
+        var applied = CPH.ExecuteMethod(AnimationAction, "ApplyProfile");
+        CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false) ?? "");
+        return applied;
     }
 }
