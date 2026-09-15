@@ -75,8 +75,8 @@ public class CPHInline
             ["id"] = "twitch-" + clip.Id, ["sourceType"] = "Twitch", ["sourceId"] = clip.Id,
             ["title"] = string.IsNullOrWhiteSpace(clip.Title) ? "Twitch Clip" : clip.Title, ["customTitle"] = false,
             ["added"] = now.ToString("o"), ["captured"] = clip.CreatedAt.ToString("o"),
-            ["creator"] = new JObject { ["id"] = clip.CreatorId.ToString(), ["name"] = clip.CreatorName ?? "" },
-            ["broadcaster"] = new JObject { ["id"] = clip.BroadcasterId ?? "", ["name"] = clip.BroadcasterName ?? "" },
+            ["creator"] = new JObject { ["platform"] = "Twitch", ["id"] = clip.CreatorId.ToString(), ["name"] = clip.CreatorName ?? "" },
+            ["broadcaster"] = new JObject { ["platform"] = "Twitch", ["id"] = clip.BroadcasterId ?? "", ["name"] = clip.BroadcasterName ?? "" },
             ["gameId"] = clip.GameId ?? "", ["language"] = clip.Language ?? "", ["duration"] = clip.Duration,
             ["viewCount"] = clip.ViewCount, ["featured"] = clip.IsFeatured, ["externalUrl"] = clip.Url ?? "", ["embedUrl"] = clip.EmbedUrl ?? "", ["thumbnailUrl"] = clip.ThumbnailUrl ?? "",
             ["file"] = string.IsNullOrWhiteSpace(localPath) ? "" : Path.GetFileName(localPath), ["filePath"] = localPath ?? "", ["acquisitionMethod"] = playAfterAdd ? "TwitchCommand" : "TwitchDiscovery", ["plays"] = 0, ["users"] = new JObject()
