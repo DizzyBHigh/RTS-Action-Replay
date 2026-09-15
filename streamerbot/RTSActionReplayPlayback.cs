@@ -137,12 +137,42 @@ public class CPHInline
 
     private string ResolveKickUrl(JObject replay)
     {
+        var acquisition = (string)replay["acquisitionMethod"];
+        if (string.Equals(acquisition, "KickBot", StringComparison.OrdinalIgnoreCase)) return ResolveKickBotUrl(replay);
+        return ResolveNativeKickUrl(replay);
+    }
+
+    private string ResolveNativeKickUrl(JObject replay)
+    {
+        var clipId = ExtractKickClipId((string)replay["sourceId"]);
+        if (string.IsNullOrWhiteSpace(clipId)) clipId = ExtractKickClipId((string)replay["sourceUrl"]);
+        if (string.IsNullOrWhiteSpace(clipId)) return null;
+
+        var apiUrl = "https://kick.com/api/v2/clips/" + CPH.UrlEncode(clipId) + "/play";
+        var json = DownloadString(apiUrl);
+        if (string.IsNullOrWhiteSpace(json)) return null;
+        try
+        {
+            var clip = JObject.Parse(json)["clip"] as JObject;
+            var mediaUrl = (string)clip?["clip_url"];
+            CPH.LogInfo($"RTS Action Replay TRACE: native Kick media resolved; clipId={clipId}; mediaUrl={mediaUrl ?? "<null>"}.");
+            return mediaUrl;
+        }
+        catch (Exception ex)
+        {
+            CPH.LogWarn("RTS Action Replay: native Kick clip response could not be parsed: " + ex.Message);
+            return null;
+        }
+    }
+
+    private string ResolveKickBotUrl(JObject replay)
+    {
         var sourceUrl = (string)replay["sourceUrl"];
         var sourceId = (string)replay["sourceId"];
         var html = DownloadString(sourceUrl);
-        var clipId = ExtractKickClipId(sourceId);
-        if (string.IsNullOrWhiteSpace(clipId)) clipId = ExtractKickClipId(sourceUrl);
-        if (string.IsNullOrWhiteSpace(clipId)) clipId = ExtractKickClipId(html);
+        var clipId = ExtractKickBotClipId(sourceId);
+        if (string.IsNullOrWhiteSpace(clipId)) clipId = ExtractKickBotClipId(sourceUrl);
+        if (string.IsNullOrWhiteSpace(clipId)) clipId = ExtractKickBotClipId(html);
         if (string.IsNullOrWhiteSpace(clipId)) return null;
 
         var directMp4 = "https://clips.kickbotcdn.com/kickbot-hls/" + clipId + "/" + clipId + ".mp4";
@@ -191,8 +221,12 @@ public class CPHInline
         var match = Regex.Match(value ?? "", @"[?&]clip=(clip_[A-Za-z0-9]+)", RegexOptions.IgnoreCase);
         if (match.Success) return match.Groups[1].Value;
         match = Regex.Match(value ?? "", @"/clips?/(clip_[A-Za-z0-9]+)", RegexOptions.IgnoreCase);
-        if (match.Success) return match.Groups[1].Value;
-        match = Regex.Match(value ?? "", @"(?:kickbot\.com|kickbot\.app)/clip/([A-Za-z0-9]+)", RegexOptions.IgnoreCase);
+        return match.Success ? match.Groups[1].Value : null;
+    }
+
+    private string ExtractKickBotClipId(string value)
+    {
+        var match = Regex.Match(value ?? "", @"(?:kickbot\.com|kickbot\.app)/clip/([A-Za-z0-9]+)", RegexOptions.IgnoreCase);
         return match.Success ? match.Groups[1].Value : null;
     }
 
