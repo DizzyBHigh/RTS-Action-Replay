@@ -77,12 +77,12 @@ public class CPHInline
             {
                 replay["mediaUrl"] = url;
                 Save(data);
-                CPH.LogInfo($"RTS Action Replay TRACE: Kick MP4 resolved and catalog updated; replayId={(string)replay["id"]}; url={url}.");
+                CPH.LogInfo($"RTS Action Replay TRACE: Kick media resolved and catalog updated; replayId={(string)replay["id"]}; url={url}.");
             }
             else
             {
-                CPH.LogWarn($"RTS Action Replay TRACE: Kick MP4 resolution failed for replay {(string)replay["id"]}.");
-                CPH.SendMessage("Unable to resolve Kick MP4 file.");
+                CPH.LogWarn($"RTS Action Replay TRACE: Kick media resolution failed for replay {(string)replay["id"]}.");
+                CPH.SendMessage("Unable to resolve Kick media file.");
                 return false;
             }
         }
@@ -130,14 +130,15 @@ public class CPHInline
         var sourceId = (string)replay["sourceId"];
         var html = DownloadString(sourceUrl);
         var clipId = ExtractKickClipId(sourceId);
+        if (string.IsNullOrWhiteSpace(clipId)) clipId = ExtractKickClipId(sourceUrl);
         if (string.IsNullOrWhiteSpace(clipId)) clipId = ExtractKickClipId(html);
         if (!string.IsNullOrWhiteSpace(clipId))
         {
             var media = TryReadClipUrl(DownloadString("https://kick.com/api/v2/clips/" + clipId + "/play"));
-            if (IsMp4(media)) return media;
+            if (IsMediaUrl(media)) return media;
         }
-        var mp4 = Regex.Match(html ?? "", "https?://[^\\s]+\\.mp4", RegexOptions.IgnoreCase);
-        return mp4.Success ? mp4.Value.TrimEnd('"', '\'', '>', '<') : null;
+        var mediaMatch = Regex.Match(html ?? "", "https?://[^\\s\\\"'<>]+\\.(?:mp4|m3u8)(?:\\?[^\\s\\\"'<>]+)?", RegexOptions.IgnoreCase);
+        return mediaMatch.Success ? mediaMatch.Value : null;
     }
 
     private string TryReadClipUrl(string json)
@@ -146,7 +147,7 @@ public class CPHInline
         catch { return null; }
     }
 
-    private bool IsMp4(string url) => !string.IsNullOrWhiteSpace(url) && url.IndexOf(".mp4", StringComparison.OrdinalIgnoreCase) >= 0;
+    private bool IsMediaUrl(string url) => !string.IsNullOrWhiteSpace(url) && (url.IndexOf(".mp4", StringComparison.OrdinalIgnoreCase) >= 0 || url.IndexOf(".m3u8", StringComparison.OrdinalIgnoreCase) >= 0);
 
     private string ExtractKickClipId(string value)
     {
@@ -189,38 +190,23 @@ public class CPHInline
 
     public bool ConfirmPlayback()
     {
-        if (!CPH.TryGetArg("replayId", out string replayId)) return false;
-        var data = Load(); var replay = GetCatalog(data).OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase)); if (replay == null) return false;
-        replay["plays"] = ((int?)replay["plays"] ?? 0) + 1;
-        if (CPH.TryGetArg("userId", out string userId) && !string.IsNullOrWhiteSpace(userId)) { var name = CPH.TryGetArg("userName", out string userName) ? userName : userId; var users = (JObject)(replay["users"] ?? new JObject()); replay["users"] = users; var user = (JObject)(users[userId] ?? new JObject { ["name"] = name, ["plays"] = 0 }); user["name"] = string.IsNullOrWhiteSpace(name) ? (string)user["name"] : name; user["plays"] = ((int?)user["plays"] ?? 0) + 1; users[userId] = user; }
-        Save(data); return true;
+        var replayId = Arg("replayId"); if (string.IsNullOrWhiteSpace(replayId)) return false;
+        var data = Load(); var list = GetCatalog(data); var replay = list.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase)); if (replay == null) return false;
+        replay["plays"] = ((int?)replay["plays"] ?? 0) + 1; Save(data); return true;
     }
 
-    private string GetTwitchPlaybackMode() { var mode = CPH.GetGlobalVar<string>(TwitchModeKey, true); if (string.Equals(mode, "Twitch URL", StringComparison.OrdinalIgnoreCase)) return "Twitch URL"; if (string.Equals(mode, "Both", StringComparison.OrdinalIgnoreCase)) return "Both"; return "Download Locally"; }
-    private bool PathsEqual(string a, string b) { try { return string.Equals(Path.GetFullPath(a).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), Path.GetFullPath(b).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), StringComparison.OrdinalIgnoreCase); } catch { return string.Equals(a, b, StringComparison.OrdinalIgnoreCase); } }
-    private string Sanitize(string value) { var invalid = Path.GetInvalidFileNameChars(); var chars = value.ToCharArray(); for (var i = 0; i < chars.Length; i++) for (var j = 0; j < invalid.Length; j++) if (chars[i] == invalid[j]) chars[i] = '_'; return new string(chars); }
-
-    private void ApplyPlayerSettings(string profile)
+    private JObject Load()
     {
-        CPH.SetArgument("replayShowControls", CPH.GetGlobalVar<bool?>("rts.actionreplay.showControls", true) ?? false); CPH.SetArgument("replayShowProgress", CPH.GetGlobalVar<bool?>("rts.actionreplay.showProgress", true) ?? true); CPH.SetArgument("replayPlaybackSpeed", GetSettingDouble("rts.actionreplay.playbackSpeed", 1.0)); CPH.SetArgument("replayPlaybackSpeedVisibility", CPH.GetGlobalVar<string>("rts.actionreplay.playbackSpeedVisibility", true) ?? "Only when greater or less than 1");
-        CPH.SetArgument("replayFrameColor", CPH.GetGlobalVar<string>("rts.actionreplay.frameColor", true) ?? "#0384CBFF"); CPH.SetArgument("replayBorderWidth", GetSettingInt("rts.actionreplay.borderWidth", 4)); CPH.SetArgument("replayCornerRadius", GetSettingInt("rts.actionreplay.cornerRadius", 0)); CPH.SetArgument("replayBorderGlow", CPH.GetGlobalVar<bool?>("rts.actionreplay.borderGlow", true) ?? true);
-        CPH.SetGlobalVar(PlaybackProfileHandoffKey, profile, false);
-        CPH.SetArgument("profileId", profile);
-        if (!CPH.ExecuteMethod(AnimationAction, "ApplyProfile")) CPH.LogWarn("RTS Action Replay: animation profile action is not available.");
-        var animationProfile = CPH.GetGlobalVar<string>(AnimationProfileHandoffKey, false); var playerPositions = CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false);
-        if (!string.IsNullOrWhiteSpace(animationProfile)) CPH.SetArgument("replayAnimationProfile", animationProfile); if (!string.IsNullOrWhiteSpace(playerPositions)) CPH.SetArgument("replayPlayerPositions", playerPositions);
-        CPH.UnsetGlobalVar(AnimationProfileHandoffKey, false); CPH.UnsetGlobalVar(PlayerPositionsHandoffKey, false); CPH.UnsetGlobalVar(PlaybackProfileHandoffKey, false);
-        CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>("rts.actionreplay.positions", true) ?? "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
-        CPH.SetArgument("replayShowBranding", CPH.GetGlobalVar<bool?>("rts.actionreplay.showBranding", true) ?? true); CPH.SetArgument("replayBrandLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? ""); CPH.SetArgument("replayBrandFallbackText", CPH.GetGlobalVar<string>("rts.actionreplay.brandFallbackText", true) ?? "RTS"); CPH.SetArgument("replayBrandFallbackTextColor", CPH.GetGlobalVar<string>("rts.actionreplay.brandFallbackTextColor", true) ?? "#0384CBFF"); CPH.SetArgument("replayBrandLabel", CPH.GetGlobalVar<string>("rts.actionreplay.brandLabel", true) ?? "ACTION REPLAY"); CPH.SetArgument("replayBrandLabelColor", CPH.GetGlobalVar<string>("rts.actionreplay.brandLabelColor", true) ?? "#FFFFFFFF");
-        CPH.SetArgument("replayShowTitle", CPH.GetGlobalVar<bool?>("rts.actionreplay.showTitle", true) ?? true); CPH.SetArgument("replayTitleDecorationPosition", CPH.GetGlobalVar<string>("rts.actionreplay.titleDecorationPosition", true) ?? "Suffix"); CPH.SetArgument("replayTitleDecoration", CPH.GetGlobalVar<string>("rts.actionreplay.titleDecoration", true) ?? " - Replay Capture"); CPH.SetArgument("replayTitleStyle", CPH.GetGlobalVar<string>("rts.actionreplay.titleBarStyle", true) ?? "Broadcast"); CPH.SetArgument("replayTitlePosition", CPH.GetGlobalVar<string>("rts.actionreplay.titlePosition", true) ?? "Bottom"); CPH.SetArgument("replayTitleAnimation", CPH.GetGlobalVar<string>("rts.actionreplay.titleAnimation", true) ?? "Slide up/down"); CPH.SetArgument("replayTitleDelay", GetSettingInt("rts.actionreplay.titleDelay", 0)); CPH.SetArgument("replayTitleDuration", GetSettingInt("rts.actionreplay.titleDuration", 5000)); CPH.SetArgument("replayTitleAnimationDuration", GetSettingInt("rts.actionreplay.titleAnimationDuration", 450)); CPH.SetArgument("replayTitleFont", CPH.GetGlobalVar<string>("rts.actionreplay.titleFont", true) ?? "Inter"); CPH.SetArgument("replayTitleFontSize", GetSettingInt("rts.actionreplay.titleFontSize", 34)); CPH.SetArgument("replayTitleTextColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleTextColor", true) ?? "#FFFFFFFF"); CPH.SetArgument("replayTitleShadowColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleShadowColor", true) ?? "#000000FF"); CPH.SetArgument("replayTitlePrimaryColor", CPH.GetGlobalVar<string>("rts.actionreplay.titlePrimaryColor", true) ?? "#0384CBFF"); CPH.SetArgument("replayTitleSecondaryColor", CPH.GetGlobalVar<string>("rts.actionreplay.titleSecondaryColor", true) ?? "#101416FF");
-        CPH.SetArgument("replayBroadcastOverrideColours", CPH.GetGlobalVar<bool?>("rts.actionreplay.broadcast.overrideColours", true) ?? false); CPH.SetArgument("replayBroadcastPrimaryColor", CPH.GetGlobalVar<string>("rts.actionreplay.broadcast.primaryColor", true) ?? "#0384CBFF"); CPH.SetArgument("replayBroadcastSecondaryColor", CPH.GetGlobalVar<string>("rts.actionreplay.broadcast.secondaryColor", true) ?? "#FFD400FF"); CPH.SetArgument("replayBroadcastChevronHeight", GetSettingInt("rts.actionreplay.broadcast.chevronHeight", GetSettingInt("rts.actionreplay.broadcast.chevronWidth", 42))); CPH.SetArgument("replayBroadcastRandomHeight", CPH.GetGlobalVar<bool?>("rts.actionreplay.broadcast.randomHeight", true) ?? false); CPH.SetArgument("replayBroadcastChevronWidth", GetSettingInt("rts.actionreplay.broadcast.chevronWidth", GetSettingInt("rts.actionreplay.broadcast.chevronHeight", 42))); CPH.SetArgument("replayBroadcastRandomWidth", CPH.GetGlobalVar<bool?>("rts.actionreplay.broadcast.randomWidth", true) ?? false); CPH.SetArgument("replayBroadcastChevronSpacing", GetSettingInt("rts.actionreplay.broadcast.chevronSpacing", 0)); CPH.SetArgument("replayBroadcastRandomSpacing", CPH.GetGlobalVar<bool?>("rts.actionreplay.broadcast.randomSpacing", true) ?? false); CPH.SetArgument("replayBroadcastChevronSpeed", GetSettingInt("rts.actionreplay.broadcast.chevronSpeed", 95)); CPH.SetArgument("replayBroadcastDecorationColor", CPH.GetGlobalVar<string>("rts.actionreplay.broadcast.decorationColor", true) ?? "#0384CBFF"); CPH.SetArgument("replayBroadcastTitleColor", CPH.GetGlobalVar<string>("rts.actionreplay.broadcast.titleColor", true) ?? "#FFFFFFFF");
-        CPH.SetArgument("replayCutOverrideColours", CPH.GetGlobalVar<bool?>("rts.actionreplay.cut.overrideColours", true) ?? false); CPH.SetArgument("replayCutPrimaryColor", CPH.GetGlobalVar<string>("rts.actionreplay.cut.primaryColor", true) ?? "#0384CBFF"); CPH.SetArgument("replayCutSecondaryColor", CPH.GetGlobalVar<string>("rts.actionreplay.cut.secondaryColor", true) ?? "#FFD400FF"); CPH.SetArgument("replayCutBlockWidth", GetSettingInt("rts.actionreplay.cut.blockWidth", 170)); CPH.SetArgument("replayCutRandomWidth", CPH.GetGlobalVar<bool?>("rts.actionreplay.cut.randomWidth", true) ?? true); CPH.SetArgument("replayCutBarHeight", GetSettingInt("rts.actionreplay.cut.barHeight", 5)); CPH.SetArgument("replayCutDecorationColor", CPH.GetGlobalVar<string>("rts.actionreplay.cut.decorationColor", true) ?? "#0384CBFF"); CPH.SetArgument("replayCutTitleColor", CPH.GetGlobalVar<string>("rts.actionreplay.cut.titleColor", true) ?? "#FFFFFFFF");
+        var raw = CPH.GetGlobalVar<string>(DataKey, true); if (string.IsNullOrWhiteSpace(raw)) raw = CPH.GetGlobalVar<string>(LegacyCatalogKey, true);
+        if (string.IsNullOrWhiteSpace(raw)) return new JObject { ["version"] = 2, ["catalog"] = new JArray(), ["recentIds"] = new JArray() };
+        try { return JObject.Parse(raw); } catch { return new JObject { ["version"] = 2, ["catalog"] = new JArray(), ["recentIds"] = new JArray() }; }
     }
 
-    private void SendMessage(string type) { var key = "rts.actionreplay.message." + type; var text = CPH.GetGlobalVar<string>(key, true); if (!string.IsNullOrWhiteSpace(text)) CPH.SendMessage(text); }
-    private double GetSettingDouble(string key, double fallback) { var value = CPH.GetGlobalVar<double?>(key, true); return value ?? fallback; }
-    private int GetSettingInt(string key, int fallback) { var value = CPH.GetGlobalVar<int?>(key, true); return value ?? fallback; }
-    private JObject Load() { var json = CPH.GetGlobalVar<string>(DataKey, true); if (!string.IsNullOrWhiteSpace(json)) return JObject.Parse(json); var legacy = CPH.GetGlobalVar<string>(LegacyCatalogKey, true); return new JObject { ["catalog"] = string.IsNullOrWhiteSpace(legacy) ? new JArray() : JArray.Parse(legacy), ["recentIds"] = new JArray() }; }
-    private JArray GetCatalog(JObject data) { return (JArray)data["catalog"] ?? new JArray(); }
-    private void Save(JObject data) { CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true); }
+    private JArray GetCatalog(JObject data) => data["catalog"] as JArray ?? new JArray();
+    private string Arg(string name) { try { CPH.TryGetArg(name, out string value); return value ?? ""; } catch { return ""; } }
+    private void SendMessage(string text) { if (!string.IsNullOrWhiteSpace(text)) CPH.SendMessage(text); }
+    private bool PathsEqual(string a, string b) => string.Equals(Path.GetFullPath(a ?? "").TrimEnd(Path.DirectorySeparatorChar), Path.GetFullPath(b ?? "").TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase);
+    private string Sanitize(string value) { foreach (var c in Path.GetInvalidFileNameChars()) value = value.Replace(c, '_'); return value; }
+    private string GetTwitchPlaybackMode() => CPH.GetGlobalVar<string>(TwitchModeKey, true) ?? "Twitch URL";
+    private void ApplyPlayerSettings(string profile) { CPH.SetArgument("replayAnimationProfileId", profile); CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false) ?? ""); }
 }
