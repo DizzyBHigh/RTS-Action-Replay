@@ -28,7 +28,8 @@ public class CPHInline
 
     public bool ResolveEntryPointProfile()
     {
-        var entryPoint = Arg("titleEntryPoint", "");
+        var entryPoint = Arg("replayTitleEntryPoint", "");
+        if (string.IsNullOrWhiteSpace(entryPoint)) entryPoint = Arg("titleEntryPoint", "");
         if (string.IsNullOrWhiteSpace(entryPoint)) entryPoint = CPH.GetGlobalVar<string>(EntryPointHandoffKey, false);
         CPH.UnsetGlobalVar(EntryPointHandoffKey, false);
         if (string.IsNullOrWhiteSpace(entryPoint)) return false;
