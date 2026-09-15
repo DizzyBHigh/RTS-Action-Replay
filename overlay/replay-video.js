@@ -7,6 +7,7 @@ let youtubeReady = false;
 let youtubeReadyWaiters = [];
 let youtubeBoundaryTimer = null;
 let youtubeEndedNotified = false;
+let youtubeReplayToken = 0;
 let hlsPlayer = null;
 
 window.onYouTubeIframeAPIReady = () => {
@@ -32,15 +33,16 @@ const updateYouTubeControls = command => {
   RTSReplayControls.updateYouTubeControls?.(Math.max(0, current - start), duration);
 };
 
-const notifyEndedOnce = command => {
-  if (youtubeEndedNotified) return;
+const notifyEndedOnce = (command, token) => {
+  if (token !== youtubeReplayToken || youtubeEndedNotified) return;
   youtubeEndedNotified = true;
   RTSReplayVideo.notifyPlaybackEnded(command);
 };
 
-const startYouTubeBoundaryTimer = command => {
+const startYouTubeBoundaryTimer = (command, token) => {
   stopYouTubeBoundaryTimer();
   youtubeBoundaryTimer = setInterval(() => {
+    if (token !== youtubeReplayToken) { stopYouTubeBoundaryTimer(); return; }
     if (!youtubePlayer || !command) return;
     updateYouTubeControls(command);
     const current = Number(youtubePlayer.getCurrentTime?.() || 0);
@@ -49,7 +51,7 @@ const startYouTubeBoundaryTimer = command => {
       stopYouTubeBoundaryTimer();
       youtubePlayer.pauseVideo();
       replayDevLog('YouTube replay boundary reached', { replayId: command.replayId, currentTime: current, endTime: end });
-      notifyEndedOnce(command);
+      notifyEndedOnce(command, token);
     }
   }, 100);
 };
@@ -91,7 +93,11 @@ const loadNativeReplay = (url, command) => {
 };
 
 const loadYouTubePlayer = async command => {
+  const token = ++youtubeReplayToken;
+  stopYouTubeBoundaryTimer();
+  youtubeEndedNotified = false;
   await waitForYouTube();
+  if (token !== youtubeReplayToken) return;
   const videoId = command.replaySourceId;
   if (!videoId) return;
   const host = document.getElementById('youtube-player-host');
@@ -99,7 +105,14 @@ const loadYouTubePlayer = async command => {
   host.classList.add('show');
   host.setAttribute('aria-hidden', 'false');
   RTSReplayVideo.video.style.display = 'none';
-  youtubeEndedNotified = false;
+
+  const start = Number(command.replayStartTime || 0);
+  const end = start + Number(command.replayDuration || 0);
+  const speed = Number(command.replayPlaybackSpeed) || 1;
+  const configureQueuedVideo = player => {
+    if (token !== youtubeReplayToken) return;
+    player.cueVideoById({ videoId, startSeconds: start, endSeconds: end });
+  };
 
   const create = () => {
     youtubePlayer = new YT.Player(host, {
@@ -107,29 +120,31 @@ const loadYouTubePlayer = async command => {
       playerVars: { autoplay: 0, controls: command.replayShowControls !== false ? 1 : 0, playsinline: 1, rel: 0 },
       events: {
         onReady: event => {
-          const start = Number(command.replayStartTime || 0);
-          event.target.seekTo(start, true);
-          const speed = Number(command.replayPlaybackSpeed) || 1;
-          event.target.setPlaybackRate(speed);
+          if (token !== youtubeReplayToken) return;
+          configureQueuedVideo(event.target);
           updateYouTubeControls(command);
-          if (command.replayAutoplay) { event.target.playVideo(); startYouTubeBoundaryTimer(command); }
           replayDevLog('YouTube player ready', { replayId: command.replayId, videoId, startTime: start, duration: command.replayDuration });
           RTSReplayVideo.confirmPlayback(command.replayId, command.replayUserId, command.replayUserName);
         },
         onStateChange: event => {
-          if (event.data === YT.PlayerState.PLAYING) startYouTubeBoundaryTimer(command);
-          if (event.data === YT.PlayerState.ENDED) { stopYouTubeBoundaryTimer(); updateYouTubeControls(command); notifyEndedOnce(command); }
+          if (token !== youtubeReplayToken) return;
+          if (event.data === YT.PlayerState.CUED) {
+            event.target.setPlaybackRate(speed);
+            updateYouTubeControls(command);
+            if (command.replayAutoplay) { event.target.playVideo(); startYouTubeBoundaryTimer(command, token); }
+          }
+          if (event.data === YT.PlayerState.PLAYING) startYouTubeBoundaryTimer(command, token);
+          if (event.data === YT.PlayerState.ENDED) { stopYouTubeBoundaryTimer(); updateYouTubeControls(command); notifyEndedOnce(command, token); }
         },
-        onError: event => replayDevLog('YouTube player error', { replayId: command.replayId, error: event.data })
+        onError: event => {
+          if (token === youtubeReplayToken) replayDevLog('YouTube player error', { replayId: command.replayId, error: event.data });
+        }
       }
     });
   };
 
-  if (youtubePlayer?.loadVideoById) {
-    youtubePlayer.loadVideoById({ videoId, startSeconds: Number(command.replayStartTime || 0) });
-    youtubePlayer.setPlaybackRate(Number(command.replayPlaybackSpeed) || 1);
-    updateYouTubeControls(command);
-    if (command.replayAutoplay) { youtubePlayer.playVideo(); startYouTubeBoundaryTimer(command); }
+  if (youtubePlayer?.cueVideoById) {
+    configureQueuedVideo(youtubePlayer);
   } else create();
 };
 
@@ -146,7 +161,7 @@ RTSReplayVideo.notifyPlaybackEnded = command => {
 
 RTSReplayVideo.playReplay = command => {
   if (command?.replaySource?.toLowerCase() === 'youtube') {
-    if (youtubePlayer?.playVideo) { youtubePlayer.playVideo(); startYouTubeBoundaryTimer(command); }
+    if (youtubePlayer?.playVideo) { youtubePlayer.playVideo(); startYouTubeBoundaryTimer(command, youtubeReplayToken); }
     return;
   }
   RTSReplayVideo.video.play().then(() => RTSReplayVideo.confirmPlayback(command.replayId, command.replayUserId, command.replayUserName)).catch(error => console.warn('Replay play failed', error));
