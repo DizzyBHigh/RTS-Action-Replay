@@ -229,7 +229,7 @@ RTSReplayVideo.showPlayer = () => {
 RTSReplayVideo.hideReplay = () => {
   const command = RTSReplayVideo.currentCommand || {};
   RTSReplayAnimation.cancelSequence(); stopYouTubeBoundaryTimer();
-  if (command.replaySource?.toLowerCase() === 'youtube') { ++youtubeReplayToken; youtubePlayer?.pauseVideo?.(); } else RTSReplayVideo.video.pause();
+  if (command.replaySource?.toLowerCase() === 'youtube') { youtubePlayer?.pauseVideo?.(); } else RTSReplayVideo.video.pause();
   RTSReplayVideo.visiblePosition = RTSReplayVideo.activePosition;
   const profile = RTSReplayAnimation.readProfile(command);
   if (Array.isArray(profile?.end) && profile.end.length) { RTSReplayAnimation.runEndSequence(profile.end, () => RTSReplayVideo.player.classList.remove('show')); return; }
@@ -247,8 +247,8 @@ RTSReplayVideo.handleReplayCommand = command => {
     if (command.replaySource?.toLowerCase() === 'youtube') youtubePlayer?.setPlaybackRate?.(speed); else RTSReplayVideo.video.playbackRate = speed;
   }
   if (command.replayCommand === 'move') RTSReplayVideo.moveReplay(command);
-  if (command.replayCommand === 'hide') RTSReplayVideo.hideReplay();
-  if (command.replayCommand === 'show') RTSReplayVideo.showPlayer();
+  if (command.replayCommand === 'hide') RTSReplayVideo.hideReplay(command);
+  if (command.replayCommand === 'show') RTSReplayVideo.showPlayer(command);
   if (command.replayCommand === 'stop') { if (command.replaySource?.toLowerCase() === 'youtube') youtubePlayer?.stopVideo?.(); else { RTSReplayVideo.video.pause(); RTSReplayVideo.video.currentTime = 0; } }
   if (command.replayCommand === 'replay') { if (command.replaySource?.toLowerCase() === 'youtube') { youtubeEndedNotified = false; youtubePlayer?.seekTo?.(Number(command.replayStartTime || 0), true); RTSReplayVideo.playReplay(command); } else { RTSReplayVideo.video.currentTime = 0; RTSReplayVideo.playReplay(command); } }
 };
