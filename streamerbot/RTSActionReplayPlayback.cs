@@ -255,4 +255,10 @@ public class CPHInline
         CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false) ?? "");
         return applied;
     }
+
+    private bool ApplyTitleSettings(string profile)
+    {
+        CPH.SetArgument("replayTitleProfileId", profile);
+        return CPH.ExecuteMethod(TitleAction, "ApplyProfile");
+    }
 }
