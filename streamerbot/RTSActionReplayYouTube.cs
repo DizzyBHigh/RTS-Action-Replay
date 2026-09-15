@@ -16,20 +16,16 @@ public class CPHInline
     public bool BroadcastStarted()
     {
         var broadcastId = Arg("broadcast.id").Trim();
-        var startTime = Arg("broadcast.actualStartTime").Trim();
         if (string.IsNullOrWhiteSpace(broadcastId))
         {
             CPH.LogWarn("RTS Action Replay: YouTube Broadcast Started event did not provide broadcast.id.");
             return false;
         }
-        if (!DateTimeOffset.TryParse(startTime, null, System.Globalization.DateTimeStyles.RoundtripKind, out var actualStartTime))
-        {
-            CPH.LogWarn($"RTS Action Replay: invalid YouTube broadcast.actualStartTime '{startTime}'.");
-            return false;
-        }
+
+        var actualStartTime = DateTimeOffset.UtcNow;
         CPH.SetGlobalVar(YouTubeBroadcastIdKey, broadcastId, true);
-        CPH.SetGlobalVar(YouTubeStartTimeKey, actualStartTime.ToUniversalTime().ToString("o"), true);
-        CPH.LogInfo($"RTS Action Replay: YouTube broadcast {broadcastId} started at {actualStartTime.ToUniversalTime():o}.");
+        CPH.SetGlobalVar(YouTubeStartTimeKey, actualStartTime.ToString("o"), true);
+        CPH.LogInfo($"RTS Action Replay: YouTube broadcast {broadcastId} started at {actualStartTime:o}.");
         return true;
     }
 
