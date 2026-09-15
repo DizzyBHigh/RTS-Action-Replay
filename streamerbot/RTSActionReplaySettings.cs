@@ -48,6 +48,7 @@ public class CPHInline
     private void AddTwitchSettings(RtsUI ui)
     {
         ui.BeginSection("Twitch Clips", "Twitch"); ui.AddDropdown("Twitch Clip Playback", "How Action Replay obtains Twitch media when a Twitch Catalog item is played.", "Twitch", "rts.actionreplay.twitch.playbackMode", new[] { "Twitch URL", "Download Locally", "Both" }, "Download Locally"); ui.AddFolderPicker("Twitch Clip Folder", "Folder used only for downloaded Twitch Clips. It must be separate from the OBS Replay Folder.", "Twitch", "rts.actionreplay.twitch.folder", ""); ui.AddTextbox("Twitch HTTP Mapping", "Streamer.bot HTTP path mapped to the Twitch Clip Folder.", "Twitch", "rts.actionreplay.twitch.httpMapping", "twitch", false); ui.AddNumericTextbox("Clip Duration", "Default duration used by !twitchclip, in seconds.", "Twitch", "rts.actionreplay.twitch.clipDuration", 30, 5, 60); ui.EndSection();
+        ui.BeginSection("Kick Clips", "Kick"); ui.AddDropdown("Kick Clip Playback", "How Action Replay obtains Kick media when a Kick Catalog item is played.", "Kick", "rts.actionreplay.kick.playbackMode", new[] { "Kick URL", "Download Locally", "Both" }, "Download Locally"); ui.AddFolderPicker("Kick Clip Folder", "Folder used only for downloaded Kick Clips. It must be separate from the OBS Replay Folder.", "Kick", "rts.actionreplay.kick.folder", ""); ui.AddTextbox("Kick HTTP Mapping", "Streamer.bot HTTP path mapped to the Kick Clip Folder.", "Kick", "rts.actionreplay.kick.httpMapping", "kick", false); ui.EndSection();
     }
 
     private void AddYouTubeSettings(RtsUI ui)
@@ -107,7 +108,6 @@ public class CPHInline
 
     private string[] BuildProfileOptions(string key) { var list = new List<string>(); foreach (var item in ReadProfiles(key)) { var name = (string)item["name"]; if (!string.IsNullOrWhiteSpace(name)) list.Add(name); } if (list.Count == 0) list.Add("Default"); return list.ToArray(); }
     private JArray ReadProfiles(string key) { var config = ReadConfig(key); var profiles = config["animationProfiles"] as JArray; if (profiles == null || profiles.Count == 0) return new JArray(new JObject { ["id"] = "default", ["name"] = "Default", ["startSequence"] = new JArray(), ["endSequence"] = new JArray() }); return profiles; }
-
     private string[] BuildAnimationPositionOptions() => BuildPositionOptions(CPH.GetGlobalVar<string>("rts.actionreplay.ui.playerPositions", true), "Full Screen");
     private string[] BuildPanelAnimationPositionOptions() => BuildPositionOptions(CPH.GetGlobalVar<string>("rts.actionreplay.ui.panelPositions", true), "Centered");
     private string[] BuildPositionOptions(string json, string builtIn) { var options = new List<string> { builtIn }; foreach (var item in ParsePositions(json)) { var name = (string)item.Value["name"]; if (!string.IsNullOrWhiteSpace(name) && !options.Contains(name)) options.Add(name); } return options.ToArray(); }
