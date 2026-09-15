@@ -31,6 +31,8 @@ public class CPHInline
         var pending = LoadPending();
         var title = (string)pending?["title"] ?? "Kick Clip";
         var duration = (int?)pending?["duration"] ?? 30;
+        var creatorId = (string)pending?["creatorId"] ?? "";
+        var creatorName = (string)pending?["creatorName"] ?? "";
 
         var existing = catalog.OfType<JObject>().FirstOrDefault(x =>
             string.Equals((string)x["sourceType"], "Kick", StringComparison.OrdinalIgnoreCase) &&
@@ -45,9 +47,9 @@ public class CPHInline
             return BroadcastReplay(existing);
         }
 
-        CPH.TryGetArg("userId", out string userId);
-        CPH.TryGetArg("userName", out string userName);
-        var creator = new JObject { ["platform"] = "Kick", ["id"] = userId ?? "", ["name"] = userName ?? "" };
+        if (string.IsNullOrWhiteSpace(creatorId)) CPH.TryGetArg("userId", out creatorId);
+        if (string.IsNullOrWhiteSpace(creatorName)) CPH.TryGetArg("userName", out creatorName);
+        var creator = new JObject { ["platform"] = "Kick", ["id"] = creatorId ?? "", ["name"] = creatorName ?? "" };
         var item = new JObject
         {
             ["id"] = "kick-" + (kickBotId ?? Guid.NewGuid().ToString("N")),
@@ -76,16 +78,20 @@ public class CPHInline
     {
         var duration = ParseDuration(message);
         var title = ParseTitle(message);
+        CPH.TryGetArg("userId", out string userId);
+        CPH.TryGetArg("userName", out string userName);
         var pending = new JObject
         {
             ["duration"] = duration,
             ["title"] = title,
+            ["creatorId"] = userId ?? "",
+            ["creatorName"] = userName ?? "",
             ["requestedAt"] = DateTime.Now.ToString("o")
         };
         CPH.SetGlobalVar(PendingKey, pending.ToString(Newtonsoft.Json.Formatting.None), false);
 
         CPH.SendKickMessage("!clip " + duration, true, true);
-        CPH.LogInfo($"RTS Action Replay: KickBot clip requested; duration={duration}; title={title}.");
+        CPH.LogInfo($"RTS Action Replay: KickBot clip requested; duration={duration}; title={title}; creator={userName}.");
         return true;
     }
 
