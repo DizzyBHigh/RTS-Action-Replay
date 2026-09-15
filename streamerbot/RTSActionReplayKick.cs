@@ -25,6 +25,7 @@ public class CPHInline
         var kickBotUrl = ExtractKickBotUrl(message);
         if (string.IsNullOrWhiteSpace(kickBotUrl))
         {
+            message = NormalizeCreateClipMessage(message);
             if (!Regex.IsMatch(message ?? "", @"^!create-clip(?:\s|$)", RegexOptions.IgnoreCase)) return false;
             return RequestKickBotClip(message);
         }
@@ -78,6 +79,17 @@ public class CPHInline
         ClearPending();
         Save(data);
         return BroadcastReplay(item);
+    }
+
+    private string NormalizeCreateClipMessage(string message)
+    {
+        if (Regex.IsMatch(message ?? "", @"^!create-clip(?:\s|$)", RegexOptions.IgnoreCase)) return message;
+
+        var command = Arg("command");
+        if (!string.Equals(command, "!create-clip", StringComparison.OrdinalIgnoreCase)) return message;
+
+        var rawInput = Arg("rawInput");
+        return string.IsNullOrWhiteSpace(rawInput) ? command : command + " " + rawInput;
     }
 
     private bool RequestKickBotClip(string message)
