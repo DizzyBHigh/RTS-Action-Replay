@@ -76,7 +76,7 @@ public class CPHInline
             if (!string.IsNullOrWhiteSpace(url))
             {
                 replay["mediaUrl"] = url;
-                Save(data);
+                SaveData(data);
                 CPH.LogInfo($"RTS Action Replay TRACE: Kick media resolved and catalog updated; replayId={(string)replay["id"]}; url={url}.");
             }
             else
@@ -192,7 +192,7 @@ public class CPHInline
     {
         var replayId = Arg("replayId"); if (string.IsNullOrWhiteSpace(replayId)) return false;
         var data = Load(); var list = GetCatalog(data); var replay = list.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase)); if (replay == null) return false;
-        replay["plays"] = ((int?)replay["plays"] ?? 0) + 1; Save(data); return true;
+        replay["plays"] = ((int?)replay["plays"] ?? 0) + 1; SaveData(data); return true;
     }
 
     private JObject Load()
@@ -208,5 +208,6 @@ public class CPHInline
     private bool PathsEqual(string a, string b) => string.Equals(Path.GetFullPath(a ?? "").TrimEnd(Path.DirectorySeparatorChar), Path.GetFullPath(b ?? "").TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase);
     private string Sanitize(string value) { foreach (var c in Path.GetInvalidFileNameChars()) value = value.Replace(c, '_'); return value; }
     private string GetTwitchPlaybackMode() => CPH.GetGlobalVar<string>(TwitchModeKey, true) ?? "Twitch URL";
+    private void SaveData(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
     private void ApplyPlayerSettings(string profile) { CPH.SetArgument("replayAnimationProfileId", profile); CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false) ?? ""); }
 }
