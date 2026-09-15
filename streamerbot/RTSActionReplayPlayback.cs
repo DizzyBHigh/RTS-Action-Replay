@@ -113,7 +113,6 @@ public class CPHInline
             var folder = CPH.GetGlobalVar<string>(KickFolderKey, true);
             if (!string.IsNullOrWhiteSpace(localPath)) { var fullPath = Path.IsPathRooted(localPath) ? localPath : Path.Combine(folder ?? "", localPath); if (File.Exists(fullPath)) return BuildKickHttpUrl(Path.GetFileName(fullPath)); }
         }
-
         var mediaUrl = ResolveKickMediaUrl(replay);
         if (string.IsNullOrWhiteSpace(mediaUrl)) return null;
         if (!ModeNeedsLocalCopy(mode)) return mediaUrl;
@@ -188,7 +187,7 @@ public class CPHInline
     private void SaveReplayFile(JObject replay) { try { var data = Load(); var item = GetCatalog(data).OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], (string)replay["id"], StringComparison.OrdinalIgnoreCase)); if (item == null) return; item["file"] = (string)replay["file"] ?? ""; item["filePath"] = (string)replay["filePath"] ?? ""; SaveData(data); } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: could not save Kick local file metadata: " + ex.Message); } }
 
     private string ExtractKickClipId(string value) { var match = Regex.Match(value ?? "", @"^clip_[A-Za-z0-9_-]+$", RegexOptions.IgnoreCase); if (match.Success) return match.Value; match = Regex.Match(value ?? "", @"[?&]clip=(clip_[A-Za-z0-9_-]+)", RegexOptions.IgnoreCase); if (match.Success) return match.Groups[1].Value; match = Regex.Match(value ?? "", @"/clips?/(clip_[A-Za-z0-9_-]+)", RegexOptions.IgnoreCase); return match.Success ? match.Groups[1].Value : null; }
-    private string ExtractKickBotClipId(string value) { var match = Regex.Match(value ?? "", @"(?:kickbot\\.com|kickbot\\.app)/clip/([A-Za-z0-9]+)", RegexOptions.IgnoreCase); return match.Success ? match.Groups[1].Value : null; }
+    private string ExtractKickBotClipId(string value) { var match = Regex.Match(value ?? "", @"(?:kickbot\.com|kickbot\.app)/clip/([A-Za-z0-9]+)", RegexOptions.IgnoreCase); return match.Success ? match.Groups[1].Value : null; }
     private string DownloadString(string url) { if (string.IsNullOrWhiteSpace(url)) return null; try { using (var client = new WebClient()) { client.Headers[HttpRequestHeader.UserAgent] = "RTS-Action-Replay"; return client.DownloadString(url); } } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: Kick request failed: " + ex.Message); return null; } }
 
     private string ResolveTwitchUrl(JObject replay)
@@ -210,8 +209,7 @@ public class CPHInline
     public bool ConfirmPlayback() { var replayId = Arg("replayId"); if (string.IsNullOrWhiteSpace(replayId)) return false; var data = Load(); var list = GetCatalog(data); var replay = list.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase)); if (replay == null) return false; replay["plays"] = ((int?)replay["plays"] ?? 0) + 1; SaveData(data); return true; }
     private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); if (string.IsNullOrWhiteSpace(raw)) raw = CPH.GetGlobalVar<string>(LegacyCatalogKey, true); if (string.IsNullOrWhiteSpace(raw)) return new JObject { ["version"] = 2, ["catalog"] = new JArray(), ["recentIds"] = new JArray() }; try { return JObject.Parse(raw); } catch { return new JObject { ["version"] = 2, ["catalog"] = new JArray(), ["recentIds"] = new JArray() }; } }
     private JArray GetCatalog(JObject data) => data["catalog"] as JArray ?? new JArray();
-    private string Arg(string name) { try { CPH.TryGetArg(name, out string value); return value ?? ""; } catch { return ""; }
-    }
+    private string Arg(string name) { try { CPH.TryGetArg(name, out string value); return value ?? ""; } catch { return ""; } }
     private void SaveData(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
     private void SendMessage(string text)
     {
