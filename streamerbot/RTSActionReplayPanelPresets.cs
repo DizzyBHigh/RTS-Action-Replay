@@ -78,7 +78,9 @@ public class CPHInline
         panel["animation"] = animation;
         panel["preset"] = preset;
         SaveConfig(panel);
-        SetDesignArguments(Arg("replayPanelPreset").Length > 0 ? Arg("replayPanelPreset") : globalPreset);
+        var resolvedPreset = Arg("replayPanelPreset");
+        if (string.IsNullOrWhiteSpace(resolvedPreset)) resolvedPreset = globalPreset;
+        SetDesignArguments(resolvedPreset);
         return true;
     }
 
