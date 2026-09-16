@@ -49,6 +49,7 @@
 }
 #search-panel .rts-panel-list {
   max-height: calc(min(760px, 100vh - 120px) - 145px);
+  padding-bottom: 14px;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--panel-primary) transparent;
