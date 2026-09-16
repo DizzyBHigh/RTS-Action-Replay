@@ -2,8 +2,8 @@
   animation: clapper-in .42s cubic-bezier(.2,.8,.2,1) forwards;
 }
 
-#message-card.show .clapstick {
-  animation: clap .78s cubic-bezier(.2,.7,.2,1) .18s forwards;
+#message-card.show .clapstick.clap {
+  animation: clap .78s cubic-bezier(.2,.7,.2,1) forwards;
 }
 
 @keyframes clapper-in {
