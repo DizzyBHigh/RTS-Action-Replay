@@ -35,7 +35,10 @@ public class CPHInline
     }
     public bool ResolveSelectionForUser()
     {
-        var selector = Arg("rawInput").Trim(); if (!int.TryParse(selector, out var index) || index < 1) return false;
+        var selector = Arg("rawInput").Trim();
+        var parts = selector.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        var indexText = parts.Length == 1 ? parts[0] : parts.Length == 2 ? parts[1] : "";
+        if (!int.TryParse(indexText, out var index) || index < 1) return false;
         var platform = Arg("catalogSelectionPlatform"); var userName = Arg("catalogSelectionUser"); if (!TryParseUserTarget(platform + ":" + userName, out platform, out userName)) return false;
         var userId = ResolveUserId(platform, userName); if (string.IsNullOrWhiteSpace(userId)) return false;
         var state = LoadUserSearchState(platform, userId, userName); if (state == null || string.Equals((string)state["filterType"], "leaderboard", StringComparison.OrdinalIgnoreCase)) return false;
