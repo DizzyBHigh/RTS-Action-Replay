@@ -1,0 +1,29 @@
+#search-panel.panel-broadcast .panel-broadcast-chevron-track {
+  position: relative;
+  left: auto;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  width: 100%;
+  height: 32px;
+  box-sizing: border-box;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+  clip-path: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--panel-primary) 35%, transparent);
+}
+
+#search-panel.panel-broadcast .panel-broadcast-chevron-mover {
+  top: 0;
+  height: 100%;
+}
+
+#search-panel.panel-broadcast .panel-broadcast-chevron {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+@media (max-width: 700px) {
+  #search-panel.panel-broadcast .panel-broadcast-chevron-track { height: 28px; }
+}
