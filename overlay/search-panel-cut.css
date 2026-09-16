@@ -1,6 +1,11 @@
 #search-panel.panel-cut .rts-panel-header {
   min-height: 112px;
-  padding-bottom: 22px;
+  padding-bottom: 15px;
+  border-bottom: 0;
+}
+
+#search-panel.panel-cut .rts-panel-header::after {
+  content: none;
 }
 
 #search-panel.panel-cut .panel-cut-bar-track {
