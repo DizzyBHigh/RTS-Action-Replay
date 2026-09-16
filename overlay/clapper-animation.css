@@ -7,8 +7,8 @@
 }
 
 @keyframes clapper-in {
-  0% { opacity: 0; transform: rotate(-5deg) translateY(45px) scale(calc(.82 * var(--message-scale))); }
-  100% { opacity: 1; transform: rotate(-1deg) translateY(0) scale(var(--message-scale)); }
+  0% { opacity: 0; transform: rotate(-5deg) translateY(45px); }
+  100% { opacity: 1; transform: rotate(-1deg) translateY(0); }
 }
 
 @keyframes clap {
