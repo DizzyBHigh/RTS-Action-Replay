@@ -21,6 +21,7 @@ public class CPHInline
     private const string AnimationAction = "RTS - Action Replay - Core - Animation";
     private const string TitleAction = "RTS - Action Replay - Core - Title";
     private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
+    private const string CatalogAction = "RTS - Action Replay - Core - Catalog";
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
     private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
     private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
@@ -55,8 +56,20 @@ public class CPHInline
         {
             if (string.IsNullOrWhiteSpace(selector)) { CPH.LogWarn("RTS Action Replay TRACE: PlayReplay failed - no queue handoff and rawInput is empty."); return false; }
             selector = selector.Trim();
-            if (int.TryParse(selector, out var index) && index > 0 && index <= list.Count) replay = (JObject)list[index - 1];
-            else replay = list.OfType<JObject>().FirstOrDefault(x => ((bool?)x["customTitle"] ?? false) && string.Equals((string)x["title"], selector, StringComparison.OrdinalIgnoreCase));
+            if (int.TryParse(selector, out var index) && index > 0)
+            {
+                CPH.SetArgument("catalogSelectionReplayId", "");
+                if (CPH.ExecuteMethod(CatalogAction, "ResolveSelection"))
+                {
+                    var replayId = Arg("catalogSelectionReplayId");
+                    replay = list.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase));
+                    CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay catalog selection {index} resolved to replayId={replayId ?? "<none>"}.");
+                }
+            }
+            else
+            {
+                replay = list.OfType<JObject>().FirstOrDefault(x => ((bool?)x["customTitle"] ?? false) && string.Equals((string)x["title"], selector, StringComparison.OrdinalIgnoreCase));
+            }
             if (replay == null) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - selector '{selector}' did not resolve to a replay."); SendMessage("Replay not found."); return false; }
         }
 
