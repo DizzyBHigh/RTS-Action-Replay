@@ -40,6 +40,14 @@ RTSInformationPanelPresets.startCutBlocks = (panel, command) => {
   const barWidth = panel.clientWidth;
   if (barWidth <= 0) return;
   panel.style.setProperty('--panel-cut-bar-height', `${barHeight}px`);
+  const rows = panel.querySelectorAll('.rts-panel-entry');
+  rows.forEach(row => {
+    const offset = Math.floor(Math.random() * 18) - 9;
+    const extension = Math.floor(Math.random() * 18) + 9;
+    row.style.setProperty('--cut-row-offset', `${offset}px`);
+    row.style.setProperty('--cut-row-extension', `${extension}px`);
+    row.style.setProperty('--cut-row-block-width', `${15 + offset}px`);
+  });
   const track = document.createElement('div'); track.className = 'panel-cut-bar-track'; header.appendChild(track);
   const getWidth = () => randomWidth ? randomValue(blockWidth) : blockWidth;
   const createBlock = (left, width, colourValue) => { const block = document.createElement('span'); block.className = 'panel-cut-bar-block'; block.style.width = `${(width + 2).toFixed(1)}px`; block.style.backgroundColor = colourValue; block.style.left = `${left.toFixed(1)}px`; track.appendChild(block); return block; };
