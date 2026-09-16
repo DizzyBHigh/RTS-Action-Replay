@@ -25,7 +25,13 @@
 #search-panel .rts-panel-list { max-height: calc(min(760px, 100vh - 120px) - 110px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--panel-primary) transparent; }
 #search-panel .rts-panel-entry { grid-template-columns: 36px minmax(0, 1fr) auto; gap: 14px; min-height: 50px; padding: 9px 16px; border-bottom: 1px solid rgba(255,255,255,.08); font: 600 var(--panel-list-size, 15px)/1.25 system-ui, sans-serif; }
 #search-panel .rts-panel-title { color: var(--panel-list-color, #fff); }
-.rts-search-requester { color: var(--panel-primary); font: 700 11px/1 system-ui, sans-serif; letter-spacing: .12em; }
+.rts-search-requester { font: 700 11px/1 system-ui, sans-serif; letter-spacing: .12em; }
+.rts-search-requester-label { color: var(--panel-primary); }
+.rts-search-requester-platform { color: var(--platform-color, #fff); }
+.rts-search-requester-platform--twitch { --platform-color: #9146FF; }
+.rts-search-requester-platform--kick { --platform-color: #53FC18; }
+.rts-search-requester-platform--youtube { --platform-color: #FF0000; }
+.rts-search-requester-name { color: #fff; }
 .rts-search-stats { color: rgba(255,255,255,.68); font: 600 12px/1.2 system-ui, sans-serif; white-space: nowrap; }
 .rts-search-empty { padding: 30px 20px; text-align: center; color: rgba(255,255,255,.65); font: 600 15px/1.3 system-ui, sans-serif; }
 
