@@ -23,25 +23,32 @@
 #search-panel .rts-panel-header {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 4px;
-  padding: 17px 20px 15px;
+  padding: 13px 20px 15px;
   background: linear-gradient(135deg, rgba(3, 132, 203, .24), rgba(3, 132, 203, .04) 55%, transparent);
   border-bottom: 2px solid var(--panel-primary);
+  text-align: center;
 }
-#search-panel .rts-panel-header strong {
-  font: 800 23px/1.1 var(--panel-title-font, system-ui), sans-serif;
+#search-panel .rts-panel-kicker {
+  color: var(--panel-primary);
+  font: 900 18px/1.05 var(--panel-title-font, system-ui), sans-serif;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+#search-panel .rts-panel-header strong.rts-search-type {
+  color: #FFD600;
+  font: 900 25px/1.1 var(--panel-title-font, system-ui), sans-serif;
   letter-spacing: .02em;
-  color: var(--panel-title-color, #fff);
-  font-size: var(--panel-title-size, 23px);
 }
 #search-panel .rts-search-summary {
-  color: rgba(255,255,255,.72);
-  font: 700 12px/1.2 system-ui, sans-serif;
+  color: rgba(255,255,255,.82);
+  font: 800 14px/1.2 system-ui, sans-serif;
   letter-spacing: .04em;
   text-transform: none;
 }
 #search-panel .rts-panel-list {
-  max-height: calc(min(760px, 100vh - 120px) - 130px);
+  max-height: calc(min(760px, 100vh - 120px) - 145px);
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--panel-primary) transparent;
@@ -96,21 +103,26 @@
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
-.rts-search-requester { font: 700 11px/1 system-ui, sans-serif; letter-spacing: .12em; }
-.rts-search-requester-label { color: var(--panel-primary); }
-.rts-search-requester-platform { color: var(--platform-color, #fff); }
-.rts-search-requester-platform--twitch { --platform-color: #9146FF; }
-.rts-search-requester-platform--kick { --platform-color: #53FC18; }
-.rts-search-requester-platform--youtube { --platform-color: #FF0000; }
-.rts-search-requester-name { color: #fff; }
+#search-panel .rts-search-requester {
+  font: 800 11px/1.15 system-ui, sans-serif;
+  letter-spacing: .08em;
+}
+#search-panel .rts-search-requester-label { color: var(--panel-primary); }
+#search-panel .rts-search-requester-platform { color: var(--platform-color, #fff); }
+#search-panel .rts-search-requester-platform--twitch { --platform-color: #9146FF; }
+#search-panel .rts-search-requester-platform--kick { --platform-color: #53FC18; }
+#search-panel .rts-search-requester-platform--youtube { --platform-color: #FF0000; }
+#search-panel .rts-search-requester-name { color: #fff; }
 .rts-search-empty { padding: 30px 20px; text-align: center; color: rgba(255,255,255,.65); font: 600 15px/1.3 system-ui, sans-serif; }
 
 @media (max-width: 700px) {
   #search-panel { width: calc(100vw - 30px); max-height: calc(100vh - 60px); }
-  #search-panel .rts-panel-header { padding: 14px 16px 13px; }
-  #search-panel .rts-panel-header strong { font-size: 20px; }
+  #search-panel .rts-panel-header { padding: 11px 16px 13px; }
+  #search-panel .rts-panel-kicker { font-size: 16px; }
+  #search-panel .rts-panel-header strong.rts-search-type { font-size: 21px; }
+  #search-panel .rts-search-summary { font-size: 12px; }
   #search-panel .rts-panel-entry { grid-template-columns: 34px minmax(0, 1fr); gap: 9px; padding: 8px 13px; }
   #search-panel .rts-panel-number { width: 28px; height: 26px; }
   #search-panel .rts-search-stats { grid-column: 2; text-align: left; }
-  #search-panel .rts-panel-list { max-height: calc(100vh - 180px); }
+  #search-panel .rts-panel-list { max-height: calc(100vh - 190px); }
 }
