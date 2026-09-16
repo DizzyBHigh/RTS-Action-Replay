@@ -58,12 +58,6 @@ RTSReplayMessages.showMessage = command => {
   }
 
   clearTimeout(RTSReplayMessages.messageTimer);
-  RTSReplayMessages.messageCard.classList.remove('show');
-  void RTSReplayMessages.messageCard.offsetWidth;
-  RTSReplayMessages.messageCard.classList.add('show');
-  RTSReplayMessages.messageCard.setAttribute('aria-hidden', 'false');
-  RTSReplayMessages.messageTimer = setTimeout(() => {
-    RTSReplayMessages.messageCard.classList.remove('show');
-    RTSReplayMessages.messageCard.setAttribute('aria-hidden', 'true');
-  }, RTSReplayMessages.config.messageDuration);
+  RTSReplayClapperAnimation.show(command);
+  RTSReplayMessages.messageTimer = setTimeout(() => RTSReplayClapperAnimation.hide(command), RTSReplayMessages.config.messageDuration);
 };
