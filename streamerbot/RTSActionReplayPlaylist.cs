@@ -8,6 +8,7 @@ public class CPHInline
     private const string PersistKey = "rts.actionreplay.playlistPersist";
     private const string PausedKey = "rts.actionreplay.playlistPaused";
     private const string ActiveKey = "rts.actionreplay.playlistActive";
+    private const string ActiveReplayKey = "rts.actionreplay.playlistActiveReplayId";
     private const string DataKey = "rts.actionreplay.data";
     private const string PlaybackCode = "RTS - Action Replay - Core - Playback";
     private const string CatalogAction = "RTS - Action Replay - Core - Catalog";
@@ -142,6 +143,7 @@ public class CPHInline
         queue.Remove(current);
         SaveQueue(queue);
         CPH.SetGlobalVar(ActiveKey, "", false);
+        CPH.SetGlobalVar(ActiveReplayKey, "", false);
         CPH.LogInfo($"RTS Action Replay TRACE: PlaybackEnded removed active entry {currentEntryId}; remaining={queue.Count}; paused={IsPaused()}.");
         if (IsPaused()) return true;
         if (queue.Count == 0) { HidePlayer(); CPH.LogInfo("RTS Action Replay TRACE: PlaybackEnded queue empty; hide requested."); return true; }
@@ -171,6 +173,7 @@ public class CPHInline
         if (started)
         {
             CPH.SetGlobalVar(ActiveKey, (string)item["entryId"], false);
+            CPH.SetGlobalVar(ActiveReplayKey, (string)item["replayId"], false);
             CPH.SetArgument("historyReplayId", (string)item["replayId"] ?? "");
             CPH.SetArgument("historyReplayTitle", (string)item["title"] ?? "Replay");
             CPH.SetArgument("historyReplayCreator", (string)FindReplay(catalog, (string)item["replayId"])?["creator"]?["name"] ?? "");
