@@ -36,7 +36,7 @@ const clapperAdapter = {
   }
 };
 
-const getRunner = () => {
+const getClapperRunner = () => {
   if (!clapperRunner && window.RTSAnimationEngine) clapperRunner = RTSAnimationEngine.createRunner(clapperAdapter);
   return clapperRunner;
 };
@@ -51,7 +51,7 @@ const triggerClap = () => {
 
 RTSReplayClapperAnimation.show = command => {
   clapperCommand = command || {};
-  const runner = getRunner();
+  const runner = getClapperRunner();
   RTSReplayClapper.messageCard.classList.remove('show');
   void RTSReplayClapper.messageCard.offsetWidth;
   RTSReplayClapper.messageCard.classList.add('show');
@@ -63,7 +63,7 @@ RTSReplayClapperAnimation.show = command => {
 
 RTSReplayClapperAnimation.hide = command => {
   clapperCommand = command || clapperCommand || {};
-  const runner = getRunner();
+  const runner = getClapperRunner();
   const profile = readClapperProfile(clapperCommand);
   if (profile?.end?.length && runner) {
     runner.setActive(RTSReplayClapper.activePosition);
@@ -78,7 +78,7 @@ RTSReplayClapperAnimation.hide = command => {
   RTSReplayClapper.messageCard.setAttribute('aria-hidden', 'true');
 };
 
-RTSReplayClapperAnimation.cancel = () => getRunner()?.cancel();
+RTSReplayClapperAnimation.cancel = () => getClapperRunner()?.cancel();
 
 function readClapperProfile(command) {
   const raw = command?.replayClapperAnimation;
