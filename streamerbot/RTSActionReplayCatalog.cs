@@ -17,7 +17,7 @@ public class CPHInline
     private const string PanelAnimationAction = "RTS - Action Replay - Core - Animation";
     private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
 
-    public bool Execute() => ListCatalog();
+    public bool Execute() => string.Equals(Arg("replayAvatarRequestId"), "", StringComparison.Ordinal) ? ListCatalog() : ResolveAvatar();
     public bool ListCatalog() { var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var amount = ParseAmount(ref parts); var search = string.Join(" ", parts).Trim(); return Queue(BuildState(string.IsNullOrWhiteSpace(search) ? "all" : "search", search, "catalog", amount)); }
     public bool ListRecent() => Queue(BuildState("recent", "", "recent", ParseAmount(Arg("rawInput"))));
     public bool ListLastPlayed() => Queue(BuildState("lastplayed", "", "history", ParseAmount(Arg("rawInput"))));
