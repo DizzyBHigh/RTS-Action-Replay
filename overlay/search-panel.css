@@ -116,6 +116,15 @@
 #search-panel .rts-search-requester-name { color: #fff; }
 .rts-search-empty { padding: 30px 20px; text-align: center; color: rgba(255,255,255,.65); font: 600 15px/1.3 system-ui, sans-serif; }
 
+#search-panel.panel-minimal .rts-panel-header::before {
+  left: 0;
+  right: 0;
+}
+#search-panel.panel-minimal .rts-panel-header::after {
+  left: 0;
+  right: 0;
+}
+
 @media (max-width: 700px) {
   #search-panel { width: calc(100vw - 30px); max-height: calc(100vh - 60px); }
   #search-panel .rts-panel-header { padding: 11px 16px 13px; }
