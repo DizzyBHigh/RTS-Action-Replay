@@ -11,8 +11,6 @@ RTSReplayPanelBroadcast.startPanelChevrons = (panel, command) => {
   if (!panel?.classList.contains('panel-broadcast') || !panel.classList.contains('show')) return;
   const header = panel.querySelector('.rts-panel-header');
   if (!header) return;
-  const list = panel.querySelector('.rts-panel-list');
-  const isSearchPanel = panel.id === 'search-panel' && list;
   RTSReplayPanelBroadcast.stopPanelChevrons(panel);
 
   const colour = value => { const raw = String(value || '').trim(); const match = raw.match(/^#([0-9a-f]{6}|[0-9a-f]{8})$/i); return match ? `#${match[1].slice(0, 6)}` : raw; };
@@ -22,7 +20,7 @@ RTSReplayPanelBroadcast.startPanelChevrons = (panel, command) => {
   const secondary = colour(command?.replayBroadcastSecondaryColor || '#FFD400');
   const track = document.createElement('div');
   track.className = 'panel-broadcast-chevron-track';
-  if (isSearchPanel) list.before(track); else header.append(track);
+  header.append(track);
   panel._rtsPanelChevronTrack = track;
 
   const heightSetting = number(command?.replayBroadcastChevronHeight, 1, Math.max(1, track.clientHeight), 42);
