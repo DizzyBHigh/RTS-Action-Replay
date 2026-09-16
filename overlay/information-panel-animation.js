@@ -40,12 +40,12 @@ const panelAdapter = {
   }
 };
 
-const getRunner = () => {
+const getPanelRunner = () => {
   if (!panelRunner && window.RTSAnimationEngine) panelRunner = RTSAnimationEngine.createRunner(panelAdapter);
   return panelRunner;
 };
 
-RTSInformationPanelAnimation.cancel = () => getRunner()?.cancel();
+RTSInformationPanelAnimation.cancel = () => getPanelRunner()?.cancel();
 RTSInformationPanelAnimation.profile = command => {
   const raw = command?.replayPanelAnimation;
   if (!raw) return null;
@@ -61,7 +61,7 @@ RTSInformationPanelAnimation.apply = (panel, position) => panelAdapter.applyPosi
 
 RTSInformationPanelAnimation.run = (panel, command, sequence, complete) => {
   panelCommand = command || {};
-  const runner = getRunner();
+  const runner = getPanelRunner();
   if (!runner) { complete?.(); return; }
   runner.run(sequence, complete);
 };
@@ -87,7 +87,7 @@ RTSInformationPanelAnimation.hide = (panel, command) => {
     panel.setAttribute('aria-hidden', 'true');
     return;
   }
-  const runner = getRunner();
+  const runner = getPanelRunner();
   runner?.setActive(RTSInformationPanelAnimation.position(panelCommand, panelCommand.replayPanelPosition || 'Centered'));
   runner?.runEnd(end, () => {
     panel.classList.remove('show');
