@@ -18,18 +18,18 @@ RTSReplayPanelBroadcast.startPanelChevrons = (panel, command) => {
   const randomValue = (max, min = 1) => min + Math.random() * Math.max(0, max - min);
   const primary = colour(command?.replayBroadcastPrimaryColor || '#0384CB');
   const secondary = colour(command?.replayBroadcastSecondaryColor || '#FFD400');
-  const heightSetting = number(command?.replayBroadcastChevronHeight, 1, 89, 42);
-  const widthSetting = number(command?.replayBroadcastChevronWidth, 1, 300, 42);
+  const track = document.createElement('div');
+  track.className = 'panel-broadcast-chevron-track';
+  header.append(track);
+  panel._rtsPanelChevronTrack = track;
+
+  const heightSetting = number(command?.replayBroadcastChevronHeight, 1, Math.max(1, track.clientHeight), 42);
+  const widthSetting = number(command?.replayBroadcastChevronWidth, 1, 200, 42);
   const spacingSetting = number(command?.replayBroadcastChevronSpacing, 0, 200, 0);
   const randomHeight = command?.replayBroadcastRandomHeight === true;
   const randomWidth = command?.replayBroadcastRandomWidth === true;
   const randomSpacing = command?.replayBroadcastRandomSpacing === true;
   const speed = number(command?.replayBroadcastChevronSpeed, 10, 500, 95);
-  const track = document.createElement('div');
-  track.className = 'panel-broadcast-chevron-track';
-  header.append(track);
-  panel._rtsPanelChevronTrack = track;
-  panel.style.setProperty('--panel-chevron-height', `${heightSetting}px`);
   const trackWidth = track.clientWidth;
   if (trackWidth <= 0) return;
 
@@ -38,13 +38,32 @@ RTSReplayPanelBroadcast.startPanelChevrons = (panel, command) => {
   const getSpacing = () => randomSpacing ? randomValue(spacingSetting, 0) : spacingSetting;
   const chevronArm = (width, height) => Math.min(height * 0.42, width * 0.45);
   const createChevron = (left, width, height, index) => {
-    const mover = document.createElement('span'); mover.className = 'panel-broadcast-chevron-mover'; mover.style.left = `${left.toFixed(2)}px`;
-    const chevron = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); chevron.classList.add('panel-broadcast-chevron'); chevron.setAttribute('viewBox', `0 0 ${width} ${height}`); chevron.setAttribute('width', width.toFixed(2)); chevron.setAttribute('height', height.toFixed(2)); chevron.style.color = index % 2 ? secondary : primary;
-    const arm = chevronArm(width, height); const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-    polygon.setAttribute('points', [`0,0`, `${width - arm},0`, `${width},${height / 2}`, `${width - arm},${height}`, `0,${height}`, `${arm},${height / 2}`].join(' ')); polygon.setAttribute('fill', 'currentColor');
-    chevron.append(polygon); mover.append(chevron); track.append(mover); return mover;
+    const mover = document.createElement('span');
+    mover.className = 'panel-broadcast-chevron-mover';
+    mover.style.left = `${left.toFixed(2)}px`;
+    mover.style.width = `${width.toFixed(2)}px`;
+    const chevron = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    chevron.classList.add('panel-broadcast-chevron');
+    chevron.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    chevron.setAttribute('width', width.toFixed(2));
+    chevron.setAttribute('height', height.toFixed(2));
+    chevron.style.setProperty('--chevron-width', `${width.toFixed(2)}px`);
+    chevron.style.setProperty('--chevron-height', `${height.toFixed(2)}px`);
+    chevron.style.setProperty('--chevron-color', index % 2 ? secondary : primary);
+    const arm = chevronArm(width, height);
+    const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    polygon.setAttribute('points', [`0,0`, `${width - arm},0`, `${width},${height / 2}`, `${width - arm},${height}`, `0,${height}`, `${arm},${height / 2}`].join(' '));
+    polygon.setAttribute('fill', 'currentColor');
+    chevron.append(polygon);
+    mover.append(chevron);
+    track.append(mover);
+    return mover;
   };
-  const animate = (mover, left, width) => { const distance = trackWidth + width - left; const animation = mover.animate([{ transform: 'translate3d(0,0,0)' }, { transform: `translate3d(${distance}px,0,0)` }], { duration: distance / speed * 1000, easing: 'linear', fill: 'forwards' }); animation.onfinish = () => mover.remove(); };
+  const animate = (mover, left, width) => {
+    const distance = trackWidth + width - left;
+    const animation = mover.animate([{ transform: 'translate3d(0,0,0)' }, { transform: `translate3d(${distance}px,0,0)` }], { duration: distance / speed * 1000, easing: 'linear', fill: 'forwards' });
+    animation.onfinish = () => mover.remove();
+  };
 
   let index = 0, pendingWidth = getWidth(), pendingHeight = getHeight(), pendingSpacing = getSpacing();
   const spawn = () => {
