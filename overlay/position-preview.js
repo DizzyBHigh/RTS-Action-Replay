@@ -21,9 +21,7 @@ const originalPanelApplyPosition = window.RTSInformationPanels?.applyPosition;
 if (originalPanelApplyPosition) {
   window.RTSInformationPanels.applyPosition = (panel, command, name) => {
     originalPanelApplyPosition(panel, command, name);
-    RTSPositionPreview.panelPosition = window.RTSInformationPanels.normalise(
-      window.RTSInformationPanels.getPosition(command, name)
-    );
+    RTSPositionPreview.panelPosition = window.RTSInformationPanels.normalise(window.RTSInformationPanels.getPosition(command, name));
   };
 }
 
@@ -31,12 +29,7 @@ const buildPanelPreview = panel => {
   if (!panel || panel.querySelector('.rts-panel-header')) return;
   panel.innerHTML = '<div class="rts-panel-header"><span class="rts-panel-kicker">ACTION REPLAY</span><strong>RECENT REPLAYS</strong></div><div class="rts-panel-list"></div>';
   const list = panel.querySelector('.rts-panel-list');
-  [
-    { number: '1', title: 'Example Replay' },
-    { number: '2', title: 'Another Recent Replay' },
-    { number: '3', title: 'Requested Replay' },
-    { number: '4', title: 'Latest Replay' }
-  ].forEach(entry => {
+  [{ number: '1', title: 'Example Replay' }, { number: '2', title: 'Another Recent Replay' }, { number: '3', title: 'Requested Replay' }, { number: '4', title: 'Latest Replay' }].forEach(entry => {
     const row = document.createElement('div'); row.className = 'rts-panel-entry';
     const number = document.createElement('span'); number.className = 'rts-panel-number'; number.textContent = entry.number;
     const avatar = document.createElement('span'); avatar.className = 'rts-panel-avatar';
@@ -74,7 +67,7 @@ RTSPositionPreview.previewPanelPosition = command => {
 RTSPositionPreview.previewClapperPosition = command => {
   if (!RTSPositionPreview.messageCard || !window.RTSReplayClapper) return;
   RTSPositionPreview.currentCommand = { ...(RTSPositionPreview.currentCommand || {}), ...command };
-  window.RTSReplayClapper.applyPosition(command, command.replayClapperPosition || 'Centered');
+  RTSReplayMessages.applyMessageStyle(command);
   RTSPositionPreview.messageText.textContent = command.replayMessage || 'CLAPPERBOARD PREVIEW';
   RTSPositionPreview.messageCard.classList.add('position-preview', 'show');
   RTSPositionPreview.messageCard.setAttribute('aria-hidden', 'false');
