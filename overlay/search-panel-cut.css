@@ -1,3 +1,8 @@
 #search-panel.panel-cut .rts-panel-header {
+  min-height: 112px;
   padding-bottom: 22px;
+}
+
+#search-panel.panel-cut .panel-cut-bar-track {
+  bottom: 0;
 }
