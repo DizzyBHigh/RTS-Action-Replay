@@ -42,7 +42,9 @@ public class CPHInline
 
     public bool Apply()
     {
-        CPH.SetArgument("replayPanelPreset", GetString("preset", "Broadcast"));
+        var preset = CPH.GetGlobalVar<string>(Prefix + "preset", true);
+        if (string.IsNullOrWhiteSpace(preset)) CPH.TryGetArg("replayPanelPreset", out preset);
+        CPH.SetArgument("replayPanelPreset", string.IsNullOrWhiteSpace(preset) ? "Broadcast" : preset);
         CPH.SetArgument("replayPanelPrimaryColor", GetString("primaryColor", "#0384CBFF"));
         CPH.SetArgument("replayPanelSecondaryColor", GetString("secondaryColor", "#101416FF"));
         CPH.SetArgument("replayPanelTitleFont", GetString("titleFont", "Inter"));
