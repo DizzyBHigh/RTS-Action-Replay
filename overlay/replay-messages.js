@@ -1,11 +1,5 @@
 const RTSReplayMessages = window.RTSReplay;
 
-function clamp(value, min, max, fallback) {
-  const number = Number(value);
-  if (!Number.isFinite(number)) return fallback;
-  return Math.min(max, Math.max(min, number));
-}
-
 function cssColor(value, fallback) {
   const text = String(value || '').trim();
   if (/^#[0-9a-fA-F]{8}$/.test(text)) return `#${text.slice(3)}${text.slice(1, 3)}`;
@@ -34,9 +28,7 @@ RTSReplayMessages.applyMessageStyle = command => {
   style.setProperty('--accent-color', cssColor(command.replayMessageAccent, '#0384CB'));
   style.setProperty('--message-color', cssColor(command.replayMessageTextColor, '#0384CB'));
   style.setProperty('--message-font', `'${font.replace(/'/g, "\\'")}', Arial, sans-serif`);
-  style.setProperty('--message-scale', clamp(command.replayMessageSize, 0, 100, 50) / 100);
-  style.left = `${clamp(command.replayMessagePositionX, 0, 100, 50)}%`;
-  style.top = `${clamp(command.replayMessagePositionY, 0, 100, 50)}%`;
+  RTSReplayClapper.applyPosition(command, command.replayClapperPosition || 'Centered');
   loadGoogleFont(font);
 };
 
@@ -45,14 +37,6 @@ RTSReplayMessages.showMessage = command => {
   if (!text) return;
 
   RTSReplayMessages.applyMessageStyle(command);
-  const size = clamp(command.replayMessageSize, 0, 100, 50);
-  if (size === 0) {
-    clearTimeout(RTSReplayMessages.messageTimer);
-    RTSReplayMessages.messageCard.classList.remove('show');
-    RTSReplayMessages.messageCard.setAttribute('aria-hidden', 'true');
-    return;
-  }
-
   RTSReplayMessages.messageText.textContent = text;
   const showBranding = command.replayShowClapperBranding !== false;
   RTSReplayMessages.messageCard.querySelector('.brand').style.display = showBranding ? '' : 'none';
