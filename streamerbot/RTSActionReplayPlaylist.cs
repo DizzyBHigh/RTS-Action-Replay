@@ -10,6 +10,7 @@ public class CPHInline
     private const string ActiveKey = "rts.actionreplay.playlistActive";
     private const string DataKey = "rts.actionreplay.data";
     private const string PlaybackCode = "RTS - Action Replay - Core - Playback";
+    private const string CatalogAction = "RTS - Action Replay - Core - Catalog";
     private const string AnimationAction = "RTS - Action Replay - Core - Animation";
     private const string TitleAction = "RTS - Action Replay - Core - Title";
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
@@ -167,7 +168,17 @@ public class CPHInline
         var started = CPH.ExecuteMethod(PlaybackCode, "PlayReplay");
         CPH.UnsetGlobalVar(ReplayIdHandoffKey, false); CPH.UnsetGlobalVar(PlaybackQueueEntryHandoffKey, false); CPH.UnsetGlobalVar(PlaybackProfileHandoffKey, false); CPH.UnsetGlobalVar(PlaybackTitleProfileHandoffKey, false);
         CPH.LogInfo($"RTS Action Replay TRACE: Playback PlayReplay returned {started}.");
-        if (started) CPH.SetGlobalVar(ActiveKey, (string)item["entryId"], false); return started;
+        if (started)
+        {
+            CPH.SetGlobalVar(ActiveKey, (string)item["entryId"], false);
+            CPH.SetArgument("historyReplayId", (string)item["replayId"] ?? "");
+            CPH.SetArgument("historyReplayTitle", (string)item["title"] ?? "Replay");
+            CPH.SetArgument("historyReplayCreator", (string)FindReplay(catalog, (string)item["replayId"])?["creator"]?["name"] ?? "");
+            CPH.SetArgument("historyReplayRequester", (string)item["requesterName"] ?? "");
+            CPH.SetArgument("historyReplayPlatform", (string)item["requesterPlatform"] ?? "");
+            CPH.ExecuteMethod(CatalogAction, "RecordPlayed");
+        }
+        return started;
     }
 
     private string ResolveRequestedProfile()
