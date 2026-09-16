@@ -1,16 +1,15 @@
 #search-panel.panel-broadcast .rts-panel-header {
-  padding-bottom: 0;
+  position: relative;
+  padding-bottom: 51px;
 }
 
 #search-panel.panel-broadcast .panel-broadcast-chevron-track {
-  position: relative;
-  left: auto;
-  top: auto;
-  right: auto;
-  bottom: auto;
-  width: calc(100% + 40px);
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 4px;
+  width: 100%;
   height: 32px;
-  margin: 0 -20px;
   box-sizing: border-box;
   overflow: hidden;
   pointer-events: none;
@@ -29,10 +28,9 @@
 }
 
 @media (max-width: 700px) {
-  #search-panel.panel-broadcast .rts-panel-header { padding-bottom: 0; }
+  #search-panel.panel-broadcast .rts-panel-header { padding-bottom: 45px; }
   #search-panel.panel-broadcast .panel-broadcast-chevron-track {
-    width: calc(100% + 32px);
-    margin: 0 -16px;
+    bottom: 4px;
     height: 28px;
   }
 }
