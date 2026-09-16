@@ -7,6 +7,7 @@ public class CPHInline
     private const string PlayerKey = "rts.actionreplay.config.player";
     private const string PanelKey = "rts.actionreplay.config.panel";
     private const string UiPrefix = "rts.actionreplay.ui.animation.";
+    private const string PanelPresetUiPrefix = "rts.actionreplay.ui.panelPreset.";
     private const string TitleUiPrefix = "rts.actionreplay.ui.title.";
 
     public bool Execute()
@@ -80,10 +81,20 @@ public class CPHInline
 
     private void AddPanelAnimationSettings(RtsUI ui)
     {
-        ui.BeginSection("Panel Animation Profiles", "Information Panels"); ui.BeginRow(); AddPanelEntry(ui, "Recent Replays Profile", "recent"); AddPanelEntry(ui, "Playlist Profile", "playlist"); ui.EndRow(); AddPanelEntry(ui, "Creator Leaderboard Profile", "creatorLeaderboard"); ui.EndSection(); foreach (var item in ReadProfiles(PanelKey)) { var id = (string)item["id"]; if (!string.IsNullOrWhiteSpace(id)) AddPanelAnimationProfile(ui, (string)item["name"] ?? "Default", id); }
+        ui.BeginSection("Panel Entry Points", "Information Panels"); ui.AddTitle("Choose the animation profile and visual preset used by each information-panel entry point.", "Information Panels"); ui.BeginRow(); AddPanelEntry(ui, "Recent / Search", "recent"); AddPanelEntry(ui, "Playlist", "playlist"); ui.EndRow(); AddPanelEntry(ui, "Creator Leaderboard", "creatorLeaderboard"); ui.EndSection();
+        foreach (var item in ReadProfiles(PanelKey)) { var id = (string)item["id"]; if (!string.IsNullOrWhiteSpace(id)) AddPanelAnimationProfile(ui, (string)item["name"] ?? "Default", id); }
     }
 
-    private void AddPanelEntry(RtsUI ui, string title, string point) => ui.AddDropdown(title, "Animation profile used for this information-panel entry point.", "Information Panels", UiPrefix + "panel.entry." + point, BuildProfileOptions(PanelKey), "Default");
+    private void AddPanelEntry(RtsUI ui, string title, string point)
+    {
+        ui.BeginSection(title, "Information Panels");
+        ui.AddDropdown("Animation Profile", "Animation profile used for this information-panel entry point.", "Information Panels", UiPrefix + "panel.entry." + point, BuildProfileOptions(PanelKey), "Default");
+        ui.AddDropdown("Visual Preset", "Visual preset used for this information-panel entry point.", "Information Panels", PanelPresetUiPrefix + point, PanelPresetOptions(), "Broadcast");
+        ui.EndSection();
+    }
+
+    private static string[] PanelPresetOptions() => new[] { "Broadcast", "Cinematic", "Cut", "Minimal" };
+
     private void AddPanelAnimationProfile(RtsUI ui, string title, string id)
     {
         ui.BeginSection(title, "Information Panels"); if (id != "default") { ui.AddTextbox("Panel Profile Name", "Display name for this information-panel animation profile.", "Information Panels", UiPrefix + "panel.profile." + id + ".name", title, false); ui.AddClickableButton("Remove Profile", "Delete this information-panel animation profile.", "Delete Profile", "red", "Information Panels", () => { CPH.SetArgument("panelProfileId", id); if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "RemovePanelProfile")) ui.RebuildUI(rebuilt => BuildSettings(rebuilt)); }); } ui.BeginRow(); AddAnimationRows(ui, "Start Sequence", "The positions and transitions used when the panel appears.", PanelKey, id, "startSequence", "Centered", "Information Panels"); AddAnimationRows(ui, "End Sequence", "The positions and transitions used when the panel disappears.", PanelKey, id, "endSequence", "Centered", "Information Panels"); ui.EndRow(); ui.EndSection();
@@ -114,6 +125,11 @@ public class CPHInline
 
     private string ReadUiValue(string key)
     {
+        if (key.StartsWith(PanelPresetUiPrefix, StringComparison.Ordinal))
+        {
+            var point = key.Substring(PanelPresetUiPrefix.Length); var config = ReadConfig(PanelKey); var preset = config["preset"] as JObject; var entries = preset?["entryPoints"] as JObject;
+            return (string)entries?[point] ?? (string)preset?["fallback"] ?? "Broadcast";
+        }
         if (key.StartsWith(TitleUiPrefix, StringComparison.Ordinal))
         {
             try { var parts = key.Substring(TitleUiPrefix.Length).Split('.'); var config = ReadConfig(PlayerKey); var title = config["title"] as JObject ?? new JObject(); if (parts[0] == "defaultProfile") return NormalizeTitleProfile((string)title["selectedProfile"] ?? CPH.GetGlobalVar<string>("rts.actionreplay.titleBarStyle", true)); if (parts[0] == "entry") return NormalizeTitleProfile((string)(title["entryPoints"] as JObject)?[parts[1]] ?? (string)title["selectedProfile"]); } catch { } return "Broadcast";
@@ -124,6 +140,10 @@ public class CPHInline
 
     private void SaveUiValue(string key, object value, bool persisted)
     {
+        if (key.StartsWith(PanelPresetUiPrefix, StringComparison.Ordinal))
+        {
+            try { var point = key.Substring(PanelPresetUiPrefix.Length); var config = ReadConfig(PanelKey); var preset = config["preset"] as JObject ?? new JObject(); var entries = preset["entryPoints"] as JObject ?? new JObject(); var selected = NormalizeTitleProfile(value == null ? "" : value.ToString()); entries[point] = selected; preset["entryPoints"] = entries; if (string.IsNullOrWhiteSpace((string)preset["fallback"])) preset["fallback"] = "Broadcast"; config["preset"] = preset; SaveConfig(PanelKey, config); } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: panel preset UI save failed: " + ex.Message); } return;
+        }
         if (key.StartsWith(TitleUiPrefix, StringComparison.Ordinal))
         {
             try { var parts = key.Substring(TitleUiPrefix.Length).Split('.'); var config = ReadConfig(PlayerKey); var title = config["title"] as JObject ?? new JObject(); config["title"] = title; var profile = NormalizeTitleProfile(value == null ? "" : value.ToString()); if (parts[0] == "defaultProfile") { title["selectedProfile"] = profile; CPH.SetGlobalVar("rts.actionreplay.titleBarStyle", profile, true); } else if (parts[0] == "entry") { var entries = title["entryPoints"] as JObject ?? new JObject(); entries[parts[1]] = profile; title["entryPoints"] = entries; } SaveConfig(PlayerKey, config); } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: title profile UI save failed: " + ex.Message); } return;
