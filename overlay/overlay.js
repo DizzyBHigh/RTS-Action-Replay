@@ -14,6 +14,10 @@ RTSReplayOverlay.handleEvent = message => {
     window.RTSReplaySettingsSync?.apply?.(data.args);
     return;
   }
+  if (data.args.replayCommand === 'avatar-response') {
+    window.RTSSearchPanel?.handleAvatar?.(data.args);
+    return;
+  }
   if (data.args.replayCommand === 'search-panel') {
     window.RTSSearchPanel?.handle?.(data.args);
     return;
