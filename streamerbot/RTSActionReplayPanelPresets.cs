@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 
@@ -64,23 +63,22 @@ public class CPHInline
     {
         var panel = ReadConfig();
         var animation = panel["animation"] as JObject ?? new JObject();
-        var entries = animation["entryPoints"] as JObject ?? new JObject();
-        var presets = panel["preset"] as JObject ?? new JObject();
-        var globalPreset = GetString("preset", "Broadcast");
+        var animationEntries = animation["entryPoints"] as JObject ?? new JObject();
+        var preset = panel["preset"] as JObject ?? new JObject();
+        var presetEntries = preset["entryPoints"] as JObject ?? new JObject();
+        var globalPreset = GetString("preset", (string)preset["fallback"] ?? "Broadcast");
         foreach (var key in PanelTypes)
         {
-            var entry = entries[key] as JValue;
-            var profile = GetString("entryPoints." + key + ".animationProfile", "Default");
-            entries[key] = profile;
-            presets[key] = GetString("entryPoints." + key + ".preset", (string)presets[key] ?? globalPreset);
+            animationEntries[key] = GetString("entryPoints." + key + ".animationProfile", (string)animationEntries[key] ?? "default");
+            presetEntries[key] = GetString("entryPoints." + key + ".preset", (string)presetEntries[key] ?? globalPreset);
         }
-        animation["entryPoints"] = entries;
+        animation["entryPoints"] = animationEntries;
+        preset["fallback"] = globalPreset;
+        preset["entryPoints"] = presetEntries;
         panel["animation"] = animation;
-        panel["preset"] = presets;
+        panel["preset"] = preset;
         SaveConfig(panel);
-        var resolvedPreset = Arg("replayPanelPreset");
-        if (string.IsNullOrWhiteSpace(resolvedPreset)) resolvedPreset = globalPreset;
-        SetDesignArguments(resolvedPreset);
+        SetDesignArguments(Arg("replayPanelPreset").Length > 0 ? Arg("replayPanelPreset") : globalPreset);
         return true;
     }
 
