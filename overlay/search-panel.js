@@ -30,7 +30,7 @@ RTSSearchPanel.describeSearch = parameters => {
   const value = String(parameters || '').trim();
   const separator = value.indexOf(':');
   if (separator < 0) {
-    const labels = { CATALOG: 'Full Catalog', RECENT: 'Recent Replays', 'MOST VIEWS': 'Most Views', 'TOP RATED': 'Top Rated' };
+    const labels = { CATALOG: 'Full Catalog', RECENT: 'Recent Replays', 'LAST PLAYED': 'Last Played', 'MOST VIEWS': 'Most Views', 'TOP RATED': 'Top Rated' };
     return labels[value.toUpperCase()] || value;
   }
   const type = value.slice(0, separator).trim().toLowerCase();
@@ -63,6 +63,7 @@ RTSSearchPanel.show = command => {
   if (!panel) return;
   let entries = [];
   try { entries = JSON.parse(String(command.replaySearchEntries || '[]')); } catch (_) {}
+  const isLastPlayed = String(command.replaySearchMode || '') === 'lastPlayed';
   panel.dataset.rtsInformationPanel = 'search';
   panel.innerHTML = '<div class="rts-panel-header"><span class="rts-panel-kicker">CATALOG SEARCH</span><strong class="rts-search-type"></strong><span class="rts-search-summary"></span><span class="rts-search-requester"></span></div><div class="rts-panel-list"></div>';
   panel.querySelector('.rts-search-type').textContent = RTSSearchPanel.describeSearch(command.replaySearchParameters);
@@ -96,12 +97,26 @@ RTSSearchPanel.show = command => {
       content.appendChild(creator);
     }
     const stats = document.createElement('span'); stats.className = 'rts-search-stats';
-    const rating = Number(entry.rating || 0);
-    stats.textContent = `${Number(entry.plays || 0)} views${rating ? ` • ★ ${rating.toFixed(1)} (${Number(entry.ratingCount || 0)})` : ''}`;
+    if (isLastPlayed || entry.historyCount != null) {
+      const playedBy = String(entry.lastPlayedBy || 'Unknown');
+      const playedPlatform = RTSSearchPanel.normalizePlatform(entry.lastPlayedPlatform);
+      const player = document.createElement('span');
+      player.textContent = `Played By ${playedBy}`;
+      if (playedPlatform) player.className = `rts-search-history-player rts-search-requester-platform--${playedPlatform.toLowerCase()}`;
+      stats.appendChild(player);
+      const count = Number(entry.historyCount || 1);
+      if (count > 1) {
+        const repeat = document.createElement('span'); repeat.textContent = String(count); repeat.className = 'rts-search-history-count';
+        stats.append(' • ', repeat);
+      }
+    } else {
+      const rating = Number(entry.rating || 0);
+      stats.textContent = `${Number(entry.plays || 0)} views${rating ? ` • ★ ${rating.toFixed(1)} (${Number(entry.ratingCount || 0)})` : ''}`;
+    }
     row.append(number, content, stats); list.appendChild(row);
   });
   if (!entries.length) {
-    const empty = document.createElement('div'); empty.className = 'rts-search-empty'; empty.textContent = 'No matching Catalog entries.'; list.appendChild(empty);
+    const empty = document.createElement('div'); empty.className = 'rts-search-empty'; empty.textContent = isLastPlayed ? 'No replays have been played recently.' : 'No matching Catalog entries.'; list.appendChild(empty);
   }
   RTSSearchPanel.clearTimers();
   panel.classList.remove('show'); panel.setAttribute('aria-hidden', 'true');
