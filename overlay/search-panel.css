@@ -30,7 +30,6 @@
   border-bottom: 2px solid var(--panel-primary);
   text-align: center;
 }
-#search-panel.panel-broadcast .rts-panel-header { min-height: 150px; padding: 12px 24px 92px 116px; justify-content: flex-start; }
 #search-panel .rts-panel-kicker {
   color: var(--panel-primary);
   font: 900 18px/1.05 var(--panel-title-font, system-ui), sans-serif;
@@ -120,7 +119,6 @@
 @media (max-width: 700px) {
   #search-panel { width: calc(100vw - 30px); max-height: calc(100vh - 60px); }
   #search-panel .rts-panel-header { padding: 11px 16px 13px; }
-  #search-panel.panel-broadcast .rts-panel-header { min-height: 150px; padding: 12px 16px 92px 90px; }
   #search-panel .rts-panel-kicker { font-size: 16px; }
   #search-panel .rts-panel-header strong.rts-search-type { font-size: 18px; }
   #search-panel .rts-search-summary { font-size: 12px; }
