@@ -26,14 +26,40 @@ RTSSearchPanel.clearTimers = () => {
   RTSSearchPanel.scrollInterval = null;
 };
 
+RTSSearchPanel.describeSearch = parameters => {
+  const value = String(parameters || '').trim();
+  const separator = value.indexOf(':');
+  if (separator < 0) {
+    const labels = { CATALOG: 'Full Catalog', RECENT: 'Recent Replays', 'MOST VIEWS': 'Most Views', 'TOP RATED': 'Top Rated' };
+    return labels[value.toUpperCase()] || value;
+  }
+  const type = value.slice(0, separator).trim().toLowerCase();
+  const parameter = value.slice(separator + 1).trim();
+  const labels = { date: 'By Date', creator: 'By Creator', search: 'Search' };
+  return `${labels[type] || type} ${parameter}`.trim();
+};
+
+RTSSearchPanel.parsePageInfo = header => {
+  const parts = String(header || '').split('•').map(x => x.trim());
+  const page = parts.length > 1 ? parts[1].split('/').map(x => x.trim()) : [];
+  return {
+    page: page[0] || '1',
+    pages: page[1] || '1',
+    total: parts.length > 2 ? parts[2] : '0'
+  };
+};
+
 RTSSearchPanel.show = command => {
   const panel = RTSSearchPanel.panel;
   if (!panel) return;
   let entries = [];
   try { entries = JSON.parse(String(command.replaySearchEntries || '[]')); } catch (_) {}
   panel.dataset.rtsInformationPanel = 'search';
-  panel.innerHTML = '<div class="rts-panel-header"><span class="rts-panel-kicker">CATALOG SEARCH</span><strong></strong><span class="rts-search-requester"></span></div><div class="rts-panel-list"></div>';
-  panel.querySelector('strong').textContent = String(command.replaySearchHeader || 'CATALOG');
+  panel.innerHTML = '<div class="rts-panel-header"><span class="rts-panel-kicker">CATALOG SEARCH</span><strong class="rts-search-type"></strong><span class="rts-search-summary"></span><span class="rts-search-requester"></span></div><div class="rts-panel-list"></div>';
+  panel.querySelector('.rts-search-type').textContent = RTSSearchPanel.describeSearch(command.replaySearchParameters);
+  const pageInfo = RTSSearchPanel.parsePageInfo(command.replaySearchHeader);
+  panel.querySelector('.rts-search-summary').textContent = `Search Results: Page ${pageInfo.page} of ${pageInfo.pages} • Total Clips ${pageInfo.total}`;
+
   const requester = panel.querySelector('.rts-search-requester');
   const requesterName = String(command.replaySearchRequester || 'Unknown');
   const requesterPlatform = String(command.replaySearchRequesterPlatform || '').trim();
@@ -48,15 +74,22 @@ RTSSearchPanel.show = command => {
   }
   const name = document.createElement('span'); name.className = 'rts-search-requester-name'; name.textContent = requesterName;
   requester.appendChild(name);
+
   const list = panel.querySelector('.rts-panel-list');
   entries.forEach(entry => {
     const row = document.createElement('div'); row.className = 'rts-panel-entry';
     const number = document.createElement('span'); number.className = 'rts-panel-number'; number.textContent = entry.number ?? '';
+    const content = document.createElement('div'); content.className = 'rts-search-result-content';
     const title = document.createElement('span'); title.className = 'rts-panel-title'; title.textContent = String(entry.title || 'Untitled replay');
+    content.appendChild(title);
+    if (entry.creator) {
+      const creator = document.createElement('span'); creator.className = 'rts-search-result-creator'; creator.textContent = String(entry.creator);
+      content.appendChild(creator);
+    }
     const stats = document.createElement('span'); stats.className = 'rts-search-stats';
     const rating = Number(entry.rating || 0);
     stats.textContent = `${Number(entry.plays || 0)} views${rating ? ` • ★ ${rating.toFixed(1)} (${Number(entry.ratingCount || 0)})` : ''}`;
-    row.append(number, title, stats); list.appendChild(row);
+    row.append(number, content, stats); list.appendChild(row);
   });
   if (!entries.length) {
     const empty = document.createElement('div'); empty.className = 'rts-search-empty'; empty.textContent = 'No matching Catalog entries.'; list.appendChild(empty);
