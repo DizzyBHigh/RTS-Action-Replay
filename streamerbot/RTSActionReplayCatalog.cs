@@ -16,21 +16,29 @@ public class CPHInline
     public bool ListCatalog() { var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var amount = ParseAmount(ref parts); var search = string.Join(" ", parts).Trim(); return Queue(BuildState(string.IsNullOrWhiteSpace(search) ? "all" : "search", search, "catalog", amount)); }
     public bool ListRecent() => Queue(BuildState("recent", "", "recent", ParseAmount(Arg("rawInput"))));
     public bool ListLeaderboard() { var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var amount = ParseAmount(ref parts); var period = string.Join(" ", parts).Trim(); return Queue(BuildState("leaderboard", period, "leaderboard", amount > 0 ? amount : 5)); }
-    public bool ListCatalogDate() { var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var amount = ParseAmount(ref parts); var period = string.Join(" ", parts).Trim(); if (string.IsNullOrWhiteSpace(period)) { CPH.SendMessage("Please provide a catalog date period."); return false; } return Queue(BuildState("date", period, "catalog", amount)); }
-    public bool ListCatalogCreator() { var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var amount = ParseAmount(ref parts); var creator = string.Join(" ", parts).Trim(); if (string.IsNullOrWhiteSpace(creator)) { CPH.SendMessage("Please provide a creator name."); return false; } return Queue(BuildState("creator", creator, "catalog", amount)); }
+    public bool ListCatalogDate() { var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var amount = ParseAmount(ref parts); var period = string.Join(" ", parts).Trim(); if (string.IsNullOrWhiteSpace(period)) { SendCatalogMessage("Please provide a catalog date period."); return false; } return Queue(BuildState("date", period, "catalog", amount)); }
+    public bool ListCatalogCreator() { var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var amount = ParseAmount(ref parts); var creator = string.Join(" ", parts).Trim(); if (string.IsNullOrWhiteSpace(creator)) { SendCatalogMessage("Please provide a creator name."); return false; } return Queue(BuildState("creator", creator, "catalog", amount)); }
     public bool ListCatalogMostViews() => Queue(BuildState("all", "", "plays", ParseAmount(Arg("rawInput"))));
     public bool ListCatalogTopRated() => Queue(BuildState("all", "", "rating", ParseAmount(Arg("rawInput"))));
     public bool CatalogNext() => MovePage(1);
     public bool CatalogPrevious() => MovePage(-1);
     public bool CatalogFirst() => SetPage(1);
     public bool CatalogLast() { var state = LoadUserState(); var results = Query(state); var amount = Math.Max(1, (int?)state["amount"] ?? MaxAmount()); state["page"] = Math.Max(1, (int)Math.Ceiling(results.Count / (double)amount)); SaveUserState(state); return Queue(state); }
+    public bool ShowUserSearch() => ShowUserSearchPage(0);
+    public bool UserSearchNext() => ShowUserSearchPage(1);
+    public bool UserSearchPrevious() => ShowUserSearchPage(-1);
     public bool ResolveSelection()
     {
         var selector = Arg("rawInput").Trim(); if (!int.TryParse(selector, out var index) || index < 1) return false;
         var state = LoadUserState(); if (string.Equals((string)state["filterType"], "leaderboard", StringComparison.OrdinalIgnoreCase)) return false;
-        var results = Query(state); var amount = Math.Max(1, (int?)state["amount"] ?? MaxAmount()); var page = Math.Max(1, (int?)state["page"] ?? 1); var position = ((page - 1) * amount) + index - 1;
-        if (position < 0 || position >= results.Count) return false;
-        CPH.SetArgument("catalogSelectionReplayId", (string)results[position]["id"] ?? ""); return !string.IsNullOrWhiteSpace((string)results[position]["id"]);
+        return ResolveStateSelection(state, index);
+    }
+    public bool ResolveSelectionForUser()
+    {
+        var selector = Arg("rawInput").Trim(); if (!int.TryParse(selector, out var index) || index < 1) return false;
+        var platform = Arg("catalogSelectionPlatform"); var userName = Arg("catalogSelectionUser"); if (!TryParseUserTarget(platform + ":" + userName, out platform, out userName)) return false;
+        var state = LoadUserSearchState(platform, userName); if (state == null || string.Equals((string)state["filterType"], "leaderboard", StringComparison.OrdinalIgnoreCase)) return false;
+        return ResolveStateSelection(state, index);
     }
     public bool RenderSearchRequest()
     {
@@ -40,7 +48,27 @@ public class CPHInline
         else { var entries = results.Skip(start).Take(amount).OfType<JObject>().Select((x, i) => Entry(x, start + i + 1)).ToList(); CPH.SetArgument("replaySearchEntries", new JArray(entries).ToString(Newtonsoft.Json.Formatting.None)); }
         CPH.SetArgument("replaySearchHeader", Header(request, page, pages, results.Count)); CPH.SetArgument("replaySearchRequester", (string)request["requesterName"] ?? ""); CPH.SetArgument("replaySearchParameters", Parameters(request)); CPH.SetArgument("replaySearchRequestId", (string)request["requestId"] ?? ""); CPH.SetArgument("replaySearchDuration", CPH.GetGlobalVar<int?>("rts.actionreplay.searchPanel.duration", true) ?? 10000); CPH.SetArgument("replayPanelWidth", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500); CPH.SetArgument("replayPanelHeight", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700); CPH.SetArgument("panelType", isLeaderboard ? "creatorLeaderboard" : "recent"); CPH.ExecuteMethod(PanelAnimationAction, "ResolvePanelAnimation"); CPH.SetArgument("replayCommand", isLeaderboard ? "leaderboard-panel" : "search-panel"); CPH.TriggerEvent("RTS-Action Replay", true); return true;
     }
-    public bool RateReplay() { var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); if (parts.Length < 2 || !int.TryParse(parts[0], out var index) || index < 1 || !int.TryParse(parts[1], out var rating) || rating < 1 || rating > 5) { CPH.SendMessage("Usage: !rate-replay <catalog number> <1-5>"); return false; } var state = LoadUserState(); var results = Query(state); if (index > results.Count) { CPH.SendMessage("That catalog entry does not exist."); return false; } var userId = Arg("userId"); if (string.IsNullOrWhiteSpace(userId)) { CPH.SendMessage("A user account is required to rate a replay."); return false; } var data = Load(); var replayId = results[index - 1]?["id"]?.ToString(); var catalog = data["catalog"] as JArray ?? new JArray(); var replay = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase)); if (replay == null) { CPH.SendMessage("That replay is no longer in the Catalog."); return false; } var ratings = replay["ratings"] as JObject ?? new JObject(); ratings[IdentityKey(CurrentPlatform(), userId)] = rating; replay["ratings"] = ratings; Save(data); CPH.SendMessage($"Rated {(string)replay["title"] ?? "Replay"} {rating}/5."); return true; }
+    public bool RateReplay() { var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); if (parts.Length < 2 || !int.TryParse(parts[0], out var index) || index < 1 || !int.TryParse(parts[1], out var rating) || rating < 1 || rating > 5) { SendCatalogMessage("Usage: !rate-replay <catalog number> <1-5>"); return false; } var state = LoadUserState(); var results = Query(state); if (index > results.Count) { SendCatalogMessage("That catalog entry does not exist."); return false; } var userId = Arg("userId"); if (string.IsNullOrWhiteSpace(userId)) { SendCatalogMessage("A user account is required to rate a replay."); return false; } var data = Load(); var replayId = results[index - 1]?["id"]?.ToString(); var catalog = data["catalog"] as JArray ?? new JArray(); var replay = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase)); if (replay == null) { SendCatalogMessage("That replay is no longer in the Catalog."); return false; } var ratings = replay["ratings"] as JObject ?? new JObject(); ratings[IdentityKey(CurrentPlatform(), userId)] = rating; replay["ratings"] = ratings; Save(data); SendCatalogMessage($"Rated {(string)replay["title"] ?? "Replay"} {rating}/5."); return true; }
+    private bool ShowUserSearchPage(int delta)
+    {
+        if (!TryParseUserTarget(Arg("rawInput"), out var platform, out var userName)) return false;
+        var state = LoadUserSearchState(platform, userName);
+        var label = platform.ToLowerInvariant() + ":" + userName;
+        if (state == null) { SendCatalogMessage(label + " has not made any searches"); return false; }
+        if (delta != 0)
+        {
+            var results = Query(state); var amount = Math.Max(1, (int?)state["amount"] ?? MaxAmount()); var pages = Math.Max(1, (int)Math.Ceiling(results.Count / (double)amount));
+            state["page"] = Math.Max(1, Math.Min(pages, ((int?)state["page"] ?? 1) + delta));
+            SaveUserSearchState(platform, userName, state);
+        }
+        return Queue(state);
+    }
+    private bool ResolveStateSelection(JObject state, int index)
+    {
+        var results = Query(state); var amount = Math.Max(1, (int?)state["amount"] ?? MaxAmount()); var page = Math.Max(1, (int?)state["page"] ?? 1); var position = ((page - 1) * amount) + index - 1;
+        if (position < 0 || position >= results.Count) return false;
+        CPH.SetArgument("catalogSelectionReplayId", (string)results[position]["id"] ?? ""); return !string.IsNullOrWhiteSpace((string)results[position]["id"]);
+    }
     private JObject BuildState(string type, string value, string sort, int amount = 0) { var platform = CurrentPlatform(); var userId = Arg("userId"); var state = new JObject { ["filterType"] = type, ["filter"] = value ?? "", ["sort"] = sort, ["amount"] = amount > 0 ? amount : MaxAmount(), ["page"] = 1, ["requesterId"] = userId, ["requesterName"] = Arg("userName"), ["platform"] = platform, ["userId"] = userId, ["identityKey"] = IdentityKey(platform, userId) }; SaveUserState(state); return state; }
     private bool MovePage(int delta) { var state = LoadUserState(); var results = Query(state); var amount = Math.Max(1, (int?)state["amount"] ?? MaxAmount()); var pages = Math.Max(1, (int)Math.Ceiling(results.Count / (double)amount)); state["page"] = Math.Max(1, Math.Min(pages, ((int?)state["page"] ?? 1) + delta)); SaveUserState(state); return Queue(state); }
     private bool SetPage(int page) { var state = LoadUserState(); var results = Query(state); var amount = Math.Max(1, (int?)state["amount"] ?? MaxAmount()); var pages = Math.Max(1, (int)Math.Ceiling(results.Count / (double)amount)); state["page"] = Math.Max(1, Math.Min(pages, page)); SaveUserState(state); return Queue(state); }
@@ -65,6 +93,25 @@ public class CPHInline
         var userId = Arg("userId"); var userName = Arg("userName"); var platform = CurrentPlatform(); if (string.IsNullOrWhiteSpace(userId)) return DefaultState(userName, platform, userId);
         var raw = GetUserVar(platform, userId, UserStateKey); try { var state = string.IsNullOrWhiteSpace(raw) ? DefaultState(userName, platform, userId) : JObject.Parse(raw); var changed = false; if (state["platform"] == null) { state["platform"] = "Twitch"; changed = true; } if (state["userId"] == null) { state["userId"] = userId; changed = true; } if (state["identityKey"] == null) { state["identityKey"] = IdentityKey((string)state["platform"], (string)state["userId"]); changed = true; } if (state["requesterId"] == null) { state["requesterId"] = userId; changed = true; } if (changed) SetUserVar(platform, userId, UserStateKey, state.ToString(Newtonsoft.Json.Formatting.None)); return state; } catch { return DefaultState(userName, platform, userId); }
     }
+    private JObject LoadUserSearchState(string platform, string userName)
+    {
+        if (string.IsNullOrWhiteSpace(userName)) return null;
+        var raw = GetUserVarByName(platform, userName, UserStateKey);
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+        try { return JObject.Parse(raw); } catch { return null; }
+    }
+    private void SaveUserSearchState(string platform, string userName, JObject state)
+    {
+        SetUserVarByName(platform, userName, UserStateKey, state.ToString(Newtonsoft.Json.Formatting.None));
+    }
+    private bool TryParseUserTarget(string raw, out string platform, out string userName)
+    {
+        platform = CurrentPlatform(); userName = (raw ?? "").Trim(); if (string.IsNullOrWhiteSpace(userName)) return false;
+        var separator = userName.IndexOf(':'); if (separator > 0) { var requestedPlatform = userName.Substring(0, separator); var requestedUser = userName.Substring(separator + 1).Trim(); if (requestedPlatform.Equals("twitch", StringComparison.OrdinalIgnoreCase) || requestedPlatform.Equals("kick", StringComparison.OrdinalIgnoreCase) || requestedPlatform.Equals("youtube", StringComparison.OrdinalIgnoreCase)) { platform = NormalizePlatform(requestedPlatform); userName = requestedUser; } }
+        return !string.IsNullOrWhiteSpace(userName);
+    }
+    private string GetUserVarByName(string platform, string userName, string key) { if (platform == "YouTube") return CPH.GetYouTubeUserVar<string>(userName, key, true); if (platform == "Kick") return CPH.GetKickUserVar<string>(userName, key, true); return CPH.GetTwitchUserVar<string>(userName, key, true); }
+    private void SetUserVarByName(string platform, string userName, string key, string value) { if (platform == "YouTube") CPH.SetYouTubeUserVar(userName, key, value, true); else if (platform == "Kick") CPH.SetKickUserVar(userName, key, value, true); else CPH.SetTwitchUserVar(userName, key, value, true); }
     private JObject DefaultState(string userName, string platform, string userId) => new JObject { ["filterType"] = "all", ["filter"] = "", ["sort"] = "catalog", ["amount"] = MaxAmount(), ["page"] = 1, ["requesterName"] = userName, ["requesterId"] = userId, ["platform"] = platform, ["userId"] = userId, ["identityKey"] = IdentityKey(platform, userId) };
     private void SaveUserState(JObject state) { var userId = Arg("userId"); if (!string.IsNullOrWhiteSpace(userId)) SetUserVar(CurrentPlatform(), userId, UserStateKey, state.ToString(Newtonsoft.Json.Formatting.None)); }
     private JObject Load()
@@ -85,6 +132,15 @@ public class CPHInline
     private string IdentityKey(string platform, string userId) => NormalizePlatform(platform).ToLowerInvariant() + ":" + (userId ?? "").Trim();
     private string GetUserVar(string platform, string userId, string key) { if (platform == "YouTube") return CPH.GetYouTubeUserVarById<string>(userId, key, true); if (platform == "Kick") return CPH.GetKickUserVarById<string>(userId, key, true); return CPH.GetTwitchUserVarById<string>(userId, key, true); }
     private void SetUserVar(string platform, string userId, string key, string value) { if (platform == "YouTube") CPH.SetYouTubeUserVarById(userId, key, value, true); else if (platform == "Kick") CPH.SetKickUserVarById(userId, key, value, true); else CPH.SetTwitchUserVarById(userId, key, value, true); }
+    private void SendCatalogMessage(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return;
+        var platform = Arg("requesterPlatform"); if (string.IsNullOrWhiteSpace(platform)) platform = Arg("userType");
+        if (string.Equals(platform, "Kick", StringComparison.OrdinalIgnoreCase)) { CPH.SendKickMessage(text); return; }
+        if (string.Equals(platform, "YouTube", StringComparison.OrdinalIgnoreCase)) { var broadcastId = Arg("requesterBroadcastId"); if (!string.IsNullOrWhiteSpace(broadcastId)) { CPH.SendYouTubeMessage(text, true, true, broadcastId); return; } CPH.SendYouTubeMessageToLatestMonitored(text); return; }
+        if (string.Equals(platform, "Twitch", StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage(text); return; }
+        CPH.LogWarn("RTS Action Replay: unable to route catalog chat response because the originating platform is unknown.");
+    }
     private string Arg(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
     private int MaxAmount() => Math.Max(1, CPH.GetGlobalVar<int?>(MaxHistoryKey, true) ?? 20);
     private int ParseAmount(string raw) { var parts = raw.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); return ParseAmount(ref parts); }
