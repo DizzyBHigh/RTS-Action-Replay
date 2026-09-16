@@ -68,7 +68,7 @@ public class CPHInline
         panel["animation"] = animation;
         panel["preset"] = globalPreset;
         SaveConfig(panel);
-        var resolvedPreset = GetString("resolvedPreset", null);
+        var resolvedPreset = Arg("replayPanelPreset");
         if (string.IsNullOrWhiteSpace(resolvedPreset)) resolvedPreset = globalPreset;
         CPH.SetArgument("replayPanelPreset", resolvedPreset);
         CPH.SetArgument("replayPanelPrimaryColor", GetString("primaryColor", "#0384CBFF"));
@@ -113,5 +113,6 @@ public class CPHInline
     }
 
     private void SaveConfig(JObject panel) => CPH.SetGlobalVar(PanelKey, panel.ToString(Newtonsoft.Json.Formatting.None), true);
+    private string Arg(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
     private string GetString(string name, string fallback) => CPH.GetGlobalVar<string>(Prefix + name, true) ?? fallback;
 }
