@@ -1,17 +1,51 @@
 const RTSInformationPanelAnimation = window.RTSInformationPanelAnimation || {};
+let panelRunner = null;
+let panelCommand = null;
 
-RTSInformationPanelAnimation.token = 0;
-RTSInformationPanelAnimation.timer = null;
-RTSInformationPanelAnimation.frame = null;
-
-RTSInformationPanelAnimation.cancel = () => {
-  RTSInformationPanelAnimation.token += 1;
-  if (RTSInformationPanelAnimation.timer) clearTimeout(RTSInformationPanelAnimation.timer);
-  RTSInformationPanelAnimation.timer = null;
-  if (RTSInformationPanelAnimation.frame) cancelAnimationFrame(RTSInformationPanelAnimation.frame);
-  RTSInformationPanelAnimation.frame = null;
+const panelAdapter = {
+  normaliseStep: step => ({
+    position: step?.position || 'Centered',
+    duration: Math.max(0, Number(step?.duration) || 0),
+    delay: Math.max(0, Number(step?.delay) || 0),
+    easing: step?.easing || 'ease-in-out'
+  }),
+  getPosition: name => RTSInformationPanels.normalise(RTSInformationPanels.getPosition(panelCommand, name)),
+  positionsEqual: (a, b) => {
+    if (!a || !b) return false;
+    return ['scaleX', 'scaleY', 'x', 'y', 'rotateZ'].every(key => Number(a[key] ?? 0) === Number(b[key] ?? 0));
+  },
+  easing: name => {
+    switch (String(name || 'ease-in-out').toLowerCase()) {
+      case 'linear': return t => t;
+      case 'ease-in': return t => t * t;
+      case 'ease-out': return t => 1 - Math.pow(1 - t, 2);
+      default: return t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    }
+  },
+  interpolatePosition: (from, to, progress) => ({
+    scaleX: from.scaleX + (to.scaleX - from.scaleX) * progress,
+    scaleY: from.scaleY + (to.scaleY - from.scaleY) * progress,
+    x: from.x + (to.x - from.x) * progress,
+    y: from.y + (to.y - from.y) * progress,
+    rotateZ: from.rotateZ + (to.rotateZ - from.rotateZ) * progress
+  }),
+  applyPosition: (panel, position) => {
+    if (!panel || !position) return;
+    const offset = RTSInformationPanels.getViewportOffset(position);
+    panel.style.left = offset ? `${offset.left}px` : `calc(50% + ${position.x}vw)`;
+    panel.style.top = offset ? `${offset.top}px` : `calc(50% - ${position.y}vh)`;
+    panel.style.setProperty('--panel-scale-x', position.scaleX / 100);
+    panel.style.setProperty('--panel-scale-y', position.scaleY / 100);
+    panel.style.setProperty('--panel-rotate-z', `${position.rotateZ}deg`);
+  }
 };
 
+const getRunner = () => {
+  if (!panelRunner && window.RTSAnimationEngine) panelRunner = RTSAnimationEngine.createRunner(panelAdapter);
+  return panelRunner;
+};
+
+RTSInformationPanelAnimation.cancel = () => getRunner()?.cancel();
 RTSInformationPanelAnimation.profile = command => {
   const raw = command?.replayPanelAnimation;
   if (!raw) return null;
@@ -21,96 +55,31 @@ RTSInformationPanelAnimation.profile = command => {
   } catch (_) { return null; }
 };
 
-RTSInformationPanelAnimation.normaliseStep = step => ({
-  position: step?.position || 'Centered',
-  duration: Math.max(0, Number(step?.duration) || 0),
-  delay: Math.max(0, Number(step?.delay) || 0),
-  easing: step?.easing || 'ease-in-out'
-});
-
-RTSInformationPanelAnimation.position = (command, name) =>
-  RTSInformationPanels.normalise(RTSInformationPanels.getPosition(command, name));
-
-RTSInformationPanelAnimation.easing = name => {
-  switch (name) {
-    case 'linear': return value => value;
-    case 'ease': return value => value < .5 ? 2 * value * value : 1 - Math.pow(-2 * value + 2, 2) / 2;
-    case 'ease-in': return value => value * value;
-    case 'ease-out': return value => 1 - Math.pow(1 - value, 2);
-    default: return value => value < .5 ? 2 * value * value : 1 - Math.pow(-2 * value + 2, 2) / 2;
-  }
-};
-
-RTSInformationPanelAnimation.apply = (panel, position) => {
-  if (!panel || !position) return;
-  const offset = RTSInformationPanels.getViewportOffset(position);
-  panel.style.left = offset ? `${offset.left}px` : `calc(50% + ${position.x}vw)`;
-  panel.style.top = offset ? `${offset.top}px` : `calc(50% - ${position.y}vh)`;
-  panel.style.setProperty('--panel-scale-x', position.scaleX / 100);
-  panel.style.setProperty('--panel-scale-y', position.scaleY / 100);
-  panel.style.setProperty('--panel-rotate-z', `${position.rotateZ}deg`);
-};
+RTSInformationPanelAnimation.position = (command, name) => RTSInformationPanels.normalise(RTSInformationPanels.getPosition(command, name));
+RTSInformationPanelAnimation.easing = name => panelAdapter.easing(name);
+RTSInformationPanelAnimation.apply = (panel, position) => panelAdapter.applyPosition(panel, position);
 
 RTSInformationPanelAnimation.run = (panel, command, sequence, complete) => {
-  const steps = Array.isArray(sequence) ? sequence.map(RTSInformationPanelAnimation.normaliseStep) : [];
-  if (!steps.length) { if (complete) complete(); return; }
-  RTSInformationPanelAnimation.cancel();
-  const token = RTSInformationPanelAnimation.token;
-  let current = RTSInformationPanelAnimation.position(command, steps[0].position);
-  RTSInformationPanelAnimation.apply(panel, current);
-
-  const advance = index => {
-    if (token !== RTSInformationPanelAnimation.token) return;
-    if (index >= steps.length) { if (complete) complete(); return; }
-    const step = steps[index];
-    const target = RTSInformationPanelAnimation.position(command, step.position);
-    const start = current;
-    if (step.duration <= 0) {
-      RTSInformationPanelAnimation.apply(panel, target);
-      current = target;
-      if (step.delay) RTSInformationPanelAnimation.timer = setTimeout(() => advance(index + 1), step.delay);
-      else advance(index + 1);
-      return;
-    }
-    const easing = RTSInformationPanelAnimation.easing(step.easing);
-    const started = performance.now();
-    const frame = now => {
-      if (token !== RTSInformationPanelAnimation.token) return;
-      const raw = Math.min(1, Math.max(0, (now - started) / step.duration));
-      const amount = easing(raw);
-      RTSInformationPanelAnimation.apply(panel, {
-        scaleX: start.scaleX + (target.scaleX - start.scaleX) * amount,
-        scaleY: start.scaleY + (target.scaleY - start.scaleY) * amount,
-        x: start.x + (target.x - start.x) * amount,
-        y: start.y + (target.y - start.y) * amount,
-        rotateZ: start.rotateZ + (target.rotateZ - start.rotateZ) * amount
-      });
-      if (raw < 1) RTSInformationPanelAnimation.frame = requestAnimationFrame(frame);
-      else {
-        RTSInformationPanelAnimation.frame = null;
-        current = target;
-        if (step.delay) RTSInformationPanelAnimation.timer = setTimeout(() => advance(index + 1), step.delay);
-        else advance(index + 1);
-      }
-    };
-    RTSInformationPanelAnimation.frame = requestAnimationFrame(frame);
-  };
-  advance(1);
+  panelCommand = command || {};
+  const runner = getRunner();
+  if (!runner) { complete?.(); return; }
+  runner.run(sequence, complete);
 };
 
 RTSInformationPanelAnimation.show = (panel, command, name) => {
+  panelCommand = command || {};
   const profile = RTSInformationPanelAnimation.profile(command);
-  const start = profile?.start;
   RTSInformationPanels.applySize(panel, command);
   panel.classList.add('show');
   panel.setAttribute('aria-hidden', 'false');
-  if (Array.isArray(start) && start.length) RTSInformationPanelAnimation.run(panel, command, start);
+  if (Array.isArray(profile?.start) && profile.start.length) RTSInformationPanelAnimation.run(panel, command, profile.start);
   else RTSInformationPanels.applyPosition(panel, command, name);
 };
 
 RTSInformationPanelAnimation.hide = (panel, command) => {
   if (!panel) return;
-  const profile = RTSInformationPanelAnimation.profile(command);
+  panelCommand = command || panelCommand || {};
+  const profile = RTSInformationPanelAnimation.profile(panelCommand);
   const end = profile?.end;
   if (!Array.isArray(end) || !end.length) {
     RTSInformationPanelAnimation.cancel();
@@ -118,7 +87,9 @@ RTSInformationPanelAnimation.hide = (panel, command) => {
     panel.setAttribute('aria-hidden', 'true');
     return;
   }
-  RTSInformationPanelAnimation.run(panel, command, end, () => {
+  const runner = getRunner();
+  runner?.setActive(RTSInformationPanelAnimation.position(panelCommand, panelCommand.replayPanelPosition || 'Centered'));
+  runner?.runEnd(end, () => {
     panel.classList.remove('show');
     panel.setAttribute('aria-hidden', 'true');
   });
