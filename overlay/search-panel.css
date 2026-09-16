@@ -57,7 +57,7 @@
 #search-panel .rts-panel-entry {
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr) auto;
-  align-items: center;
+  align-items: start;
   gap: 14px;
   min-height: 54px;
   padding: 9px 16px;
@@ -98,9 +98,11 @@
   letter-spacing: .04em;
 }
 #search-panel .rts-search-stats {
+  align-self: start;
+  max-width: 160px;
   color: rgba(255,255,255,.68);
   font: 600 12px/1.2 system-ui, sans-serif;
-  white-space: nowrap;
+  white-space: normal;
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
