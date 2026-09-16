@@ -22,7 +22,7 @@ RTSSearchPanel.requestAvatar = (userId, userName, platform, apply) => {
   RTSSearchPanel.avatarRequests.set(requestId, apply);
   RTSReplay.socket.send(JSON.stringify({
     request: 'DoAction', id: requestId,
-    action: { name: 'RTS - Action Replay - Core - Catalog', args: { method: 'ResolveAvatar' } },
+    action: { name: 'RTS - Action Replay - Core - Catalog' },
     args: {
       replayAvatarRequestId: requestId,
       replayAvatarUserId: userId,
