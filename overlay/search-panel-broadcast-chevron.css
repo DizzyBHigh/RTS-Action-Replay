@@ -1,3 +1,7 @@
+#search-panel.panel-broadcast .rts-panel-header {
+  padding-bottom: 0;
+}
+
 #search-panel.panel-broadcast .panel-broadcast-chevron-track {
   position: relative;
   left: auto;
@@ -6,13 +10,12 @@
   bottom: auto;
   width: calc(100% + 40px);
   height: 32px;
-  margin: 0 -20px -15px;
+  margin: 0 -20px;
   box-sizing: border-box;
   overflow: hidden;
   pointer-events: none;
   z-index: 1;
   clip-path: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--panel-primary) 35%, transparent);
 }
 
 #search-panel.panel-broadcast .panel-broadcast-chevron-mover {
@@ -26,9 +29,10 @@
 }
 
 @media (max-width: 700px) {
+  #search-panel.panel-broadcast .rts-panel-header { padding-bottom: 0; }
   #search-panel.panel-broadcast .panel-broadcast-chevron-track {
     width: calc(100% + 32px);
-    margin: 0 -16px -13px;
+    margin: 0 -16px;
     height: 28px;
   }
 }
