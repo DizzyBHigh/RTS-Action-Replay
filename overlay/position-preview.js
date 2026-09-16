@@ -65,12 +65,15 @@ RTSPositionPreview.previewPanelPosition = command => {
 };
 
 RTSPositionPreview.previewClapperPosition = command => {
-  if (!RTSPositionPreview.messageCard || !window.RTSReplayClapper) return;
+  const card = RTSPositionPreview.messageCard;
+  if (!card || !window.RTSReplayClapper) return;
   RTSPositionPreview.currentCommand = { ...(RTSPositionPreview.currentCommand || {}), ...command };
   RTSReplayMessages.applyMessageStyle(command);
   RTSPositionPreview.messageText.textContent = command.replayMessage || 'CLAPPERBOARD PREVIEW';
-  RTSPositionPreview.messageCard.classList.add('position-preview', 'show');
-  RTSPositionPreview.messageCard.setAttribute('aria-hidden', 'false');
+  card.classList.add('position-preview', 'show');
+  card.setAttribute('aria-hidden', 'false');
+  const positionName = command.replayClapperPosition || 'Centered';
+  RTSReplayClapper.applyPosition(command, positionName);
 };
 
 RTSPositionPreview.hidePositionPreview = () => {
