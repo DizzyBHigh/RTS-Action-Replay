@@ -27,7 +27,7 @@ RTSReplayPanelBroadcast.startPanelChevrons = (panel, command) => {
   const speed = number(command?.replayBroadcastChevronSpeed, 10, 500, 95);
   const track = document.createElement('div');
   track.className = 'panel-broadcast-chevron-track';
-  header.after(track);
+  header.append(track);
   panel._rtsPanelChevronTrack = track;
   panel.style.setProperty('--panel-chevron-height', `${heightSetting}px`);
   const trackWidth = track.clientWidth;
