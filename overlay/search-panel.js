@@ -35,8 +35,17 @@ RTSSearchPanel.describeSearch = parameters => {
   }
   const type = value.slice(0, separator).trim().toLowerCase();
   const parameter = value.slice(separator + 1).trim();
-  const labels = { date: 'By Date', creator: 'By Creator', search: 'Search' };
+  if (type === 'search') return `Search Term: ${parameter}`;
+  const labels = { date: 'By Date', creator: 'By Creator' };
   return `${labels[type] || type} ${parameter}`.trim();
+};
+
+RTSSearchPanel.normalizePlatform = platform => {
+  const value = String(platform || '').trim().toLowerCase();
+  if (value === 'youtube') return 'YouTube';
+  if (value === 'kick') return 'Kick';
+  if (value === 'twitch') return 'Twitch';
+  return String(platform || '').trim();
 };
 
 RTSSearchPanel.parsePageInfo = header => {
@@ -62,7 +71,7 @@ RTSSearchPanel.show = command => {
 
   const requester = panel.querySelector('.rts-search-requester');
   const requesterName = String(command.replaySearchRequester || 'Unknown');
-  const requesterPlatform = String(command.replaySearchRequesterPlatform || '').trim();
+  const requesterPlatform = RTSSearchPanel.normalizePlatform(command.replaySearchRequesterPlatform || command.commandSource);
   requester.textContent = '';
   const label = document.createElement('span'); label.className = 'rts-search-requester-label'; label.textContent = 'Requested By ';
   requester.appendChild(label);
