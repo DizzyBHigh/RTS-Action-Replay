@@ -24,6 +24,14 @@ public class CPHInline
     public bool CatalogPrevious() => MovePage(-1);
     public bool CatalogFirst() => SetPage(1);
     public bool CatalogLast() { var state = LoadUserState(); var results = Query(state); var amount = Math.Max(1, (int?)state["amount"] ?? MaxAmount()); state["page"] = Math.Max(1, (int)Math.Ceiling(results.Count / (double)amount)); SaveUserState(state); return Queue(state); }
+    public bool ResolveSelection()
+    {
+        var selector = Arg("rawInput").Trim(); if (!int.TryParse(selector, out var index) || index < 1) return false;
+        var state = LoadUserState(); if (string.Equals((string)state["filterType"], "leaderboard", StringComparison.OrdinalIgnoreCase)) return false;
+        var results = Query(state); var amount = Math.Max(1, (int?)state["amount"] ?? MaxAmount()); var page = Math.Max(1, (int?)state["page"] ?? 1); var position = ((page - 1) * amount) + index - 1;
+        if (position < 0 || position >= results.Count) return false;
+        CPH.SetArgument("catalogSelectionReplayId", (string)results[position]["id"] ?? ""); return !string.IsNullOrWhiteSpace((string)results[position]["id"]);
+    }
     public bool RenderSearchRequest()
     {
         var json = Arg("replaySearchRequest"); if (string.IsNullOrWhiteSpace(json)) return false; JObject request; try { request = JObject.Parse(json); } catch { return false; }
