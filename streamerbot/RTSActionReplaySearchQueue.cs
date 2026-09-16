@@ -7,7 +7,11 @@ public class CPHInline
     private const string ActiveKey = "rts.actionreplay.searchActive";
     private const string CatalogAction = "RTS - Action Replay - Core - Catalog";
 
-    public bool Execute() => Enqueue();
+    public bool Execute()
+    {
+        if (string.IsNullOrWhiteSpace(Arg("replaySearchRequest"))) return Resume();
+        return Enqueue();
+    }
 
     public bool Enqueue()
     {
@@ -21,6 +25,12 @@ public class CPHInline
         SaveQueue(queue);
         if (!IsActive()) return ShowNext();
         return true;
+    }
+
+    public bool Resume()
+    {
+        if (!IsActive()) return false;
+        return ShowNext();
     }
 
     public bool SearchPanelEnded()
