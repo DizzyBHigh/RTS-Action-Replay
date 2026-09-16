@@ -63,13 +63,18 @@ public class CPHInline
         }
         var userId = Arg("userId");
         if (string.IsNullOrWhiteSpace(userId)) { SendCatalogMessage("A user account is required to rate a replay."); return false; }
-        CPH.SetArgument("catalogActiveReplayId", "");
-        if (!CPH.ExecuteMethod(PlaylistAction, "ResolveActiveReplay"))
+        var activeId = CPH.GetGlobalVar<string>("rts.actionreplay.playlistActive", false);
+        if (string.IsNullOrWhiteSpace(activeId)) { SendCatalogMessage("There is no replay currently playing."); return false; }
+        var queueRaw = CPH.GetGlobalVar<string>("rts.actionreplay.playlist", false);
+        if (string.IsNullOrWhiteSpace(queueRaw)) { SendCatalogMessage("There is no replay currently playing."); return false; }
+        JObject activeEntry = null;
+        try
         {
-            SendCatalogMessage("There is no replay currently playing.");
-            return false;
+            var queue = JArray.Parse(queueRaw);
+            activeEntry = queue.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["entryId"], activeId, StringComparison.OrdinalIgnoreCase));
         }
-        var replayId = Arg("catalogActiveReplayId");
+        catch { }
+        var replayId = (string)activeEntry?["replayId"];
         if (string.IsNullOrWhiteSpace(replayId)) { SendCatalogMessage("There is no replay currently playing."); return false; }
         var data = Load(); var catalog = data["catalog"] as JArray ?? new JArray(); var replay = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase));
         if (replay == null) { SendCatalogMessage("The currently playing replay is no longer in the Catalog."); return false; }
@@ -105,3 +110,75 @@ public class CPHInline
     private bool TryParseMonthYear(string value, out int year, out int month) { year = 0; month = 0; if (string.IsNullOrWhiteSpace(value)) return false; var normalized = value.Trim().Replace("/", " ").Replace(".", " ").Replace("-", " "); if (DateTime.TryParseExact(normalized, new[] { "MMMM yyyy", "MMM yyyy", "MM yyyy", "M yyyy" }, CultureInfo.CurrentCulture, DateTimeStyles.AllowWhiteSpaces, out var date) || DateTime.TryParse("1 " + normalized, CultureInfo.CurrentCulture, DateTimeStyles.AllowWhiteSpaces, out date)) { year = date.Year; month = date.Month; return true; } return false; }
     private bool SearchMatch(JObject x, string term) { if (string.IsNullOrWhiteSpace(term)) return true; var creator = x["creator"] as JObject; return Contains(x["title"], term) || Contains(x["file"], term) || Contains(creator?["name"], term); }
     private bool CreatorMatch(JObject x, string name) { var creator = x["creator"] as JObject; return string.Equals((string)creator?["name"], name, StringComparison.OrdinalIgnoreCase) || string.Equals((string)creator?["id"], name, StringComparison.OrdinalIgnoreCase); }
+    private bool DateMatch(JObject x, string period) { var raw = (string)x["captured"] ?? (string)x["added"]; if (!DateTime.TryParse(raw, out var date)) return false; var now = DateTime.Now; var key = period.ToLowerInvariant().Replace("_", "-").Replace(" ", "-").Trim(); if (key == "today") return date.Date == now.Date; if (key == "yesterday") return date.Date == now.Date.AddDays(-1); var week = StartOfWeek(now); if (key == "this-week") return date >= week && date < week.AddDays(7); if (key == "last-week") return date >= week.AddDays(-7) && date < week; if (key == "this-month") return date.Year == now.Year && date.Month == now.Month; var month = new DateTime(now.Year, now.Month, 1).AddMonths(-1); if (key == "last-month") return date.Year == month.Year && date.Month == month.Month; if (key == "this-year") return date.Year == now.Year; if (key == "last-year") return date.Year == now.Year - 1; if (DateTime.TryParse("1 " + period, CultureInfo.CurrentCulture, DateTimeStyles.None, out var requestedMonth)) return date.Year == requestedMonth.Year && date.Month == requestedMonth.Month; return false; }
+    private DateTime StartOfWeek(DateTime date) => date.Date.AddDays(-(7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7);
+    private DateTime ParseDate(string value) => DateTime.TryParse(value, out var date) ? date : DateTime.MinValue;
+    private bool Contains(JToken token, string term) => (token?.ToString() ?? "").IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0;
+    private JObject Ratings(JObject x) => x["ratings"] as JObject ?? new JObject(); private bool HasRatings(JObject x) => Ratings(x).Properties().Any(); private double Rating(JObject x) => Ratings(x).Values().Select(v => (double)v.Value<int>()).DefaultIfEmpty().Average(); private int RatingCount(JObject x) => Ratings(x).Properties().Count();
+    private JObject Entry(JObject x, int number) { var creator = x["creator"] as JObject; var ratings = Ratings(x); return new JObject { ["number"] = number, ["title"] = (string)x["title"] ?? "Untitled replay", ["creator"] = (string)creator?["name"] ?? "", ["plays"] = (int?)x["plays"] ?? 0, ["rating"] = ratings.Properties().Any() ? Math.Round(Rating(x), 1) : 0, ["ratingCount"] = ratings.Properties().Count() }; }
+    private string Header(JObject request, int page, int pages, int total) { if (((string)request["filterType"] ?? "").Equals("leaderboard", StringComparison.OrdinalIgnoreCase)) return "CLIP CREATORS • " + LeaderboardPeriodLabel((string)request["filter"]) + " • " + page + "/" + pages + " • " + total; return $"{Parameters(request)} • {page}/{pages} • {total}"; }
+    private string LeaderboardPeriodLabel(string period) { var key = NormalizePeriod(period); if (string.IsNullOrWhiteSpace(key) || key == "all") return "ALL TIME"; if (key == "today") return "TODAY"; if (key == "week") return "THIS WEEK"; if (key == "month") return "THIS MONTH"; if (key == "year") return "THIS YEAR"; if (TryParseMonthYear(period, out var year, out var month)) return new DateTime(year, month, 1).ToString("MMMM yyyy", CultureInfo.CurrentCulture).ToUpperInvariant(); return period.ToUpperInvariant(); }
+    private string Parameters(JObject request) { var type = ((string)request["filterType"] ?? "all").ToLowerInvariant(); if (type == "recent") return "RECENT"; if (type == "search") return "SEARCH: " + ((string)request["filter"] ?? ""); if (type == "date") return "DATE: " + ((string)request["filter"] ?? ""); if (type == "creator") return "CREATOR: " + ((string)request["filter"] ?? ""); var sort = ((string)request["sort"] ?? "catalog").ToLowerInvariant(); return sort == "plays" ? "MOST VIEWS" : sort == "rating" ? "TOP RATED" : "CATALOG"; }
+    private JObject LoadUserState()
+    {
+        var userId = Arg("userId"); var userName = Arg("userName"); var platform = CurrentPlatform(); if (string.IsNullOrWhiteSpace(userId)) return DefaultState(userName, platform, userId);
+        var raw = GetUserVar(platform, userId, UserStateKey); try { var state = string.IsNullOrWhiteSpace(raw) ? DefaultState(userName, platform, userId) : JObject.Parse(raw); var changed = false; if (state["platform"] == null) { state["platform"] = "Twitch"; changed = true; } if (state["userId"] == null) { state["userId"] = userId; changed = true; } if (state["identityKey"] == null) { state["identityKey"] = IdentityKey((string)state["platform"], (string)state["userId"]); changed = true; } if (state["requesterId"] == null) { state["requesterId"] = userId; changed = true; } if (changed) SetUserVar(platform, userId, UserStateKey, state.ToString(Newtonsoft.Json.Formatting.None)); return state; } catch { return DefaultState(userName, platform, userId); }
+    }
+    private JObject LoadUserSearchState(string platform, string userId, string userName)
+    {
+        if (string.IsNullOrWhiteSpace(userId)) return null;
+        var raw = GetUserVar(platform, userId, UserStateKey);
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+        try { return JObject.Parse(raw); } catch { return null; }
+    }
+    private void SaveUserSearchState(string platform, string userId, JObject state)
+    {
+        if (!string.IsNullOrWhiteSpace(userId)) SetUserVar(platform, userId, UserStateKey, state.ToString(Newtonsoft.Json.Formatting.None));
+    }
+    private string ResolveUserId(string platform, string userName)
+    {
+        if (string.IsNullOrWhiteSpace(userName)) return null;
+        var catalog = (JArray)Load()["catalog"] ?? new JArray();
+        var creator = catalog.OfType<JObject>().Select(x => x["creator"] as JObject).FirstOrDefault(x => x != null && string.Equals((string)x["platform"], platform, StringComparison.OrdinalIgnoreCase) && (string.Equals((string)x["name"], userName, StringComparison.OrdinalIgnoreCase) || string.Equals((string)x["id"], userName, StringComparison.OrdinalIgnoreCase)) && !string.IsNullOrWhiteSpace((string)x["id"]));
+        return (string)creator?["id"];
+    }
+    private bool TryParseUserTarget(string raw, out string platform, out string userName)
+    {
+        platform = CurrentPlatform(); userName = (raw ?? "").Trim(); if (string.IsNullOrWhiteSpace(userName)) return false;
+        var separator = userName.IndexOf(':'); if (separator > 0) { var requestedPlatform = userName.Substring(0, separator); var requestedUser = userName.Substring(separator + 1).Trim(); if (requestedPlatform.Equals("twitch", StringComparison.OrdinalIgnoreCase) || requestedPlatform.Equals("kick", StringComparison.OrdinalIgnoreCase) || requestedPlatform.Equals("youtube", StringComparison.OrdinalIgnoreCase)) { platform = NormalizePlatform(requestedPlatform); userName = requestedUser; } }
+        return !string.IsNullOrWhiteSpace(userName);
+    }
+    private JObject DefaultState(string userName, string platform, string userId) => new JObject { ["filterType"] = "all", ["filter"] = "", ["sort"] = "catalog", ["amount"] = MaxAmount(), ["page"] = 1, ["requesterName"] = userName, ["requesterId"] = userId, ["platform"] = platform, ["userId"] = userId, ["identityKey"] = IdentityKey(platform, userId) };
+    private void SaveUserState(JObject state) { var userId = Arg("userId"); if (!string.IsNullOrWhiteSpace(userId)) SetUserVar(CurrentPlatform(), userId, UserStateKey, state.ToString(Newtonsoft.Json.Formatting.None)); }
+    private JObject Load()
+    {
+        var raw = CPH.GetGlobalVar<string>(DataKey, true); JObject data; try { data = string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { data = new JObject(); }
+        var catalog = data["catalog"] as JArray ?? new JArray(); var changed = false;
+        foreach (var item in catalog.OfType<JObject>())
+        {
+            var creator = item["creator"] as JObject; if (creator != null && creator["platform"] == null) { creator["platform"] = "Twitch"; changed = true; }
+            var broadcaster = item["broadcaster"] as JObject; if (broadcaster != null && broadcaster["platform"] == null) { broadcaster["platform"] = "Twitch"; changed = true; }
+            var ratings = item["ratings"] as JObject; if (ratings != null) { var migrated = new JObject(); foreach (var property in ratings.Properties()) { var key = property.Name.IndexOf(":", StringComparison.Ordinal) > 0 ? property.Name : IdentityKey("Twitch", property.Name); migrated[key] = property.Value; if (!string.Equals(key, property.Name, StringComparison.OrdinalIgnoreCase)) changed = true; } item["ratings"] = migrated; }
+        }
+        data["catalog"] = catalog; if (changed) Save(data); return data;
+    }
+    private void Save(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
+    private string CurrentPlatform() => NormalizePlatform(Arg("userType"));
+    private string NormalizePlatform(string userType) { if (string.Equals(userType, "YouTube", StringComparison.OrdinalIgnoreCase)) return "YouTube"; if (string.Equals(userType, "Kick", StringComparison.OrdinalIgnoreCase)) return "Kick"; return "Twitch"; }
+    private string IdentityKey(string platform, string userId) => NormalizePlatform(platform).ToLowerInvariant() + ":" + (userId ?? "").Trim();
+    private string GetUserVar(string platform, string userId, string key) { if (platform == "YouTube") return CPH.GetYouTubeUserVarById<string>(userId, key, true); if (platform == "Kick") return CPH.GetKickUserVarById<string>(userId, key, true); return CPH.GetTwitchUserVarById<string>(userId, key, true); }
+    private void SetUserVar(string platform, string userId, string key, string value) { if (platform == "YouTube") CPH.SetYouTubeUserVarById(userId, key, value, true); else if (platform == "Kick") CPH.SetKickUserVarById(userId, key, value, true); else CPH.SetTwitchUserVarById(userId, key, value, true); }
+    private void SendCatalogMessage(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return;
+        var platform = Arg("requesterPlatform"); if (string.IsNullOrWhiteSpace(platform)) platform = Arg("userType");
+        if (string.Equals(platform, "Kick", StringComparison.OrdinalIgnoreCase)) { CPH.SendKickMessage(text); return; }
+        if (string.Equals(platform, "YouTube", StringComparison.OrdinalIgnoreCase)) { var broadcastId = Arg("requesterBroadcastId"); if (!string.IsNullOrWhiteSpace(broadcastId)) { CPH.SendYouTubeMessage(text, true, true, broadcastId); return; } CPH.SendYouTubeMessageToLatestMonitored(text); return; }
+        if (string.Equals(platform, "Twitch", StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage(text); return; }
+        CPH.LogWarn("RTS Action Replay: unable to route catalog chat response because the originating platform is unknown.");
+    }
+    private string Arg(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
+    private int MaxAmount() => Math.Max(1, CPH.GetGlobalVar<int?>(MaxHistoryKey, true) ?? 20);
+    private int ParseAmount(string raw) { var parts = raw.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); return ParseAmount(ref parts); }
+    private int ParseAmount(ref string[] parts) { for (var i = 0; i < parts.Length - 1; i++) if (string.Equals(parts[i], "--amount", StringComparison.OrdinalIgnoreCase) && int.TryParse(parts[i + 1], out var amount) && amount > 0) { var list = parts.ToList(); list.RemoveRange(i, 2); parts = list.ToArray(); return amount; } return 0; }
+}
