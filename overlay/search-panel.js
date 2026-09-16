@@ -5,9 +5,6 @@ RTSSearchPanel.timer = null;
 RTSSearchPanel.endTimer = null;
 RTSSearchPanel.scrollTimer = null;
 RTSSearchPanel.scrollInterval = null;
-RTSSearchPanel.avatarRequests = new Map();
-RTSSearchPanel.avatarCache = new Map();
-RTSSearchPanel.avatarPending = new Map();
 
 RTSSearchPanel.notifyEnded = requestId => {
   if (!RTSReplay.socket || RTSReplay.socket.readyState !== WebSocket.OPEN) return;
@@ -16,52 +13,6 @@ RTSSearchPanel.notifyEnded = requestId => {
     action: { name: RTSReplay.config.searchEndedAction },
     args: { replaySearchRequestId: requestId || '' }
   }));
-};
-
-RTSSearchPanel.avatarKey = (userId, userName, platform) => {
-  const identity = userId || userName || '';
-  return `${RTSSearchPanel.normalizePlatform(platform).toLowerCase()}:${String(identity).toLowerCase()}`;
-};
-
-RTSSearchPanel.requestAvatar = (userId, userName, platform, apply) => {
-  if (!userId || !RTSReplay.socket || RTSReplay.socket.readyState !== WebSocket.OPEN) return;
-  const key = RTSSearchPanel.avatarKey(userId, userName, platform);
-  const cached = RTSSearchPanel.avatarCache.get(key);
-  if (cached) {
-    apply(cached);
-    return;
-  }
-  const pending = RTSSearchPanel.avatarPending.get(key);
-  if (pending) {
-    pending.push(apply);
-    return;
-  }
-  RTSSearchPanel.avatarPending.set(key, [apply]);
-  const requestId = `rts-avatar-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  RTSSearchPanel.avatarRequests.set(requestId, key);
-  RTSReplay.socket.send(JSON.stringify({
-    request: 'DoAction', id: requestId,
-    action: { name: 'RTS - Action Replay - Core - Catalog' },
-    args: {
-      replayAvatarRequestId: requestId,
-      replayAvatarUserId: userId,
-      replayAvatarUserName: userName || '',
-      replayAvatarPlatform: platform || ''
-    }
-  }));
-};
-
-RTSSearchPanel.handleAvatar = command => {
-  const requestId = String(command.replayAvatarRequestId || '');
-  const key = RTSSearchPanel.avatarRequests.get(requestId);
-  if (!key) return;
-  RTSSearchPanel.avatarRequests.delete(requestId);
-  const callbacks = RTSSearchPanel.avatarPending.get(key) || [];
-  RTSSearchPanel.avatarPending.delete(key);
-  const url = String(command.replayAvatarUrl || '').trim();
-  if (!url) return;
-  RTSSearchPanel.avatarCache.set(key, url);
-  callbacks.forEach(apply => apply(url));
 };
 
 RTSSearchPanel.clearTimers = () => {
@@ -144,11 +95,9 @@ RTSSearchPanel.show = command => {
     if (entry.creator) {
       const creatorPlatform = RTSSearchPanel.normalizePlatform(entry.creatorPlatform);
       const creator = document.createElement('span'); creator.className = `rts-search-result-creator rts-search-requester-platform--${creatorPlatform.toLowerCase()}`;
-      const avatar = document.createElement('img'); avatar.className = 'rts-search-result-creator-avatar'; avatar.alt = ''; avatar.hidden = true;
       const name = document.createElement('span'); name.className = 'rts-search-result-creator-name'; name.textContent = String(entry.creator);
-      creator.append(avatar, name);
+      creator.appendChild(name);
       content.appendChild(creator);
-      if (entry.creatorId) RTSSearchPanel.requestAvatar(String(entry.creatorId), String(entry.creator), creatorPlatform, url => { avatar.src = url; avatar.hidden = false; });
     }
     const stats = document.createElement('span'); stats.className = 'rts-search-stats';
     if (isLastPlayed || entry.historyCount != null) {
@@ -157,13 +106,9 @@ RTSSearchPanel.show = command => {
       const player = document.createElement('span'); player.className = `rts-search-history-player rts-search-requester-platform--${playedPlatform.toLowerCase()}`;
       const playerLabel = document.createElement('span'); playerLabel.className = 'rts-search-history-label'; playerLabel.textContent = 'Played By';
       player.appendChild(playerLabel);
-      const avatar = document.createElement('img'); avatar.className = 'rts-search-history-avatar'; avatar.alt = '';
-      avatar.hidden = true;
-      player.appendChild(avatar);
       const name = document.createElement('span'); name.className = 'rts-search-history-name'; name.textContent = playedBy;
       player.appendChild(name);
       stats.appendChild(player);
-      if (entry.lastPlayedUserId) RTSSearchPanel.requestAvatar(String(entry.lastPlayedUserId), playedBy, playedPlatform, url => { avatar.src = url; avatar.hidden = false; });
       const count = Number(entry.historyCount || 1);
       if (count > 1) {
         const repeat = document.createElement('span'); repeat.textContent = String(count); repeat.className = 'rts-search-history-count';
