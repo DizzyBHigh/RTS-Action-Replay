@@ -37,7 +37,8 @@ public class CPHInline
     {
         var selector = Arg("rawInput").Trim(); if (!int.TryParse(selector, out var index) || index < 1) return false;
         var platform = Arg("catalogSelectionPlatform"); var userName = Arg("catalogSelectionUser"); if (!TryParseUserTarget(platform + ":" + userName, out platform, out userName)) return false;
-        var state = LoadUserSearchState(platform, userName); if (state == null || string.Equals((string)state["filterType"], "leaderboard", StringComparison.OrdinalIgnoreCase)) return false;
+        var userId = ResolveUserId(platform, userName); if (string.IsNullOrWhiteSpace(userId)) return false;
+        var state = LoadUserSearchState(platform, userId, userName); if (state == null || string.Equals((string)state["filterType"], "leaderboard", StringComparison.OrdinalIgnoreCase)) return false;
         return ResolveStateSelection(state, index);
     }
     public bool RenderSearchRequest()
@@ -52,14 +53,14 @@ public class CPHInline
     private bool ShowUserSearchPage(int delta)
     {
         if (!TryParseUserTarget(Arg("rawInput"), out var platform, out var userName)) return false;
-        var state = LoadUserSearchState(platform, userName);
+        var userId = ResolveUserId(platform, userName); var state = string.IsNullOrWhiteSpace(userId) ? null : LoadUserSearchState(platform, userId, userName);
         var label = platform.ToLowerInvariant() + ":" + userName;
         if (state == null) { SendCatalogMessage(label + " has not made any searches"); return false; }
         if (delta != 0)
         {
             var results = Query(state); var amount = Math.Max(1, (int?)state["amount"] ?? MaxAmount()); var pages = Math.Max(1, (int)Math.Ceiling(results.Count / (double)amount));
             state["page"] = Math.Max(1, Math.Min(pages, ((int?)state["page"] ?? 1) + delta));
-            SaveUserSearchState(platform, userName, state);
+            SaveUserSearchState(platform, userId, state);
         }
         return Queue(state);
     }
@@ -93,16 +94,23 @@ public class CPHInline
         var userId = Arg("userId"); var userName = Arg("userName"); var platform = CurrentPlatform(); if (string.IsNullOrWhiteSpace(userId)) return DefaultState(userName, platform, userId);
         var raw = GetUserVar(platform, userId, UserStateKey); try { var state = string.IsNullOrWhiteSpace(raw) ? DefaultState(userName, platform, userId) : JObject.Parse(raw); var changed = false; if (state["platform"] == null) { state["platform"] = "Twitch"; changed = true; } if (state["userId"] == null) { state["userId"] = userId; changed = true; } if (state["identityKey"] == null) { state["identityKey"] = IdentityKey((string)state["platform"], (string)state["userId"]); changed = true; } if (state["requesterId"] == null) { state["requesterId"] = userId; changed = true; } if (changed) SetUserVar(platform, userId, UserStateKey, state.ToString(Newtonsoft.Json.Formatting.None)); return state; } catch { return DefaultState(userName, platform, userId); }
     }
-    private JObject LoadUserSearchState(string platform, string userName)
+    private JObject LoadUserSearchState(string platform, string userId, string userName)
     {
-        if (string.IsNullOrWhiteSpace(userName)) return null;
-        var raw = GetUserVarByName(platform, userName, UserStateKey);
+        if (string.IsNullOrWhiteSpace(userId)) return null;
+        var raw = GetUserVar(platform, userId, UserStateKey);
         if (string.IsNullOrWhiteSpace(raw)) return null;
         try { return JObject.Parse(raw); } catch { return null; }
     }
-    private void SaveUserSearchState(string platform, string userName, JObject state)
+    private void SaveUserSearchState(string platform, string userId, JObject state)
     {
-        SetUserVarByName(platform, userName, UserStateKey, state.ToString(Newtonsoft.Json.Formatting.None));
+        if (!string.IsNullOrWhiteSpace(userId)) SetUserVar(platform, userId, UserStateKey, state.ToString(Newtonsoft.Json.Formatting.None));
+    }
+    private string ResolveUserId(string platform, string userName)
+    {
+        if (string.IsNullOrWhiteSpace(userName)) return null;
+        var catalog = (JArray)Load()["catalog"] ?? new JArray();
+        var creator = catalog.OfType<JObject>().Select(x => x["creator"] as JObject).FirstOrDefault(x => x != null && string.Equals((string)x["platform"], platform, StringComparison.OrdinalIgnoreCase) && (string.Equals((string)x["name"], userName, StringComparison.OrdinalIgnoreCase) || string.Equals((string)x["id"], userName, StringComparison.OrdinalIgnoreCase)) && !string.IsNullOrWhiteSpace((string)x["id"]));
+        return (string)creator?["id"];
     }
     private bool TryParseUserTarget(string raw, out string platform, out string userName)
     {
@@ -110,8 +118,6 @@ public class CPHInline
         var separator = userName.IndexOf(':'); if (separator > 0) { var requestedPlatform = userName.Substring(0, separator); var requestedUser = userName.Substring(separator + 1).Trim(); if (requestedPlatform.Equals("twitch", StringComparison.OrdinalIgnoreCase) || requestedPlatform.Equals("kick", StringComparison.OrdinalIgnoreCase) || requestedPlatform.Equals("youtube", StringComparison.OrdinalIgnoreCase)) { platform = NormalizePlatform(requestedPlatform); userName = requestedUser; } }
         return !string.IsNullOrWhiteSpace(userName);
     }
-    private string GetUserVarByName(string platform, string userName, string key) { if (platform == "YouTube") return CPH.GetYouTubeUserVar<string>(userName, key, true); if (platform == "Kick") return CPH.GetKickUserVar<string>(userName, key, true); return CPH.GetTwitchUserVar<string>(userName, key, true); }
-    private void SetUserVarByName(string platform, string userName, string key, string value) { if (platform == "YouTube") CPH.SetYouTubeUserVar(userName, key, value, true); else if (platform == "Kick") CPH.SetKickUserVar(userName, key, value, true); else CPH.SetTwitchUserVar(userName, key, value, true); }
     private JObject DefaultState(string userName, string platform, string userId) => new JObject { ["filterType"] = "all", ["filter"] = "", ["sort"] = "catalog", ["amount"] = MaxAmount(), ["page"] = 1, ["requesterName"] = userName, ["requesterId"] = userId, ["platform"] = platform, ["userId"] = userId, ["identityKey"] = IdentityKey(platform, userId) };
     private void SaveUserState(JObject state) { var userId = Arg("userId"); if (!string.IsNullOrWhiteSpace(userId)) SetUserVar(CurrentPlatform(), userId, UserStateKey, state.ToString(Newtonsoft.Json.Formatting.None)); }
     private JObject Load()
