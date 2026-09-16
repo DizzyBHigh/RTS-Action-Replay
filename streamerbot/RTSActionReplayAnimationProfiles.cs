@@ -34,7 +34,7 @@ public class CPHInline
         var panelAnimation = panel["animation"] as JObject ?? new JObject();
         panelAnimation["entryPoints"] = NormalizeEntryPoints(panelAnimation["entryPoints"] as JObject, (JArray)panel["animationProfiles"], new[] { "recent", "playlist", "creatorLeaderboard" });
         panel["animation"] = panelAnimation;
-        panel["preset"] = NormalizePresetEntryPoints(panel["preset"] as JObject);
+        panel["preset"] = NormalizePresetConfig(panel["preset"]);
         SaveConfig(PanelKey, panel);
         return true;
     }
@@ -106,15 +106,19 @@ public class CPHInline
 
     private string ResolvePanelPreset(JObject panel, string panelType)
     {
-        var presets = panel["preset"] as JObject; var value = (string)presets?[panelType.ToLowerInvariant()];
-        if (!string.IsNullOrWhiteSpace(value)) return value;
-        return "Broadcast";
+        var preset = panel["preset"] as JObject; var entries = preset?["entryPoints"] as JObject; var value = (string)entries?[panelType.ToLowerInvariant()];
+        return string.IsNullOrWhiteSpace(value) ? (string)preset?["fallback"] ?? "Broadcast" : value;
     }
 
-    private JObject NormalizePresetEntryPoints(JObject source)
+    private JObject NormalizePresetConfig(JToken source)
     {
-        var result = new JObject(); var legacy = (string)source?["default"];
-        foreach (var name in new[] { "recent", "playlist", "creatorLeaderboard" }) result[name] = (string)source?[name] ?? legacy ?? "Broadcast";
+        var legacy = source as JValue;
+        var legacyPreset = legacy?.Type == JTokenType.String ? legacy.ToString() : null;
+        var objectSource = source as JObject;
+        var entries = objectSource?["entryPoints"] as JObject;
+        var fallback = (string)objectSource?["fallback"] ?? legacyPreset ?? "Broadcast";
+        var result = new JObject { ["fallback"] = fallback, ["entryPoints"] = new JObject() };
+        foreach (var name in new[] { "recent", "playlist", "creatorLeaderboard" }) result["entryPoints"][name] = (string)entries?[name] ?? fallback;
         return result;
     }
 
@@ -150,7 +154,7 @@ public class CPHInline
     private JObject CreateProfile(string id, string name) => new JObject { ["id"] = id, ["name"] = name, ["startSequence"] = DefaultPlayerStart(), ["endSequence"] = DefaultPlayerEnd() };
     private JObject CreatePanelProfile(string id, string name) => new JObject { ["id"] = id, ["name"] = name, ["startSequence"] = DefaultPanelStart(), ["endSequence"] = DefaultPanelEnd() };
     private JObject CreatePlayerDefaults() => new JObject { ["version"] = 1, ["positions"] = new JObject(), ["animationProfiles"] = new JArray(CreateProfile("default", "Default")), ["animation"] = new JObject { ["selectedProfile"] = "default", ["entryPoints"] = new JObject { ["obs"] = "default", ["twitch"] = "default", ["youtube"] = "default", ["kick"] = "default", ["recent"] = "default", ["catalog"] = "default", ["playlist"] = "default" } } };
-    private JObject CreatePanelDefaults() => new JObject { ["version"] = 1, ["width"] = 500, ["height"] = 700, ["positions"] = new JObject(), ["animationProfiles"] = new JArray(CreatePanelProfile("default", "Default")), ["animation"] = new JObject { ["entryPoints"] = new JObject { ["recent"] = "default", ["playlist"] = "default", ["creatorLeaderboard"] = "default" } }, ["preset"] = new JObject { ["recent"] = "Broadcast", ["playlist"] = "Broadcast", ["creatorLeaderboard"] = "Broadcast" } };
+    private JObject CreatePanelDefaults() => new JObject { ["version"] = 1, ["width"] = 500, ["height"] = 700, ["positions"] = new JObject(), ["animationProfiles"] = new JArray(CreatePanelProfile("default", "Default")), ["animation"] = new JObject { ["entryPoints"] = new JObject { ["recent"] = "default", ["playlist"] = "default", ["creatorLeaderboard"] = "default" } }, ["preset"] = new JObject { ["fallback"] = "Broadcast", ["entryPoints"] = new JObject { ["recent"] = "Broadcast", ["playlist"] = "Broadcast", ["creatorLeaderboard"] = "Broadcast" } } };
     private JArray DefaultPlayerStart() => new JArray(new JObject { ["position"] = "Full Screen", ["duration"] = 0, ["delay"] = 0, ["easing"] = "ease-in-out" });
     private JArray DefaultPlayerEnd() => new JArray(new JObject { ["position"] = "Full Screen", ["duration"] = 0, ["delay"] = 0, ["easing"] = "ease-in-out" });
     private JArray DefaultPanelStart() => new JArray(new JObject { ["position"] = "Centered", ["duration"] = 0, ["delay"] = 0, ["easing"] = "ease-in-out" });
