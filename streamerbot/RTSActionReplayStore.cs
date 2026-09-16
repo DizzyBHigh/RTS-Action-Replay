@@ -18,6 +18,8 @@ public class CPHInline
     private const string PlayerKey = "rts.actionreplay.config.player";
     private const string PanelKey = "rts.actionreplay.config.panel";
     private const string ClapperPositionsKey = "rts.actionreplay.clapper.positions";
+    private const int ClapperboardPreviewWidth = 680;
+    private const int ClapperboardPreviewHeight = 372;
 
     public bool Execute() => Initialize();
     public bool Initialize() { Save(Load()); return true; }
