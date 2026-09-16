@@ -20,9 +20,15 @@ public class CPHInline
 
     private void Build(RtsUI ui)
     {
+        ui.BeginSection("Panel Entry Points", "Information Panels");
+        AddPanelEntryPoint(ui, "Recent / Search", "recent", "Select the animation profile and visual preset used by Recent and Search panels.");
+        AddPanelEntryPoint(ui, "Playlist", "playlist", "Select the animation profile and visual preset used by Playlist panels.");
+        AddPanelEntryPoint(ui, "Creator Leaderboard", "creatorLeaderboard", "Select the animation profile and visual preset used by Creator Leaderboard panels.");
+        ui.EndSection();
+
         ui.BeginSection("Panel Design", "Information Panels");
         ui.AddClickableButton("Preview Panel", "Preview the selected panel preset and typography.", "Preview Panel", "blue", "Information Panels", Preview);
-        ui.AddDropdown("Panel Preset", "Choose the visual design used by information panels.", "Information Panels", Prefix + "preset", new[] { "Broadcast", "Cinematic", "Cut", "Minimal" }, "Broadcast");
+        ui.AddDropdown("Panel Preset", "Legacy fallback visual design used when no panel entry-point preset is assigned.", "Information Panels", Prefix + "preset", new[] { "Broadcast", "Cinematic", "Cut", "Minimal" }, "Broadcast");
         ui.BeginRow();
         ui.AddColorPicker("Primary Colour", "Primary accent colour used by the panel design.", "Information Panels", Prefix + "primaryColor", "#0384CBFF");
         ui.AddColorPicker("Secondary Colour", "Secondary accent colour used by the panel design.", "Information Panels", Prefix + "secondaryColor", "#101416FF");
@@ -40,9 +46,33 @@ public class CPHInline
         ui.EndRow(); ui.EndSection();
     }
 
+    private void AddPanelEntryPoint(RtsUI ui, string label, string key, string description)
+    {
+        ui.BeginRow();
+        ui.AddDropdown(label + " Animation Profile", description, "Information Panels", Prefix + "entryPoints." + key + ".animationProfile", new[] { "Default" }, "Default");
+        ui.AddDropdown(label + " Visual Preset", description, "Information Panels", Prefix + "entryPoints." + key + ".preset", new[] { "Broadcast", "Cinematic", "Cut", "Minimal" }, "Broadcast");
+        ui.EndRow();
+    }
+
     public bool Apply()
     {
-        CPH.SetArgument("replayPanelPreset", GetString("preset", "Broadcast"));
+        var panel = ReadConfig();
+        var animation = panel["animation"] as JObject ?? new JObject();
+        var entries = animation["entryPoints"] as JObject ?? new JObject();
+        var presets = panel["preset"] as JObject ?? new JObject();
+        var globalPreset = GetString("preset", "Broadcast");
+        foreach (var key in new[] { "recent", "playlist", "creatorLeaderboard" })
+        {
+            var entry = entries[key] as JObject ?? new JObject();
+            entry["animationProfile"] = GetString("entryPoints." + key + ".animationProfile", (string)entry["animationProfile"] ?? (string)entry["profile"] ?? "default");
+            entry["preset"] = GetString("entryPoints." + key + ".preset", (string)entry["preset"] ?? globalPreset);
+            entries[key] = entry;
+        }
+        animation["entryPoints"] = entries;
+        panel["animation"] = animation;
+        panel["preset"] = globalPreset;
+        SaveConfig(panel);
+        CPH.SetArgument("replayPanelPreset", globalPreset);
         CPH.SetArgument("replayPanelPrimaryColor", GetString("primaryColor", "#0384CBFF"));
         CPH.SetArgument("replayPanelSecondaryColor", GetString("secondaryColor", "#101416FF"));
         CPH.SetArgument("replayPanelTitleFont", GetString("titleFont", "Inter"));
@@ -77,5 +107,13 @@ public class CPHInline
         CPH.TriggerEvent("RTS-Action Replay", true);
     }
 
+    private JObject ReadConfig()
+    {
+        var raw = CPH.GetGlobalVar<string>(PanelKey, true);
+        try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); }
+        catch { return new JObject(); }
+    }
+
+    private void SaveConfig(JObject panel) => CPH.SetGlobalVar(PanelKey, panel.ToString(Newtonsoft.Json.Formatting.None), true);
     private string GetString(string name, string fallback) => CPH.GetGlobalVar<string>(Prefix + name, true) ?? fallback;
 }
