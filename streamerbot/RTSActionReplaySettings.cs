@@ -123,7 +123,7 @@ public class CPHInline
     private string[] BuildAnimationPositionOptions() => BuildPositionOptions(CPH.GetGlobalVar<string>("rts.actionreplay.ui.playerPositions", true), "Full Screen");
     private string[] BuildPanelAnimationPositionOptions() => BuildPositionOptions(CPH.GetGlobalVar<string>("rts.actionreplay.ui.panelPositions", true), "Centered");
     private string[] BuildPositionOptions(string json, string builtIn) { var options = new List<string> { builtIn }; foreach (var item in ParsePositions(json)) { var name = (string)item.Value["name"]; if (!string.IsNullOrWhiteSpace(name) && !options.Contains(name)) options.Add(name); } return options.ToArray(); }
-    private string[] BuildClapperPositionOptions() => BuildPositionOptions(CPH.GetGlobalVar<string>(ClapperPositionsUiKey, true), "Centered");
+    private static string[] BuildClapperPositionOptions() { var json = CPH.GetGlobalVar<string>(ClapperPositionsUiKey, true); var options = new List<string> { "Centered" }; foreach (var item in ParsePositions(json)) { var name = (string)item.Value["name"]; if (!string.IsNullOrWhiteSpace(name) && !options.Contains(name)) options.Add(name); } return options.ToArray(); }
 
     private string ReadUiValue(string key)
     {
