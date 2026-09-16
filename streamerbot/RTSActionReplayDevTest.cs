@@ -32,7 +32,7 @@ public class CPHInline
         SetInt("replayBorderWidth", "rts.actionreplay.borderWidth", 4);
         SetInt("replayCornerRadius", "rts.actionreplay.cornerRadius", 0);
         SetBool("replayBorderGlow", "rts.actionreplay.borderGlow", true);
-        SetString("replayPositions", "rts.actionreplay.positions", "{}");
+        SetJson("replayPositions", "rts.actionreplay.positions", null);
         SetString("replayBrandLogoUrl", "rts.actionreplay.brandLogoUrl", "");
         SetString("replayBrandFallbackText", "rts.actionreplay.brandFallbackText", "RTS");
         SetString("replayBrandFallbackTextColor", "rts.actionreplay.brandFallbackTextColor", "#0384CBFF");
@@ -78,10 +78,11 @@ public class CPHInline
 
     private void ApplyPlayerAnimation()
     {
-        SetJson("replayPlayerConfig", "rts.actionreplay.config.player", "{}");
+        SetJson("replayPlayerConfig", "rts.actionreplay.config.player", null);
         SetJson("replayPlayerPositions", "rts.actionreplay.config.player", "positions");
         SetJson("replayAnimationProfiles", "rts.actionreplay.config.player", "animationProfiles");
         SetJson("replayPlayerAnimationConfig", "rts.actionreplay.config.player", "animation");
+        SetSelectedAnimation("replayAnimationProfile", "rts.actionreplay.config.player");
         SetString("replayStartPosition", "rts.actionreplay.animation.default.startPosition", "Full Screen");
         SetString("replayEndPosition", "rts.actionreplay.animation.default.endPosition", "Full Screen");
         SetDouble("replayAnimationDuration", "rts.actionreplay.animation.default.duration", .5);
@@ -90,10 +91,11 @@ public class CPHInline
 
     private void ApplyPanelAnimation()
     {
-        SetJson("replayPanelConfig", "rts.actionreplay.config.panel", "{}");
+        SetJson("replayPanelConfig", "rts.actionreplay.config.panel", null);
         SetJson("replayPanelPositions", "rts.actionreplay.config.panel", "positions");
         SetJson("replayPanelAnimationProfiles", "rts.actionreplay.config.panel", "animationProfiles");
         SetJson("replayPanelAnimationConfig", "rts.actionreplay.config.panel", "animation");
+        SetSelectedAnimation("replayPanelAnimation", "rts.actionreplay.config.panel");
     }
 
     private void ApplyClapperboard()
@@ -109,33 +111,35 @@ public class CPHInline
         SetJson("replayClapperPositions", "rts.actionreplay.clapper.positions", null);
         SetJson("replayClapperAnimationProfiles", "rts.actionreplay.config.clapper", "animationProfiles");
         SetJson("replayClapperAnimationConfig", "rts.actionreplay.config.clapper", "animation");
-        SetSelectedClapperAnimation();
+        SetSelectedAnimation("replayClapperAnimation", "rts.actionreplay.config.clapper");
         SetInt("replayClapperWidth", "rts.actionreplay.clapper.width", 680);
         SetInt("replayClapperHeight", "rts.actionreplay.clapper.height", 372);
         SetInt("replayMessageDuration", "rts.actionreplay.clapper.duration", 5000);
     }
 
-    private void SetSelectedClapperAnimation()
+    private void SetSelectedAnimation(string arg, string key)
     {
-        var raw = CPH.GetGlobalVar<string>("rts.actionreplay.config.clapper", true);
+        var raw = CPH.GetGlobalVar<string>(key, true);
         try
         {
             var config = Newtonsoft.Json.Linq.JObject.Parse(raw ?? "{}");
             var selected = (string)config["animation"]?["selectedProfile"] ?? "default";
             var profiles = config["animationProfiles"] as Newtonsoft.Json.Linq.JArray;
-            Newtonsoft.Json.Linq.JObject item = null;
             foreach (var token in profiles ?? new Newtonsoft.Json.Linq.JArray())
-                if (string.Equals((string)token["id"], selected, StringComparison.Ordinal)) { item = token as Newtonsoft.Json.Linq.JObject; break; }
-            if (item == null) return;
-            var output = new Newtonsoft.Json.Linq.JObject {
-                ["id"] = (string)item["id"] ?? "default",
-                ["name"] = (string)item["name"] ?? "Default",
-                ["start"] = item["startSequence"] ?? new Newtonsoft.Json.Linq.JArray(),
-                ["end"] = item["endSequence"] ?? new Newtonsoft.Json.Linq.JArray()
-            };
-            CPH.SetArgument("replayClapperAnimation", output.ToString(Newtonsoft.Json.Formatting.None));
+            {
+                if (!string.Equals((string)token["id"], selected, StringComparison.Ordinal)) continue;
+                var output = new Newtonsoft.Json.Linq.JObject {
+                    ["id"] = (string)token["id"] ?? "default",
+                    ["name"] = (string)token["name"] ?? "Default",
+                    ["start"] = token["startSequence"] ?? new Newtonsoft.Json.Linq.JArray(),
+                    ["end"] = token["endSequence"] ?? new Newtonsoft.Json.Linq.JArray()
+                };
+                CPH.SetArgument(arg, output.ToString(Newtonsoft.Json.Formatting.None));
+                return;
+            }
         }
-        catch { CPH.SetArgument("replayClapperAnimation", "{}"); }
+        catch { }
+        CPH.SetArgument(arg, "{}");
     }
 
     private void SetJson(string arg, string key, string child)
@@ -144,8 +148,8 @@ public class CPHInline
         try
         {
             var value = Newtonsoft.Json.Linq.JObject.Parse(raw ?? "{}");
-            if (!string.IsNullOrWhiteSpace(child)) value = value[child] as Newtonsoft.Json.Linq.JObject ?? new Newtonsoft.Json.Linq.JObject();
-            CPH.SetArgument(arg, value.ToString(Newtonsoft.Json.Formatting.None));
+            Newtonsoft.Json.Linq.JToken selected = string.IsNullOrWhiteSpace(child) ? value : value[child];
+            CPH.SetArgument(arg, (selected ?? new Newtonsoft.Json.Linq.JObject()).ToString(Newtonsoft.Json.Formatting.None));
         }
         catch { CPH.SetArgument(arg, "{}"); }
     }
