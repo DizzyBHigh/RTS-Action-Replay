@@ -5,6 +5,7 @@ RTSSearchPanel.timer = null;
 RTSSearchPanel.endTimer = null;
 RTSSearchPanel.scrollTimer = null;
 RTSSearchPanel.scrollInterval = null;
+RTSSearchPanel.avatarRequests = new Map();
 
 RTSSearchPanel.notifyEnded = requestId => {
   if (!RTSReplay.socket || RTSReplay.socket.readyState !== WebSocket.OPEN) return;
@@ -13,6 +14,31 @@ RTSSearchPanel.notifyEnded = requestId => {
     action: { name: RTSReplay.config.searchEndedAction },
     args: { replaySearchRequestId: requestId || '' }
   }));
+};
+
+RTSSearchPanel.requestAvatar = (userId, userName, platform, apply) => {
+  if (!userId || !RTSReplay.socket || RTSReplay.socket.readyState !== WebSocket.OPEN) return;
+  const requestId = `rts-avatar-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  RTSSearchPanel.avatarRequests.set(requestId, apply);
+  RTSReplay.socket.send(JSON.stringify({
+    request: 'DoAction', id: requestId,
+    action: { name: 'RTS - Action Replay - Core - Catalog', args: { method: 'ResolveAvatar' } },
+    args: {
+      replayAvatarRequestId: requestId,
+      replayAvatarUserId: userId,
+      replayAvatarUserName: userName || '',
+      replayAvatarPlatform: platform || ''
+    }
+  }));
+};
+
+RTSSearchPanel.handleAvatar = command => {
+  const requestId = String(command.replayAvatarRequestId || '');
+  const apply = RTSSearchPanel.avatarRequests.get(requestId);
+  if (!apply) return;
+  RTSSearchPanel.avatarRequests.delete(requestId);
+  const url = String(command.replayAvatarUrl || '').trim();
+  if (url) apply(url);
 };
 
 RTSSearchPanel.clearTimers = () => {
@@ -100,10 +126,16 @@ RTSSearchPanel.show = command => {
     if (isLastPlayed || entry.historyCount != null) {
       const playedBy = String(entry.lastPlayedBy || 'Unknown');
       const playedPlatform = RTSSearchPanel.normalizePlatform(entry.lastPlayedPlatform);
-      const player = document.createElement('span');
-      player.textContent = `Played By ${playedBy}`;
-      if (playedPlatform) player.className = `rts-search-history-player rts-search-requester-platform--${playedPlatform.toLowerCase()}`;
+      const player = document.createElement('span'); player.className = `rts-search-history-player rts-search-requester-platform--${playedPlatform.toLowerCase()}`;
+      const playerLabel = document.createElement('span'); playerLabel.className = 'rts-search-history-label'; playerLabel.textContent = 'Played By';
+      player.appendChild(playerLabel);
+      const avatar = document.createElement('img'); avatar.className = 'rts-search-history-avatar'; avatar.alt = '';
+      avatar.hidden = true;
+      player.appendChild(avatar);
+      const name = document.createElement('span'); name.className = 'rts-search-history-name'; name.textContent = playedBy;
+      player.appendChild(name);
       stats.appendChild(player);
+      if (entry.lastPlayedUserId) RTSSearchPanel.requestAvatar(String(entry.lastPlayedUserId), playedBy, playedPlatform, url => { avatar.src = url; avatar.hidden = false; });
       const count = Number(entry.historyCount || 1);
       if (count > 1) {
         const repeat = document.createElement('span'); repeat.textContent = String(count); repeat.className = 'rts-search-history-count';
