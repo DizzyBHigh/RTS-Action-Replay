@@ -9,10 +9,15 @@ public class CPHInline
 
     public bool Execute()
     {
-        CPH.SetArgument("replayCommand", "title-test");
-        CPH.SetArgument("replayId", "dev-title-test");
-        CPH.SetArgument("replayTitle", "TITLE SETTINGS TEST");
+        CPH.SetArgument("replayCommand", "dev-test");
+        CPH.SetArgument("replayId", "dev-test");
+        CPH.SetArgument("replayNumber", 1);
+        CPH.SetArgument("replayTitle", "ACTION REPLAY DEV TEST");
+        CPH.SetArgument("replayMessage", "CLAPPERBOARD ANIMATION TEST");
         ApplySettings();
+        ApplyPlayerAnimation();
+        ApplyPanelAnimation();
+        ApplyClapperboard();
         CPH.TriggerEvent(EventName, true);
         return true;
     }
@@ -27,17 +32,13 @@ public class CPHInline
         SetInt("replayBorderWidth", "rts.actionreplay.borderWidth", 4);
         SetInt("replayCornerRadius", "rts.actionreplay.cornerRadius", 0);
         SetBool("replayBorderGlow", "rts.actionreplay.borderGlow", true);
-
-        SetString("replayPositions", "rts.actionreplay.positions", "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}");
-        SetProfile("default");
-
-        SetBool("replayShowBranding", "rts.actionreplay.showBranding", true);
+        SetString("replayPositions", "rts.actionreplay.positions", "{}");
         SetString("replayBrandLogoUrl", "rts.actionreplay.brandLogoUrl", "");
         SetString("replayBrandFallbackText", "rts.actionreplay.brandFallbackText", "RTS");
         SetString("replayBrandFallbackTextColor", "rts.actionreplay.brandFallbackTextColor", "#0384CBFF");
         SetString("replayBrandLabel", "rts.actionreplay.brandLabel", "ACTION REPLAY");
         SetString("replayBrandLabelColor", "rts.actionreplay.brandLabelColor", "#FFFFFFFF");
-
+        SetBool("replayShowBranding", "rts.actionreplay.showBranding", true);
         SetBool("replayShowTitle", "rts.actionreplay.showTitle", true);
         SetString("replayTitleDecorationPosition", "rts.actionreplay.titleDecorationPosition", "Suffix");
         SetString("replayTitleDecoration", "rts.actionreplay.titleDecoration", " - Replay Capture");
@@ -53,7 +54,6 @@ public class CPHInline
         SetString("replayTitleShadowColor", "rts.actionreplay.titleShadowColor", "#000000FF");
         SetString("replayTitlePrimaryColor", "rts.actionreplay.titlePrimaryColor", "#0384CBFF");
         SetString("replayTitleSecondaryColor", "rts.actionreplay.titleSecondaryColor", "#101416FF");
-
         SetBool("replayBroadcastOverrideColours", "rts.actionreplay.broadcast.overrideColours", false);
         SetString("replayBroadcastPrimaryColor", "rts.actionreplay.broadcast.primaryColor", "#0384CBFF");
         SetString("replayBroadcastSecondaryColor", "rts.actionreplay.broadcast.secondaryColor", "#FFD400FF");
@@ -66,7 +66,6 @@ public class CPHInline
         SetInt("replayBroadcastChevronSpeed", "rts.actionreplay.broadcast.chevronSpeed", 95);
         SetString("replayBroadcastDecorationColor", "rts.actionreplay.broadcast.decorationColor", "#0384CBFF");
         SetString("replayBroadcastTitleColor", "rts.actionreplay.broadcast.titleColor", "#FFFFFFFF");
-
         SetBool("replayCutOverrideColours", "rts.actionreplay.cut.overrideColours", false);
         SetString("replayCutPrimaryColor", "rts.actionreplay.cut.primaryColor", "#0384CBFF");
         SetString("replayCutSecondaryColor", "rts.actionreplay.cut.secondaryColor", "#FFD400FF");
@@ -77,12 +76,78 @@ public class CPHInline
         SetString("replayCutTitleColor", "rts.actionreplay.cut.titleColor", "#FFFFFFFF");
     }
 
-    private void SetProfile(string profile)
+    private void ApplyPlayerAnimation()
     {
-        SetString("replayStartPosition", "rts.actionreplay.animation." + profile + ".startPosition", "Full Screen");
-        SetString("replayEndPosition", "rts.actionreplay.animation." + profile + ".endPosition", "Full Screen");
-        SetDouble("replayAnimationDuration", "rts.actionreplay.animation." + profile + ".duration", .5);
-        SetString("replayAnimationEasing", "rts.actionreplay.animation." + profile + ".easing", "ease-in-out");
+        SetJson("replayPlayerConfig", "rts.actionreplay.config.player", "{}");
+        SetJson("replayPlayerPositions", "rts.actionreplay.config.player", "positions");
+        SetJson("replayAnimationProfiles", "rts.actionreplay.config.player", "animationProfiles");
+        SetJson("replayPlayerAnimationConfig", "rts.actionreplay.config.player", "animation");
+        SetString("replayStartPosition", "rts.actionreplay.animation.default.startPosition", "Full Screen");
+        SetString("replayEndPosition", "rts.actionreplay.animation.default.endPosition", "Full Screen");
+        SetDouble("replayAnimationDuration", "rts.actionreplay.animation.default.duration", .5);
+        SetString("replayAnimationEasing", "rts.actionreplay.animation.default.easing", "ease-in-out");
+    }
+
+    private void ApplyPanelAnimation()
+    {
+        SetJson("replayPanelConfig", "rts.actionreplay.config.panel", "{}");
+        SetJson("replayPanelPositions", "rts.actionreplay.config.panel", "positions");
+        SetJson("replayPanelAnimationProfiles", "rts.actionreplay.config.panel", "animationProfiles");
+        SetJson("replayPanelAnimationConfig", "rts.actionreplay.config.panel", "animation");
+    }
+
+    private void ApplyClapperboard()
+    {
+        SetString("replayLogoUrl", "rts.actionreplay.brandLogoUrl", "");
+        SetString("replayMessageBoardColor", "rts.actionreplay.clapper.boardColor", "#101416");
+        SetString("replayMessageStripeLight", "rts.actionreplay.clapper.stripeLight", "#EEEEEE");
+        SetString("replayMessageStripeDark", "rts.actionreplay.clapper.stripeDark", "#111111");
+        SetString("replayMessageAccent", "rts.actionreplay.clapper.accent", "#0384CB");
+        SetString("replayMessageTextColor", "rts.actionreplay.clapper.textColor", "#0384CB");
+        SetString("replayMessageFont", "rts.actionreplay.clapper.font", "Arial, sans-serif");
+        SetString("replayClapperPosition", "rts.actionreplay.clapper.position", "Centered");
+        SetJson("replayClapperPositions", "rts.actionreplay.clapper.positions", null);
+        SetJson("replayClapperAnimationProfiles", "rts.actionreplay.config.clapper", "animationProfiles");
+        SetJson("replayClapperAnimationConfig", "rts.actionreplay.config.clapper", "animation");
+        SetSelectedClapperAnimation();
+        SetInt("replayClapperWidth", "rts.actionreplay.clapper.width", 680);
+        SetInt("replayClapperHeight", "rts.actionreplay.clapper.height", 372);
+        SetInt("replayMessageDuration", "rts.actionreplay.clapper.duration", 5000);
+    }
+
+    private void SetSelectedClapperAnimation()
+    {
+        var raw = CPH.GetGlobalVar<string>("rts.actionreplay.config.clapper", true);
+        try
+        {
+            var config = Newtonsoft.Json.Linq.JObject.Parse(raw ?? "{}");
+            var selected = (string)config["animation"]?["selectedProfile"] ?? "default";
+            var profiles = config["animationProfiles"] as Newtonsoft.Json.Linq.JArray;
+            Newtonsoft.Json.Linq.JObject item = null;
+            foreach (var token in profiles ?? new Newtonsoft.Json.Linq.JArray())
+                if (string.Equals((string)token["id"], selected, StringComparison.Ordinal)) { item = token as Newtonsoft.Json.Linq.JObject; break; }
+            if (item == null) return;
+            var output = new Newtonsoft.Json.Linq.JObject {
+                ["id"] = (string)item["id"] ?? "default",
+                ["name"] = (string)item["name"] ?? "Default",
+                ["start"] = item["startSequence"] ?? new Newtonsoft.Json.Linq.JArray(),
+                ["end"] = item["endSequence"] ?? new Newtonsoft.Json.Linq.JArray()
+            };
+            CPH.SetArgument("replayClapperAnimation", output.ToString(Newtonsoft.Json.Formatting.None));
+        }
+        catch { CPH.SetArgument("replayClapperAnimation", "{}"); }
+    }
+
+    private void SetJson(string arg, string key, string child)
+    {
+        var raw = CPH.GetGlobalVar<string>(key, true);
+        try
+        {
+            var value = Newtonsoft.Json.Linq.JObject.Parse(raw ?? "{}");
+            if (!string.IsNullOrWhiteSpace(child)) value = value[child] as Newtonsoft.Json.Linq.JObject ?? new Newtonsoft.Json.Linq.JObject();
+            CPH.SetArgument(arg, value.ToString(Newtonsoft.Json.Formatting.None));
+        }
+        catch { CPH.SetArgument(arg, "{}"); }
     }
 
     private void SetBool(string arg, string key, bool fallback) { CPH.SetArgument(arg, CPH.GetGlobalVar<bool?>(key, true) ?? fallback); }
