@@ -81,7 +81,10 @@ public class CPHInline
 
     private void AddPanelAnimationSettings(RtsUI ui)
     {
-        ui.BeginSection("Panel Entry Points", "Information Panels"); ui.AddTitle("Choose the animation profile and visual preset used by each information-panel entry point.", "Information Panels"); ui.BeginRow(); AddPanelEntry(ui, "Recent / Search", "recent"); AddPanelEntry(ui, "Playlist", "playlist"); ui.EndRow(); AddPanelEntry(ui, "Creator Leaderboard", "creatorLeaderboard"); ui.EndSection();
+        ui.BeginSection("Panel Entry Points", "Information Panels");
+        ui.AddTitle("Choose the animation profile and visual preset used by each information-panel entry point.", "Information Panels");
+        ui.BeginRow(); AddPanelEntry(ui, "Recent / Search", "recent"); AddPanelEntry(ui, "Playlist", "playlist"); ui.EndRow();
+        AddPanelEntry(ui, "Creator Leaderboard", "creatorLeaderboard"); ui.EndSection();
         foreach (var item in ReadProfiles(PanelKey)) { var id = (string)item["id"]; if (!string.IsNullOrWhiteSpace(id)) AddPanelAnimationProfile(ui, (string)item["name"] ?? "Default", id); }
     }
 
