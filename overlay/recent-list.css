@@ -40,9 +40,10 @@
 .rts-panel-header::after {
   content: '';
   position: absolute;
+  left: 0;
   right: -24px;
   bottom: -34px;
-  width: 150px;
+  width: auto;
   height: 70px;
   border-top: 3px solid rgba(3, 132, 203, .5);
   transform: skewX(-35deg);
