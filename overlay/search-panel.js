@@ -58,13 +58,13 @@ RTSSearchPanel.show = command => {
   panel.innerHTML = '<div class="rts-panel-header"><span class="rts-panel-kicker">CATALOG SEARCH</span><strong class="rts-search-type"></strong><span class="rts-search-summary"></span><span class="rts-search-requester"></span></div><div class="rts-panel-list"></div>';
   panel.querySelector('.rts-search-type').textContent = RTSSearchPanel.describeSearch(command.replaySearchParameters);
   const pageInfo = RTSSearchPanel.parsePageInfo(command.replaySearchHeader);
-  panel.querySelector('.rts-search-summary').textContent = `Search Results: Page ${pageInfo.page} of ${pageInfo.pages} • Total Clips ${pageInfo.total}`;
+  panel.querySelector('.rts-search-summary').textContent = `Page ${pageInfo.page} of ${pageInfo.pages} | ${pageInfo.total} Clips`;
 
   const requester = panel.querySelector('.rts-search-requester');
   const requesterName = String(command.replaySearchRequester || 'Unknown');
   const requesterPlatform = String(command.replaySearchRequesterPlatform || '').trim();
   requester.textContent = '';
-  const label = document.createElement('span'); label.className = 'rts-search-requester-label'; label.textContent = 'REQUESTED BY: ';
+  const label = document.createElement('span'); label.className = 'rts-search-requester-label'; label.textContent = 'Requested By ';
   requester.appendChild(label);
   if (requesterPlatform) {
     const platform = document.createElement('span');
