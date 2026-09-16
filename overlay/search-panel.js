@@ -6,50 +6,43 @@ RTSSearchPanel.endTimer = null;
 RTSSearchPanel.scrollTimer = null;
 RTSSearchPanel.scrollInterval = null;
 RTSSearchPanel.avatarRequests = new Map();
+RTSSearchPanel.avatarCache = new Map();
 
 RTSSearchPanel.notifyEnded = requestId => {
   if (!RTSReplay.socket || RTSReplay.socket.readyState !== WebSocket.OPEN) return;
-  RTSReplay.socket.send(JSON.stringify({
-    request: 'DoAction', id: `rts-search-ended-${Date.now()}`,
-    action: { name: RTSReplay.config.searchEndedAction },
-    args: { replaySearchRequestId: requestId || '' }
-  }));
+  RTSReplay.socket.send(JSON.stringify({ request: 'DoAction', id: `rts-search-ended-${Date.now()}`, action: { name: RTSReplay.config.searchEndedAction }, args: { replaySearchRequestId: requestId || '' } }));
 };
 
 RTSSearchPanel.requestAvatar = (userId, userName, platform, apply) => {
   if (!userId || !RTSReplay.socket || RTSReplay.socket.readyState !== WebSocket.OPEN) return;
+  const cacheKey = `${platform || ''}:${userId}`.toLowerCase();
+  if (RTSSearchPanel.avatarCache.has(cacheKey)) {
+    const cached = RTSSearchPanel.avatarCache.get(cacheKey);
+    if (cached) apply(cached);
+    return;
+  }
   const requestId = `rts-avatar-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  RTSSearchPanel.avatarRequests.set(requestId, apply);
+  RTSSearchPanel.avatarRequests.set(requestId, { apply, cacheKey });
   RTSReplay.socket.send(JSON.stringify({
     request: 'DoAction', id: requestId,
     action: { name: 'RTS - Action Replay - Core - Catalog' },
-    args: {
-      replayAvatarRequestId: requestId,
-      replayAvatarUserId: userId,
-      replayAvatarUserName: userName || '',
-      replayAvatarPlatform: platform || ''
-    }
+    args: { replayAvatarRequestId: requestId, replayAvatarUserId: userId, replayAvatarUserName: userName || '', replayAvatarPlatform: platform || '' }
   }));
 };
 
 RTSSearchPanel.handleAvatar = command => {
   const requestId = String(command.replayAvatarRequestId || '');
-  const apply = RTSSearchPanel.avatarRequests.get(requestId);
-  if (!apply) return;
+  const request = RTSSearchPanel.avatarRequests.get(requestId);
+  if (!request) return;
   RTSSearchPanel.avatarRequests.delete(requestId);
   const url = String(command.replayAvatarUrl || '').trim();
-  if (url) apply(url);
+  RTSSearchPanel.avatarCache.set(request.cacheKey, url);
+  if (url) request.apply(url);
 };
 
 RTSSearchPanel.clearTimers = () => {
-  clearTimeout(RTSSearchPanel.timer);
-  clearTimeout(RTSSearchPanel.endTimer);
-  clearTimeout(RTSSearchPanel.scrollTimer);
-  clearInterval(RTSSearchPanel.scrollInterval);
-  RTSSearchPanel.timer = null;
-  RTSSearchPanel.endTimer = null;
-  RTSSearchPanel.scrollTimer = null;
-  RTSSearchPanel.scrollInterval = null;
+  clearTimeout(RTSSearchPanel.timer); clearTimeout(RTSSearchPanel.endTimer); clearTimeout(RTSSearchPanel.scrollTimer); clearInterval(RTSSearchPanel.scrollInterval);
+  RTSSearchPanel.timer = null; RTSSearchPanel.endTimer = null; RTSSearchPanel.scrollTimer = null; RTSSearchPanel.scrollInterval = null;
 };
 
 RTSSearchPanel.describeSearch = parameters => {
@@ -77,11 +70,18 @@ RTSSearchPanel.normalizePlatform = platform => {
 RTSSearchPanel.parsePageInfo = header => {
   const parts = String(header || '').split('•').map(x => x.trim());
   const page = parts.length > 1 ? parts[1].split('/').map(x => x.trim()) : [];
-  return {
-    page: page[0] || '1',
-    pages: page[1] || '1',
-    total: parts.length > 2 ? parts[2] : '0'
-  };
+  return { page: page[0] || '1', pages: page[1] || '1', total: parts.length > 2 ? parts[2] : '0' };
+};
+
+RTSSearchPanel.createCreator = (entry, content) => {
+  if (!entry.creator) return;
+  const platform = RTSSearchPanel.normalizePlatform(entry.creatorPlatform);
+  const creator = document.createElement('span');
+  creator.className = `rts-search-result-creator rts-search-requester-platform--${platform.toLowerCase()}`;
+  const avatar = document.createElement('img'); avatar.className = 'rts-search-result-creator-avatar'; avatar.alt = ''; avatar.hidden = true;
+  const name = document.createElement('span'); name.className = 'rts-search-result-creator-name'; name.textContent = String(entry.creator);
+  creator.append(avatar, name); content.appendChild(creator);
+  if (entry.creatorId) RTSSearchPanel.requestAvatar(String(entry.creatorId), String(entry.creator), platform, url => { avatar.src = url; avatar.hidden = false; });
 };
 
 RTSSearchPanel.show = command => {
@@ -100,84 +100,49 @@ RTSSearchPanel.show = command => {
   const requesterName = String(command.replaySearchRequester || 'Unknown');
   const requesterPlatform = RTSSearchPanel.normalizePlatform(command.replaySearchRequesterPlatform || command.commandSource);
   requester.textContent = '';
-  const label = document.createElement('span'); label.className = 'rts-search-requester-label'; label.textContent = 'Requested By ';
-  requester.appendChild(label);
+  const label = document.createElement('span'); label.className = 'rts-search-requester-label'; label.textContent = 'Requested By '; requester.appendChild(label);
   if (requesterPlatform) {
-    const platform = document.createElement('span');
-    platform.className = `rts-search-requester-platform rts-search-requester-platform--${requesterPlatform.toLowerCase()}`;
-    platform.textContent = requesterPlatform;
-    requester.append(platform, document.createTextNode(':'));
+    const platform = document.createElement('span'); platform.className = `rts-search-requester-platform rts-search-requester-platform--${requesterPlatform.toLowerCase()}`; platform.textContent = requesterPlatform; requester.append(platform, document.createTextNode(':'));
   }
-  const name = document.createElement('span'); name.className = 'rts-search-requester-name'; name.textContent = requesterName;
-  requester.appendChild(name);
+  const name = document.createElement('span'); name.className = 'rts-search-requester-name'; name.textContent = requesterName; requester.appendChild(name);
 
   const list = panel.querySelector('.rts-panel-list');
   entries.forEach(entry => {
     const row = document.createElement('div'); row.className = 'rts-panel-entry';
     const number = document.createElement('span'); number.className = 'rts-panel-number'; number.textContent = entry.number ?? '';
     const content = document.createElement('div'); content.className = 'rts-search-result-content';
-    const title = document.createElement('span'); title.className = 'rts-panel-title'; title.textContent = String(entry.title || 'Untitled replay');
-    content.appendChild(title);
-    if (entry.creator) {
-      const creator = document.createElement('span'); creator.className = 'rts-search-result-creator'; creator.textContent = String(entry.creator);
-      content.appendChild(creator);
-    }
-    const stats = document.createElement('span'); stats.className = 'rts-search-stats';
+    const title = document.createElement('span'); title.className = 'rts-panel-title'; title.textContent = String(entry.title || 'Untitled replay'); content.appendChild(title);
     if (isLastPlayed || entry.historyCount != null) {
       const playedBy = String(entry.lastPlayedBy || 'Unknown');
       const playedPlatform = RTSSearchPanel.normalizePlatform(entry.lastPlayedPlatform);
       const player = document.createElement('span'); player.className = `rts-search-history-player rts-search-requester-platform--${playedPlatform.toLowerCase()}`;
       const playerLabel = document.createElement('span'); playerLabel.className = 'rts-search-history-label'; playerLabel.textContent = 'Played By';
-      player.appendChild(playerLabel);
-      const avatar = document.createElement('img'); avatar.className = 'rts-search-history-avatar'; avatar.alt = '';
-      avatar.hidden = true;
-      player.appendChild(avatar);
-      const name = document.createElement('span'); name.className = 'rts-search-history-name'; name.textContent = playedBy;
-      player.appendChild(name);
-      stats.appendChild(player);
+      const avatar = document.createElement('img'); avatar.className = 'rts-search-history-avatar'; avatar.alt = ''; avatar.hidden = true;
+      const playerName = document.createElement('span'); playerName.className = 'rts-search-history-name'; playerName.textContent = playedBy;
+      player.append(playerLabel, avatar, playerName); content.appendChild(player);
       if (entry.lastPlayedUserId) RTSSearchPanel.requestAvatar(String(entry.lastPlayedUserId), playedBy, playedPlatform, url => { avatar.src = url; avatar.hidden = false; });
       const count = Number(entry.historyCount || 1);
-      if (count > 1) {
-        const repeat = document.createElement('span'); repeat.textContent = String(count); repeat.className = 'rts-search-history-count';
-        stats.append(' • ', repeat);
-      }
+      if (count > 1) { const repeat = document.createElement('span'); repeat.textContent = String(count); repeat.className = 'rts-search-history-count'; content.append(' • ', repeat); }
     } else {
-      const rating = Number(entry.rating || 0);
-      stats.textContent = `${Number(entry.plays || 0)} views${rating ? ` • ★ ${rating.toFixed(1)} (${Number(entry.ratingCount || 0)})` : ''}`;
+      RTSSearchPanel.createCreator(entry, content);
+    }
+    const stats = document.createElement('span'); stats.className = 'rts-search-stats';
+    if (!(isLastPlayed || entry.historyCount != null)) {
+      const rating = Number(entry.rating || 0); stats.textContent = `${Number(entry.plays || 0)} views${rating ? ` • ★ ${rating.toFixed(1)} (${Number(entry.ratingCount || 0)})` : ''}`;
     }
     row.append(number, content, stats); list.appendChild(row);
   });
-  if (!entries.length) {
-    const empty = document.createElement('div'); empty.className = 'rts-search-empty'; empty.textContent = isLastPlayed ? 'No replays have been played recently.' : 'No matching Catalog entries.'; list.appendChild(empty);
-  }
-  RTSSearchPanel.clearTimers();
-  panel.classList.remove('show'); panel.setAttribute('aria-hidden', 'true');
-  list.scrollTop = 0;
-  void panel.offsetWidth;
-  RTSInformationPanels.show(panel, command, command.replayPanelPosition || 'Centered');
+  if (!entries.length) { const empty = document.createElement('div'); empty.className = 'rts-search-empty'; empty.textContent = isLastPlayed ? 'No replays have been played recently.' : 'No matching Catalog entries.'; list.appendChild(empty); }
+  RTSSearchPanel.clearTimers(); panel.classList.remove('show'); panel.setAttribute('aria-hidden', 'true'); list.scrollTop = 0; void panel.offsetWidth; RTSInformationPanels.show(panel, command, command.replayPanelPosition || 'Centered');
 
   const requestId = String(command.replaySearchRequestId || '');
   const scrollable = list.scrollHeight > list.clientHeight;
   const duration = Math.max(1000, Number(command.replaySearchDuration) || 10000);
-
-  const hidePanel = () => {
-    RTSSearchPanel.clearTimers();
-    RTSInformationPanels.hide(panel, command);
-    RTSSearchPanel.endTimer = setTimeout(() => RTSSearchPanel.notifyEnded(requestId), 700);
-  };
-
-  if (!scrollable) {
-    RTSSearchPanel.timer = setTimeout(hidePanel, duration);
-    return;
-  }
-
+  const hidePanel = () => { RTSSearchPanel.clearTimers(); RTSInformationPanels.hide(panel, command); RTSSearchPanel.endTimer = setTimeout(() => RTSSearchPanel.notifyEnded(requestId), 700); };
+  if (!scrollable) { RTSSearchPanel.timer = setTimeout(hidePanel, duration); return; }
   RTSSearchPanel.scrollTimer = setTimeout(() => {
     RTSSearchPanel.scrollInterval = setInterval(() => {
-      if (list.scrollTop + list.clientHeight >= list.scrollHeight - 1) {
-        RTSSearchPanel.clearTimers();
-        RTSSearchPanel.timer = setTimeout(hidePanel, 3000);
-        return;
-      }
+      if (list.scrollTop + list.clientHeight >= list.scrollHeight - 1) { RTSSearchPanel.clearTimers(); RTSSearchPanel.timer = setTimeout(hidePanel, 3000); return; }
       list.scrollTop += 1;
     }, 35);
   }, 3000);
@@ -185,6 +150,7 @@ RTSSearchPanel.show = command => {
 
 RTSSearchPanel.handle = command => {
   if (command?.replayCommand === 'search-panel') RTSSearchPanel.show(command);
+  if (command?.replayCommand === 'avatar-response') RTSSearchPanel.handleAvatar(command);
 };
 
 window.RTSSearchPanel = RTSSearchPanel;
