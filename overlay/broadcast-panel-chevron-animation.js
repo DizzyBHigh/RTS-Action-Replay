@@ -19,7 +19,7 @@ RTSReplayPanelBroadcast.startPanelChevrons = (panel, command) => {
   const primary = colour(command?.replayBroadcastPrimaryColor || '#0384CB');
   const secondary = colour(command?.replayBroadcastSecondaryColor || '#FFD400');
   const panelScale = Math.min(1, panel.clientWidth / Math.max(1, window.innerWidth));
-  const heightSetting = number(command?.replayBroadcastChevronHeight, 1, 89, 42) * panelScale;
+  const heightSetting = number(command?.replayBroadcastChevronHeight, 1, 89, 42) * panelScale * 2;
   const widthSetting = number(command?.replayBroadcastChevronWidth, 1, 300, 42) * panelScale;
   const spacingSetting = number(command?.replayBroadcastChevronSpacing, 0, 200, 0) * panelScale;
   const randomHeight = command?.replayBroadcastRandomHeight === true;
