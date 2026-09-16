@@ -56,14 +56,24 @@ public class CPHInline
         {
             if (string.IsNullOrWhiteSpace(selector)) { CPH.LogWarn("RTS Action Replay TRACE: PlayReplay failed - no queue handoff and rawInput is empty."); return false; }
             selector = selector.Trim();
-            if (int.TryParse(selector, out var index) && index > 0)
+            if (TryParseUserSelection(selector, out var targetPlatform, out var targetUser, out var index))
+            {
+                CPH.SetArgument("catalogSelectionReplayId", ""); CPH.SetArgument("catalogSelectionUser", targetUser); CPH.SetArgument("catalogSelectionPlatform", targetPlatform);
+                if (CPH.ExecuteMethod(CatalogAction, "ResolveSelectionForUser"))
+                {
+                    var replayId = Arg("catalogSelectionReplayId");
+                    replay = list.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase));
+                    CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay user catalog selection {targetPlatform}:{targetUser} #{index} resolved to replayId={replayId ?? "<none>"}.");
+                }
+            }
+            else if (int.TryParse(selector, out var numericIndex) && numericIndex > 0)
             {
                 CPH.SetArgument("catalogSelectionReplayId", "");
                 if (CPH.ExecuteMethod(CatalogAction, "ResolveSelection"))
                 {
                     var replayId = Arg("catalogSelectionReplayId");
                     replay = list.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase));
-                    CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay catalog selection {index} resolved to replayId={replayId ?? "<none>"}.");
+                    CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay catalog selection {numericIndex} resolved to replayId={replayId ?? "<none>"}.");
                 }
             }
             else
@@ -104,6 +114,23 @@ public class CPHInline
         if (!ApplyPlayerSettings(profile)) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - animation profile '{profile}' could not be applied."); return false; }
         if (!ApplyTitleSettings(titleProfile)) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - title profile '{titleProfile}' could not be applied."); return false; }
         CPH.TriggerEvent(EventName, true); SendMessage("play"); CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay completed dispatch for replay {(string)replay["id"]}."); return true;
+    }
+
+    private bool TryParseUserSelection(string selector, out string platform, out string userName, out int index)
+    {
+        platform = ""; userName = ""; index = 0;
+        var parts = (selector ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length != 2 || !int.TryParse(parts[1], out index) || index < 1) return false;
+        var target = parts[0].Trim(); if (string.IsNullOrWhiteSpace(target)) return false;
+        platform = Arg("userType"); userName = target;
+        var separator = target.IndexOf(':');
+        if (separator > 0)
+        {
+            var prefix = target.Substring(0, separator); var name = target.Substring(separator + 1).Trim();
+            if (!prefix.Equals("twitch", StringComparison.OrdinalIgnoreCase) && !prefix.Equals("kick", StringComparison.OrdinalIgnoreCase) && !prefix.Equals("youtube", StringComparison.OrdinalIgnoreCase)) return false;
+            platform = prefix; userName = name;
+        }
+        return !string.IsNullOrWhiteSpace(userName);
     }
 
     private string ResolveReplayUrl(JObject replay)
