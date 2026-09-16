@@ -54,19 +54,11 @@ public class CPHInline
     public bool Apply()
     {
         var panel = ReadConfig();
-        var animation = panel["animation"] as JObject ?? new JObject();
-        var entries = animation["entryPoints"] as JObject ?? new JObject();
         var presets = panel["preset"] as JObject ?? new JObject();
         var globalPreset = GetString("preset", "Broadcast");
         foreach (var key in new[] { "recent", "playlist", "creatorLeaderboard" })
-        {
-            var entry = entries[key] as JObject ?? new JObject();
-            entry["preset"] = GetString("entryPoints." + key + ".preset", (string)entry["preset"] ?? (string)presets[key] ?? globalPreset);
-            entries[key] = entry;
-        }
-        animation["entryPoints"] = entries;
-        panel["animation"] = animation;
-        panel["preset"] = globalPreset;
+            presets[key] = GetString("entryPoints." + key + ".preset", (string)presets[key] ?? globalPreset);
+        panel["preset"] = presets;
         SaveConfig(panel);
         var resolvedPreset = Arg("replayPanelPreset");
         if (string.IsNullOrWhiteSpace(resolvedPreset)) resolvedPreset = globalPreset;
