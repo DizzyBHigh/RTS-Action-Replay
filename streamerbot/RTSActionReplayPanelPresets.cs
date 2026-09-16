@@ -21,9 +21,9 @@ public class CPHInline
     private void Build(RtsUI ui)
     {
         ui.BeginSection("Panel Entry Points", "Information Panels");
-        AddPanelEntryPoint(ui, "Recent / Search", "recent", "Select the animation profile and visual preset used by Recent and Search panels.");
-        AddPanelEntryPoint(ui, "Playlist", "playlist", "Select the animation profile and visual preset used by Playlist panels.");
-        AddPanelEntryPoint(ui, "Creator Leaderboard", "creatorLeaderboard", "Select the animation profile and visual preset used by Creator Leaderboard panels.");
+        AddPresetEntryPoint(ui, "Recent / Search", "recent");
+        AddPresetEntryPoint(ui, "Playlist", "playlist");
+        AddPresetEntryPoint(ui, "Creator Leaderboard", "creatorLeaderboard");
         ui.EndSection();
 
         ui.BeginSection("Panel Design", "Information Panels");
@@ -46,12 +46,9 @@ public class CPHInline
         ui.EndRow(); ui.EndSection();
     }
 
-    private void AddPanelEntryPoint(RtsUI ui, string label, string key, string description)
+    private void AddPresetEntryPoint(RtsUI ui, string label, string key)
     {
-        ui.BeginRow();
-        ui.AddDropdown(label + " Animation Profile", description, "Information Panels", Prefix + "entryPoints." + key + ".animationProfile", new[] { "Default" }, "Default");
-        ui.AddDropdown(label + " Visual Preset", description, "Information Panels", Prefix + "entryPoints." + key + ".preset", new[] { "Broadcast", "Cinematic", "Cut", "Minimal" }, "Broadcast");
-        ui.EndRow();
+        ui.AddDropdown(label + " Visual Preset", "Visual design used by this panel entry point.", "Information Panels", Prefix + "entryPoints." + key + ".preset", new[] { "Broadcast", "Cinematic", "Cut", "Minimal" }, "Broadcast");
     }
 
     public bool Apply()
@@ -64,15 +61,16 @@ public class CPHInline
         foreach (var key in new[] { "recent", "playlist", "creatorLeaderboard" })
         {
             var entry = entries[key] as JObject ?? new JObject();
-            entry["animationProfile"] = GetString("entryPoints." + key + ".animationProfile", (string)entry["animationProfile"] ?? (string)entry["profile"] ?? "default");
-            entry["preset"] = GetString("entryPoints." + key + ".preset", (string)entry["preset"] ?? globalPreset);
+            entry["preset"] = GetString("entryPoints." + key + ".preset", (string)entry["preset"] ?? (string)presets[key] ?? globalPreset);
             entries[key] = entry;
         }
         animation["entryPoints"] = entries;
         panel["animation"] = animation;
         panel["preset"] = globalPreset;
         SaveConfig(panel);
-        CPH.SetArgument("replayPanelPreset", globalPreset);
+        var resolvedPreset = GetString("resolvedPreset", null);
+        if (string.IsNullOrWhiteSpace(resolvedPreset)) resolvedPreset = globalPreset;
+        CPH.SetArgument("replayPanelPreset", resolvedPreset);
         CPH.SetArgument("replayPanelPrimaryColor", GetString("primaryColor", "#0384CBFF"));
         CPH.SetArgument("replayPanelSecondaryColor", GetString("secondaryColor", "#101416FF"));
         CPH.SetArgument("replayPanelTitleFont", GetString("titleFont", "Inter"));
@@ -85,7 +83,7 @@ public class CPHInline
         CPH.SetArgument("replayBroadcastChevronHeight", CPH.GetGlobalVar<int?>(BroadcastPrefix + "chevronHeight", true) ?? 42);
         CPH.SetArgument("replayBroadcastRandomHeight", CPH.GetGlobalVar<bool?>(BroadcastPrefix + "randomHeight", true) ?? false);
         CPH.SetArgument("replayBroadcastChevronWidth", CPH.GetGlobalVar<int?>(BroadcastPrefix + "chevronWidth", true) ?? 42);
-        CPH.SetArgument("replayBroadcastRandomWidth", CPH.GetGlobalVar<bool?>(BroadcastPrefix + "randomWidth", true) ?? false);
+        CPH.SetArgument("replayBroadcastRandomWidth", CPH.GetGlobalVar<bool?>(BroadcastPrefix + "chevronWidth", true) ?? false);
         CPH.SetArgument("replayBroadcastChevronSpacing", CPH.GetGlobalVar<int?>(BroadcastPrefix + "chevronSpacing", true) ?? 0);
         CPH.SetArgument("replayBroadcastRandomSpacing", CPH.GetGlobalVar<bool?>(BroadcastPrefix + "randomSpacing", true) ?? false);
         CPH.SetArgument("replayBroadcastChevronSpeed", CPH.GetGlobalVar<int?>(BroadcastPrefix + "chevronSpeed", true) ?? 95);
