@@ -38,7 +38,7 @@
 }
 #search-panel .rts-panel-header strong.rts-search-type {
   color: #FFD600;
-  font: 900 25px/1.1 var(--panel-title-font, system-ui), sans-serif;
+  font: 900 20px/1.1 var(--panel-title-font, system-ui), sans-serif;
   letter-spacing: .02em;
 }
 #search-panel .rts-search-summary {
@@ -119,7 +119,7 @@
   #search-panel { width: calc(100vw - 30px); max-height: calc(100vh - 60px); }
   #search-panel .rts-panel-header { padding: 11px 16px 13px; }
   #search-panel .rts-panel-kicker { font-size: 16px; }
-  #search-panel .rts-panel-header strong.rts-search-type { font-size: 21px; }
+  #search-panel .rts-panel-header strong.rts-search-type { font-size: 18px; }
   #search-panel .rts-search-summary { font-size: 12px; }
   #search-panel .rts-panel-entry { grid-template-columns: 34px minmax(0, 1fr); gap: 9px; padding: 8px 13px; }
   #search-panel .rts-panel-number { width: 28px; height: 26px; }
