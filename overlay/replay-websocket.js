@@ -5,6 +5,14 @@ RTSReplayWebSocket.setStatus = (text, state = '') => {
   RTSReplayWebSocket.status.className = state;
 };
 
+RTSReplayWebSocket.resumeSearchQueue = () => {
+  RTSReplayWebSocket.socket.send(JSON.stringify({
+    request: 'DoAction',
+    id: 'rts-action-replay-search-resume',
+    action: { name: 'RTS - Action Replay - Core - Search Queue' }
+  }));
+};
+
 RTSReplayWebSocket.connect = () => {
   clearTimeout(RTSReplayWebSocket.reconnectTimer);
   const { host, port } = RTSReplayWebSocket.config;
@@ -17,17 +25,14 @@ RTSReplayWebSocket.connect = () => {
       id: 'rts-action-replay',
       events: { Custom: ['Event'] }
     }));
-    RTSReplayWebSocket.socket.send(JSON.stringify({
-      request: 'DoAction',
-      id: 'rts-action-replay-search-resume',
-      action: { name: 'RTS - Action Replay - Core - Search Queue' }
-    }));
     RTSReplayWebSocket.setStatus('Connected to Streamer.bot WebSocket', 'connected');
   };
 
   RTSReplayWebSocket.socket.onmessage = event => {
     try {
-      RTSReplayWebSocket.handleEvent(JSON.parse(event.data));
+      const message = JSON.parse(event.data);
+      if (message?.id === 'rts-action-replay' && message?.status === 'ok') RTSReplayWebSocket.resumeSearchQueue();
+      RTSReplayWebSocket.handleEvent(message);
     } catch (error) {
       console.warn('Invalid WebSocket message', error);
     }
