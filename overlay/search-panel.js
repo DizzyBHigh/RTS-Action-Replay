@@ -34,7 +34,20 @@ RTSSearchPanel.show = command => {
   panel.dataset.rtsInformationPanel = 'search';
   panel.innerHTML = '<div class="rts-panel-header"><span class="rts-panel-kicker">CATALOG SEARCH</span><strong></strong><span class="rts-search-requester"></span></div><div class="rts-panel-list"></div>';
   panel.querySelector('strong').textContent = String(command.replaySearchHeader || 'CATALOG');
-  panel.querySelector('.rts-search-requester').textContent = `REQUESTED BY: ${String(command.replaySearchRequester || 'Unknown')}`;
+  const requester = panel.querySelector('.rts-search-requester');
+  const requesterName = String(command.replaySearchRequester || 'Unknown');
+  const requesterPlatform = String(command.replaySearchRequesterPlatform || '').trim();
+  requester.textContent = '';
+  const label = document.createElement('span'); label.className = 'rts-search-requester-label'; label.textContent = 'REQUESTED BY: ';
+  requester.appendChild(label);
+  if (requesterPlatform) {
+    const platform = document.createElement('span');
+    platform.className = `rts-search-requester-platform rts-search-requester-platform--${requesterPlatform.toLowerCase()}`;
+    platform.textContent = requesterPlatform;
+    requester.append(platform, document.createTextNode(':'));
+  }
+  const name = document.createElement('span'); name.className = 'rts-search-requester-name'; name.textContent = requesterName;
+  requester.appendChild(name);
   const list = panel.querySelector('.rts-panel-list');
   entries.forEach(entry => {
     const row = document.createElement('div'); row.className = 'rts-panel-entry';
