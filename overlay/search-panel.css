@@ -95,22 +95,12 @@
 #search-panel .rts-search-result-creator {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
   width: fit-content;
   color: var(--platform-color, rgba(255,255,255,.48));
   font: 600 11px/1.15 system-ui, sans-serif;
   letter-spacing: .04em;
 }
 #search-panel .rts-search-result-creator-name { color: var(--platform-color, rgba(255,255,255,.68)); }
-#search-panel .rts-search-result-creator-avatar {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 18px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid color-mix(in srgb, var(--platform-color, #fff) 65%, transparent);
-  background: rgba(255,255,255,.08);
-}
 #search-panel .rts-search-stats {
   align-self: start;
   max-width: 180px;
@@ -139,15 +129,6 @@
 }
 #search-panel .rts-search-history-label { color: rgba(255,255,255,.58); }
 #search-panel .rts-search-history-name { color: var(--platform-color, rgba(255,255,255,.82)); }
-#search-panel .rts-search-history-avatar {
-  width: 22px;
-  height: 22px;
-  flex: 0 0 22px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid color-mix(in srgb, var(--platform-color, #fff) 65%, transparent);
-  background: rgba(255,255,255,.08);
-}
 #search-panel .rts-search-history-count { color: rgba(255,255,255,.82); }
 .rts-search-empty { padding: 30px 20px; text-align: center; color: rgba(255,255,255,.65); font: 600 15px/1.3 system-ui, sans-serif; }
 
