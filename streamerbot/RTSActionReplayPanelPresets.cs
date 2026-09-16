@@ -28,7 +28,7 @@ public class CPHInline
 
         ui.BeginSection("Panel Design", "Information Panels");
         ui.AddClickableButton("Preview Panel", "Preview the selected panel preset and typography.", "Preview Panel", "blue", "Information Panels", Preview);
-        ui.AddDropdown("Panel Preset", "Legacy fallback visual design used when no panel entry-point preset is assigned.", "Information Panels", Prefix + "preset", new[] { "Broadcast", "Cinematic", "Cut", "Minimal" }, "Broadcast");
+        ui.AddDropdown("Panel Preset", "Fallback visual design used when a panel entry point has no assigned preset.", "Information Panels", Prefix + "preset", new[] { "Broadcast", "Cinematic", "Cut", "Minimal" }, "Broadcast");
         ui.BeginRow();
         ui.AddColorPicker("Primary Colour", "Primary accent colour used by the panel design.", "Information Panels", Prefix + "primaryColor", "#0384CBFF");
         ui.AddColorPicker("Secondary Colour", "Secondary accent colour used by the panel design.", "Information Panels", Prefix + "secondaryColor", "#101416FF");
@@ -83,7 +83,7 @@ public class CPHInline
         CPH.SetArgument("replayBroadcastChevronHeight", CPH.GetGlobalVar<int?>(BroadcastPrefix + "chevronHeight", true) ?? 42);
         CPH.SetArgument("replayBroadcastRandomHeight", CPH.GetGlobalVar<bool?>(BroadcastPrefix + "randomHeight", true) ?? false);
         CPH.SetArgument("replayBroadcastChevronWidth", CPH.GetGlobalVar<int?>(BroadcastPrefix + "chevronWidth", true) ?? 42);
-        CPH.SetArgument("replayBroadcastRandomWidth", CPH.GetGlobalVar<bool?>(BroadcastPrefix + "chevronWidth", true) ?? false);
+        CPH.SetArgument("replayBroadcastRandomWidth", CPH.GetGlobalVar<bool?>(BroadcastPrefix + "randomWidth", true) ?? false);
         CPH.SetArgument("replayBroadcastChevronSpacing", CPH.GetGlobalVar<int?>(BroadcastPrefix + "chevronSpacing", true) ?? 0);
         CPH.SetArgument("replayBroadcastRandomSpacing", CPH.GetGlobalVar<bool?>(BroadcastPrefix + "randomSpacing", true) ?? false);
         CPH.SetArgument("replayBroadcastChevronSpeed", CPH.GetGlobalVar<int?>(BroadcastPrefix + "chevronSpeed", true) ?? 95);
