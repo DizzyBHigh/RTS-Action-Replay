@@ -17,6 +17,11 @@ RTSReplayWebSocket.connect = () => {
       id: 'rts-action-replay',
       events: { Custom: ['Event'] }
     }));
+    RTSReplayWebSocket.socket.send(JSON.stringify({
+      request: 'DoAction',
+      id: 'rts-action-replay-search-resume',
+      action: { name: 'RTS - Action Replay - Core - Search Queue' }
+    }));
     RTSReplayWebSocket.setStatus('Connected to Streamer.bot WebSocket', 'connected');
   };
 
