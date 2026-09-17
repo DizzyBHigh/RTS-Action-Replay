@@ -27,10 +27,11 @@
   let pointerY = 0;
 
   const fitScale = () => Math.min(viewport.clientWidth / 1920, viewport.clientHeight / 1080);
+  const minScale = () => fitScale() * 0.5;
 
   const clamp = () => {
     const fit = fitScale();
-    const effective = Math.max(scale, fit);
+    const effective = Math.max(scale, minScale());
     const width = 1920 * effective;
     const height = 1080 * effective;
     if (width <= viewport.clientWidth) x = (viewport.clientWidth - width) / 2;
@@ -42,7 +43,7 @@
   const render = () => {
     clamp();
     stage.style.transform = `translate3d(${x}px,${y}px,0) scale(${scale})`;
-    controls.querySelector('span').textContent = `Drag to pan · Wheel to zoom · ${Math.round(scale * 100)}% · R to reset`;
+    controls.querySelector('span').textContent = `Drag to pan · Wheel to zoom · ${Math.round(scale / fitScale() * 100)}% · R to reset`;
   };
 
   const reset = () => {
@@ -54,7 +55,7 @@
 
   const zoom = (factor, clientX, clientY) => {
     const oldScale = scale;
-    const nextScale = Math.min(3, Math.max(fitScale(), oldScale * factor));
+    const nextScale = Math.min(3, Math.max(minScale(), oldScale * factor));
     if (nextScale === oldScale) return;
     const bounds = viewport.getBoundingClientRect();
     const localX = clientX - bounds.left;
