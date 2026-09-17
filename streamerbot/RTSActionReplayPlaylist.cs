@@ -30,13 +30,13 @@ public class CPHInline
         CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName); CPH.TryGetArg("userType", out string userType); CPH.TryGetArg("broadcast.id", out string broadcastId);
         var creator = replay["creator"] as JObject; var requester = string.IsNullOrWhiteSpace(userName) ? (string)creator?["name"] ?? "" : userName;
         var requesterPlatform = NormalizePlatform(userType);
+        if (!HasPresetSelection()) { CPH.SetArgument("presetComponent", "player"); CPH.SetArgument("entryPoint", "play"); if (!CPH.ExecuteMethod(PresetStoreAction, "ResolveEntryPoint")) return false; }
         CPH.SetArgument("replaySource", (string)replay["sourceType"] ?? "OBS");
         if (!CPH.ExecuteMethod(PresetStoreAction, "ResolveBrandingForSource")) return false;
         var profile = Arg("animationProfile", "default");
         var designProfile = Arg("designPreset", Arg("visualPreset", "broadcast"));
         var titleProfile = Arg("titlePreset", "default");
         var brandingProfile = Arg("brandingPreset", "default");
-        CPH.LogInfo($"RTS Action Replay TRACE: EnqueueCurrentReplay resolved animationProfile={profile}; designPreset={designProfile}; titlePreset={titleProfile}; brandingPreset={brandingProfile}; source={(string)replay["sourceType"] ?? "OBS"}.");
         var queue = LoadQueue();
         queue.Add(new JObject { ["entryId"] = Guid.NewGuid().ToString("N"), ["replayId"] = replayId, ["title"] = (string)replay["title"] ?? "Replay", ["requesterId"] = userId ?? "", ["requesterName"] = requester, ["requesterPlatform"] = requesterPlatform ?? "", ["requesterBroadcastId"] = broadcastId ?? "", ["animationProfileId"] = profile, ["designPresetId"] = designProfile, ["titlePresetId"] = titleProfile, ["brandingPresetId"] = brandingProfile, ["queued"] = DateTime.Now.ToString("o") });
         SaveQueue(queue); CPH.UnsetGlobalVar(ReplayIdHandoffKey, false);
@@ -112,6 +112,8 @@ public class CPHInline
         return started;
     }
 
+    private bool HasPresetSelection() { return HasArg("animationProfile") || HasArg("designPreset") || HasArg("titlePreset") || HasArg("brandingPreset") || HasArg("replayAnimationProfileId") || HasArg("replayTitleProfileId"); }
+    private bool HasArg(string name) { return CPH.TryGetArg(name, out string value) && !string.IsNullOrWhiteSpace(value); }
     private void SendPlaylistMessage(string text)
     {
         var key = "rts.actionreplay.message.playlist"; var playlistText = text; CPH.SetArgument("replayPlaylist", playlistText); var configured = CPH.GetGlobalVar<string>(key + ".text", true); var chatText = string.IsNullOrWhiteSpace(configured) ? playlistText : CPH.Parse(configured, new Dictionary<string, object> { ["replayPlaylist"] = playlistText });
