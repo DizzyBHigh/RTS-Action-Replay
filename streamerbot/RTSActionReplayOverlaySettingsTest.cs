@@ -97,7 +97,8 @@ public class CPHInline
         var panel = ReadConfig(PanelKey);
         c["replayPanelWidth"] = (int?)panel["width"] ?? 500;
         c["replayPanelHeight"] = (int?)panel["height"] ?? 700;
-        AddString(c, "replayPanelPreset", "rts.actionreplay.panel.preset", "Broadcast");
+        var preset = panel["preset"] as JObject;
+        AddString(c, "replayPanelPreset", "rts.actionreplay.panel.preset", (string)preset?["fallback"] ?? "Broadcast");
         AddString(c, "replayPanelPrimaryColor", "rts.actionreplay.panel.primaryColor", "#0384CBFF");
         AddString(c, "replayPanelSecondaryColor", "rts.actionreplay.panel.secondaryColor", "#101416FF");
         AddString(c, "replayPanelTitleFont", "rts.actionreplay.panel.titleFont", "Inter");
@@ -115,6 +116,9 @@ public class CPHInline
         AddString(c, "replayMessageAccent", "rts.actionreplay.clapper.accent", "#0384CB");
         AddString(c, "replayMessageTextColor", "rts.actionreplay.clapper.textColor", "#0384CB");
         AddString(c, "replayMessageFont", "rts.actionreplay.clapper.font", "Inter");
+        AddString(c, "replayClapperPosition", "rts.actionreplay.clapper.position", "Centered");
+        AddInt(c, "replayMessageDuration", "rts.actionreplay.clapper.duration", 5000);
+        c["replayLogoUrl"] = CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "";
         c["replayClapperWidth"] = 680;
         c["replayClapperHeight"] = 372;
     }
