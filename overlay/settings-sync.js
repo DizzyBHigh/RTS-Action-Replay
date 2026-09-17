@@ -26,7 +26,7 @@ RTSReplaySettingsSync.apply = command => {
   if (!settings) return false;
   RTSReplaySettingsSync.settings = settings;
   const synced = settings.command && typeof settings.command === 'object' ? settings.command : {};
-  RTSReplaySettingsSync.command = { ...(RTSReplaySettingsSync.command || {}), ...synced };
+  RTSReplaySettingsSync.command = { ...synced };
   RTSReplaySettingsSync.playerConfig = settings.player || null;
   RTSReplaySettingsSync.panelConfig = settings.panel || null;
   RTSReplaySettingsSync.clapperConfig = settings.clapper || null;
@@ -47,6 +47,10 @@ RTSReplaySettingsSync.apply = command => {
 
   const selectedPlayer = profileCommand(player, player?.animation?.selectedProfile);
   if (selectedPlayer) RTSReplaySettingsSync.command.replayAnimationProfile = json(selectedPlayer);
+
+  if (Number.isFinite(Number(RTSReplaySettingsSync.command.replayMessageDuration))) {
+    RTSReplay.config.messageDuration = Number(RTSReplaySettingsSync.command.replayMessageDuration);
+  }
 
   if (RTSReplaySettingsSync.player?.classList.contains('show')) {
     window.RTSReplay.command = { ...(window.RTSReplay.command || {}), ...RTSReplaySettingsSync.command };
