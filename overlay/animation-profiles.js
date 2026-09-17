@@ -33,6 +33,7 @@ const playerAdapter = {
   }),
   getPosition: name => RTSReplayAnimation.getPosition(name),
   positionsEqual: (a, b) => RTSReplayAnimation.positionsEqual(a, b),
+  interpolatePosition: (from, to, progress) => RTSReplayAnimation.interpolatePosition(from, to, progress),
   easing: name => RTSReplayAnimation.easing(name),
   applyPosition: (position, immediate) => {
     RTSReplayAnimation.applyPosition(position, immediate);
@@ -88,5 +89,5 @@ RTSReplayAnimation.runEndSequence = (sequence, onComplete) => {
 };
 
 RTSReplayAnimation.sequenceToken = 0;
-RTSReplayAnimation.sequenceTimer = null;
-RTSReplayAnimation.sequenceFrame = null;
+RTSReplayAnimation.sequenceTimer = 0;
+RTSReplayAnimation.sequenceFrame = 0;
