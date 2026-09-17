@@ -43,7 +43,8 @@ public class CPHInline
         var player = ReadConfig(PlayerKey, CreatePlayerDefaults());
         NormalizePositionConfig(player, false);
         player["animationProfiles"] = NormalizeProfiles(player["animationProfiles"] as JArray);
-        NormalizeSequences(player);
+        var positions = GetUnifiedPlayerPositions();
+        NormalizeSequences(player, positions);
         var animation = player["animation"] as JObject ?? new JObject();
         var profiles = (JArray)player["animationProfiles"];
         animation["selectedProfile"] = ResolveProfileId(profiles, (string)animation["selectedProfile"]) ?? "default";
@@ -57,7 +58,7 @@ public class CPHInline
         var panel = ReadConfig(PanelKey, CreatePanelDefaults());
         NormalizePositionConfig(panel, true);
         panel["animationProfiles"] = NormalizeProfiles(panel["animationProfiles"] as JArray);
-        NormalizeSequences(panel);
+        NormalizeSequences(panel, panel["positions"] as JObject ?? new JObject());
         var animation = panel["animation"] as JObject ?? new JObject();
         var profiles = (JArray)panel["animationProfiles"];
         animation["entryPoints"] = NormalizeEntryPoints(animation["entryPoints"] as JObject, profiles, new[] { "recent", "playlist", "creatorLeaderboard" });
@@ -173,7 +174,8 @@ public class CPHInline
         var player = ReadConfig(PlayerKey, CreatePlayerDefaults());
         NormalizePositionConfig(player, false);
         var profiles = NormalizeProfiles(player["animationProfiles"] as JArray);
-        NormalizeSequences(player);
+        var positions = GetUnifiedPlayerPositions();
+        NormalizeSequences(player, positions);
         if (string.IsNullOrWhiteSpace(profile)) profile = (string)((JObject)player["animation"])?["selectedProfile"];
         profile = ResolveProfileId(profiles, profile) ?? "default";
         CPH.UnsetGlobalVar(PlaybackProfileHandoffKey, false);
@@ -183,8 +185,7 @@ public class CPHInline
         if (start.Count == 0) start = DefaultPlayerStart();
         if (end.Count == 0) end = DefaultPlayerEnd();
         var profileJson = new JObject { ["id"] = profile, ["name"] = (string)item["name"] ?? "Default", ["start"] = start, ["end"] = end }.ToString(Newtonsoft.Json.Formatting.None);
-        CPH.ExecuteMethod(PositionStoreAction, "GetPlayerPositions");
-        var playerPositions = CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false) ?? "{}";
+        var playerPositions = positions.ToString(Newtonsoft.Json.Formatting.None);
         CPH.SetArgument("profileId", profile);
         CPH.SetArgument("replayAnimationProfile", profileJson);
         CPH.SetArgument("replayPlayerPositions", playerPositions);
@@ -208,7 +209,7 @@ public class CPHInline
         var panel = ReadConfig(PanelKey, CreatePanelDefaults());
         NormalizePositionConfig(panel, true);
         var profiles = NormalizeProfiles(panel["animationProfiles"] as JArray);
-        NormalizeSequences(panel);
+        NormalizeSequences(panel, panel["positions"] as JObject ?? new JObject());
         var animation = panel["animation"] as JObject ?? new JObject();
         var entries = animation["entryPoints"] as JObject ?? new JObject();
         var profile = ResolveProfileId(profiles, (string)entries[panelType.ToLowerInvariant()]) ?? "default";
@@ -230,6 +231,14 @@ public class CPHInline
         var entries = preset?["entryPoints"] as JObject;
         var value = (string)entries?[panelType.ToLowerInvariant()];
         return string.IsNullOrWhiteSpace(value) ? (string)preset?["fallback"] ?? "Broadcast" : value;
+    }
+
+    private JObject GetUnifiedPlayerPositions()
+    {
+        CPH.ExecuteMethod(PositionStoreAction, "GetPlayerPositions");
+        var raw = CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false);
+        try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); }
+        catch { return new JObject(); }
     }
 
     private void NormalizeClapperSequences(JArray profiles)
@@ -281,9 +290,8 @@ public class CPHInline
         config["positions"] = positions;
     }
 
-    private void NormalizeSequences(JObject config)
+    private void NormalizeSequences(JObject config, JObject positions)
     {
-        var positions = config["positions"] as JObject ?? new JObject();
         var profiles = config["animationProfiles"] as JArray ?? new JArray();
         foreach (var token in profiles)
         {
