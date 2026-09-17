@@ -59,8 +59,8 @@ public class CPHInline
 
     private void AddVisualPreset(RtsUI ui, JObject p)
     {
-        var id = (string)p["id"]; if (string.IsNullOrWhiteSpace(id)) return; ui.BeginSection((string)p["name"] ?? id, "Visual Presets"); ui.AddTextbox("Preset Name", "Display name for this Visual Preset.", "Visual Presets", Key("visual", id, "name"), (string)p["name"] ?? "Visual", false);
-        if (id == "broadcast") AddBroadcastFields(ui, p); else if (id == "cut") AddCutFields(ui, p);
+        var id = (string)p["id"]; if (string.IsNullOrWhiteSpace(id)) return; ui.BeginSection((string)p["name"] ?? id, "Visual Presets");
+        if (id == "broadcast") AddBroadcastFields(ui, p); else AddCutFields(ui, p);
         ui.EndSection();
     }
 
@@ -112,7 +112,8 @@ public class CPHInline
     private void AddPreset(string type)
     {
         var a = Presets(type); var id = type + "-custom-" + DateTime.Now.Ticks.ToString(); JObject p;
-        p = new JObject { ["id"] = id, ["name"] = "New Branding Preset", ["primaryColor"] = "#0384CBFF", ["secondaryColor"] = "#101416FF", ["titleColor"] = "#FFFFFFFF", ["titlePrefixSuffixColor"] = "#0384CBFF", ["textColor"] = "#FFFFFFFF", ["shadowColor"] = "#000000FF", ["font"] = "Inter", ["fontSize"] = 34, ["logo"] = "", ["fallbackText"] = "RTS", ["brandLabel"] = "ACTION REPLAY" };
+        if (type == "visual") p = new JObject { ["id"] = id, ["name"] = "New Visual Preset", ["chevronHeight"] = 42, ["randomHeight"] = false, ["chevronWidth"] = 42, ["randomWidth"] = false, ["chevronSpacing"] = 0, ["randomSpacing"] = false, ["chevronSpeed"] = 95 };
+        else p = new JObject { ["id"] = id, ["name"] = "New Branding Preset", ["primaryColor"] = "#0384CBFF", ["secondaryColor"] = "#101416FF", ["titleColor"] = "#FFFFFFFF", ["titlePrefixSuffixColor"] = "#0384CBFF", ["textColor"] = "#FFFFFFFF", ["shadowColor"] = "#000000FF", ["font"] = "Inter", ["fontSize"] = 34, ["logo"] = "", ["fallbackText"] = "RTS", ["brandLabel"] = "ACTION REPLAY" };
         a.Add(p); Save(PresetsKey, Read(PresetsKey));
     }
     private void RemovePreset(string type, string id) { var a = Presets(type); for (var i = a.Count - 1; i >= 0; i--) if (string.Equals((string)a[i]["id"], id, StringComparison.OrdinalIgnoreCase)) a.RemoveAt(i); Save(PresetsKey, Read(PresetsKey)); }
