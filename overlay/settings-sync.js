@@ -7,6 +7,18 @@ RTSReplaySettingsSync.parse = value => {
   } catch (_) { return null; }
 };
 
+const profileCommand = (config, selectedId) => {
+  const profiles = Array.isArray(config?.animationProfiles) ? config.animationProfiles : [];
+  const selected = profiles.find(item => item?.id === selectedId) || profiles[0];
+  if (!selected) return null;
+  return {
+    id: selected.id || 'default',
+    name: selected.name || 'Default',
+    start: selected.startSequence || selected.start || [],
+    end: selected.endSequence || selected.end || []
+  };
+};
+
 RTSReplaySettingsSync.apply = command => {
   const settings = RTSReplaySettingsSync.parse(command?.replaySettings);
   if (!settings) return false;
@@ -15,9 +27,24 @@ RTSReplaySettingsSync.apply = command => {
   RTSReplaySettingsSync.command = { ...(RTSReplaySettingsSync.command || {}), ...synced };
   RTSReplaySettingsSync.playerConfig = settings.player || null;
   RTSReplaySettingsSync.panelConfig = settings.panel || null;
-  RTSReplaySettingsSync.command.replayPlayerPositions = settings.player?.positions ? JSON.stringify(settings.player.positions) : RTSReplaySettingsSync.command.replayPlayerPositions;
-  RTSReplaySettingsSync.command.replayPanelPositions = settings.panel?.positions ? JSON.stringify(settings.panel.positions) : RTSReplaySettingsSync.command.replayPanelPositions;
-  RTSReplaySettingsSync.command.replayPanelAnimation = settings.panel?.animation ? JSON.stringify(settings.panel.animation) : RTSReplaySettingsSync.command.replayPanelAnimation;
+  RTSReplaySettingsSync.clapperConfig = settings.clapper || null;
+
+  const player = settings.player;
+  const panel = settings.panel;
+  const clapper = settings.clapper;
+  if (Array.isArray(player?.animationProfiles)) RTSReplaySettingsSync.command.replayAnimationProfiles = player.animationProfiles;
+  if (player?.positions) RTSReplaySettingsSync.command.replayPlayerPositions = player.positions;
+  if (Array.isArray(panel?.animationProfiles)) RTSReplaySettingsSync.command.replayPanelAnimationProfiles = panel.animationProfiles;
+  if (panel?.positions) RTSReplaySettingsSync.command.replayPanelPositions = panel.positions;
+  if (panel?.animation) RTSReplaySettingsSync.command.replayPanelAnimation = panel.animation;
+  if (Array.isArray(clapper?.animationProfiles)) RTSReplaySettingsSync.command.replayClapperAnimationProfiles = clapper.animationProfiles;
+  if (clapper?.positions) RTSReplaySettingsSync.command.replayClapperPositions = clapper.positions;
+
+  const selectedClapper = profileCommand(clapper, clapper?.animation?.selectedProfile);
+  if (selectedClapper) RTSReplaySettingsSync.command.replayClapperAnimation = selectedClapper;
+
+  const selectedPlayer = profileCommand(player, player?.animation?.selectedProfile);
+  if (selectedPlayer) RTSReplaySettingsSync.command.replayAnimationProfile = selectedPlayer;
 
   if (RTSReplaySettingsSync.player?.classList.contains('show')) {
     window.RTSReplay.command = { ...(window.RTSReplay.command || {}), ...RTSReplaySettingsSync.command };
@@ -25,18 +52,20 @@ RTSReplaySettingsSync.apply = command => {
     window.RTSReplay.configure?.(window.RTSReplay.command);
   }
 
-  const panel = RTSReplaySettingsSync.recentList;
-  if (panel?.classList.contains('show') && window.RTSReplay?.showRecentList) {
-    const panelCommand = { ...(panel._rtsPanelAnimationCommand || {}), ...RTSReplaySettingsSync.command };
-    panelCommand.replayPanelWidth = settings.panel?.width ?? panelCommand.replayPanelWidth;
-    panelCommand.replayPanelHeight = settings.panel?.height ?? panelCommand.replayPanelHeight;
-    panel._rtsPanelAnimationCommand = panelCommand;
+  const panelElement = RTSReplaySettingsSync.recentList;
+  if (panelElement?.classList.contains('show') && window.RTSReplay?.showRecentList) {
+    const panelCommand = { ...(panelElement._rtsPanelAnimationCommand || {}), ...RTSReplaySettingsSync.command };
+    panelCommand.replayPanelWidth = panel?.width ?? panelCommand.replayPanelWidth;
+    panelCommand.replayPanelHeight = panel?.height ?? panelCommand.replayPanelHeight;
+    panelElement._rtsPanelAnimationCommand = panelCommand;
     window.RTSReplay.showRecentList(panelCommand);
   }
 
+  window.RTSDevToolbar?.refresh?.();
   window.RTSDevToolbar?.log?.('Overlay settings synced', {
-    playerProfiles: settings.player?.animationProfiles?.length || 0,
-    panelProfiles: settings.panel?.animationProfiles?.length || 0
+    playerProfiles: player?.animationProfiles?.length || 0,
+    panelProfiles: panel?.animationProfiles?.length || 0,
+    clapperProfiles: clapper?.animationProfiles?.length || 0
   });
   return true;
 };
