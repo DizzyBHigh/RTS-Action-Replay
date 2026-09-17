@@ -202,13 +202,16 @@ public class CPHInline
     private string ResolveKickUrl(JObject replay)
     {
         var mode = GetKickPlaybackMode();
+        var acquisition = (string)replay["acquisitionMethod"] ?? "<missing>";
+        CPH.LogInfo($"RTS Action Replay TRACE: Kick media resolution starting; replayId={(string)replay["id"]}; acquisition={acquisition}; sourceId={(string)replay["sourceId"] ?? "<missing>"}; sourceUrl={(string)replay["sourceUrl"] ?? "<missing>"}; mode={mode}.");
         if (ModeNeedsLocalCopy(mode))
         {
             var localPath = (string)replay["filePath"]; if (string.IsNullOrWhiteSpace(localPath)) localPath = (string)replay["file"];
             var folder = CPH.GetGlobalVar<string>(KickFolderKey, true);
-            if (!string.IsNullOrWhiteSpace(localPath)) { var fullPath = Path.IsPathRooted(localPath) ? localPath : Path.Combine(folder ?? "", localPath); if (File.Exists(fullPath)) return BuildKickHttpUrl(Path.GetFileName(fullPath)); }
+            if (!string.IsNullOrWhiteSpace(localPath)) { var fullPath = Path.IsPathRooted(localPath) ? localPath : Path.Combine(folder ?? "", localPath); if (File.Exists(fullPath)) { var localUrl = BuildKickHttpUrl(Path.GetFileName(fullPath)); CPH.LogInfo($"RTS Action Replay TRACE: Kick local media found; path={fullPath}; url={localUrl}."); return localUrl; } }
         }
         var mediaUrl = ResolveKickMediaUrl(replay);
+        CPH.LogInfo($"RTS Action Replay TRACE: Kick media resolver returned {(string.IsNullOrWhiteSpace(mediaUrl) ? "<null>" : mediaUrl)}; hls={IsHlsUrl(mediaUrl)}.");
         if (string.IsNullOrWhiteSpace(mediaUrl)) return null;
         if (!ModeNeedsLocalCopy(mode)) return mediaUrl;
         var downloaded = DownloadKickClip(replay, mediaUrl);
