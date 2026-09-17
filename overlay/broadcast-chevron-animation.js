@@ -117,16 +117,18 @@ RTSReplayBroadcast.observeBroadcastChevrons = () => {
   let chevronsRunning = false;
   const observer = new MutationObserver(() => {
     const shouldRun = broadcastTitle.classList.contains('title-broadcast') && broadcastTitle.classList.contains('visible');
-    replayDevLog('Broadcast chevron observer', { shouldRun, titleClass: broadcastTitle.className, running: chevronsRunning });
-    if (shouldRun && !chevronsRunning) {
+    const trackExists = !!broadcastTitle.querySelector('.broadcast-chevron-track');
+    if (shouldRun && (!chevronsRunning || !trackExists)) {
+      replayDevLog('Broadcast chevron observer', { shouldRun, trackExists, titleClass: broadcastTitle.className, running: chevronsRunning });
       chevronsRunning = true;
       RTSReplayBroadcast.startBroadcastChevrons();
     } else if (!shouldRun && chevronsRunning) {
+      replayDevLog('Broadcast chevron observer', { shouldRun, trackExists, titleClass: broadcastTitle.className, running: chevronsRunning });
       chevronsRunning = false;
       RTSReplayBroadcast.stopBroadcastChevrons();
     }
   });
-  observer.observe(broadcastTitle, { attributes: true, attributeFilter: ['class'] });
+  observer.observe(broadcastTitle, { attributes: true, attributeFilter: ['class'], childList: true });
 };
 
 RTSReplayBroadcast.observeBroadcastChevrons();
