@@ -63,7 +63,7 @@ public class CPHInline
             ? (string)(config["animation"] as JObject)?["selectedProfile"] ?? "default" : explicitId;
     }
 
-    private static void MigratePlayer(JObject player)
+    private void MigratePlayer(JObject player)
     {
         var animation = player["animation"] as JObject ?? new JObject();
         var animationEntries = animation["entryPoints"] as JObject ?? new JObject();
@@ -79,7 +79,7 @@ public class CPHInline
         }
     }
 
-    private static void MigratePanel(JObject panel)
+    private void MigratePanel(JObject panel)
     {
         var preset = panel["preset"] as JObject ?? new JObject();
         var fallback = (string)preset["fallback"] ?? "Broadcast";
@@ -95,7 +95,7 @@ public class CPHInline
         }
     }
 
-    private static void MigrateClapper(JObject clapper)
+    private void MigrateClapper(JObject clapper)
     {
         var entry = clapper["entryPoint"] as JObject ?? new JObject();
         entry["animationProfile"] = (string)entry["animationProfile"] ?? (string)(clapper["animation"] as JObject)?["selectedProfile"] ?? "default";
