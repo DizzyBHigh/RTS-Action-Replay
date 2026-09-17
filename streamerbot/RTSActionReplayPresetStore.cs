@@ -33,24 +33,16 @@ public class CPHInline
         return true;
     }
 
-    // Shared-method boundary: callers provide presetComponent and entryPoint arguments.
-    // The resolved references are returned as action arguments for subsequent sub-actions.
     public bool ResolveEntryPoint()
     {
         if (!CPH.TryGetArg("presetComponent", out string component)) return false;
         CPH.TryGetArg("entryPoint", out string entryPoint);
         component = component == null ? "player" : component.Trim().ToLowerInvariant();
-
         JObject resolved;
-        if (component == "panel")
-            resolved = Resolve(Read(PanelKey, new JObject()), entryPoint, new[] { "recent", "playlist", "creatorLeaderboard" });
-        else if (component == "clapper")
-            resolved = ResolveClapperEntry();
-        else if (component == "player")
-            resolved = Resolve(Read(PlayerKey, new JObject()), entryPoint, new[] { "obs", "twitch", "youtube", "kick", "recent", "catalog", "playlist" });
-        else
-            return false;
-
+        if (component == "panel") resolved = Resolve(Read(PanelKey, new JObject()), entryPoint, new[] { "recent", "playlist", "creatorLeaderboard" });
+        else if (component == "clapper") resolved = ResolveClapperEntry();
+        else if (component == "player") resolved = Resolve(Read(PlayerKey, new JObject()), entryPoint, new[] { "obs", "twitch", "youtube", "kick", "recent", "catalog", "playlist" });
+        else return false;
         CPH.SetArgument("animationProfile", (string)resolved["animationProfile"] ?? "default");
         CPH.SetArgument("visualPreset", (string)resolved["visualPreset"] ?? "broadcast");
         CPH.SetArgument("brandingPreset", (string)resolved["brandingPreset"] ?? "default");
@@ -79,7 +71,7 @@ public class CPHInline
         return new JObject
         {
             ["animationProfile"] = ResolveAnimationProfile(config, entry),
-            ["visualPreset"] = ResolveId(Visuals(), (string)entry["visualPreset"]),
+            ["visualPreset"] = ResolveId(Visuals(), (string)entry["visualPreset"]) ?? "broadcast",
             ["brandingPreset"] = ResolveId(Branding(), (string)entry["brandingPreset"]) ?? "default"
         };
     }
@@ -87,8 +79,7 @@ public class CPHInline
     private static string ResolveAnimationProfile(JObject config, JObject entry)
     {
         var explicitId = (string)entry["animationProfile"];
-        return string.IsNullOrWhiteSpace(explicitId)
-            ? (string)(config["animation"] as JObject)?["selectedProfile"] ?? "default" : explicitId;
+        return string.IsNullOrWhiteSpace(explicitId) ? (string)(config["animation"] as JObject)?["selectedProfile"] ?? "default" : explicitId;
     }
 
     private void MigratePlayer(JObject player)
@@ -127,14 +118,14 @@ public class CPHInline
     {
         var entry = clapper["entryPoint"] as JObject ?? new JObject();
         entry["animationProfile"] = (string)entry["animationProfile"] ?? (string)(clapper["animation"] as JObject)?["selectedProfile"] ?? "default";
+        entry["visualPreset"] = (string)entry["visualPreset"] ?? "broadcast";
         entry["brandingPreset"] = (string)entry["brandingPreset"] ?? "default";
         clapper["entryPoint"] = entry;
     }
 
     private static void EnsureEntry(JObject config, string name, JObject entry)
     {
-        var entries = config["entryPoints"] as JObject ?? new JObject();
-        entries[name] = entry; config["entryPoints"] = entries;
+        var entries = config["entryPoints"] as JObject ?? new JObject(); entries[name] = entry; config["entryPoints"] = entries;
     }
 
     public JArray Branding() => Read(PresetsKey, CreateDefaults())["branding"] as JArray ?? new JArray();
@@ -163,12 +154,14 @@ public class CPHInline
         ["branding"] = new JArray(new JObject
         {
             ["id"] = "default", ["name"] = "Default", ["primaryColor"] = "#0384CBFF", ["secondaryColor"] = "#101416FF",
-            ["titleColor"] = "#FFFFFFFF", ["textColor"] = "#FFFFFFFF", ["shadowColor"] = "#000000FF", ["font"] = "Inter",
-            ["logo"] = "", ["fallbackText"] = "RTS", ["brandLabel"] = "ACTION REPLAY"
+            ["titleColor"] = "#FFFFFFFF", ["titlePrefixSuffixColor"] = "#0384CBFF", ["textColor"] = "#FFFFFFFF", ["shadowColor"] = "#000000FF",
+            ["font"] = "Inter", ["fontSize"] = 34, ["logo"] = "", ["fallbackText"] = "RTS", ["brandLabel"] = "ACTION REPLAY"
         }),
         ["visual"] = new JArray(
-            new JObject { ["id"] = "broadcast", ["name"] = "Broadcast" }, new JObject { ["id"] = "cinematic", ["name"] = "Cinematic" },
-            new JObject { ["id"] = "cut", ["name"] = "Cut" }, new JObject { ["id"] = "minimal", ["name"] = "Minimal" })
+            new JObject { ["id"] = "broadcast", ["name"] = "Broadcast", ["chevronHeight"] = 42, ["randomHeight"] = false, ["chevronWidth"] = 42, ["randomWidth"] = false, ["chevronSpacing"] = 0, ["randomSpacing"] = false, ["chevronSpeed"] = 95 },
+            new JObject { ["id"] = "cinematic", ["name"] = "Cinematic", ["fixed"] = true },
+            new JObject { ["id"] = "cut", ["name"] = "Cut", ["blockWidth"] = 170, ["randomWidth"] = true, ["barHeight"] = 5 },
+            new JObject { ["id"] = "minimal", ["name"] = "Minimal", ["fixed"] = true })
     };
 
     private JObject Read(string key, JObject fallback)
