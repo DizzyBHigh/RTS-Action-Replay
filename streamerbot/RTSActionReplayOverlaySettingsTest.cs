@@ -115,7 +115,6 @@ public class CPHInline
         AddString(c, "replayMessageAccent", "rts.actionreplay.clapper.accent", "#0384CB");
         AddString(c, "replayMessageTextColor", "rts.actionreplay.clapper.textColor", "#0384CB");
         AddString(c, "replayMessageFont", "rts.actionreplay.clapper.font", "Inter");
-        AddString(c, "replayMessagePosition", "rts.actionreplay.clapper.position", "Centered");
         c["replayClapperWidth"] = 680;
         c["replayClapperHeight"] = 372;
     }
