@@ -3,11 +3,17 @@
   if (params.get('dev') !== 'true') return;
 
   const screen = document.getElementById('rts-dev-screen');
+  const overlay = document.getElementById('rts-overlay');
   const bar = document.getElementById('rts-dev-toolbar');
-  if (!screen || !bar) return;
+  if (!screen || !overlay || !bar) return;
+
+  const workspace = document.createElement('div');
+  workspace.id = 'rts-dev-workspace';
+  screen.parentNode.insertBefore(workspace, screen);
+  workspace.append(screen, overlay);
 
   let zoom = 1;
-  let panX = Math.max(0, Math.round((window.innerWidth - 286) / 2 - window.innerWidth / 2));
+  let panX = Math.round(286 / 2);
   let panY = 0;
   let dragging = false;
   let startX = 0;
@@ -26,16 +32,16 @@
   }
 
   const apply = () => {
-    screen.style.setProperty('--dev-zoom', zoom);
-    screen.style.setProperty('--dev-pan-x', `${panX}px`);
-    screen.style.setProperty('--dev-pan-y', `${panY}px`);
+    workspace.style.setProperty('--dev-pan-x', `${panX}px`);
+    workspace.style.setProperty('--dev-pan-y', `${panY}px`);
+    workspace.style.setProperty('--dev-zoom', zoom);
     const label = zoomRow.querySelector('[data-viewport-zoom]');
     if (label) label.textContent = `${Math.round(zoom * 100)}%`;
   };
 
   const reset = () => {
     zoom = 1;
-    panX = Math.max(0, Math.round((window.innerWidth - 286) / 2 - window.innerWidth / 2));
+    panX = Math.round(286 / 2);
     panY = 0;
     apply();
   };
@@ -78,11 +84,6 @@
     event.preventDefault();
     setZoom(zoom + (event.deltaY < 0 ? 0.1 : -0.1));
   }, { passive: false });
-
-  window.addEventListener('resize', () => {
-    if (!dragging && Math.abs(panY) < 1) panX = Math.max(0, Math.round((window.innerWidth - 286) / 2 - window.innerWidth / 2));
-    apply();
-  });
 
   apply();
   window.RTSDevViewport = { reset, setZoom };
