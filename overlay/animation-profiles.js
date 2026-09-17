@@ -1,12 +1,27 @@
 const RTSReplayAnimation = window.RTSReplay;
 
+const animationDevLog = (message, details) => window.RTSDevToolbar?.log?.(message, details);
+
 RTSReplayAnimation.readProfile = command => {
   const raw = command?.replayAnimationProfile;
-  if (!raw) return null;
+  if (!raw) {
+    animationDevLog('Animation profile missing', { replayId: command?.replayId, queueEntryId: command?.replayQueueEntryId });
+    return null;
+  }
   try {
     const profile = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    animationDevLog('Animation profile read', {
+      replayId: command?.replayId,
+      queueEntryId: command?.replayQueueEntryId,
+      profileId: profile?.id,
+      startSteps: Array.isArray(profile?.start) ? profile.start.length : 0,
+      endSteps: Array.isArray(profile?.end) ? profile.end.length : 0
+    });
     return profile && typeof profile === 'object' ? profile : null;
-  } catch (_) { return null; }
+  } catch (error) {
+    animationDevLog('Animation profile parse failed', { replayId: command?.replayId, error: String(error) });
+    return null;
+  }
 };
 
 const playerAdapter = {
@@ -19,7 +34,6 @@ const playerAdapter = {
   getPosition: name => RTSReplayAnimation.getPosition(name),
   positionsEqual: (a, b) => RTSReplayAnimation.positionsEqual(a, b),
   easing: name => RTSReplayAnimation.easing(name),
-  interpolatePosition: (from, to, progress) => RTSReplayAnimation.interpolatePosition(from, to, progress),
   applyPosition: (position, immediate) => {
     RTSReplayAnimation.applyPosition(position, immediate);
     RTSReplayAnimation.activePosition = position;
@@ -35,16 +49,42 @@ function normaliseDuration(value) {
 let playerRunner = null;
 const getRunner = () => {
   if (!playerRunner && window.RTSAnimationEngine) playerRunner = window.RTSAnimationEngine.createRunner(playerAdapter);
+  if (!playerRunner) animationDevLog('Animation engine unavailable');
   return playerRunner;
 };
 
-RTSReplayAnimation.cancelSequence = () => getRunner()?.cancel();
-RTSReplayAnimation.runSequence = (sequence, onComplete) => getRunner()?.run(sequence, onComplete);
+RTSReplayAnimation.cancelSequence = () => {
+  animationDevLog('Animation sequence cancelled');
+  getRunner()?.cancel();
+};
+
+RTSReplayAnimation.runSequence = (sequence, onComplete) => {
+  const runner = getRunner();
+  const steps = Array.isArray(sequence) ? sequence : [];
+  animationDevLog('Animation start sequence requested', {
+    replayId: RTSReplayAnimation.currentCommand?.replayId,
+    steps: steps.map((step, index) => ({ index, position: step?.position || step?.name || 'Full Screen', duration: step?.duration ?? 0, delay: step?.delay ?? 0, easing: step?.easing || 'ease-in-out' }))
+  });
+  if (!runner) return;
+  runner.run(steps, () => {
+    animationDevLog('Animation start sequence completed', { replayId: RTSReplayAnimation.currentCommand?.replayId, steps: steps.length });
+    onComplete?.();
+  });
+};
+
 RTSReplayAnimation.runEndSequence = (sequence, onComplete) => {
   const runner = getRunner();
+  const steps = Array.isArray(sequence) ? sequence : [];
+  animationDevLog('Animation end sequence requested', {
+    replayId: RTSReplayAnimation.currentCommand?.replayId,
+    steps: steps.map((step, index) => ({ index, position: step?.position || step?.name || 'Full Screen', duration: step?.duration ?? 0, delay: step?.delay ?? 0, easing: step?.easing || 'ease-in-out' }))
+  });
   if (!runner) { onComplete?.(); return; }
   runner.setActive(RTSReplayAnimation.activePosition);
-  runner.runEnd(sequence, onComplete);
+  runner.runEnd(steps, () => {
+    animationDevLog('Animation end sequence completed', { replayId: RTSReplayAnimation.currentCommand?.replayId, steps: steps.length });
+    onComplete?.();
+  });
 };
 
 RTSReplayAnimation.sequenceToken = 0;
