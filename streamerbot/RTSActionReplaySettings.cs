@@ -130,7 +130,7 @@ public class CPHInline
         ui.BeginSection("Animation Profiles", "Messages");
         ui.AddDropdown("Animation Profile", "Animation profile used when the Clapperboard message appears and disappears.", "Messages", UiPrefix + "clapper.selectedProfile", BuildProfileOptions(ClapperAnimationKey), "Default");
         ui.AddDropdown("Branding Preset", "Branding preset used by the Clapperboard.", "Messages", PresetUiPrefix + "clapper.entry.branding", BrandingPresetOptions(), "Default");
-        ui.AddClickableButton("Add Profile", "Create a new Clapperboard animation profile.", "Add Profile", "Add Profile", "blue", "Messages", () => { if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "AddClapperProfile")) ui.RebuildUI(rebuilt => BuildSettings(rebuilt)); });
+        ui.AddClickableButton("Add Profile", "Create a new Clapperboard animation profile.", "Add Profile", "blue", "Messages", () => { if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "AddClapperProfile")) ui.RebuildUI(rebuilt => BuildSettings(rebuilt)); });
         foreach (var item in ReadProfiles(ClapperAnimationKey))
         {
             var id = (string)item["id"];
