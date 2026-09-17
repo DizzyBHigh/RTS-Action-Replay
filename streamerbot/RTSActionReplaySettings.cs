@@ -91,12 +91,12 @@ public class CPHInline
 
     private void AddPanelAnimationSettings(RtsUI ui)
     {
-        ui.BeginSection("Panel Entry Points", "Information Panels"); ui.AddTitle("Choose the animation profile and visual preset used by each information-panel entry point.", "Information Panels"); AddPanelEntry(ui, "Recent / Search", "recent"); AddPanelEntry(ui, "Playlist", "playlist"); AddPanelEntry(ui, "Leaderboards", "creatorLeaderboard"); ui.EndSection(); foreach (var item in ReadProfiles(PanelKey)) { var id = (string)item["id"]; if (!string.IsNullOrWhiteSpace(id)) AddPanelAnimationProfile(ui, (string)item["name"] ?? "Default", id); }
+        ui.BeginSection("Panel Entry Points", "Information Panels"); ui.AddTitle("Choose the animation profile, visual preset and branding preset used by each information-panel entry point.", "Information Panels"); AddPanelEntry(ui, "Recent / Search", "recent"); AddPanelEntry(ui, "Playlist", "playlist"); AddPanelEntry(ui, "Leaderboards", "creatorLeaderboard"); ui.EndSection(); foreach (var item in ReadProfiles(PanelKey)) { var id = (string)item["id"]; if (!string.IsNullOrWhiteSpace(id)) AddPanelAnimationProfile(ui, (string)item["name"] ?? "Default", id); }
     }
 
     private void AddPanelEntry(RtsUI ui, string title, string point)
     {
-        ui.BeginSection(title, "Information Panels"); ui.AddDropdown("Animation Profile", "Animation profile used for this information-panel entry point.", "Information Panels", UiPrefix + "panel.entry." + point, BuildProfileOptions(PanelKey), "Default"); ui.AddDropdown("Visual Preset", "Existing visual preset used by this information-panel entry point. This legacy selector remains during migration.", "Information Panels", PanelPresetUiPrefix + point, PanelPresetOptions(), "Broadcast"); ui.AddDropdown("Branding Preset", "Branding preset used by this information-panel entry point.", "Information Panels", PresetUiPrefix + "panel.entry." + point + ".branding", BrandingPresetOptions(), "Default"); ui.EndSection();
+        ui.BeginSection(title, "Information Panels"); ui.AddDropdown("Animation Profile", "Animation profile used for this information-panel entry point.", "Information Panels", UiPrefix + "panel.entry." + point, BuildProfileOptions(PanelKey), "Default"); ui.AddDropdown("Visual Preset", "Existing visual preset used by this information-panel entry point. This legacy selector remains during migration.", "Information Panels", PanelPresetUiPrefix + point, PanelPresetOptions(), "Broadcast"); ui.BeginSection("New Preset Selection"); ui.AddDropdown("Visual Preset", "New reusable visual preset used by this information-panel entry point.", "Information Panels", PresetUiPrefix + "panel.entry." + point + ".visual", VisualPresetOptions(), "Broadcast"); ui.AddDropdown("Branding Preset", "New reusable branding preset used by this information-panel entry point.", "Information Panels", PresetUiPrefix + "panel.entry." + point + ".branding", BrandingPresetOptions(), "Default"); ui.EndSection(); ui.EndSection();
     }
 
     private static string[] PanelPresetOptions() => new[] { "Broadcast", "Cinematic", "Cut", "Minimal" };
@@ -130,7 +130,7 @@ public class CPHInline
         ui.BeginSection("Animation Profiles", "Messages");
         ui.AddDropdown("Animation Profile", "Animation profile used when the Clapperboard message appears and disappears.", "Messages", UiPrefix + "clapper.selectedProfile", BuildProfileOptions(ClapperAnimationKey), "Default");
         ui.AddDropdown("Branding Preset", "Branding preset used by the Clapperboard.", "Messages", PresetUiPrefix + "clapper.entry.branding", BrandingPresetOptions(), "Default");
-        ui.AddClickableButton("Add Profile", "Create a new Clapperboard animation profile.", "Add Profile", "blue", "Messages", () => { if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "AddClapperProfile")) ui.RebuildUI(rebuilt => BuildSettings(rebuilt)); });
+        ui.AddClickableButton("Add Profile", "Create a new Clapperboard animation profile.", "Add Profile", "Add Profile", "blue", "Messages", () => { if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "AddClapperProfile")) ui.RebuildUI(rebuilt => BuildSettings(rebuilt)); });
         foreach (var item in ReadProfiles(ClapperAnimationKey))
         {
             var id = (string)item["id"];
@@ -195,13 +195,11 @@ public class CPHInline
         {
             var parts = key.Substring(PresetUiPrefix.Length).Split('.');
             var component = parts[0];
-            var point = parts[2];
-            var type = parts[3];
             var configKey = component == "player" ? PlayerKey : component == "panel" ? PanelKey : ClapperAnimationKey;
-            var config = ReadConfig(configKey);
             JObject entry;
-            if (component == "clapper") entry = config["entryPoint"] as JObject ?? new JObject();
-            else entry = (config["entryPoints"] as JObject)?[point] as JObject ?? new JObject();
+            string type;
+            if (component == "clapper") { type = parts[2]; entry = ReadConfig(configKey)["entryPoint"] as JObject ?? new JObject(); }
+            else { var point = parts[2]; type = parts[3]; entry = (ReadConfig(configKey)["entryPoints"] as JObject)?[point] as JObject ?? new JObject(); }
             return PresetName(type, (string)entry[type + "Preset"]);
         }
         catch { return key.Contains(".visual") ? "Broadcast" : "Default"; }
@@ -222,13 +220,12 @@ public class CPHInline
         {
             var parts = key.Substring(PresetUiPrefix.Length).Split('.');
             var component = parts[0];
-            var point = parts[2];
-            var type = parts[3];
             var configKey = component == "player" ? PlayerKey : component == "panel" ? PanelKey : ClapperAnimationKey;
             var config = ReadConfig(configKey);
             JObject entry;
-            if (component == "clapper") entry = config["entryPoint"] as JObject ?? new JObject();
-            else { var entries = config["entryPoints"] as JObject ?? new JObject(); entry = entries[point] as JObject ?? new JObject(); entries[point] = entry; config["entryPoints"] = entries; }
+            string type;
+            if (component == "clapper") { type = parts[2]; entry = config["entryPoint"] as JObject ?? new JObject(); }
+            else { var point = parts[2]; type = parts[3]; var entries = config["entryPoints"] as JObject ?? new JObject(); entry = entries[point] as JObject ?? new JObject(); entries[point] = entry; config["entryPoints"] = entries; }
             entry[type + "Preset"] = ResolvePresetId(type, value == null ? "" : value.ToString());
             if (component == "clapper") config["entryPoint"] = entry;
             SaveConfig(configKey, config);
