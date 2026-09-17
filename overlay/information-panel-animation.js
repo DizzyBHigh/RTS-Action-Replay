@@ -1,6 +1,7 @@
 const RTSInformationPanelAnimation = window.RTSInformationPanelAnimation || {};
 let panelRunner = null;
 let panelCommand = null;
+let activePanel = null;
 
 const panelAdapter = {
   normaliseStep: step => ({
@@ -29,7 +30,8 @@ const panelAdapter = {
     y: from.y + (to.y - from.y) * progress,
     rotateZ: from.rotateZ + (to.rotateZ - from.rotateZ) * progress
   }),
-  applyPosition: (panel, position) => {
+  applyPosition: position => {
+    const panel = activePanel;
     if (!panel || !position) return;
     const offset = RTSInformationPanels.getViewportOffset(position);
     panel.style.left = offset ? `${offset.left}px` : `calc(50% + ${position.x}vw)`;
@@ -57,10 +59,11 @@ RTSInformationPanelAnimation.profile = command => {
 
 RTSInformationPanelAnimation.position = (command, name) => RTSInformationPanels.normalise(RTSInformationPanels.getPosition(command, name));
 RTSInformationPanelAnimation.easing = name => panelAdapter.easing(name);
-RTSInformationPanelAnimation.apply = (panel, position) => panelAdapter.applyPosition(panel, position);
+RTSInformationPanelAnimation.apply = (panel, position) => { activePanel = panel; panelAdapter.applyPosition(position); };
 
 RTSInformationPanelAnimation.run = (panel, command, sequence, complete) => {
   panelCommand = command || {};
+  activePanel = panel;
   const runner = getPanelRunner();
   if (!runner) { complete?.(); return; }
   runner.run(sequence, complete);
@@ -68,6 +71,7 @@ RTSInformationPanelAnimation.run = (panel, command, sequence, complete) => {
 
 RTSInformationPanelAnimation.show = (panel, command, name) => {
   panelCommand = command || {};
+  activePanel = panel;
   const profile = RTSInformationPanelAnimation.profile(command);
   RTSInformationPanels.applySize(panel, command);
   panel.classList.add('show');
@@ -79,6 +83,7 @@ RTSInformationPanelAnimation.show = (panel, command, name) => {
 RTSInformationPanelAnimation.hide = (panel, command) => {
   if (!panel) return;
   panelCommand = command || panelCommand || {};
+  activePanel = panel;
   const profile = RTSInformationPanelAnimation.profile(panelCommand);
   const end = profile?.end;
   if (!Array.isArray(end) || !end.length) {
