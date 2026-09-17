@@ -5,14 +5,19 @@ public class CPHInline
     private const string EventName = "RTS-Action Replay";
     private const string PlayerKey = "rts.actionreplay.config.player";
     private const string PanelKey = "rts.actionreplay.config.panel";
+    private const string ClapperKey = "rts.actionreplay.config.clapper";
+    private const string ClapperPositionsKey = "rts.actionreplay.clapper.positions";
 
     public bool Execute()
     {
+        var clapper = ReadConfig(ClapperKey);
+        clapper["positions"] = ReadConfig(ClapperPositionsKey);
         var payload = new JObject
         {
             ["version"] = 1,
             ["player"] = ReadConfig(PlayerKey),
             ["panel"] = ReadConfig(PanelKey),
+            ["clapper"] = clapper,
             ["command"] = BuildCommand()
         };
 
@@ -110,9 +115,9 @@ public class CPHInline
         AddString(c, "replayMessageAccent", "rts.actionreplay.clapper.accent", "#0384CB");
         AddString(c, "replayMessageTextColor", "rts.actionreplay.clapper.textColor", "#0384CB");
         AddString(c, "replayMessageFont", "rts.actionreplay.clapper.font", "Inter");
-        AddInt(c, "replayMessageSize", "rts.actionreplay.clapper.size", 50);
-        AddInt(c, "replayMessagePositionX", "rts.actionreplay.clapper.positionX", 50);
-        AddInt(c, "replayMessagePositionY", "rts.actionreplay.clapper.positionY", 50);
+        AddString(c, "replayMessagePosition", "rts.actionreplay.clapper.position", "Centered");
+        c["replayClapperWidth"] = 680;
+        c["replayClapperHeight"] = 372;
     }
 
     private JObject ReadConfig(string key)
