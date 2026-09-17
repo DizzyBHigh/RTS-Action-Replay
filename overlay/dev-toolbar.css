@@ -1,6 +1,5 @@
 #rts-dev-workspace{position:fixed;inset:0;z-index:1;transform:translate(var(--dev-pan-x,0px),var(--dev-pan-y,0px)) scale(var(--dev-zoom,1));transform-origin:center;will-change:transform}
-#rts-dev-screen{position:fixed;z-index:0;left:50%;top:50%;width:min(92vw,calc(92vh * 16 / 9));aspect-ratio:16 / 9;transform:translate(-50%,-50%);box-sizing:border-box;border:2px solid rgba(3,132,203,.75);background:rgba(8,12,15,.72);box-shadow:0 0 0 1px rgba(255,255,255,.08),0 18px 55px rgba(0,0,0,.45);cursor:grab;touch-action:none}
-#rts-dev-screen:active{cursor:grabbing}
+#rts-dev-screen{position:fixed;z-index:0;left:50%;top:50%;width:min(92vw,calc(92vh * 16 / 9));aspect-ratio:16 / 9;transform:translate(-50%,-50%);box-sizing:border-box;border:2px solid rgba(3,132,203,.75);background:rgba(8,12,15,.72);box-shadow:0 0 0 1px rgba(255,255,255,.08),0 18px 55px rgba(0,0,0,.45);cursor:default;touch-action:auto}
 #rts-dev-screen::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:10% 10%;pointer-events:none}
 #rts-dev-screen .dev-screen-label{position:absolute;top:-24px;left:0;padding:5px 8px;background:rgba(10,13,16,.96);border:1px solid rgba(3,132,203,.55);color:#0384CB;font:600 11px/1 system-ui,sans-serif;letter-spacing:.08em;pointer-events:none}
 #rts-dev-screen .dev-safe-area{position:absolute;inset:5%;border:1px dashed rgba(255,255,255,.14);pointer-events:none}
