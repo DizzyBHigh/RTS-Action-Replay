@@ -89,5 +89,5 @@ RTSReplayAnimation.runEndSequence = (sequence, onComplete) => {
 };
 
 RTSReplayAnimation.sequenceToken = 0;
-RTSReplayAnimation.sequenceTimer = 0;
-RTSReplayAnimation.sequenceFrame = 0;
+RTSReplayAnimation.sequenceTimer = null;
+RTSReplayAnimation.sequenceFrame = null;
