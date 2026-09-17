@@ -30,7 +30,6 @@
   const minScale = () => fitScale() * 0.5;
 
   const clamp = () => {
-    const fit = fitScale();
     const effective = Math.max(scale, minScale());
     const width = 1920 * effective;
     const height = 1080 * effective;
