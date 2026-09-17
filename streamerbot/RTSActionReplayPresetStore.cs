@@ -1,7 +1,7 @@
 using System;
 using Newtonsoft.Json.Linq;
 
-// Shared Visual and Branding presets plus entry-point migration/resolution.
+// Shared Visual and Branding presets plus entry-point resolution.
 public class CPHInline
 {
     private const string PlayerKey = "rts.actionreplay.config.player";
@@ -35,9 +35,8 @@ public class CPHInline
 
     public bool ResolveEntryPoint()
     {
-        if (!CPH.TryGetArg("presetComponent", out string component)) return false;
-        CPH.TryGetArg("entryPoint", out string entryPoint);
-        component = component == null ? "player" : component.Trim().ToLowerInvariant();
+        CPH.TryGetArg("presetComponent", out string component); CPH.TryGetArg("entryPoint", out string entryPoint);
+        component = (component ?? "player").Trim().ToLowerInvariant();
         JObject resolved;
         if (component == "panel") resolved = Resolve(Read(PanelKey, new JObject()), entryPoint, new[] { "recent", "playlist", "creatorLeaderboard" });
         else if (component == "clapper") resolved = ResolveClapperEntry();
@@ -50,125 +49,85 @@ public class CPHInline
         return true;
     }
 
-    private JObject Resolve(JObject config, string entryPoint, string[] validEntries)
+    // Title/overlay consumers can call this method instead of a separate title-profile action.
+    public bool ApplyVisualAndBranding()
     {
-        var entries = config["entryPoints"] as JObject ?? new JObject();
-        var name = string.IsNullOrWhiteSpace(entryPoint) ? validEntries[0] : entryPoint.Trim().ToLowerInvariant();
-        if (Array.IndexOf(validEntries, name) < 0) name = validEntries[0];
-        var entry = entries[name] as JObject ?? new JObject();
-        return new JObject
-        {
-            ["animationProfile"] = ResolveAnimationProfile(config, entry),
-            ["visualPreset"] = ResolveId(Visuals(), (string)entry["visualPreset"]) ?? "broadcast",
-            ["brandingPreset"] = ResolveId(Branding(), (string)entry["brandingPreset"]) ?? "default"
-        };
+        var visualId = Arg("visualPreset", Arg("replayVisualPresetId", "broadcast"));
+        var brandingId = Arg("brandingPreset", Arg("replayBrandingPresetId", "default"));
+        var visual = Find(Visuals(), visualId) ?? Find(Visuals(), "broadcast");
+        var brand = Find(Branding(), brandingId) ?? Find(Branding(), "default");
+        if (visual == null || brand == null) return false;
+        var payload = BuildPayload(visualId, visual, brand);
+        CPH.SetArgument("replayVisualPresetId", (string)visual["id"]);
+        CPH.SetArgument("replayBrandingPresetId", (string)brand["id"]);
+        CPH.SetArgument("replayTitleStyle", (string)visual["id"]);
+        CPH.SetArgument("replayTitleProfileId", (string)visual["id"]);
+        CPH.SetArgument("replayTitleProfile", payload.ToString(Newtonsoft.Json.Formatting.None));
+        ApplyArguments(payload);
+        return true;
     }
 
-    private JObject ResolveClapperEntry()
+    private JObject BuildPayload(string visualId, JObject visual, JObject brand) => new JObject
     {
-        var config = Read(ClapperKey, new JObject());
-        var entry = config["entryPoint"] as JObject ?? new JObject();
-        return new JObject
-        {
-            ["animationProfile"] = ResolveAnimationProfile(config, entry),
-            ["visualPreset"] = ResolveId(Visuals(), (string)entry["visualPreset"]) ?? "broadcast",
-            ["brandingPreset"] = ResolveId(Branding(), (string)entry["brandingPreset"]) ?? "default"
-        };
-    }
-
-    private static string ResolveAnimationProfile(JObject config, JObject entry)
-    {
-        var explicitId = (string)entry["animationProfile"];
-        return string.IsNullOrWhiteSpace(explicitId) ? (string)(config["animation"] as JObject)?["selectedProfile"] ?? "default" : explicitId;
-    }
-
-    private void MigratePlayer(JObject player)
-    {
-        var animation = player["animation"] as JObject ?? new JObject();
-        var animationEntries = animation["entryPoints"] as JObject ?? new JObject();
-        var title = player["title"] as JObject ?? new JObject();
-        var visual = NormalizeStyle((string)title["selectedProfile"] ?? CPH.GetGlobalVar<string>("rts.actionreplay.titleBarStyle", true));
-        foreach (var point in new[] { "obs", "twitch", "youtube", "kick", "recent", "catalog", "playlist" })
-        {
-            var entry = player["entryPoints"]?[point] as JObject ?? new JObject();
-            entry["animationProfile"] = (string)entry["animationProfile"] ?? (string)animationEntries[point] ?? "default";
-            entry["visualPreset"] = (string)entry["visualPreset"] ?? visual;
-            entry["brandingPreset"] = (string)entry["brandingPreset"] ?? "default";
-            EnsureEntry(player, point, entry);
-        }
-    }
-
-    private void MigratePanel(JObject panel)
-    {
-        var preset = panel["preset"] as JObject ?? new JObject();
-        var fallback = (string)preset["fallback"] ?? "Broadcast";
-        var legacyEntries = preset["entryPoints"] as JObject ?? new JObject();
-        var animationEntries = (panel["animation"] as JObject)?["entryPoints"] as JObject ?? new JObject();
-        foreach (var point in new[] { "recent", "playlist", "creatorLeaderboard" })
-        {
-            var entry = panel["entryPoints"]?[point] as JObject ?? new JObject();
-            entry["animationProfile"] = (string)entry["animationProfile"] ?? (string)animationEntries[point] ?? "default";
-            entry["visualPreset"] = (string)entry["visualPreset"] ?? NormalizeStyle((string)legacyEntries[point] ?? fallback);
-            entry["brandingPreset"] = (string)entry["brandingPreset"] ?? "default";
-            EnsureEntry(panel, point, entry);
-        }
-    }
-
-    private void MigrateClapper(JObject clapper)
-    {
-        var entry = clapper["entryPoint"] as JObject ?? new JObject();
-        entry["animationProfile"] = (string)entry["animationProfile"] ?? (string)(clapper["animation"] as JObject)?["selectedProfile"] ?? "default";
-        entry["visualPreset"] = (string)entry["visualPreset"] ?? "broadcast";
-        entry["brandingPreset"] = (string)entry["brandingPreset"] ?? "default";
-        clapper["entryPoint"] = entry;
-    }
-
-    private static void EnsureEntry(JObject config, string name, JObject entry)
-    {
-        var entries = config["entryPoints"] as JObject ?? new JObject(); entries[name] = entry; config["entryPoints"] = entries;
-    }
-
-    public JArray Branding() => Read(PresetsKey, CreateDefaults())["branding"] as JArray ?? new JArray();
-    public JArray Visuals() => Read(PresetsKey, CreateDefaults())["visual"] as JArray ?? new JArray();
-
-    private static string ResolveId(JArray values, string value)
-    {
-        foreach (var item in values ?? new JArray())
-        {
-            if (string.Equals((string)item["id"], value, StringComparison.OrdinalIgnoreCase)) return (string)item["id"];
-            if (string.Equals((string)item["name"], value, StringComparison.OrdinalIgnoreCase)) return (string)item["id"];
-        }
-        return null;
-    }
-
-    private static string NormalizeStyle(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value)) return "broadcast";
-        var normalized = value.Trim().ToLowerInvariant();
-        return normalized == "broadcast" || normalized == "cinematic" || normalized == "cut" || normalized == "minimal" ? normalized : "broadcast";
-    }
-
-    private static JObject CreateDefaults() => new JObject
-    {
-        ["version"] = 1,
-        ["branding"] = new JArray(new JObject
-        {
-            ["id"] = "default", ["name"] = "Default", ["primaryColor"] = "#0384CBFF", ["secondaryColor"] = "#101416FF",
-            ["titleColor"] = "#FFFFFFFF", ["titlePrefixSuffixColor"] = "#0384CBFF", ["textColor"] = "#FFFFFFFF", ["shadowColor"] = "#000000FF",
-            ["font"] = "Inter", ["fontSize"] = 34, ["logo"] = "", ["fallbackText"] = "RTS", ["brandLabel"] = "ACTION REPLAY"
-        }),
-        ["visual"] = new JArray(
-            new JObject { ["id"] = "broadcast", ["name"] = "Broadcast", ["chevronHeight"] = 42, ["randomHeight"] = false, ["chevronWidth"] = 42, ["randomWidth"] = false, ["chevronSpacing"] = 0, ["randomSpacing"] = false, ["chevronSpeed"] = 95 },
-            new JObject { ["id"] = "cinematic", ["name"] = "Cinematic", ["fixed"] = true },
-            new JObject { ["id"] = "cut", ["name"] = "Cut", ["blockWidth"] = 170, ["randomWidth"] = true, ["barHeight"] = 5 },
-            new JObject { ["id"] = "minimal", ["name"] = "Minimal", ["fixed"] = true })
+        ["profile"] = visualId, ["style"] = visualId,
+        ["showTitle"] = LegacyBool("rts.actionreplay.showTitle", true),
+        ["decorationPosition"] = LegacyString("rts.actionreplay.titleDecorationPosition", "Suffix"),
+        ["decoration"] = LegacyString("rts.actionreplay.titleDecoration", " - Replay Capture"),
+        ["position"] = LegacyString("rts.actionreplay.titlePosition", "Bottom"),
+        ["animation"] = LegacyString("rts.actionreplay.titleAnimation", "Slide up/down"),
+        ["delay"] = LegacyInt("rts.actionreplay.titleDelay", 0), ["duration"] = LegacyInt("rts.actionreplay.titleDuration", 5000),
+        ["animationDuration"] = LegacyInt("rts.actionreplay.titleAnimationDuration", 450),
+        ["font"] = (string)brand["font"] ?? "Inter", ["fontSize"] = (int?)brand["fontSize"] ?? 34,
+        ["textColor"] = (string)brand["textColor"] ?? "#FFFFFFFF", ["shadowColor"] = (string)brand["shadowColor"] ?? "#000000FF",
+        ["primaryColor"] = (string)brand["primaryColor"] ?? "#0384CBFF", ["secondaryColor"] = (string)brand["secondaryColor"] ?? "#101416FF",
+        ["broadcast"] = BuildBroadcast(visual, brand), ["cut"] = BuildCut(visual, brand)
     };
 
-    private JObject Read(string key, JObject fallback)
+    private void ApplyArguments(JObject p)
     {
-        var raw = CPH.GetGlobalVar<string>(key, true);
-        try { return string.IsNullOrWhiteSpace(raw) ? fallback : JObject.Parse(raw); } catch { return fallback; }
+        CPH.SetArgument("replayShowTitle", (bool)p["showTitle"]); CPH.SetArgument("replayTitleDecorationPosition", (string)p["decorationPosition"]);
+        CPH.SetArgument("replayTitleDecoration", (string)p["decoration"]); CPH.SetArgument("replayTitlePosition", (string)p["position"]);
+        CPH.SetArgument("replayTitleAnimation", (string)p["animation"]); CPH.SetArgument("replayTitleDelay", (int)p["delay"]);
+        CPH.SetArgument("replayTitleDuration", (int)p["duration"]); CPH.SetArgument("replayTitleAnimationDuration", (int)p["animationDuration"]);
+        CPH.SetArgument("replayTitleFont", (string)p["font"]); CPH.SetArgument("replayTitleFontSize", (int)p["fontSize"]);
+        CPH.SetArgument("replayTitleTextColor", (string)p["textColor"]); CPH.SetArgument("replayTitleShadowColor", (string)p["shadowColor"]);
+        CPH.SetArgument("replayTitlePrimaryColor", (string)p["primaryColor"]); CPH.SetArgument("replayTitleSecondaryColor", (string)p["secondaryColor"]);
+        SetProperties("replayBroadcast", p["broadcast"] as JObject); SetProperties("replayCut", p["cut"] as JObject);
     }
 
-    private void Write(string key, JObject value) => CPH.SetGlobalVar(key, value.ToString(Newtonsoft.Json.Formatting.None), true);
+    private JObject BuildBroadcast(JObject v, JObject b) => new JObject
+    {
+        ["primaryColor"] = (string)b["primaryColor"] ?? "#0384CBFF", ["secondaryColor"] = (string)b["secondaryColor"] ?? "#101416FF",
+        ["chevronHeight"] = (int?)v["chevronHeight"] ?? 42, ["randomHeight"] = (bool?)v["randomHeight"] ?? false,
+        ["chevronWidth"] = (int?)v["chevronWidth"] ?? 42, ["randomWidth"] = (bool?)v["randomWidth"] ?? false,
+        ["chevronSpacing"] = (int?)v["chevronSpacing"] ?? 0, ["randomSpacing"] = (bool?)v["randomSpacing"] ?? false,
+        ["chevronSpeed"] = (int?)v["chevronSpeed"] ?? 95, ["decorationColor"] = (string)b["titlePrefixSuffixColor"] ?? "#0384CBFF",
+        ["titleColor"] = (string)b["titleColor"] ?? "#FFFFFFFF"
+    };
+
+    private JObject BuildCut(JObject v, JObject b) => new JObject
+    {
+        ["primaryColor"] = (string)b["primaryColor"] ?? "#0384CBFF", ["secondaryColor"] = (string)b["secondaryColor"] ?? "#101416FF",
+        ["blockWidth"] = (int?)v["blockWidth"] ?? 170, ["randomWidth"] = (bool?)v["randomWidth"] ?? true, ["barHeight"] = (int?)v["barHeight"] ?? 5,
+        ["decorationColor"] = (string)b["titlePrefixSuffixColor"] ?? "#0384CBFF", ["titleColor"] = (string)b["titleColor"] ?? "#FFFFFFFF"
+    };
+
+    private void SetProperties(string prefix, JObject values) { foreach (var p in values?.Properties() ?? new JProperty[0]) CPH.SetArgument(prefix + Name(p.Name), Value(p.Value)); }
+    private void MigratePlayer(JObject p) { var a=p["animation"] as JObject ?? new JObject(); var ae=a["entryPoints"] as JObject ?? new JObject(); var t=p["title"] as JObject ?? new JObject(); var v=Normalize((string)t["selectedProfile"] ?? CPH.GetGlobalVar<string>("rts.actionreplay.titleBarStyle",true)); foreach(var x in new[]{"obs","twitch","youtube","kick","recent","catalog","playlist"}) { var e=p["entryPoints"]?[x] as JObject ?? new JObject(); e["animationProfile"]=(string)e["animationProfile"]??(string)ae[x]??"default"; e["visualPreset"]=(string)e["visualPreset"]??v; e["brandingPreset"]=(string)e["brandingPreset"]??"default"; EnsureEntry(p,x,e); } }
+    private void MigratePanel(JObject p) { var pr=p["preset"] as JObject??new JObject(); var fallback=(string)pr["fallback"]??"Broadcast"; var le=pr["entryPoints"] as JObject??new JObject(); var ae=(p["animation"] as JObject)?["entryPoints"] as JObject??new JObject(); foreach(var x in new[]{"recent","playlist","creatorLeaderboard"}) { var e=p["entryPoints"]?[x] as JObject??new JObject(); e["animationProfile"]=(string)e["animationProfile"]??(string)ae[x]??"default"; e["visualPreset"]=(string)e["visualPreset"]??Normalize((string)le[x]??fallback); e["brandingPreset"]=(string)e["brandingPreset"]??"default"; EnsureEntry(p,x,e); } }
+    private void MigrateClapper(JObject c) { var e=c["entryPoint"] as JObject??new JObject(); e["animationProfile"]=(string)e["animationProfile"]??(string)(c["animation"] as JObject)?["selectedProfile"]??"default"; e["visualPreset"]=(string)e["visualPreset"]??"broadcast"; e["brandingPreset"]=(string)e["brandingPreset"]??"default"; c["entryPoint"]=e; }
+    private static void EnsureEntry(JObject c,string n,JObject e){var a=c["entryPoints"] as JObject??new JObject();a[n]=e;c["entryPoints"]=a;}
+    private JObject ResolveClapperEntry(){var c=Read(ClapperKey,new JObject());var e=c["entryPoint"] as JObject??new JObject();return new JObject{{"animationProfile",ResolveAnimation(c,e)},{"visualPreset",ResolveId(Visuals(),(string)e["visualPreset"])??"broadcast"},{"brandingPreset",ResolveId(Branding(),(string)e["brandingPreset"])??"default"}};}
+    private JObject Resolve(JObject c,string ep,string[] valid){var a=c["entryPoints"] as JObject??new JObject();var n=string.IsNullOrWhiteSpace(ep)?valid[0]:ep.Trim().ToLowerInvariant();if(Array.IndexOf(valid,n)<0)n=valid[0];var e=a[n] as JObject??new JObject();return new JObject{{"animationProfile",ResolveAnimation(c,e)},{"visualPreset",ResolveId(Visuals(),(string)e["visualPreset"])??"broadcast"},{"brandingPreset",ResolveId(Branding(),(string)e["brandingPreset"])??"default"}};}
+    private static string ResolveAnimation(JObject c,JObject e){return (string)e["animationProfile"]??(string)(c["animation"] as JObject)?["selectedProfile"]??"default";}
+    public JArray Branding()=>Read(PresetsKey,CreateDefaults())["branding"] as JArray??new JArray(); public JArray Visuals()=>Read(PresetsKey,CreateDefaults())["visual"] as JArray??new JArray();
+    private static JObject Find(JArray a,string id){foreach(var x in a??new JArray())if(string.Equals((string)x["id"],id,StringComparison.OrdinalIgnoreCase))return x as JObject;return null;}
+    private static string ResolveId(JArray a,string v){var x=Find(a,v);return x==null?null:(string)x["id"];}
+    private static string Normalize(string v){v=(v??"").Trim().ToLowerInvariant();return v=="cinematic"||v=="cut"||v=="minimal"?v:"broadcast";}
+    private string Arg(string n,string f)=>CPH.TryGetArg(n,out string v)&&!string.IsNullOrWhiteSpace(v)?v.Trim():f;
+    private JObject Read(string k,JObject f){var r=CPH.GetGlobalVar<string>(k,true);try{return string.IsNullOrWhiteSpace(r)?f:JObject.Parse(r);}catch{return f;}}
+    private void Write(string k,JObject v)=>CPH.SetGlobalVar(k,v.ToString(Newtonsoft.Json.Formatting.None),true);
+    private static JObject CreateDefaults()=>new JObject{{"version",1},{"branding",new JArray(new JObject{{"id","default"},{"name","Default"},{"primaryColor","#0384CBFF"},{"secondaryColor","#101416FF"},{"titleColor","#FFFFFFFF"},{"titlePrefixSuffixColor","#0384CBFF"},{"textColor","#FFFFFFFF"},{"shadowColor","#000000FF"},{"font","Inter"},{"fontSize",34},{"logo",""},{"fallbackText","RTS"},{"brandLabel","ACTION REPLAY"}})},{"visual",new JArray(new JObject{{"id","broadcast"},{"name","Broadcast"},{"chevronHeight",42},{"randomHeight",false},{"chevronWidth",42},{"randomWidth",false},{"chevronSpacing",0},{"randomSpacing",false},{"chevronSpeed",95}},new JObject{{"id","cinematic"},{"name","Cinematic"},{"fixed",true}},new JObject{{"id","cut"},{"name","Cut"},{"blockWidth",170},{"randomWidth",true},{"barHeight",5}},new JObject{{"id","minimal"},{"name","Minimal"},{"fixed",true}})}};
+    private string LegacyString(string k,string f)=>CPH.GetGlobalVar<string>(k,true)??f; private int LegacyInt(string k,int f)=>CPH.GetGlobalVar<int?>(k,true)??f; private bool LegacyBool(string k,bool f)=>CPH.GetGlobalVar<bool?>(k,true)??f;
+    private static string Name(string k)=>char.ToUpperInvariant(k[0])+k.Substring(1); private static object Value(JToken v)=>v.Type==JTokenType.Boolean?(object)(bool)v:v.Type==JTokenType.Integer?(object)(int)v:v.ToString();
 }
