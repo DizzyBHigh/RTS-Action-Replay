@@ -39,7 +39,7 @@
 
   let playerVisible = false, panelVisible = false, clapperVisible = false;
   const formatDuration = seconds => { if (!Number.isFinite(seconds) || seconds < 0) return '—'; const total = Math.round(seconds); return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`; };
-  const currentCommand = () => ({ ...(RTSReplayVideo?.currentCommand || RTSReplay?.command || {}) });
+  const currentCommand = () => ({ ...(window.RTSReplaySettingsSync?.command || RTSReplayVideo?.currentCommand || RTSReplay?.command || {}) });
   const parse = value => { try { return typeof value === 'string' ? JSON.parse(value || '{}') : value; } catch (_) { return null; } };
   const profiles = key => { const list = parse(currentCommand()[key]); return Array.isArray(list) ? list : []; };
   const selectedProfile = (list, select) => list.find(item => item?.id === select.value) || list[0];
