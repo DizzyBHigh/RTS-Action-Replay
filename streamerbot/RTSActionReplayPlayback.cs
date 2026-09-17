@@ -115,6 +115,7 @@ public class CPHInline
         if (!CPH.ExecuteMethod(PresetStoreAction, "ApplyVisualAndBranding")) { CPH.LogWarn("RTS Action Replay TRACE: PlayReplay failed - queued visual/title/branding presets could not be applied."); return false; }
         ApplyVisualHandoff(queueEntryId);
         CPH.SetArgument("replayAnimationProfileId", profile);
+        CPH.SetGlobalVar(PlaybackProfileHandoffKey, profile, false);
         if (!CPH.ExecuteMethod(AnimationAction, "ApplyProfile")) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - animation profile '{profile}' could not be applied."); return false; }
         ApplyAnimationHandoff();
         CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false) ?? "");
