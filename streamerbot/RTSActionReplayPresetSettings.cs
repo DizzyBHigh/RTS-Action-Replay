@@ -70,15 +70,15 @@ public class CPHInline
     private void AddCutFields(RtsUI ui, JObject p)
     { ui.BeginRow(); AddInt(ui, "Block Width", "blockWidth", p, 170, 1, 600); AddBool(ui, "Randomize Width", "randomWidth", p, true); AddInt(ui, "Bar Height", "barHeight", p, 5, 1, 50); ui.EndRow(); }
 
-    private void AddPlayerEntries(RtsUI ui) => AddEntries(ui, PlayerKey, new[] { "obs", "twitch", "youtube", "kick", "recent", "catalog", "playlist" }, new[] { "Create — OBS", "Create — Twitch", "Create — YouTube", "Create — Kick", "Play — Recent", "Play — Catalog", "Play — Playlist" }, "Player Entry Points");
-    private void AddPanelEntries(RtsUI ui) => AddEntries(ui, PanelKey, new[] { "recent", "playlist", "creatorLeaderboard" }, new[] { "Recent / Search", "Playlist", "Creator Leaderboard" }, "Panel Entry Points");
+    private void AddPlayerEntries(RtsUI ui) => AddEntries(ui, "Player Entry Points", PlayerKey, new[] { "obs", "twitch", "youtube", "kick", "recent", "catalog", "playlist" }, new[] { "Create — OBS", "Create — Twitch", "Create — YouTube", "Create — Kick", "Play — Recent", "Play — Catalog", "Play — Playlist" }, "Player Entry Points");
+    private void AddPanelEntries(RtsUI ui) => AddEntries(ui, "Panel Entry Points", PanelKey, new[] { "recent", "playlist", "creatorLeaderboard" }, new[] { "Recent / Search", "Playlist", "Creator Leaderboard" }, "Panel Entry Points");
     private void AddClapper(RtsUI ui)
     { var c = Read(ClapperKey); var e = c["entryPoint"] as JObject ?? new JObject(); ui.BeginSection("Clapperboard", "Clapperboard"); ui.AddDropdown("Branding Preset", "Branding preset used by the Clapperboard.", "Clapperboard", UiPrefix + "clapper.branding", Names("branding"), Name("branding", (string)e["brandingPreset"] ?? "default")); ui.EndSection(); }
 
-    private void AddEntries(RtsUI ui, string configKey, string[] ids, string[] labels, string category)
+    private void AddEntries(RtsUI ui, string title, string configKey, string[] ids, string[] labels, string category)
     {
-        var c = Read(configKey); var entries = c["entryPoints"] as JObject ?? new JObject();
-        for (var i = 0; i < ids.Length; i++) { var e = entries[ids[i]] as JObject ?? new JObject(); ui.BeginSection(labels[i], category); ui.AddDropdown("Visual Preset", "Visual preset used by this entry point.", category, UiPrefix + "entry." + configKey + "." + ids[i] + ".visual", Names("visual"), Name("visual", (string)e["visualPreset"] ?? "broadcast")); ui.AddDropdown("Branding Preset", "Branding preset used by this entry point.", category, UiPrefix + "entry." + configKey + "." + ids[i] + ".branding", Names("branding"), Name("branding", (string)e["brandingPreset"] ?? "default")); ui.EndSection(); }
+        var c = Read(configKey); var entries = c["entryPoints"] as JObject ?? new JObject(); ui.BeginSection(title, category);
+        for (var i = 0; i < ids.Length; i++) { var e = entries[ids[i]] as JObject ?? new JObject(); ui.BeginSection(labels[i]); ui.AddDropdown("Visual Preset", "Visual preset used by this entry point.", category, UiPrefix + "entry." + configKey + "." + ids[i] + ".visual", Names("visual"), Name("visual", (string)e["visualPreset"] ?? "broadcast")); ui.AddDropdown("Branding Preset", "Branding preset used by this entry point.", category, UiPrefix + "entry." + configKey + "." + ids[i] + ".branding", Names("branding"), Name("branding", (string)e["brandingPreset"] ?? "default")); ui.EndSection(); } ui.EndSection();
     }
 
     private string Key(string type, string id, string field) => UiPrefix + type + "." + id + "." + field;
@@ -102,7 +102,7 @@ public class CPHInline
         if (!key.StartsWith(UiPrefix, StringComparison.Ordinal)) { CPH.SetGlobalVar(key, value, persisted); return; } var p = key.Substring(UiPrefix.Length).Split('.'); var text = value == null ? "" : value.ToString();
         try { if (p[0] == "branding" || p[0] == "visual") SavePresetField(p[0], p[1], p[2], text); else if (p[0] == "entry") SaveEntry(p[1], p[2], p[3], text); else if (p[0] == "clapper" && p[1] == "branding") SaveClapperBranding(text); } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: preset settings save failed: " + ex.Message); }
     }
-    private void SavePresetField(string type, string id, string field, string value) { var p = Find(type, id); if (p == null) return; p[field] = Parse(field, value); Save(PresetsKey, Read(PresetsKey)); }
+    private void SavePresetField(string type, string id, string field, string value) { var p = Find(type, id); if (p == null) return; p[field] = JToken.FromObject(Parse(field, value)); Save(PresetsKey, Read(PresetsKey)); }
     private void SaveEntry(string configKey, string id, string field, string value) { var c = Read(configKey); var entries = c["entryPoints"] as JObject ?? new JObject(); var e = entries[id] as JObject ?? new JObject(); e[field + "Preset"] = ResolveId(field, value); entries[id] = e; c["entryPoints"] = entries; Save(configKey, c); }
     private void SaveClapperBranding(string value) { var c = Read(ClapperKey); var e = c["entryPoint"] as JObject ?? new JObject(); e["brandingPreset"] = ResolveId("branding", value); c["entryPoint"] = e; Save(ClapperKey, c); }
 
