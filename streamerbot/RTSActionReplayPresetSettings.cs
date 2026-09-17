@@ -29,9 +29,9 @@ public class CPHInline
 
     private void AddBranding(RtsUI ui)
     {
-        ui.AddTitle("Reusable identity and typography. Branding presets contain no layout or geometry.", "Branding Presets");
+        ui.BeginSection("Branding Presets", "Branding Presets"); ui.AddTitle("Reusable identity and typography. Branding presets contain no layout or geometry.", "Branding Presets");
         foreach (var p in Presets("branding")) AddBrandingPreset(ui, p as JObject);
-        ui.AddClickableButton("Add Branding Preset", "Create a new reusable Branding Preset.", "Add Branding Preset", "blue", "Branding Presets", () => { AddPreset("branding"); ui.RebuildUI(Build); });
+        ui.AddClickableButton("Add Branding Preset", "Create a new reusable Branding Preset.", "Add Branding Preset", "blue", "Branding Presets", () => { AddPreset("branding"); ui.RebuildUI(Build); }); ui.EndSection();
     }
 
     private void AddBrandingPreset(RtsUI ui, JObject p)
@@ -49,9 +49,9 @@ public class CPHInline
 
     private void AddVisual(RtsUI ui)
     {
-        ui.AddTitle("Visual Presets own layout and visual treatment. Cinematic and Minimal are fixed designs.", "Visual Presets");
+        ui.BeginSection("Visual Presets", "Visual Presets"); ui.AddTitle("Visual Presets own layout and visual treatment. Cinematic and Minimal are fixed designs.", "Visual Presets");
         foreach (var p in Presets("visual")) AddVisualPreset(ui, p as JObject);
-        ui.AddClickableButton("Add Visual Preset", "Create a new reusable Visual Preset.", "Add Visual Preset", "blue", "Visual Presets", () => { AddPreset("visual"); ui.RebuildUI(Build); });
+        ui.AddClickableButton("Add Visual Preset", "Create a new reusable Visual Preset.", "Add Visual Preset", "blue", "Visual Presets", () => { AddPreset("visual"); ui.RebuildUI(Build); }); ui.EndSection();
     }
 
     private void AddVisualPreset(RtsUI ui, JObject p)
@@ -78,7 +78,7 @@ public class CPHInline
     private void AddEntries(RtsUI ui, string configKey, string[] ids, string[] labels, string category)
     {
         var c = Read(configKey); var entries = c["entryPoints"] as JObject ?? new JObject();
-        for (var i = 0; i < ids.Length; i++) { var e = entries[ids[i]] as JObject ?? new JObject(); ui.BeginSection(labels[i]); ui.AddDropdown("Visual Preset", "Visual preset used by this entry point.", category, UiPrefix + "entry." + configKey + "." + ids[i] + ".visual", Names("visual"), Name("visual", (string)e["visualPreset"] ?? "broadcast")); ui.AddDropdown("Branding Preset", "Branding preset used by this entry point.", category, UiPrefix + "entry." + configKey + "." + ids[i] + ".branding", Names("branding"), Name("branding", (string)e["brandingPreset"] ?? "default")); ui.EndSection(); }
+        for (var i = 0; i < ids.Length; i++) { var e = entries[ids[i]] as JObject ?? new JObject(); ui.BeginSection(labels[i], category); ui.AddDropdown("Visual Preset", "Visual preset used by this entry point.", category, UiPrefix + "entry." + configKey + "." + ids[i] + ".visual", Names("visual"), Name("visual", (string)e["visualPreset"] ?? "broadcast")); ui.AddDropdown("Branding Preset", "Branding preset used by this entry point.", category, UiPrefix + "entry." + configKey + "." + ids[i] + ".branding", Names("branding"), Name("branding", (string)e["brandingPreset"] ?? "default")); ui.EndSection(); }
     }
 
     private string Key(string type, string id, string field) => UiPrefix + type + "." + id + "." + field;
