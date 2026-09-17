@@ -8,6 +8,9 @@ public class CPHInline
     const string PlayerKey="rts.actionreplay.config.player";
     const string PanelKey="rts.actionreplay.config.panel";
     const string ClapperKey="rts.actionreplay.clapper.positions";
+    const string PlayerUiKey="rts.actionreplay.ui.playerPositions";
+    const string PanelUiKey="rts.actionreplay.ui.panelPositions";
+    const string ClapperUiKey="rts.actionreplay.ui.clapperPositions";
     const string HandoffKey="rts.actionreplay.handoff.playerPositions";
 
     public bool EnsurePositions()
@@ -23,22 +26,14 @@ public class CPHInline
         return true;
     }
 
-    public bool GetPlayerPositions()
-    {
-        EnsurePositions();
-        var presets=Read(PresetsKey);
-        var positions=(presets["positions"] as JObject)?["player"] as JObject ?? DefaultPlayer();
-        CPH.SetGlobalVar(HandoffKey,positions.ToString(Newtonsoft.Json.Formatting.None),false);
-        CPH.LogInfo("RTS Action Replay: player position handoff populated; count="+positions.Count+".");
-        return true;
-    }
-
+    public bool GetPlayerPositions(){EnsurePositions();var presets=Read(PresetsKey);var positions=(presets["positions"] as JObject)?["player"] as JObject??DefaultPlayer();CPH.SetGlobalVar(HandoffKey,positions.ToString(Newtonsoft.Json.Formatting.None),false);CPH.LogInfo("RTS Action Replay: player position handoff populated; count="+positions.Count+".");return true;}
     public bool GetPanelPositions(){EnsurePositions();var presets=Read(PresetsKey);var positions=(presets["positions"] as JObject)?["panel"] as JObject??DefaultPanel();CPH.SetGlobalVar("rts.actionreplay.handoff.panelPositions",positions.ToString(Newtonsoft.Json.Formatting.None),false);return true;}
     public bool GetClapperboardPositions(){EnsurePositions();var presets=Read(PresetsKey);var positions=(presets["positions"] as JObject)?["clapperboard"] as JObject??DefaultClapper();CPH.SetGlobalVar("rts.actionreplay.handoff.clapperPositions",positions.ToString(Newtonsoft.Json.Formatting.None),false);return true;}
 
-    JObject MigratePlayer(JObject current)=>current!=null&&current.Count>0?current:ReadNested(PlayerKey,"positions",DefaultPlayer());
-    JObject MigratePanel(JObject current)=>current!=null&&current.Count>0?current:ReadNested(PanelKey,"positions",DefaultPanel());
-    JObject MigrateClapper(JObject current)=>current!=null&&current.Count>0?current:ReadRaw(ClapperKey,DefaultClapper());
+    JObject MigratePlayer(JObject current)=>Merge(current,ReadNested(PlayerKey,"positions",ReadRaw(PlayerUiKey,new JObject())),DefaultPlayer());
+    JObject MigratePanel(JObject current)=>Merge(current,ReadNested(PanelKey,"positions",ReadRaw(PanelUiKey,new JObject())),DefaultPanel());
+    JObject MigrateClapper(JObject current)=>Merge(current,ReadRaw(ClapperKey,ReadRaw(ClapperUiKey,new JObject())),DefaultClapper());
+    JObject Merge(JObject current,JObject legacy,JObject fallback){var result=current==null?new JObject():(JObject)current.DeepClone();if(result.Count==0&&legacy!=null&&legacy.Count>0)return (JObject)legacy.DeepClone();foreach(var p in legacy??new JObject())if(result[p.Name]==null)result[p.Name]=p.Value.DeepClone();return result.Count>0?result:fallback;}
     JObject ReadNested(string key,string property,JObject fallback){var root=Read(key);var value=root[property] as JObject;return value!=null&&value.Count>0?value:fallback;}
     JObject ReadRaw(string key,JObject fallback){var raw=CPH.GetGlobalVar<string>(key,true);try{var value=string.IsNullOrWhiteSpace(raw)?null:JObject.Parse(raw);return value!=null&&value.Count>0?value:fallback;}catch{return fallback;}}
     JObject Read(string key){var raw=CPH.GetGlobalVar<string>(key,true);try{return string.IsNullOrWhiteSpace(raw)?new JObject():JObject.Parse(raw);}catch{return new JObject();}}
