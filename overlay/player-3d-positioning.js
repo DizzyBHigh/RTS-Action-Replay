@@ -13,16 +13,17 @@ RTSReplayPlayer3D.transformFor = (p, scaleFactor = 1) => {
   const rotateY = RTSReplayPlayer3D.numberOr(p?.rotateY, 0);
   const rotateZ = -RTSReplayPlayer3D.numberOr(p?.rotateZ, 0);
   const fov = Math.max(30, Math.min(120, RTSReplayPlayer3D.numberOr(p?.fov, 90)));
-
-  const viewportWidth = Math.max(1, window.innerWidth || 1920);
+  const dev = Boolean(document.getElementById('rts-dev-stage'));
+  const viewportWidth = dev ? 1920 : Math.max(1, window.innerWidth || 1920);
   const perspective = Math.max(1, (viewportWidth / 2) / Math.tan((fov * Math.PI / 180) / 2));
   RTSReplayPlayer3D.stage.style.perspective = `${perspective}px`;
   RTSReplayPlayer3D.stage.style.perspectiveOrigin = 'center center';
-  RTSReplayPlayer3D.stage.style.left = '50%';
-  RTSReplayPlayer3D.stage.style.top = '50%';
+  RTSReplayPlayer3D.stage.style.left = dev ? '0' : '50%';
+  RTSReplayPlayer3D.stage.style.top = dev ? '0' : '50%';
 
   // RtsUI coordinates use +Y as up; CSS screen coordinates use +Y down.
-  // Keep X/Y/Z as one world-space translation so Z changes the projected
-  // X/Y position naturally through the perspective camera.
-  return `translate(-50%, -50%) translate3d(${x}vw, ${-y}vh, ${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX}, ${scaleY}, 1)`;
+  // In dev mode the stage is a fixed 1920 × 1080 reference canvas.
+  const xValue = dev ? `${x * 19.2}px` : `${x}vw`;
+  const yValue = dev ? `${-y * 10.8}px` : `${-y}vh`;
+  return `translate(-50%, -50%) translate3d(${xValue}, ${yValue}, ${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX}, ${scaleY}, 1)`;
 };
