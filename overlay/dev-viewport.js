@@ -3,13 +3,11 @@
   if (params.get('dev') !== 'true') return;
 
   const screen = document.getElementById('rts-dev-screen');
-  const overlay = document.getElementById('rts-overlay');
   const bar = document.getElementById('rts-dev-toolbar');
-  const workspace = document.getElementById('rts-dev-workspace');
-  if (!screen || !overlay || !bar || !workspace) return;
+  if (!screen || !bar) return;
 
   let zoom = 1;
-  let panX = Math.round(286 / 2);
+  let panX = Math.max(0, Math.round((window.innerWidth - 286) / 2 - window.innerWidth / 2));
   let panY = 0;
   let dragging = false;
   let startX = 0;
@@ -28,16 +26,16 @@
   }
 
   const apply = () => {
-    workspace.style.setProperty('--dev-pan-x', `${panX}px`);
-    workspace.style.setProperty('--dev-pan-y', `${panY}px`);
-    workspace.style.setProperty('--dev-zoom', zoom);
+    screen.style.setProperty('--dev-zoom', zoom);
+    screen.style.setProperty('--dev-pan-x', `${panX}px`);
+    screen.style.setProperty('--dev-pan-y', `${panY}px`);
     const label = zoomRow.querySelector('[data-viewport-zoom]');
     if (label) label.textContent = `${Math.round(zoom * 100)}%`;
   };
 
   const reset = () => {
     zoom = 1;
-    panX = Math.round(286 / 2);
+    panX = Math.max(0, Math.round((window.innerWidth - 286) / 2 - window.innerWidth / 2));
     panY = 0;
     apply();
   };
@@ -54,16 +52,15 @@
     if (action === 'plus') setZoom(zoom + 0.1);
   });
 
-  workspace.addEventListener('pointerdown', event => {
-    if (event.button !== 0 || event.target.closest('#rts-dev-screen')) return;
-    if (event.target.closest('button, input, select, textarea, a')) return;
+  screen.addEventListener('pointerdown', event => {
+    if (event.button !== 0) return;
     dragging = true;
     startX = event.clientX - panX;
     startY = event.clientY - panY;
-    workspace.setPointerCapture(event.pointerId);
+    screen.setPointerCapture(event.pointerId);
   });
 
-  workspace.addEventListener('pointermove', event => {
+  screen.addEventListener('pointermove', event => {
     if (!dragging) return;
     panX = event.clientX - startX;
     panY = event.clientY - startY;
@@ -72,15 +69,20 @@
 
   const stopDrag = event => {
     dragging = false;
-    if (event.pointerId !== undefined && workspace.hasPointerCapture(event.pointerId)) workspace.releasePointerCapture(event.pointerId);
+    if (event.pointerId !== undefined && screen.hasPointerCapture(event.pointerId)) screen.releasePointerCapture(event.pointerId);
   };
-  workspace.addEventListener('pointerup', stopDrag);
-  workspace.addEventListener('pointercancel', stopDrag);
+  screen.addEventListener('pointerup', stopDrag);
+  screen.addEventListener('pointercancel', stopDrag);
 
-  workspace.addEventListener('wheel', event => {
+  screen.addEventListener('wheel', event => {
     event.preventDefault();
     setZoom(zoom + (event.deltaY < 0 ? 0.1 : -0.1));
-  }, { passive: false, capture: true });
+  }, { passive: false });
+
+  window.addEventListener('resize', () => {
+    if (!dragging && Math.abs(panY) < 1) panX = Math.max(0, Math.round((window.innerWidth - 286) / 2 - window.innerWidth / 2));
+    apply();
+  });
 
   apply();
   window.RTSDevViewport = { reset, setZoom };
