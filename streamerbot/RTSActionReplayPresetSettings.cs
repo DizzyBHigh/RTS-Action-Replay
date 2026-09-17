@@ -29,9 +29,9 @@ public class CPHInline
 
     private void AddBranding(RtsUI ui)
     {
-        ui.BeginSection("Branding Presets", "Branding Presets"); ui.AddTitle("Reusable identity and typography. Branding presets contain no layout or geometry.", "Branding Presets");
+        ui.AddTitle("Reusable identity and typography. Branding presets contain no layout or geometry.", "Branding Presets");
         foreach (var p in Presets("branding")) AddBrandingPreset(ui, p as JObject);
-        ui.AddClickableButton("Add Branding Preset", "Create a new reusable Branding Preset.", "Add Branding Preset", "blue", "Branding Presets", () => { AddPreset("branding"); ui.RebuildUI(Build); }); ui.EndSection();
+        ui.AddClickableButton("Add Branding Preset", "Create a new reusable Branding Preset.", "Add Branding Preset", "blue", "Branding Presets", () => { AddPreset("branding"); ui.RebuildUI(Build); });
     }
 
     private void AddBrandingPreset(RtsUI ui, JObject p)
@@ -49,16 +49,19 @@ public class CPHInline
 
     private void AddVisual(RtsUI ui)
     {
-        ui.BeginSection("Visual Presets", "Visual Presets"); ui.AddTitle("Visual Presets own layout and visual treatment. Cinematic and Minimal are fixed designs.", "Visual Presets");
-        foreach (var p in Presets("visual")) AddVisualPreset(ui, p as JObject);
-        ui.AddClickableButton("Add Visual Preset", "Create a new reusable Visual Preset.", "Add Visual Preset", "blue", "Visual Presets", () => { AddPreset("visual"); ui.RebuildUI(Build); }); ui.EndSection();
+        ui.AddTitle("Configure the reusable visual treatments that can be changed. Cinematic and Minimal are fixed designs.", "Visual Presets");
+        foreach (var p in Presets("visual"))
+        {
+            var id = (string)p["id"];
+            if (id == "broadcast" || id == "cut") AddVisualPreset(ui, p as JObject);
+        }
     }
 
     private void AddVisualPreset(RtsUI ui, JObject p)
     {
         var id = (string)p["id"]; if (string.IsNullOrWhiteSpace(id)) return; ui.BeginSection((string)p["name"] ?? id, "Visual Presets"); ui.AddTextbox("Preset Name", "Display name for this Visual Preset.", "Visual Presets", Key("visual", id, "name"), (string)p["name"] ?? "Visual", false);
-        if (id == "broadcast") AddBroadcastFields(ui, p); else if (id == "cut") AddCutFields(ui, p); else ui.AddTitle("This Visual Preset is fixed and has no configurable design settings.", "Visual Presets");
-        if (id != "broadcast" && id != "cinematic" && id != "cut" && id != "minimal") ui.AddClickableButton("Remove Preset", "Delete this Visual Preset.", "Remove Preset", "red", "Visual Presets", () => { RemovePreset("visual", id); ui.RebuildUI(Build); }); ui.EndSection();
+        if (id == "broadcast") AddBroadcastFields(ui, p); else if (id == "cut") AddCutFields(ui, p);
+        ui.EndSection();
     }
 
     private void AddBroadcastFields(RtsUI ui, JObject p)
@@ -109,8 +112,7 @@ public class CPHInline
     private void AddPreset(string type)
     {
         var a = Presets(type); var id = type + "-custom-" + DateTime.Now.Ticks.ToString(); JObject p;
-        if (type == "visual") p = new JObject { ["id"] = id, ["name"] = "New Visual Preset", ["chevronHeight"] = 42, ["randomHeight"] = false, ["chevronWidth"] = 42, ["randomWidth"] = false, ["chevronSpacing"] = 0, ["randomSpacing"] = false, ["chevronSpeed"] = 95 };
-        else p = new JObject { ["id"] = id, ["name"] = "New Branding Preset", ["primaryColor"] = "#0384CBFF", ["secondaryColor"] = "#101416FF", ["titleColor"] = "#FFFFFFFF", ["titlePrefixSuffixColor"] = "#0384CBFF", ["textColor"] = "#FFFFFFFF", ["shadowColor"] = "#000000FF", ["font"] = "Inter", ["fontSize"] = 34, ["logo"] = "", ["fallbackText"] = "RTS", ["brandLabel"] = "ACTION REPLAY" };
+        p = new JObject { ["id"] = id, ["name"] = "New Branding Preset", ["primaryColor"] = "#0384CBFF", ["secondaryColor"] = "#101416FF", ["titleColor"] = "#FFFFFFFF", ["titlePrefixSuffixColor"] = "#0384CBFF", ["textColor"] = "#FFFFFFFF", ["shadowColor"] = "#000000FF", ["font"] = "Inter", ["fontSize"] = 34, ["logo"] = "", ["fallbackText"] = "RTS", ["brandLabel"] = "ACTION REPLAY" };
         a.Add(p); Save(PresetsKey, Read(PresetsKey));
     }
     private void RemovePreset(string type, string id) { var a = Presets(type); for (var i = a.Count - 1; i >= 0; i--) if (string.Equals((string)a[i]["id"], id, StringComparison.OrdinalIgnoreCase)) a.RemoveAt(i); Save(PresetsKey, Read(PresetsKey)); }
