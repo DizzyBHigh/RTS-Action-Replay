@@ -43,11 +43,11 @@ public class CPHInline
 
         JObject resolved;
         if (component == "panel")
-            resolved = Resolve(PanelKey, entryPoint, new[] { "recent", "playlist", "creatorLeaderboard" });
+            resolved = Resolve(Read(PanelKey, new JObject()), entryPoint, new[] { "recent", "playlist", "creatorLeaderboard" });
         else if (component == "clapper")
             resolved = ResolveClapperEntry();
         else if (component == "player")
-            resolved = Resolve(PlayerKey, entryPoint, new[] { "obs", "twitch", "youtube", "kick", "recent", "catalog", "playlist" });
+            resolved = Resolve(Read(PlayerKey, new JObject()), entryPoint, new[] { "obs", "twitch", "youtube", "kick", "recent", "catalog", "playlist" });
         else
             return false;
 
