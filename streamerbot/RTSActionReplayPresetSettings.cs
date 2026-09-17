@@ -15,16 +15,13 @@ public class CPHInline
     {
         CPH.ExecuteMethod("RTS - Action Replay - Core - Presets Store", "EnsureDefaults");
         CPH.ExecuteMethod("RTS - Action Replay - Core - Presets Store", "EnsureEntryPoints");
-
-        var ui = new RtsUI(
-            "RTS Action Replay Presets", "1.0.0",
+        var ui = new RtsUI("RTS Action Replay Presets", "1.0.0",
             (key, persisted) => CPH.GetGlobalVar<bool?>(key, persisted),
             (key, persisted) => CPH.GetGlobalVar<int?>(key, persisted),
             (key, persisted) => ReadUi(key),
-            (key, persisted) => CPH.GetGlobalVar<string>(key, persisted),
+            (key, persisted) => (object)CPH.GetGlobalVar<string>(key, persisted),
             (key, value, persisted) => SaveUi(key, value, persisted),
             message => CPH.LogInfo(message));
-
         Build(ui);
         ui.ShowUI();
         return true;
@@ -46,15 +43,13 @@ public class CPHInline
     private void AddBrandingPresets(RtsUI ui)
     {
         ui.AddTitle("Reusable identity, colours and typography.", "Branding Presets");
-        foreach (var token in Presets("branding"))
-            AddBrandingPreset(ui, token as JObject);
+        foreach (var token in Presets("branding")) AddBrandingPreset(ui, token as JObject);
     }
 
     private void AddBrandingPreset(RtsUI ui, JObject preset)
     {
         var id = (string)preset?["id"];
         if (string.IsNullOrWhiteSpace(id)) return;
-
         ui.BeginSection((string)preset["name"] ?? id, "Branding Presets");
         ui.BeginRow();
         AddColour(ui, "Primary Colour", "primaryColor", preset, "#0384CBFF");
@@ -82,13 +77,12 @@ public class CPHInline
 
     private void AddTitlePresets(RtsUI ui)
     {
-        ui.AddTitle("Title Presets configure the Broadcast and Cut Title Designs. Cinematic and Minimal are fixed designs.", "Title Presets");
+        ui.AddTitle("Title Presets configure the Broadcast and Cut Title Designs.", "Title Presets");
         foreach (var token in Presets("visual"))
         {
             var preset = token as JObject;
             var design = (string)preset?["design"] ?? (string)preset?["id"];
-            if (design == "broadcast" || design == "cut")
-                AddTitlePreset(ui, preset, design);
+            if (design == "broadcast" || design == "cut") AddTitlePreset(ui, preset, design);
         }
     }
 
@@ -96,25 +90,28 @@ public class CPHInline
     {
         var id = (string)preset["id"];
         ui.BeginSection((string)preset["name"] ?? id, "Title Presets");
-        ui.AddTitle("Design: " + FirstUpper(design), "Title Presets");
-
         if (design == "broadcast")
         {
+            ui.BeginRow();
             AddInt(ui, "Chevron Height", "chevronHeight", preset, 42, 1, 89);
             AddBool(ui, "Randomize Height", "randomHeight", preset, false);
             AddInt(ui, "Chevron Width", "chevronWidth", preset, 42, 1, 300);
             AddBool(ui, "Randomize Width", "randomWidth", preset, false);
+            ui.EndRow();
+            ui.BeginRow();
             AddInt(ui, "Chevron Spacing", "chevronSpacing", preset, 0, 0, 200);
             AddBool(ui, "Randomize Spacing", "randomSpacing", preset, false);
             AddInt(ui, "Chevron Speed", "chevronSpeed", preset, 95, 10, 500);
+            ui.EndRow();
         }
         else
         {
+            ui.BeginRow();
             AddInt(ui, "Block Width", "blockWidth", preset, 170, 1, 600);
             AddBool(ui, "Randomize Width", "randomWidth", preset, true);
             AddInt(ui, "Bar Height", "barHeight", preset, 5, 1, 50);
+            ui.EndRow();
         }
-
         ui.EndSection();
     }
 
@@ -122,7 +119,6 @@ public class CPHInline
     {
         var config = Read(configKey);
         var entries = config["entryPoints"] as JObject ?? new JObject();
-
         for (var i = 0; i < ids.Length; i++)
         {
             var id = ids[i];
@@ -154,9 +150,7 @@ public class CPHInline
     }
 
     private void AddDropdown(RtsUI ui, string label, string help, string category, string key, string[] options, string value)
-    {
-        ui.AddDropdown(label, help, category, key, options, value);
-    }
+        => ui.AddDropdown(label, help, category, key, options, value);
 
     private void AddColour(RtsUI ui, string label, string field, JObject preset, string fallback)
     {
@@ -178,7 +172,6 @@ public class CPHInline
 
     private string Key(string type, string id, string field) => UiPrefix + type + "." + id + "." + field;
     private string EntryKey(string config, string id, string field) => UiPrefix + "entry." + config + "." + id + "." + field;
-
     private JArray Presets(string type) => Read(PresetsKey)[type] as JArray ?? new JArray();
 
     private JObject Find(string type, string id)
@@ -193,6 +186,8 @@ public class CPHInline
         var names = new List<string>();
         foreach (var token in Presets(type))
         {
+            var design = (string)token["design"];
+            if (type == "visual" && design != "broadcast" && design != "cut") continue;
             var name = (string)token["name"];
             if (!string.IsNullOrWhiteSpace(name)) names.Add(name);
         }
@@ -202,6 +197,11 @@ public class CPHInline
     private string Name(string type, string id)
     {
         var preset = Find(type, id);
+        if (type == "visual" && preset != null)
+        {
+            var design = (string)preset["design"];
+            if (design != "broadcast" && design != "cut") preset = null;
+        }
         return preset == null ? (type == "visual" ? "Broadcast" : "Default") : (string)preset["name"] ?? id;
     }
 
@@ -307,9 +307,9 @@ public class CPHInline
     private string ResolveId(string type, string name)
     {
         var preset = Find(type, name);
-        if (preset != null) return (string)preset["id"];
+        if (preset != null && (type != "visual" || (string)preset["design"] == "broadcast" || (string)preset["design"] == "cut")) return (string)preset["id"];
         foreach (var token in Presets(type))
-            if (string.Equals((string)token["name"], name, StringComparison.OrdinalIgnoreCase)) return (string)token["id"];
+            if (string.Equals((string)token["name"], name, StringComparison.OrdinalIgnoreCase) && (type != "visual" || (string)token["design"] == "broadcast" || (string)token["design"] == "cut")) return (string)token["id"];
         return type == "visual" ? "broadcast" : "default";
     }
 
@@ -328,6 +328,4 @@ public class CPHInline
         if (int.TryParse(value, out var integer)) return integer;
         return value;
     }
-
-    private string FirstUpper(string value) => string.IsNullOrEmpty(value) ? value : char.ToUpperInvariant(value[0]) + value.Substring(1);
 }
