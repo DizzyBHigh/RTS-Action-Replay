@@ -10,6 +10,8 @@ public class CPHInline
     private const string UiPrefix = "rts.actionreplay.ui.animation.";
     private const string PanelPresetUiPrefix = "rts.actionreplay.ui.panelPreset.";
     private const string TitleUiPrefix = "rts.actionreplay.ui.title.";
+    private const string PresetUiPrefix = "rts.actionreplay.ui.preset.";
+    private const string PresetsKey = "rts.actionreplay.config.presets";
     private const string ClapperPositionsUiKey = "rts.actionreplay.ui.clapperPositions";
     private const string ClapperPositionsKey = "rts.actionreplay.clapper.positions";
 
@@ -94,7 +96,7 @@ public class CPHInline
 
     private void AddPanelEntry(RtsUI ui, string title, string point)
     {
-        ui.BeginSection(title, "Information Panels"); ui.AddDropdown("Animation Profile", "Animation profile used for this information-panel entry point.", "Information Panels", UiPrefix + "panel.entry." + point, BuildProfileOptions(PanelKey), "Default"); ui.AddDropdown("Visual Preset", "Visual preset used for this information-panel entry point.", "Information Panels", PanelPresetUiPrefix + point, PanelPresetOptions(), "Broadcast"); ui.EndSection();
+        ui.BeginSection(title, "Information Panels"); ui.AddDropdown("Animation Profile", "Animation profile used for this information-panel entry point.", "Information Panels", UiPrefix + "panel.entry." + point, BuildProfileOptions(PanelKey), "Default"); ui.AddDropdown("Visual Preset", "Existing visual preset used by this information-panel entry point. This legacy selector remains during migration.", "Information Panels", PanelPresetUiPrefix + point, PanelPresetOptions(), "Broadcast"); ui.AddDropdown("Branding Preset", "Branding preset used by this information-panel entry point.", "Information Panels", PresetUiPrefix + "panel.entry." + point + ".branding", BrandingPresetOptions(), "Default"); ui.EndSection();
     }
 
     private static string[] PanelPresetOptions() => new[] { "Broadcast", "Cinematic", "Cut", "Minimal" };
@@ -106,10 +108,17 @@ public class CPHInline
 
     private void AddAnimationProfileSettings(RtsUI ui)
     {
-        ui.AddTitle("Animation Profiles", "Positions"); ui.AddDropdown("Default Animation Profile", "Fallback profile used when no entry point has a specific profile configured.", "Positions", UiPrefix + "player.selectedProfile", BuildProfileOptions(PlayerKey), "Default"); ui.BeginSection("Entry Point Profiles", "Positions"); ui.AddTitle("Choose which animation profile each replay entry point uses.", "Positions"); ui.BeginRow(); AddPlayerEntry(ui, "Create — OBS", "obs"); AddPlayerEntry(ui, "Create — Twitch", "twitch"); ui.EndRow(); ui.BeginRow(); AddPlayerEntry(ui, "Create — YouTube", "youtube"); AddPlayerEntry(ui, "Create — Kick", "kick"); ui.EndRow(); ui.BeginRow(); AddPlayerEntry(ui, "Play — Recent", "recent"); AddPlayerEntry(ui, "Play — Catalog", "catalog"); ui.EndRow(); AddPlayerEntry(ui, "Play — Playlist", "playlist"); ui.EndSection(); ui.AddClickableButton("Add Profile", "Create a new animation profile.", "Add Profile", "blue", "Positions", () => { if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "AddProfile")) ui.RebuildUI(rebuilt => BuildSettings(rebuilt)); }); foreach (var item in ReadProfiles(PlayerKey)) { var id = (string)item["id"]; if (!string.IsNullOrWhiteSpace(id)) AddPlayerAnimationProfile(ui, (string)item["name"] ?? "Default", id); }
+        ui.AddTitle("Animation Profiles", "Positions"); ui.AddDropdown("Default Animation Profile", "Fallback profile used when no entry point has a specific profile configured.", "Positions", UiPrefix + "player.selectedProfile", BuildProfileOptions(PlayerKey), "Default"); ui.BeginSection("Entry Point Profiles", "Positions"); ui.AddTitle("Choose which animation profile each replay entry point uses. Visual and branding presets are selected alongside each entry point below.", "Positions"); ui.BeginRow(); AddPlayerEntry(ui, "Create — OBS", "obs"); AddPlayerEntry(ui, "Create — Twitch", "twitch"); ui.EndRow(); ui.BeginRow(); AddPlayerEntry(ui, "Create — YouTube", "youtube"); AddPlayerEntry(ui, "Create — Kick", "kick"); ui.EndRow(); ui.BeginRow(); AddPlayerEntry(ui, "Play — Recent", "recent"); AddPlayerEntry(ui, "Play — Catalog", "catalog"); ui.EndRow(); AddPlayerEntry(ui, "Play — Playlist", "playlist"); ui.EndSection(); ui.AddClickableButton("Add Profile", "Create a new animation profile.", "Add Profile", "blue", "Positions", () => { if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "AddProfile")) ui.RebuildUI(rebuilt => BuildSettings(rebuilt)); }); foreach (var item in ReadProfiles(PlayerKey)) { var id = (string)item["id"]; if (!string.IsNullOrWhiteSpace(id)) AddPlayerAnimationProfile(ui, (string)item["name"] ?? "Default", id); }
     }
 
-    private void AddPlayerEntry(RtsUI ui, string title, string point) => ui.AddDropdown(title, "Animation profile used for this replay entry point.", "Positions", UiPrefix + "player.entry." + point, BuildProfileOptions(PlayerKey), "Default");
+    private void AddPlayerEntry(RtsUI ui, string title, string point)
+    {
+        ui.BeginSection(title);
+        ui.AddDropdown("Animation Profile", "Animation profile used for this replay entry point.", "Positions", UiPrefix + "player.entry." + point, BuildProfileOptions(PlayerKey), "Default");
+        ui.AddDropdown("Visual Preset", "Visual preset used for this replay entry point.", "Positions", PresetUiPrefix + "player.entry." + point + ".visual", VisualPresetOptions(), "Broadcast");
+        ui.AddDropdown("Branding Preset", "Branding preset used for this replay entry point.", "Positions", PresetUiPrefix + "player.entry." + point + ".branding", BrandingPresetOptions(), "Default");
+        ui.EndSection();
+    }
 
     private void AddPlayerAnimationProfile(RtsUI ui, string title, string id)
     {
@@ -120,6 +129,7 @@ public class CPHInline
     {
         ui.BeginSection("Animation Profiles", "Messages");
         ui.AddDropdown("Animation Profile", "Animation profile used when the Clapperboard message appears and disappears.", "Messages", UiPrefix + "clapper.selectedProfile", BuildProfileOptions(ClapperAnimationKey), "Default");
+        ui.AddDropdown("Branding Preset", "Branding preset used by the Clapperboard.", "Messages", PresetUiPrefix + "clapper.entry.branding", BrandingPresetOptions(), "Default");
         ui.AddClickableButton("Add Profile", "Create a new Clapperboard animation profile.", "Add Profile", "blue", "Messages", () => { if (CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "AddClapperProfile")) ui.RebuildUI(rebuilt => BuildSettings(rebuilt)); });
         foreach (var item in ReadProfiles(ClapperAnimationKey))
         {
@@ -159,20 +169,85 @@ public class CPHInline
     private string[] BuildPositionOptions(string json, string builtIn) { var options = new List<string> { builtIn }; foreach (var item in ParsePositions(json)) { var name = (string)item.Value["name"]; if (!string.IsNullOrWhiteSpace(name) && !options.Contains(name)) options.Add(name); } return options.ToArray(); }
     private string[] BuildClapperPositionOptions() { var json = CPH.GetGlobalVar<string>(ClapperPositionsUiKey, true); return BuildPositionOptions(json, "Centered"); }
 
+    private string[] VisualPresetOptions() => BuildPresetOptions("visual", "Broadcast");
+    private string[] BrandingPresetOptions() => BuildPresetOptions("branding", "Default");
+    private string[] BuildPresetOptions(string type, string fallback)
+    {
+        var list = new List<string>();
+        try { var presets = ReadConfig(PresetsKey)[type] as JArray; foreach (var item in presets ?? new JArray()) { var name = (string)item["name"]; if (!string.IsNullOrWhiteSpace(name)) list.Add(name); } }
+        catch { }
+        if (list.Count == 0) list.Add(fallback);
+        return list.ToArray();
+    }
+
     private string ReadUiValue(string key)
     {
+        if (key.StartsWith(PresetUiPrefix, StringComparison.Ordinal)) return ReadPresetUiValue(key);
         if (key.StartsWith(PanelPresetUiPrefix, StringComparison.Ordinal)) { var point = key.Substring(PanelPresetUiPrefix.Length); var config = ReadConfig(PanelKey); var preset = config["preset"] as JObject; var entries = preset?["entryPoints"] as JObject; return (string)entries?[point] ?? (string)preset?["fallback"] ?? "Broadcast"; }
         if (key.StartsWith(TitleUiPrefix, StringComparison.Ordinal)) { try { var parts = key.Substring(TitleUiPrefix.Length).Split('.'); var config = ReadConfig(PlayerKey); var title = config["title"] as JObject ?? new JObject(); if (parts[0] == "defaultProfile") return NormalizeTitleProfile((string)title["selectedProfile"] ?? CPH.GetGlobalVar<string>("rts.actionreplay.titleBarStyle", true)); if (parts[0] == "entry") return NormalizeTitleProfile((string)(title["entryPoints"] as JObject)?[parts[1]] ?? (string)title["selectedProfile"]); } catch { } return "Broadcast"; }
         if (!key.StartsWith(UiPrefix, StringComparison.Ordinal)) return CPH.GetGlobalVar<string>(key, true);
         try { var parts = key.Substring(UiPrefix.Length).Split('.'); var configKey = parts[0] == "player" ? PlayerKey : parts[0] == "panel" ? PanelKey : ClapperAnimationKey; var config = ReadConfig(configKey); if (parts[1] == "selectedProfile") return ProfileName(config, (string)(config["animation"] as JObject)?["selectedProfile"]); if (parts[1] == "entry") { var entries = (config["animation"] as JObject)?["entryPoints"] as JObject; return ProfileName(config, (string)entries?[parts[2]]); } if (parts[1] == "profile") { var profile = FindProfile(config["animationProfiles"] as JArray, parts[2]); if (parts.Length == 4 && parts[3] == "name") return (string)profile?["name"] ?? "New Profile"; if (parts.Length == 4) return SequenceJson(profile, parts[3]); } } catch { } return "";
     }
 
+    private string ReadPresetUiValue(string key)
+    {
+        try
+        {
+            var parts = key.Substring(PresetUiPrefix.Length).Split('.');
+            var component = parts[0];
+            var point = parts[2];
+            var type = parts[3];
+            var configKey = component == "player" ? PlayerKey : component == "panel" ? PanelKey : ClapperAnimationKey;
+            var config = ReadConfig(configKey);
+            JObject entry;
+            if (component == "clapper") entry = config["entryPoint"] as JObject ?? new JObject();
+            else entry = (config["entryPoints"] as JObject)?[point] as JObject ?? new JObject();
+            return PresetName(type, (string)entry[type + "Preset"]);
+        }
+        catch { return key.Contains(".visual") ? "Broadcast" : "Default"; }
+    }
+
     private void SaveUiValue(string key, object value, bool persisted)
     {
+        if (key.StartsWith(PresetUiPrefix, StringComparison.Ordinal)) { SavePresetUiValue(key, value); return; }
         if (key.StartsWith(PanelPresetUiPrefix, StringComparison.Ordinal)) { try { var point = key.Substring(PanelPresetUiPrefix.Length); var config = ReadConfig(PanelKey); var preset = config["preset"] as JObject ?? new JObject(); var entries = preset["entryPoints"] as JObject ?? new JObject(); var selected = NormalizeTitleProfile(value == null ? "" : value.ToString()); entries[point] = selected; preset["entryPoints"] = entries; if (string.IsNullOrWhiteSpace((string)preset["fallback"])) preset["fallback"] = "Broadcast"; config["preset"] = preset; SaveConfig(PanelKey, config); } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: panel preset UI save failed: " + ex.Message); } return; }
         if (key.StartsWith(TitleUiPrefix, StringComparison.Ordinal)) { try { var parts = key.Substring(TitleUiPrefix.Length).Split('.'); var config = ReadConfig(PlayerKey); var title = config["title"] as JObject ?? new JObject(); config["title"] = title; var profile = NormalizeTitleProfile(value == null ? "" : value.ToString()); if (parts[0] == "defaultProfile") { title["selectedProfile"] = profile; CPH.SetGlobalVar("rts.actionreplay.titleBarStyle", profile, true); } else if (parts[0] == "entry") { var entries = title["entryPoints"] as JObject ?? new JObject(); entries[parts[1]] = profile; title["entryPoints"] = entries; } SaveConfig(PlayerKey, config); } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: title profile UI save failed: " + ex.Message); } return; }
         if (!key.StartsWith(UiPrefix, StringComparison.Ordinal)) { CPH.SetGlobalVar(key, value, persisted); return; }
         try { var parts = key.Substring(UiPrefix.Length).Split('.'); var configKey = parts[0] == "player" ? PlayerKey : parts[0] == "panel" ? PanelKey : ClapperAnimationKey; var config = ReadConfig(configKey); var animation = config["animation"] as JObject ?? new JObject(); config["animation"] = animation; var text = value == null ? "" : value.ToString(); if (parts[1] == "selectedProfile") animation["selectedProfile"] = ResolveProfileId(config, text); else if (parts[1] == "entry") { var entries = animation["entryPoints"] as JObject ?? new JObject(); entries[parts[2]] = ResolveProfileId(config, text); animation["entryPoints"] = entries; } else if (parts[1] == "profile" && parts.Length == 4 && parts[3] == "name") { var profile = FindProfile(config["animationProfiles"] as JArray, parts[2]); if (profile != null) profile["name"] = text; } SaveConfig(configKey, config); } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: animation UI save failed: " + ex.Message); }
+    }
+
+    private void SavePresetUiValue(string key, object value)
+    {
+        try
+        {
+            var parts = key.Substring(PresetUiPrefix.Length).Split('.');
+            var component = parts[0];
+            var point = parts[2];
+            var type = parts[3];
+            var configKey = component == "player" ? PlayerKey : component == "panel" ? PanelKey : ClapperAnimationKey;
+            var config = ReadConfig(configKey);
+            JObject entry;
+            if (component == "clapper") entry = config["entryPoint"] as JObject ?? new JObject();
+            else { var entries = config["entryPoints"] as JObject ?? new JObject(); entry = entries[point] as JObject ?? new JObject(); entries[point] = entry; config["entryPoints"] = entries; }
+            entry[type + "Preset"] = ResolvePresetId(type, value == null ? "" : value.ToString());
+            if (component == "clapper") config["entryPoint"] = entry;
+            SaveConfig(configKey, config);
+        }
+        catch (Exception ex) { CPH.LogWarn("RTS Action Replay: preset UI save failed: " + ex.Message); }
+    }
+
+    private string PresetName(string type, string id)
+    {
+        var presets = ReadConfig(PresetsKey)[type] as JArray;
+        foreach (var item in presets ?? new JArray()) if (string.Equals((string)item["id"], id, StringComparison.OrdinalIgnoreCase)) return (string)item["name"] ?? id;
+        return type == "visual" ? "Broadcast" : "Default";
+    }
+
+    private string ResolvePresetId(string type, string value)
+    {
+        var presets = ReadConfig(PresetsKey)[type] as JArray;
+        foreach (var item in presets ?? new JArray()) if (string.Equals((string)item["id"], value, StringComparison.OrdinalIgnoreCase) || string.Equals((string)item["name"], value, StringComparison.OrdinalIgnoreCase)) return (string)item["id"];
+        return type == "visual" ? "broadcast" : "default";
     }
 
     private static string NormalizeTitleProfile(string value) { foreach (var profile in new[] { "Broadcast", "Cinematic", "Cut", "Minimal" }) if (string.Equals(profile, value, StringComparison.OrdinalIgnoreCase)) return profile; return "Broadcast"; }
