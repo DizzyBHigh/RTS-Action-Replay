@@ -31,7 +31,7 @@ public class CPHInline
     {
         AddGeneralSettings(ui); AddBrandingSettings(ui); AddPlaylistSettings(ui); AddTwitchSettings(ui); AddYouTubeSettings(ui);
         CPH.ExecuteMethod("RTS - Action Replay - Core - Animation", "EnsureProfiles");
-        CPH.ExecuteMethod("RTS - Action Replay - Core - Title", "EnsureProfiles");
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Presets Store", "EnsureEntryPoints");
         AddPlayerSettings(ui); AddAppearanceSettings(ui); AddPositionSettings(ui); AddMessageSettings(ui);
     }
 
