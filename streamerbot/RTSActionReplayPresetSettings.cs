@@ -29,36 +29,36 @@ public class CPHInline
 
     private void AddBranding(RtsUI ui)
     {
-        ui.BeginSection("Branding Presets", "Presets"); ui.AddTitle("Reusable identity and typography. Branding presets contain no layout or geometry.", "Presets");
+        ui.BeginSection("Branding Presets", "Branding Presets"); ui.AddTitle("Reusable identity and typography. Branding presets contain no layout or geometry.", "Branding Presets");
         foreach (var p in Presets("branding")) AddBrandingPreset(ui, p as JObject);
-        ui.AddClickableButton("Add Branding Preset", "Create a new reusable Branding Preset.", "Add Branding Preset", "blue", "Presets", () => { AddPreset("branding"); ui.RebuildUI(Build); }); ui.EndSection();
+        ui.AddClickableButton("Add Branding Preset", "Create a new reusable Branding Preset.", "Add Branding Preset", "blue", "Branding Presets", () => { AddPreset("branding"); ui.RebuildUI(Build); }); ui.EndSection();
     }
 
     private void AddBrandingPreset(RtsUI ui, JObject p)
     {
-        var id = (string)p["id"]; if (string.IsNullOrWhiteSpace(id)) return; ui.BeginSection((string)p["name"] ?? id, "Presets");
-        ui.AddTextbox("Preset Name", "Display name for this Branding Preset.", "Presets", Key("branding", id, "name"), (string)p["name"] ?? "Branding", false);
-        ui.BeginRow(); ui.AddColorPicker("Primary Colour", "Primary brand colour.", "Presets", Key("branding", id, "primaryColor"), (string)p["primaryColor"] ?? "#0384CBFF"); ui.AddColorPicker("Secondary Colour", "Secondary brand colour.", "Presets", Key("branding", id, "secondaryColor"), (string)p["secondaryColor"] ?? "#101416FF"); ui.EndRow();
-        ui.BeginRow(); ui.AddColorPicker("Title Colour", "Replay title colour.", "Presets", Key("branding", id, "titleColor"), (string)p["titleColor"] ?? "#FFFFFFFF"); ui.AddColorPicker("Title Prefix / Suffix Colour", "Colour used by title prefix or suffix decoration.", "Presets", Key("branding", id, "titlePrefixSuffixColor"), (string)p["titlePrefixSuffixColor"] ?? "#0384CBFF"); ui.EndRow();
-        ui.BeginRow(); ui.AddColorPicker("Text Colour", "General branded text colour.", "Presets", Key("branding", id, "textColor"), (string)p["textColor"] ?? "#FFFFFFFF"); ui.AddColorPicker("Shadow Colour", "Text shadow colour.", "Presets", Key("branding", id, "shadowColor"), (string)p["shadowColor"] ?? "#000000FF"); ui.EndRow();
-        ui.BeginRow(); ui.AddGoogleFontSelector("Font", "Google Font used by the branded title and text.", "Presets", Key("branding", id, "font"), (string)p["font"] ?? "Inter"); ui.AddNumericTextbox("Font Size", "Default branded font size in pixels.", "Presets", Key("branding", id, "fontSize"), (int?)p["fontSize"] ?? 34, 12, 96); ui.EndRow();
-        ui.AddTextbox("Logo URL", "HTTPS URL of the branding logo.", "Presets", Key("branding", id, "logo"), (string)p["logo"] ?? "", false);
-        ui.BeginRow(); ui.AddTextbox("Fallback Text", "Text used when no logo is defined.", "Presets", Key("branding", id, "fallbackText"), (string)p["fallbackText"] ?? "RTS", false); ui.AddTextbox("Brand Label", "Label displayed beside the logo or fallback text.", "Presets", Key("branding", id, "brandLabel"), (string)p["brandLabel"] ?? "ACTION REPLAY", false); ui.EndRow();
-        if (id != "default") ui.AddClickableButton("Remove Preset", "Delete this Branding Preset.", "Remove Preset", "red", "Presets", () => { RemovePreset("branding", id); ui.RebuildUI(Build); }); ui.EndSection();
+        var id = (string)p["id"]; if (string.IsNullOrWhiteSpace(id)) return; ui.BeginSection((string)p["name"] ?? id, "Branding Presets");
+        ui.AddTextbox("Preset Name", "Display name for this Branding Preset.", "Branding Presets", Key("branding", id, "name"), (string)p["name"] ?? "Branding", false);
+        ui.BeginRow(); ui.AddColorPicker("Primary Colour", "Primary brand colour.", "Branding Presets", Key("branding", id, "primaryColor"), (string)p["primaryColor"] ?? "#0384CBFF"); ui.AddColorPicker("Secondary Colour", "Secondary brand colour.", "Branding Presets", Key("branding", id, "secondaryColor"), (string)p["secondaryColor"] ?? "#101416FF"); ui.EndRow();
+        ui.BeginRow(); ui.AddColorPicker("Title Colour", "Replay title colour.", "Branding Presets", Key("branding", id, "titleColor"), (string)p["titleColor"] ?? "#FFFFFFFF"); ui.AddColorPicker("Title Prefix / Suffix Colour", "Colour used by title prefix or suffix decoration.", "Branding Presets", Key("branding", id, "titlePrefixSuffixColor"), (string)p["titlePrefixSuffixColor"] ?? "#0384CBFF"); ui.EndRow();
+        ui.BeginRow(); ui.AddColorPicker("Text Colour", "General branded text colour.", "Branding Presets", Key("branding", id, "textColor"), (string)p["textColor"] ?? "#FFFFFFFF"); ui.AddColorPicker("Shadow Colour", "Text shadow colour.", "Branding Presets", Key("branding", id, "shadowColor"), (string)p["shadowColor"] ?? "#000000FF"); ui.EndRow();
+        ui.BeginRow(); ui.AddGoogleFontSelector("Font", "Google Font used by the branded title and text.", "Branding Presets", Key("branding", id, "font"), (string)p["font"] ?? "Inter"); ui.AddNumericTextbox("Font Size", "Default branded font size in pixels.", "Branding Presets", Key("branding", id, "fontSize"), (int?)p["fontSize"] ?? 34, 12, 96); ui.EndRow();
+        ui.AddTextbox("Logo URL", "HTTPS URL of the branding logo.", "Branding Presets", Key("branding", id, "logo"), (string)p["logo"] ?? "", false);
+        ui.BeginRow(); ui.AddTextbox("Fallback Text", "Text used when no logo is defined.", "Branding Presets", Key("branding", id, "fallbackText"), (string)p["fallbackText"] ?? "RTS", false); ui.AddTextbox("Brand Label", "Label displayed beside the logo or fallback text.", "Branding Presets", Key("branding", id, "brandLabel"), (string)p["brandLabel"] ?? "ACTION REPLAY", false); ui.EndRow();
+        if (id != "default") ui.AddClickableButton("Remove Preset", "Delete this Branding Preset.", "Remove Preset", "red", "Branding Presets", () => { RemovePreset("branding", id); ui.RebuildUI(Build); }); ui.EndSection();
     }
 
     private void AddVisual(RtsUI ui)
     {
-        ui.BeginSection("Visual Presets", "Presets"); ui.AddTitle("Visual Presets own layout and visual treatment. Cinematic and Minimal are fixed designs.", "Presets");
+        ui.BeginSection("Visual Presets", "Visual Presets"); ui.AddTitle("Visual Presets own layout and visual treatment. Cinematic and Minimal are fixed designs.", "Visual Presets");
         foreach (var p in Presets("visual")) AddVisualPreset(ui, p as JObject);
-        ui.AddClickableButton("Add Visual Preset", "Create a new reusable Visual Preset.", "Add Visual Preset", "blue", "Presets", () => { AddPreset("visual"); ui.RebuildUI(Build); }); ui.EndSection();
+        ui.AddClickableButton("Add Visual Preset", "Create a new reusable Visual Preset.", "Add Visual Preset", "blue", "Visual Presets", () => { AddPreset("visual"); ui.RebuildUI(Build); }); ui.EndSection();
     }
 
     private void AddVisualPreset(RtsUI ui, JObject p)
     {
-        var id = (string)p["id"]; if (string.IsNullOrWhiteSpace(id)) return; ui.BeginSection((string)p["name"] ?? id, "Presets"); ui.AddTextbox("Preset Name", "Display name for this Visual Preset.", "Presets", Key("visual", id, "name"), (string)p["name"] ?? "Visual", false);
-        if (id == "broadcast") AddBroadcastFields(ui, p); else if (id == "cut") AddCutFields(ui, p); else ui.AddTitle("This Visual Preset is fixed and has no configurable design settings.", "Presets");
-        if (id != "broadcast" && id != "cinematic" && id != "cut" && id != "minimal") ui.AddClickableButton("Remove Preset", "Delete this Visual Preset.", "Remove Preset", "red", "Presets", () => { RemovePreset("visual", id); ui.RebuildUI(Build); }); ui.EndSection();
+        var id = (string)p["id"]; if (string.IsNullOrWhiteSpace(id)) return; ui.BeginSection((string)p["name"] ?? id, "Visual Presets"); ui.AddTextbox("Preset Name", "Display name for this Visual Preset.", "Visual Presets", Key("visual", id, "name"), (string)p["name"] ?? "Visual", false);
+        if (id == "broadcast") AddBroadcastFields(ui, p); else if (id == "cut") AddCutFields(ui, p); else ui.AddTitle("This Visual Preset is fixed and has no configurable design settings.", "Visual Presets");
+        if (id != "broadcast" && id != "cinematic" && id != "cut" && id != "minimal") ui.AddClickableButton("Remove Preset", "Delete this Visual Preset.", "Remove Preset", "red", "Visual Presets", () => { RemovePreset("visual", id); ui.RebuildUI(Build); }); ui.EndSection();
     }
 
     private void AddBroadcastFields(RtsUI ui, JObject p)
@@ -70,20 +70,20 @@ public class CPHInline
     private void AddCutFields(RtsUI ui, JObject p)
     { ui.BeginRow(); AddInt(ui, "Block Width", "blockWidth", p, 170, 1, 600); AddBool(ui, "Randomize Width", "randomWidth", p, true); AddInt(ui, "Bar Height", "barHeight", p, 5, 1, 50); ui.EndRow(); }
 
-    private void AddPlayerEntries(RtsUI ui) => AddEntries(ui, "Player Entry Points", PlayerKey, new[] { "obs", "twitch", "youtube", "kick", "recent", "catalog", "playlist" }, new[] { "Create — OBS", "Create — Twitch", "Create — YouTube", "Create — Kick", "Play — Recent", "Play — Catalog", "Play — Playlist" });
-    private void AddPanelEntries(RtsUI ui) => AddEntries(ui, "Panel Entry Points", PanelKey, new[] { "recent", "playlist", "creatorLeaderboard" }, new[] { "Recent / Search", "Playlist", "Creator Leaderboard" });
+    private void AddPlayerEntries(RtsUI ui) => AddEntries(ui, "Player Entry Points", PlayerKey, new[] { "obs", "twitch", "youtube", "kick", "recent", "catalog", "playlist" }, new[] { "Create — OBS", "Create — Twitch", "Create — YouTube", "Create — Kick", "Play — Recent", "Play — Catalog", "Play — Playlist" }, "Player Entry Points");
+    private void AddPanelEntries(RtsUI ui) => AddEntries(ui, "Panel Entry Points", PanelKey, new[] { "recent", "playlist", "creatorLeaderboard" }, new[] { "Recent / Search", "Playlist", "Creator Leaderboard" }, "Panel Entry Points");
     private void AddClapper(RtsUI ui)
-    { var c = Read(ClapperKey); var e = c["entryPoint"] as JObject ?? new JObject(); ui.BeginSection("Clapperboard", "Entry Points"); ui.AddDropdown("Branding Preset", "Branding preset used by the Clapperboard.", "Entry Points", UiPrefix + "clapper.branding", Names("branding"), Name("branding", (string)e["brandingPreset"] ?? "default")); ui.EndSection(); }
+    { var c = Read(ClapperKey); var e = c["entryPoint"] as JObject ?? new JObject(); ui.BeginSection("Clapperboard", "Clapperboard"); ui.AddDropdown("Branding Preset", "Branding preset used by the Clapperboard.", "Clapperboard", UiPrefix + "clapper.branding", Names("branding"), Name("branding", (string)e["brandingPreset"] ?? "default")); ui.EndSection(); }
 
-    private void AddEntries(RtsUI ui, string title, string configKey, string[] ids, string[] labels)
+    private void AddEntries(RtsUI ui, string title, string configKey, string[] ids, string[] labels, string category)
     {
-        var c = Read(configKey); var entries = c["entryPoints"] as JObject ?? new JObject(); ui.BeginSection(title, "Entry Points");
-        for (var i = 0; i < ids.Length; i++) { var e = entries[ids[i]] as JObject ?? new JObject(); ui.BeginSection(labels[i]); ui.AddDropdown("Visual Preset", "Visual preset used by this entry point.", "Entry Points", UiPrefix + "entry." + configKey + "." + ids[i] + ".visual", Names("visual"), Name("visual", (string)e["visualPreset"] ?? "broadcast")); ui.AddDropdown("Branding Preset", "Branding preset used by this entry point.", "Entry Points", UiPrefix + "entry." + configKey + "." + ids[i] + ".branding", Names("branding"), Name("branding", (string)e["brandingPreset"] ?? "default")); ui.EndSection(); } ui.EndSection();
+        var c = Read(configKey); var entries = c["entryPoints"] as JObject ?? new JObject(); ui.BeginSection(title, category);
+        for (var i = 0; i < ids.Length; i++) { var e = entries[ids[i]] as JObject ?? new JObject(); ui.BeginSection(labels[i]); ui.AddDropdown("Visual Preset", "Visual preset used by this entry point.", category, UiPrefix + "entry." + configKey + "." + ids[i] + ".visual", Names("visual"), Name("visual", (string)e["visualPreset"] ?? "broadcast")); ui.AddDropdown("Branding Preset", "Branding preset used by this entry point.", category, UiPrefix + "entry." + configKey + "." + ids[i] + ".branding", Names("branding"), Name("branding", (string)e["brandingPreset"] ?? "default")); ui.EndSection(); } ui.EndSection();
     }
 
     private string Key(string type, string id, string field) => UiPrefix + type + "." + id + "." + field;
-    private void AddInt(RtsUI ui, string label, string field, JObject p, int fallback, int min, int max) => ui.AddNumericTextbox(label, "Visual preset setting.", "Presets", Key("visual", (string)p["id"], field), (int?)p[field] ?? fallback, min, max);
-    private void AddBool(RtsUI ui, string label, string field, JObject p, bool fallback) => ui.AddToggleSwitch(label, "Visual preset setting.", "Presets", Key("visual", (string)p["id"], field), (bool?)p[field] ?? fallback);
+    private void AddInt(RtsUI ui, string label, string field, JObject p, int fallback, int min, int max) => ui.AddNumericTextbox(label, "Visual preset setting.", "Visual Presets", Key("visual", (string)p["id"], field), (int?)p[field] ?? fallback, min, max);
+    private void AddBool(RtsUI ui, string label, string field, JObject p, bool fallback) => ui.AddToggleSwitch(label, "Visual preset setting.", "Visual Presets", Key("visual", (string)p["id"], field), (bool?)p[field] ?? fallback);
     private JArray Presets(string type) => Read(PresetsKey)[type] as JArray ?? new JArray();
     private string[] Names(string type) { var list = new List<string>(); foreach (var p in Presets(type)) { var n = (string)p["name"]; if (!string.IsNullOrWhiteSpace(n)) list.Add(n); } return list.Count == 0 ? new[] { type == "visual" ? "Broadcast" : "Default" } : list.ToArray(); }
     private string Name(string type, string id) { foreach (var p in Presets(type)) if (string.Equals((string)p["id"], id, StringComparison.OrdinalIgnoreCase)) return (string)p["name"] ?? id; return type == "visual" ? "Broadcast" : "Default"; }
