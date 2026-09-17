@@ -26,6 +26,8 @@ public class CPHInline
     private const string PlaybackProfileHandoffKey = "rts.actionreplay.handoff.playbackProfile";
     private const string PlaybackQueueEntryHandoffKey = "rts.actionreplay.handoff.playbackQueueEntryId";
     private const string PlayerPositionsHandoffKey = "rts.actionreplay.handoff.playerPositions";
+    private const string AnimationProfileHandoffKey = "rts.actionreplay.handoff.animationProfile";
+    private const string VisualHandoffKey = "rts.actionreplay.handoff.visualBranding";
 
     public bool Execute() => PlayReplay();
 
@@ -111,10 +113,62 @@ public class CPHInline
         CPH.SetArgument("animationProfile", profile); CPH.SetArgument("designPreset", designProfile); CPH.SetArgument("titlePreset", titleProfile); CPH.SetArgument("brandingPreset", brandingProfile);
         CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay dispatching load; replayId={(string)replay["id"]}; url={url}; animationProfile={profile}; designPreset={designProfile}; titlePreset={titleProfile}; brandingPreset={brandingProfile}; queueEntryId={queueEntryId}; source={source}.");
         if (!CPH.ExecuteMethod(PresetStoreAction, "ApplyVisualAndBranding")) { CPH.LogWarn("RTS Action Replay TRACE: PlayReplay failed - queued visual/title/branding presets could not be applied."); return false; }
+        ApplyVisualHandoff(queueEntryId);
         CPH.SetArgument("replayAnimationProfileId", profile);
         if (!CPH.ExecuteMethod(AnimationAction, "ApplyProfile")) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - animation profile '{profile}' could not be applied."); return false; }
+        ApplyAnimationHandoff();
         CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false) ?? "");
         CPH.TriggerEvent(EventName, true); SendMessage("play"); CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay completed dispatch for replay {(string)replay["id"]}."); return true;
+    }
+
+    private void ApplyVisualHandoff(string queueEntryId)
+    {
+        var key = VisualHandoffKey + "." + (queueEntryId ?? "");
+        var raw = CPH.GetGlobalVar<string>(key, false); if (string.IsNullOrWhiteSpace(raw)) return;
+        try
+        {
+            var p = JObject.Parse(raw);
+            CPH.SetArgument("replayShowTitle", (bool?)p["showTitle"] ?? true);
+            CPH.SetArgument("replayTitleDecorationPosition", (string)p["decorationPosition"] ?? "Prefix");
+            CPH.SetArgument("replayTitleDecoration", (string)p["decoration"] ?? "Action Replay -");
+            CPH.SetArgument("replayTitlePosition", (string)p["position"] ?? "Bottom");
+            CPH.SetArgument("replayTitleAnimation", (string)p["animation"] ?? "Left to right");
+            CPH.SetArgument("replayTitleDelay", (int?)p["delay"] ?? 2000);
+            CPH.SetArgument("replayTitleDuration", (int?)p["duration"] ?? 10000);
+            CPH.SetArgument("replayTitleAnimationDuration", (int?)p["animationDuration"] ?? 1000);
+            CPH.SetArgument("replayTitleFont", (string)p["font"] ?? "Inter");
+            CPH.SetArgument("replayTitleFontSize", (int?)p["fontSize"] ?? 34);
+            CPH.SetArgument("replayTitleTextColor", (string)p["textColor"] ?? "#FFFFFFFF");
+            CPH.SetArgument("replayTitleShadowColor", (string)p["shadowColor"] ?? "#000000FF");
+            CPH.SetArgument("replayTitlePrimaryColor", (string)p["primaryColor"] ?? "#0384CBFF");
+            CPH.SetArgument("replayTitleSecondaryColor", (string)p["secondaryColor"] ?? "#101416FF");
+            CPH.SetArgument("replayBrandLogoUrl", (string)p["brandLogoUrl"] ?? "");
+            CPH.SetArgument("replayBrandFallbackText", (string)p["brandFallbackText"] ?? "RTS");
+            CPH.SetArgument("replayBrandLabel", (string)p["brandLabel"] ?? "ACTION REPLAY");
+            CPH.SetArgument("replayBrandFallbackTextColor", (string)p["brandFallbackTextColor"] ?? "#0384CBFF");
+            CPH.SetArgument("replayBrandLabelColor", (string)p["brandLabelColor"] ?? "#FFFFFFFF");
+            ApplyProperties("replayBroadcast", p["broadcast"] as JObject); ApplyProperties("replayCut", p["cut"] as JObject);
+            CPH.UnsetGlobalVar(key, false);
+        }
+        catch { CPH.LogWarn("RTS Action Replay: visual/branding preset handoff could not be parsed."); }
+    }
+
+    private void ApplyAnimationHandoff()
+    {
+        var raw = CPH.GetGlobalVar<string>(AnimationProfileHandoffKey, false); if (string.IsNullOrWhiteSpace(raw)) return;
+        try
+        {
+            var p = JObject.Parse(raw); CPH.SetArgument("replayAnimationProfile", raw); CPH.SetArgument("replayAnimationProfileId", (string)p["id"] ?? "default");
+            CPH.SetArgument("replayStartPosition", (string)p["start"]?[0]?["position"] ?? "Full Screen");
+            var end = p["end"] as JArray; CPH.SetArgument("replayEndPosition", (string)end?[end.Count - 1]?["position"] ?? "Full Screen");
+            CPH.UnsetGlobalVar(AnimationProfileHandoffKey, false);
+        }
+        catch { CPH.LogWarn("RTS Action Replay: animation profile handoff could not be parsed."); }
+    }
+
+    private void ApplyProperties(string prefix, JObject value)
+    {
+        foreach (var property in value?.Properties() ?? new JProperty[0]) CPH.SetArgument(prefix + char.ToUpperInvariant(property.Name[0]) + property.Name.Substring(1), property.Value.Type == JTokenType.Boolean ? (object)(bool)property.Value : property.Value.Type == JTokenType.Integer ? (object)(int)property.Value : property.Value.ToString());
     }
 
     private bool TryParseUserSelection(string selector, out string platform, out string userName, out int index)
