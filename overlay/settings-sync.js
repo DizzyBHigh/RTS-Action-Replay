@@ -19,6 +19,8 @@ const profileCommand = (config, selectedId) => {
   };
 };
 
+const json = value => value == null ? value : JSON.stringify(value);
+
 RTSReplaySettingsSync.apply = command => {
   const settings = RTSReplaySettingsSync.parse(command?.replaySettings);
   if (!settings) return false;
@@ -33,18 +35,18 @@ RTSReplaySettingsSync.apply = command => {
   const panel = settings.panel;
   const clapper = settings.clapper;
   if (Array.isArray(player?.animationProfiles)) RTSReplaySettingsSync.command.replayAnimationProfiles = player.animationProfiles;
-  if (player?.positions) RTSReplaySettingsSync.command.replayPlayerPositions = player.positions;
+  if (player?.positions) RTSReplaySettingsSync.command.replayPlayerPositions = json(player.positions);
   if (Array.isArray(panel?.animationProfiles)) RTSReplaySettingsSync.command.replayPanelAnimationProfiles = panel.animationProfiles;
-  if (panel?.positions) RTSReplaySettingsSync.command.replayPanelPositions = panel.positions;
-  if (panel?.animation) RTSReplaySettingsSync.command.replayPanelAnimation = panel.animation;
+  if (panel?.positions) RTSReplaySettingsSync.command.replayPanelPositions = json(panel.positions);
+  if (panel?.animation) RTSReplaySettingsSync.command.replayPanelAnimation = json(panel.animation);
   if (Array.isArray(clapper?.animationProfiles)) RTSReplaySettingsSync.command.replayClapperAnimationProfiles = clapper.animationProfiles;
-  if (clapper?.positions) RTSReplaySettingsSync.command.replayClapperPositions = clapper.positions;
+  if (clapper?.positions) RTSReplaySettingsSync.command.replayClapperPositions = json(clapper.positions);
 
   const selectedClapper = profileCommand(clapper, clapper?.animation?.selectedProfile);
-  if (selectedClapper) RTSReplaySettingsSync.command.replayClapperAnimation = selectedClapper;
+  if (selectedClapper) RTSReplaySettingsSync.command.replayClapperAnimation = json(selectedClapper);
 
   const selectedPlayer = profileCommand(player, player?.animation?.selectedProfile);
-  if (selectedPlayer) RTSReplaySettingsSync.command.replayAnimationProfile = selectedPlayer;
+  if (selectedPlayer) RTSReplaySettingsSync.command.replayAnimationProfile = json(selectedPlayer);
 
   if (RTSReplaySettingsSync.player?.classList.contains('show')) {
     window.RTSReplay.command = { ...(window.RTSReplay.command || {}), ...RTSReplaySettingsSync.command };
