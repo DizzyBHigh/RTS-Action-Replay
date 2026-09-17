@@ -7,7 +7,7 @@ public class CPHInline
     private const string PlayerKey = "rts.actionreplay.config.player";
     private const string PanelKey = "rts.actionreplay.config.panel";
     private const string ClapperKey = "rts.actionreplay.config.clapper";
-    public const string PresetsKey = "rts.actionreplay.config.presets";
+    private const string PresetsKey = "rts.actionreplay.config.presets";
 
     public bool Execute() => EnsureEntryPoints();
 
@@ -33,17 +33,33 @@ public class CPHInline
         return true;
     }
 
-    public JObject ResolvePlayerEntry(string entryPoint) => Resolve(PlayerKey, entryPoint,
-        new[] { "obs", "twitch", "youtube", "kick", "recent", "catalog", "playlist" });
-
-    public JObject ResolvePanelEntry(string entryPoint) => Resolve(PanelKey, entryPoint,
-        new[] { "recent", "playlist", "creatorLeaderboard" });
-
-    public JObject ResolveClapper() => Read(ClapperKey, new JObject())["entryPoint"] as JObject ?? new JObject();
-
-    private JObject Resolve(string key, string entryPoint, string[] validEntries)
+    // Shared-method boundary: callers provide presetComponent and entryPoint arguments.
+    // The resolved references are returned as action arguments for subsequent sub-actions.
+    public bool ResolveEntryPoint()
     {
-        var config = Read(key, new JObject());
+        if (!CPH.TryGetArg("presetComponent", out string component)) return false;
+        CPH.TryGetArg("entryPoint", out string entryPoint);
+        component = component == null ? "player" : component.Trim().ToLowerInvariant();
+
+        JObject resolved;
+        if (component == "panel")
+            resolved = Resolve(PanelKey, entryPoint, new[] { "recent", "playlist", "creatorLeaderboard" });
+        else if (component == "clapper")
+            resolved = ResolveClapperEntry();
+        else if (component == "player")
+            resolved = Resolve(PlayerKey, entryPoint, new[] { "obs", "twitch", "youtube", "kick", "recent", "catalog", "playlist" });
+        else
+            return false;
+
+        CPH.SetArgument("animationProfile", (string)resolved["animationProfile"] ?? "default");
+        CPH.SetArgument("visualPreset", (string)resolved["visualPreset"] ?? "broadcast");
+        CPH.SetArgument("brandingPreset", (string)resolved["brandingPreset"] ?? "default");
+        CPH.SetArgument("presetResolution", resolved.ToString(Newtonsoft.Json.Formatting.None));
+        return true;
+    }
+
+    private JObject Resolve(JObject config, string entryPoint, string[] validEntries)
+    {
         var entries = config["entryPoints"] as JObject ?? new JObject();
         var name = string.IsNullOrWhiteSpace(entryPoint) ? validEntries[0] : entryPoint.Trim().ToLowerInvariant();
         if (Array.IndexOf(validEntries, name) < 0) name = validEntries[0];
@@ -52,6 +68,18 @@ public class CPHInline
         {
             ["animationProfile"] = ResolveAnimationProfile(config, entry),
             ["visualPreset"] = ResolveId(Visuals(), (string)entry["visualPreset"]) ?? "broadcast",
+            ["brandingPreset"] = ResolveId(Branding(), (string)entry["brandingPreset"]) ?? "default"
+        };
+    }
+
+    private JObject ResolveClapperEntry()
+    {
+        var config = Read(ClapperKey, new JObject());
+        var entry = config["entryPoint"] as JObject ?? new JObject();
+        return new JObject
+        {
+            ["animationProfile"] = ResolveAnimationProfile(config, entry),
+            ["visualPreset"] = ResolveId(Visuals(), (string)entry["visualPreset"]),
             ["brandingPreset"] = ResolveId(Branding(), (string)entry["brandingPreset"]) ?? "default"
         };
     }
@@ -112,7 +140,7 @@ public class CPHInline
     public JArray Branding() => Read(PresetsKey, CreateDefaults())["branding"] as JArray ?? new JArray();
     public JArray Visuals() => Read(PresetsKey, CreateDefaults())["visual"] as JArray ?? new JArray();
 
-    public static string ResolveId(JArray values, string value)
+    private static string ResolveId(JArray values, string value)
     {
         foreach (var item in values ?? new JArray())
         {
@@ -129,7 +157,7 @@ public class CPHInline
         return normalized == "broadcast" || normalized == "cinematic" || normalized == "cut" || normalized == "minimal" ? normalized : "broadcast";
     }
 
-    public static JObject CreateDefaults() => new JObject
+    private static JObject CreateDefaults() => new JObject
     {
         ["version"] = 1,
         ["branding"] = new JArray(new JObject
@@ -143,11 +171,11 @@ public class CPHInline
             new JObject { ["id"] = "cut", ["name"] = "Cut" }, new JObject { ["id"] = "minimal", ["name"] = "Minimal" })
     };
 
-    public JObject Read(string key, JObject fallback)
+    private JObject Read(string key, JObject fallback)
     {
         var raw = CPH.GetGlobalVar<string>(key, true);
         try { return string.IsNullOrWhiteSpace(raw) ? fallback : JObject.Parse(raw); } catch { return fallback; }
     }
 
-    public void Write(string key, JObject value) => CPH.SetGlobalVar(key, value.ToString(Newtonsoft.Json.Formatting.None), true);
+    private void Write(string key, JObject value) => CPH.SetGlobalVar(key, value.ToString(Newtonsoft.Json.Formatting.None), true);
 }
