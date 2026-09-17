@@ -4,6 +4,20 @@ const RTSAnimationEngine = {
     let timer = null;
     let frame = null;
     let active = null;
+    const log = (message, details) => window.RTSDevToolbar?.log?.(message, details);
+
+    const describe = position => position ? {
+      x: position.x, y: position.y, z: position.z,
+      scaleX: position.scaleX, scaleY: position.scaleY,
+      rotationX: position.rotationX, rotationY: position.rotationY,
+      rotationZ: position.rotationZ, fov: position.fov
+    } : null;
+
+    const resolve = (requested, index) => {
+      const position = adapter.getPosition(requested);
+      log('Animation position resolved', { index, requested, position: describe(position) });
+      return position;
+    };
 
     const cancel = () => {
       token += 1;
@@ -18,7 +32,7 @@ const RTSAnimationEngine = {
       if (!steps.length) { onComplete?.(); return; }
       cancel();
       const runToken = token;
-      const first = adapter.getPosition(steps[0].position);
+      const first = resolve(steps[0].position, 0);
       active = first;
       adapter.applyPosition(first, true);
 
@@ -26,15 +40,17 @@ const RTSAnimationEngine = {
         if (runToken !== token) return;
         if (index >= steps.length) { onComplete?.(); return; }
         const step = steps[index];
-        const target = adapter.getPosition(step.position);
+        const target = resolve(step.position, index);
         const start = active || target;
+        const equal = adapter.positionsEqual?.(start, target);
+        log('Animation transition check', { index, position: step.position, duration: step.duration, delay: step.delay, equal, from: describe(start), to: describe(target) });
         const finish = () => {
           if (runToken !== token) return;
           active = target;
           if (step.delay > 0) timer = setTimeout(() => advance(index + 1), step.delay);
           else advance(index + 1);
         };
-        if (step.duration <= 0 || adapter.positionsEqual?.(start, target)) {
+        if (step.duration <= 0 || equal) {
           adapter.applyPosition(target, true);
           finish();
           return;
@@ -60,13 +76,15 @@ const RTSAnimationEngine = {
       if (!steps.length) { onComplete?.(); return; }
       cancel();
       const runToken = token;
-      let current = active || adapter.getPosition(steps[0].position);
+      let current = active || resolve(steps[0].position, 0);
       const advance = index => {
         if (runToken !== token) return;
         if (index >= steps.length) { active = current; onComplete?.(); return; }
         const step = steps[index];
-        const target = adapter.getPosition(step.position);
+        const target = resolve(step.position, index);
         const start = current;
+        const equal = adapter.positionsEqual?.(start, target);
+        log('Animation transition check', { index, position: step.position, duration: step.duration, delay: step.delay, equal, from: describe(start), to: describe(target) });
         const finish = () => {
           if (runToken !== token) return;
           current = target;
@@ -74,7 +92,7 @@ const RTSAnimationEngine = {
           if (step.delay > 0) timer = setTimeout(() => advance(index + 1), step.delay);
           else advance(index + 1);
         };
-        if (step.duration <= 0 || adapter.positionsEqual?.(start, target)) {
+        if (step.duration <= 0 || equal) {
           adapter.applyPosition(target, true);
           finish();
           return;
