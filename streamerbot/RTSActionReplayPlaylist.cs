@@ -30,7 +30,7 @@ public class CPHInline
         CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName); CPH.TryGetArg("userType", out string userType); CPH.TryGetArg("broadcast.id", out string broadcastId);
         var creator = replay["creator"] as JObject; var requester = string.IsNullOrWhiteSpace(userName) ? (string)creator?["name"] ?? "" : userName;
         var requesterPlatform = NormalizePlatform(userType);
-        if (!HasPresetSelection()) { CPH.SetArgument("presetComponent", "player"); CPH.SetArgument("entryPoint", "play"); if (!CPH.ExecuteMethod(PresetStoreAction, "ResolveEntryPoint")) return false; }
+        if (!HasCompletePresetSelection()) { CPH.SetArgument("presetComponent", "player"); CPH.SetArgument("entryPoint", "play"); if (!CPH.ExecuteMethod(PresetStoreAction, "ResolveEntryPoint")) return false; }
         CPH.SetArgument("replaySource", (string)replay["sourceType"] ?? "OBS");
         if (!CPH.ExecuteMethod(PresetStoreAction, "ResolveBrandingForSource")) return false;
         var profile = Arg("animationProfile", "default");
@@ -112,7 +112,7 @@ public class CPHInline
         return started;
     }
 
-    private bool HasPresetSelection() { return HasArg("animationProfile") || HasArg("designPreset") || HasArg("titlePreset") || HasArg("brandingPreset") || HasArg("replayAnimationProfileId") || HasArg("replayTitleProfileId"); }
+    private bool HasCompletePresetSelection() { return HasArg("animationProfile") && HasArg("designPreset") && HasArg("titlePreset") && HasArg("brandingPreset"); }
     private bool HasArg(string name) { return CPH.TryGetArg(name, out string value) && !string.IsNullOrWhiteSpace(value); }
     private void SendPlaylistMessage(string text)
     {
