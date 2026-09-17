@@ -13,6 +13,7 @@ public class CPHInline
     private const string PlaybackProfileHandoffKey = "rts.actionreplay.handoff.playbackProfile";
     private const string AnimationProfileHandoffKey = "rts.actionreplay.handoff.animationProfile";
     private const string PlayerPositionsHandoffKey = "rts.actionreplay.handoff.playerPositions";
+    private const string PositionStoreAction = "RTS - Action Replay - Core - Position Store";
 
     public bool Execute() => EnsureProfiles();
 
@@ -182,7 +183,8 @@ public class CPHInline
         if (start.Count == 0) start = DefaultPlayerStart();
         if (end.Count == 0) end = DefaultPlayerEnd();
         var profileJson = new JObject { ["id"] = profile, ["name"] = (string)item["name"] ?? "Default", ["start"] = start, ["end"] = end }.ToString(Newtonsoft.Json.Formatting.None);
-        var playerPositions = (player["positions"] as JObject ?? new JObject()).ToString(Newtonsoft.Json.Formatting.None);
+        CPH.ExecuteMethod(PositionStoreAction, "GetPlayerPositions");
+        var playerPositions = CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false) ?? "{}";
         CPH.SetArgument("profileId", profile);
         CPH.SetArgument("replayAnimationProfile", profileJson);
         CPH.SetArgument("replayPlayerPositions", playerPositions);
