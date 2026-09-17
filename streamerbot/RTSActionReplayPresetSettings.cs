@@ -70,15 +70,15 @@ public class CPHInline
     private void AddCutFields(RtsUI ui, JObject p)
     { ui.BeginRow(); AddInt(ui, "Block Width", "blockWidth", p, 170, 1, 600); AddBool(ui, "Randomize Width", "randomWidth", p, true); AddInt(ui, "Bar Height", "barHeight", p, 5, 1, 50); ui.EndRow(); }
 
-    private void AddPlayerEntries(RtsUI ui) => AddEntries(ui, "Player Entry Points", PlayerKey, new[] { "obs", "twitch", "youtube", "kick", "recent", "catalog", "playlist" }, new[] { "Create — OBS", "Create — Twitch", "Create — YouTube", "Create — Kick", "Play — Recent", "Play — Catalog", "Play — Playlist" }, "Player Entry Points");
-    private void AddPanelEntries(RtsUI ui) => AddEntries(ui, "Panel Entry Points", PanelKey, new[] { "recent", "playlist", "creatorLeaderboard" }, new[] { "Recent / Search", "Playlist", "Creator Leaderboard" }, "Panel Entry Points");
+    private void AddPlayerEntries(RtsUI ui) => AddEntries(ui, PlayerKey, new[] { "obs", "twitch", "youtube", "kick", "recent", "catalog", "playlist" }, new[] { "Create — OBS", "Create — Twitch", "Create — YouTube", "Create — Kick", "Play — Recent", "Play — Catalog", "Play — Playlist" }, "Player Entry Points");
+    private void AddPanelEntries(RtsUI ui) => AddEntries(ui, PanelKey, new[] { "recent", "playlist", "creatorLeaderboard" }, new[] { "Recent / Search", "Playlist", "Creator Leaderboard" }, "Panel Entry Points");
     private void AddClapper(RtsUI ui)
     { var c = Read(ClapperKey); var e = c["entryPoint"] as JObject ?? new JObject(); ui.BeginSection("Clapperboard", "Clapperboard"); ui.AddDropdown("Branding Preset", "Branding preset used by the Clapperboard.", "Clapperboard", UiPrefix + "clapper.branding", Names("branding"), Name("branding", (string)e["brandingPreset"] ?? "default")); ui.EndSection(); }
 
-    private void AddEntries(RtsUI ui, string title, string configKey, string[] ids, string[] labels, string category)
+    private void AddEntries(RtsUI ui, string configKey, string[] ids, string[] labels, string category)
     {
-        var c = Read(configKey); var entries = c["entryPoints"] as JObject ?? new JObject(); ui.BeginSection(title, category);
-        for (var i = 0; i < ids.Length; i++) { var e = entries[ids[i]] as JObject ?? new JObject(); ui.BeginSection(labels[i]); ui.AddDropdown("Visual Preset", "Visual preset used by this entry point.", category, UiPrefix + "entry." + configKey + "." + ids[i] + ".visual", Names("visual"), Name("visual", (string)e["visualPreset"] ?? "broadcast")); ui.AddDropdown("Branding Preset", "Branding preset used by this entry point.", category, UiPrefix + "entry." + configKey + "." + ids[i] + ".branding", Names("branding"), Name("branding", (string)e["brandingPreset"] ?? "default")); ui.EndSection(); } ui.EndSection();
+        var c = Read(configKey); var entries = c["entryPoints"] as JObject ?? new JObject();
+        for (var i = 0; i < ids.Length; i++) { var e = entries[ids[i]] as JObject ?? new JObject(); ui.BeginSection(labels[i], category); ui.AddDropdown("Visual Preset", "Visual preset used by this entry point.", category, UiPrefix + "entry." + configKey + "." + ids[i] + ".visual", Names("visual"), Name("visual", (string)e["visualPreset"] ?? "broadcast")); ui.AddDropdown("Branding Preset", "Branding preset used by this entry point.", category, UiPrefix + "entry." + configKey + "." + ids[i] + ".branding", Names("branding"), Name("branding", (string)e["brandingPreset"] ?? "default")); ui.EndSection(); }
     }
 
     private string Key(string type, string id, string field) => UiPrefix + type + "." + id + "." + field;
@@ -115,8 +115,8 @@ public class CPHInline
     }
     private void RemovePreset(string type, string id) { var a = Presets(type); for (var i = a.Count - 1; i >= 0; i--) if (string.Equals((string)a[i]["id"], id, StringComparison.OrdinalIgnoreCase)) a.RemoveAt(i); Save(PresetsKey, Read(PresetsKey)); }
     private JObject Find(string type, string id) { foreach (var p in Presets(type)) if (string.Equals((string)p["id"], id, StringComparison.OrdinalIgnoreCase)) return p as JObject; return null; }
-    private string ResolveId(string type, string value) { foreach (var p in Presets(type)) if (string.Equals((string)p["id"], value, StringComparison.OrdinalIgnoreCase) || string.Equals((string)p["name"], value, StringComparison.OrdinalIgnoreCase)) return (string)p["id"]; return type == "visual" ? "broadcast" : "default"; }
-    private JToken Parse(string field, string value) { if (field == "fontSize" || field.Contains("Width") || field.Contains("Height") || field.Contains("Spacing") || field.Contains("Speed") || field == "barHeight") { int n; return int.TryParse(value, out n) ? n : 0; } if (field.StartsWith("random", StringComparison.OrdinalIgnoreCase)) { bool b; return bool.TryParse(value, out b) && b; } return value; }
-    private JObject Read(string key) { var raw = CPH.GetGlobalVar<string>(key, true); try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); } }
-    private void Save(string key, JObject value) => CPH.SetGlobalVar(key, value.ToString(Newtonsoft.Json.Formatting.None), true);
+    private string ResolveId(string type, string name) { foreach (var p in Presets(type)) if (string.Equals((string)p["name"], name, StringComparison.OrdinalIgnoreCase)) return (string)p["id"] ?? name; return name; }
+    private object Parse(string field, string value) { if (field == "fontSize" || field.Contains("Width") || field.Contains("Height") || field.Contains("Spacing") || field == "chevronSpeed" || field == "barHeight") { int n; return int.TryParse(value, out n) ? n : 0; } if (field.StartsWith("random", StringComparison.OrdinalIgnoreCase)) { bool b; return bool.TryParse(value, out b) && b; } return value; }
+    private JObject Read(string key) { var raw = CPH.GetGlobalVar<string>(key, true); if (string.IsNullOrWhiteSpace(raw)) return new JObject(); try { return JObject.Parse(raw); } catch { return new JObject(); } }
+    private void Save(string key, JObject value) { CPH.SetGlobalVar(key, value.ToString(Newtonsoft.Json.Formatting.None), true); }
 }
