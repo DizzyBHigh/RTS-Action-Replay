@@ -106,3 +106,20 @@ RTSReplayMessages.showMessage = command => {
     }
   }, RTSReplayMessages.config.messageDuration);
 };
+
+
+RTSReplayMessages.hideMessage = command => {
+  clearTimeout(RTSReplayMessages.messageTimer);
+  const profile = RTSAnimationEngine.readProfile(command?.replayClapperAnimation);
+  const end = profile?.end;
+  if (Array.isArray(end) && end.length) {
+    runClapper(command || {}, end, () => {
+      RTSReplayMessages.messageCard.classList.remove('show');
+      RTSReplayMessages.messageCard.setAttribute('aria-hidden', 'true');
+    }, true);
+  } else {
+    getClapperRunner(command || {}).cancel();
+    RTSReplayMessages.messageCard.classList.remove('show');
+    RTSReplayMessages.messageCard.setAttribute('aria-hidden', 'true');
+  }
+};
