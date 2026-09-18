@@ -31,7 +31,6 @@ RTSReplayWebSocket.connect = () => {
   RTSReplayWebSocket.socket.onmessage = event => {
     try {
       const message = JSON.parse(event.data);
-      if (message?.id === 'rts-action-replay' && message?.status === 'ok') RTSReplayWebSocket.resumeSearchQueue();
       RTSReplayWebSocket.handleEvent(message);
     } catch (error) {
       console.warn('Invalid WebSocket message', error);
