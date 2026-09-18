@@ -66,12 +66,17 @@ public class CPHInline
             SetPanelVisualObject("replayBroadcast", p["broadcast"] as JObject);
             SetPanelVisualObject("replayCut", p["cut"] as JObject);
             CPH.LogInfo("RTS Action Replay: panel visual handoff hydrated search arguments. " +
-                "design=" + Arg("replayPanelPreset", "missing") +
-                ", primary=" + Arg("replayPanelPrimaryColor", "missing") +
-                ", secondary=" + Arg("replayPanelSecondaryColor", "missing") +
-                ", branding=" + Arg("replayBrandingPresetId", "missing"));
+                "design=" + GetArgument("replayPanelPreset", "missing") +
+                ", primary=" + GetArgument("replayPanelPrimaryColor", "missing") +
+                ", secondary=" + GetArgument("replayPanelSecondaryColor", "missing") +
+                ", branding=" + GetArgument("replayBrandingPresetId", "missing"));
         }
         catch { CPH.LogWarn("RTS Action Replay: panel visual handoff could not be parsed."); }
+    }
+
+    private string GetArgument(string name, string fallback)
+    {
+        return CPH.TryGetArg(name, out string value) && !string.IsNullOrWhiteSpace(value) ? value : fallback;
     }
 
     private void SetPanelVisualObject(string prefix, JObject value)
