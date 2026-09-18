@@ -307,20 +307,21 @@ RTSReplayVideo.hideReplay = () => {
 };
 
 RTSReplayVideo.handleReplayCommand = command => {
-  if (command.replayCommand === 'message') RTSReplayVideo.showMessage(command);
+  const activeCommand = { ...(RTSReplayVideo.currentCommand || {}), ...(command || {}) };
+  if (command.replayCommand === 'message') RTSReplayVideo.showMessage(activeCommand);
   if (command.replayCommand === 'load') RTSReplayVideo.loadReplay(command);
   if (command.replayCommand === 'title-test') RTSReplayVideo.testTitle(command);
-  if (command.replayCommand === 'play') RTSReplayVideo.playReplay(command);
-  if (command.replayCommand === 'pause') command.replaySource?.toLowerCase() === 'youtube' ? youtubePlayer?.pauseVideo?.() : RTSReplayVideo.video.pause();
+  if (command.replayCommand === 'play') RTSReplayVideo.playReplay(activeCommand);
+  if (command.replayCommand === 'pause') activeCommand.replaySource?.toLowerCase() === 'youtube' ? youtubePlayer?.pauseVideo?.() : RTSReplayVideo.video.pause();
   if (command.replayCommand === 'speed') {
-    const speed = Math.max(0.25, Math.min(4, Number(command.replayPlaybackSpeed) || 1));
-    if (command.replaySource?.toLowerCase() === 'youtube') youtubePlayer?.setPlaybackRate?.(speed); else RTSReplayVideo.video.playbackRate = speed;
+    const speed = Math.max(0.25, Math.min(4, Number(command.replayPlaybackSpeed ?? activeCommand.replayPlaybackSpeed) || 1));
+    if (activeCommand.replaySource?.toLowerCase() === 'youtube') youtubePlayer?.setPlaybackRate?.(speed); else RTSReplayVideo.video.playbackRate = speed;
   }
-  if (command.replayCommand === 'move') RTSReplayVideo.moveReplay(command);
-  if (command.replayCommand === 'hide') RTSReplayVideo.hideReplay(command);
-  if (command.replayCommand === 'show') RTSReplayVideo.showPlayer(command);
-  if (command.replayCommand === 'stop') { if (command.replaySource?.toLowerCase() === 'youtube') youtubePlayer?.stopVideo?.(); else { RTSReplayVideo.video.pause(); RTSReplayVideo.video.currentTime = 0; } }
-  if (command.replayCommand === 'replay') { if (command.replaySource?.toLowerCase() === 'youtube') { youtubeEndedNotified = false; youtubePlayer?.seekTo?.(Number(command.replayStartTime || 0), true); RTSReplayVideo.playReplay(command); } else { RTSReplayVideo.video.currentTime = 0; RTSReplayVideo.playReplay(command); } }
+  if (command.replayCommand === 'move') RTSReplayVideo.moveReplay(activeCommand);
+  if (command.replayCommand === 'hide') RTSReplayVideo.hideReplay(activeCommand);
+  if (command.replayCommand === 'show') RTSReplayVideo.showPlayer(activeCommand);
+  if (command.replayCommand === 'stop') { if (activeCommand.replaySource?.toLowerCase() === 'youtube') youtubePlayer?.stopVideo?.(); else { RTSReplayVideo.video.pause(); RTSReplayVideo.video.currentTime = 0; } }
+  if (command.replayCommand === 'replay') { if (activeCommand.replaySource?.toLowerCase() === 'youtube') { youtubeEndedNotified = false; youtubePlayer?.seekTo?.(Number(activeCommand.replayStartTime || 0), true); RTSReplayVideo.playReplay(activeCommand); } else { RTSReplayVideo.video.currentTime = 0; RTSReplayVideo.playReplay(activeCommand); } }
 };
 
 RTSReplayVideo.video.addEventListener('ended', () => {
