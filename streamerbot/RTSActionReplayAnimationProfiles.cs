@@ -304,14 +304,10 @@ public class CPHInline
 
     private JArray FilterSequence(JArray source, JObject positions)
     {
-        var result = new JArray();
-        foreach (var token in source ?? new JArray())
-        {
-            var row = token as JObject;
-            var position = (string)row?["position"];
-            if (row != null && !string.IsNullOrWhiteSpace(position) && positions.ContainsKey(position)) result.Add(row);
-        }
-        return result;
+        // Animation profiles are the source of truth for their sequences.
+        // Do not delete rows because the position store is temporarily empty,
+        // stale, or does not currently contain a referenced position.
+        return source ?? new JArray();
     }
 
     private JArray NormalizeProfiles(JArray source)
