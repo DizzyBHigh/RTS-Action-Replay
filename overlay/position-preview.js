@@ -4,6 +4,7 @@ RTSPositionPreview.previewVideoPosition = command => {
   const player = RTSPositionPreview.player;
   if (!player) return;
   RTSPositionPreview.currentCommand = { ...(RTSPositionPreview.currentCommand || {}), ...command };
+  RTSPositionPreview.configurePositions?.(command.replayPlayerPositions);
   const position = RTSPositionPreview.getPosition(command.replayPosition || 'Full Screen');
   const wasVisible = player.classList.contains('show');
   const start = RTSPositionPreview.activePosition;
