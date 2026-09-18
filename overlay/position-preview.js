@@ -60,7 +60,7 @@ RTSPositionPreview.previewPanelPosition = command => {
   const wasVisible = panel.classList.contains('show'); const start = RTSPositionPreview.panelPosition;
   window.RTSInformationPanelAnimation?.cancel?.();
   if (!panelPreviewRunner) panelPreviewRunner = RTSAnimationEngine.createRunner({ target: panel });
-  panelPreviewRunner.setTarget(panel); panelPreviewRunner.configure(command.replayPanelPositions);
+  panelPreviewRunner.configure(command.replayPanelPositions);
   if (wasVisible && start) {
     panelPreviewRunner.transition(start, position, Math.max(100, Number(RTSPositionPreview.currentCommand?.replayAnimationDuration) || 500), 'ease-in-out', () => { RTSPositionPreview.panelPosition = position; });
   } else { panelPreviewRunner.apply(position); RTSPositionPreview.panelPosition = position; }
@@ -77,7 +77,7 @@ RTSPositionPreview.previewClapperPosition = command => {
   card.setAttribute('aria-hidden', 'false');
   const positionName = command.replayClapperPosition || 'Centered';
   if (!clapperPreviewRunner) clapperPreviewRunner = RTSAnimationEngine.createRunner({ target: card, defaultPosition: { scale: 50, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, fov: 90 } });
-  clapperPreviewRunner.setTarget(card); clapperPreviewRunner.configure(command.replayClapperPositions); clapperPreviewRunner.apply(clapperPreviewRunner.resolve(positionName));
+  clapperPreviewRunner.configure(command.replayClapperPositions); clapperPreviewRunner.apply(clapperPreviewRunner.resolve(positionName));
 };
 
 RTSPositionPreview.hidePositionPreview = () => {
