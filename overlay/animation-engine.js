@@ -49,7 +49,7 @@ const RTSAnimationEngine = {
     const a = this.normalisePosition(from);
     const b = this.normalisePosition(to);
     const lerp = (x, y) => x + (y - x) * progress;
-    return Object.fromEntries(Object.keys(a).map(key => [key, lerp(a[key], b[key])]));
+    return Object.fromEntries(Object.keys(a).map(key => [key, lerp(a[key], b[key], progress)]));
   },
   readProfile(raw) {
     if (!raw) return null;
@@ -64,14 +64,16 @@ const RTSAnimationEngine = {
   createRunner(options = {}) {
     const existingTarget = options.target;
     if (existingTarget && runnerRegistry.has(existingTarget)) return runnerRegistry.get(existingTarget);
-    const adapter = options?.normaliseStep ? options : null;
-    let target = options.target;
+    const target = options.target;
     let positions = options.positions || {};
     const fallback = options.defaultPosition || { scale: 100, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, fov: 90 };
     let active = null, token = 0, timer = null, frame = null;
     const log = (message, details) => window.RTSDevToolbar?.log?.(message, details);
-    const resolve = name => adapter ? adapter.getPosition(name) : RTSAnimationEngine.resolvePosition(positions, name, fallback);
-    const apply = position => { if (adapter) adapter.applyPosition(position, true); else if (target) RTSPositioningEngine.apply(target, position); active = position; };
+    const resolve = name => RTSAnimationEngine.resolvePosition(positions, name, fallback);
+    const apply = position => {
+      if (target) RTSPositioningEngine.apply(target, position);
+      active = position;
+    };
     const cancel = () => {
       token++;
       if (timer) clearTimeout(timer);
@@ -94,7 +96,7 @@ const RTSAnimationEngine = {
         if (runToken !== token) return;
         if (index >= steps.length) { active = current; complete?.(); return; }
         const step = steps[index], targetPosition = resolve(step.position), start = current;
-        const equal = adapter ? adapter.positionsEqual(start, targetPosition) : RTSAnimationEngine.positionsEqual(start, targetPosition);
+        const equal = RTSAnimationEngine.positionsEqual(start, targetPosition);
         log('Animation transition check', { index, position: step.position, duration: step.duration, delay: step.delay, equal, from: start, to: targetPosition });
         const finish = () => {
           current = targetPosition; active = current;
@@ -102,11 +104,11 @@ const RTSAnimationEngine = {
           else advance(index + 1);
         };
         if (step.duration <= 0 || equal) { apply(targetPosition); finish(); return; }
-        const ease = adapter ? adapter.easing(step.easing) : RTSAnimationEngine.easing(step.easing), started = performance.now();
+        const ease = RTSAnimationEngine.easing(step.easing), started = performance.now();
         const draw = now => {
           if (runToken !== token) return;
           const progress = Math.min(1, Math.max(0, (now - started) / step.duration));
-          apply(adapter ? adapter.interpolatePosition(start, targetPosition, ease(progress)) : RTSAnimationEngine.interpolatePosition(start, targetPosition, ease(progress)));
+          apply(RTSAnimationEngine.interpolatePosition(start, targetPosition, ease(progress)));
           if (progress < 1) frame = requestAnimationFrame(draw);
           else { frame = null; apply(targetPosition); finish(); }
         };
@@ -119,22 +121,22 @@ const RTSAnimationEngine = {
       } else advance(0);
     };
     const runner = {
-      configure(raw) { if (!adapter) positions = RTSAnimationEngine.getPositions(raw, {}); active = null; },
+      configure(raw) { positions = RTSAnimationEngine.getPositions(raw, {}); active = null; },
       resolve,
       apply,
       transition(from, to, duration, easing, complete) {
         cancel();
-        const start = adapter ? from : RTSAnimationEngine.normalisePosition(from);
-        const end = adapter ? to : RTSAnimationEngine.normalisePosition(to);
+        const start = RTSAnimationEngine.normalisePosition(from);
+        const end = RTSAnimationEngine.normalisePosition(to);
         const ms = Math.max(0, Number(duration) || 0);
-        const equal = adapter ? adapter.positionsEqual(start, end) : RTSAnimationEngine.positionsEqual(start, end);
+        const equal = RTSAnimationEngine.positionsEqual(start, end);
         if (!ms || equal) { apply(end); complete?.(); return; }
-        const runToken = token, ease = adapter ? adapter.easing(easing) : RTSAnimationEngine.easing(easing), started = performance.now();
+        const runToken = token, ease = RTSAnimationEngine.easing(easing), started = performance.now();
         apply(start);
         const draw = now => {
           if (runToken !== token) return;
           const progress = Math.min(1, Math.max(0, (now - started) / ms));
-          apply(adapter ? adapter.interpolatePosition(start, end, ease(progress)) : RTSAnimationEngine.interpolatePosition(start, end, ease(progress)));
+          apply(RTSAnimationEngine.interpolatePosition(start, end, ease(progress)));
           if (progress < 1) frame = requestAnimationFrame(draw);
           else { frame = null; apply(end); complete?.(); }
         };
