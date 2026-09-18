@@ -62,10 +62,14 @@ public class CPHInline
         ui.BeginSection("Clapperboard", "Messages");
         ui.BeginRow();
         ui.AddColorPicker("Board Color", "Clapperboard slate colour.", "Messages", "rts.actionreplay.clapper.boardColor", "#101416");
+        ui.AddColorPicker("Text Color", "Message text colour.", "Messages", "rts.actionreplay.clapper.textColor", "#0384CB");
+        ui.EndRow();
+        ui.BeginRow();
         ui.AddColorPicker("Stripe Light", "Clapperstick light stripe colour.", "Messages", "rts.actionreplay.clapper.stripeLight", "#EEEEEE");
         ui.AddColorPicker("Stripe Dark", "Clapperstick dark stripe colour.", "Messages", "rts.actionreplay.clapper.stripeDark", "#111111");
+        ui.EndRow();
+        ui.BeginRow();
         ui.AddColorPicker("Accent Color", "Clapperboard accent colour.", "Messages", "rts.actionreplay.clapper.accent", "#0384CB");
-        ui.AddColorPicker("Text Color", "Message text colour.", "Messages", "rts.actionreplay.clapper.textColor", "#0384CB");
         ui.EndRow();
         ui.AddGoogleFontSelector("Font", "Google Font used for text displayed on the clapperboard.", "Messages", "rts.actionreplay.clapper.font", "Inter");
         ui.EndSection();
