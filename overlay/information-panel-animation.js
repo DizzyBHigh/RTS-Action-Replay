@@ -57,9 +57,10 @@ RTSInformationPanelAnimation.show = (panel, command, name) => {
 
 RTSInformationPanelAnimation.hide = (panel, command) => {
   if (!panel) return;
-  panelCommand = command || panelCommand || {};
+  const hideCommand = command || panelCommand || {};
+  panelCommand = hideCommand;
   activePanel = panel;
-  const profile = RTSInformationPanelAnimation.profile(panelCommand);
+  const profile = RTSInformationPanelAnimation.profile(hideCommand);
   const end = profile?.end;
   if (!Array.isArray(end) || !end.length) {
     RTSInformationPanelAnimation.cancel();
@@ -67,8 +68,7 @@ RTSInformationPanelAnimation.hide = (panel, command) => {
     panel.setAttribute('aria-hidden', 'true');
     return;
   }
-  const runner = getPanelRunner(panel, panelCommand);
-  runner.setActive(RTSInformationPanelAnimation.position(panelCommand, panelCommand.replayPanelPosition || 'Centered'));
+  const runner = getPanelRunner(panel, hideCommand);
   runner.runEnd(end, () => {
     panel.classList.remove('show');
     panel.setAttribute('aria-hidden', 'true');
