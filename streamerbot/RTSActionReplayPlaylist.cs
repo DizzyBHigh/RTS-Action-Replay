@@ -137,7 +137,45 @@ public class CPHInline
     {
         var key = "rts.actionreplay.message.playlist"; var playlistText = text; CPH.SetArgument("replayPlaylist", playlistText); var configured = CPH.GetGlobalVar<string>(key + ".text", true); var chatText = string.IsNullOrWhiteSpace(configured) ? playlistText : CPH.Parse(configured, new Dictionary<string, object> { ["replayPlaylist"] = playlistText });
         if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) SendOriginMessage(chatText);
-        if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false) { CPH.SetArgument("replayPanelWidth", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500); CPH.SetArgument("replayPanelHeight", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700); CPH.SetArgument("panelType", "playlist"); CPH.ExecuteMethod(AnimationAction, "ResolvePanelAnimation"); CPH.SetArgument("replayCommand", "playlist-panel"); CPH.SetArgument("replayPlaylist", playlistText); CPH.TriggerEvent("RTS-Action Replay", true); }
+        if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false) { CPH.SetArgument("replayPanelWidth", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500); CPH.SetArgument("replayPanelHeight", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700); CPH.SetArgument("panelType", "playlist"); CPH.ExecuteMethod(AnimationAction, "ResolvePanelAnimation"); ApplyPanelVisualHandoff(); CPH.SetArgument("replayCommand", "playlist-panel"); CPH.SetArgument("replayPlaylist", playlistText); CPH.TriggerEvent("RTS-Action Replay", true); }
+    }
+
+
+    private void ApplyPanelVisualHandoff()
+    {
+        var raw = CPH.GetGlobalVar<string>("rts.actionreplay.handoff.visualBranding", false);
+        if (string.IsNullOrWhiteSpace(raw)) return;
+        try
+        {
+            var p = JObject.Parse(raw);
+            SetPanelArgument("replayPanelPreset", p["style"], "broadcast");
+            SetPanelArgument("replayPanelPrimaryColor", p["primaryColor"], "#0384CBFF");
+            SetPanelArgument("replayPanelSecondaryColor", p["secondaryColor"], "#101416FF");
+            SetPanelArgument("replayPanelTitleFont", p["font"], "Inter");
+            SetPanelArgument("replayPanelTitleSize", p["fontSize"], 34);
+            SetPanelArgument("replayPanelTitleColor", p["textColor"], "#FFFFFFFF");
+            SetPanelArgument("replayPanelListColor", p["textColor"], "#FFFFFFFF");
+            SetPanelArgument("replayBrandingPresetId", p["brandingPresetId"], "default");
+            CPH.SetArgument("replayShowTitle", true);
+            SetPanelVisualObject("replayBroadcast", p["broadcast"] as JObject);
+            SetPanelVisualObject("replayCut", p["cut"] as JObject);
+        }
+        catch { CPH.LogWarn("RTS Action Replay: panel visual handoff could not be parsed."); }
+    }
+
+    private void SetPanelVisualObject(string prefix, JObject value)
+    {
+        foreach (var property in value?.Properties() ?? new JProperty[0])
+        {
+            var name = property.Name.Length == 0 ? "" : char.ToUpperInvariant(property.Name[0]) + property.Name.Substring(1);
+            var argument = property.Value.Type == JTokenType.Boolean ? (object)(bool)property.Value : property.Value.Type == JTokenType.Integer ? (object)(int)property.Value : property.Value.ToString();
+            CPH.SetArgument(prefix + name, argument);
+        }
+    }
+
+    private void SetPanelArgument(string name, JToken value, object fallback)
+    {
+        CPH.SetArgument(name, value == null ? fallback : value.Type == JTokenType.Integer ? (object)(int)value : value.ToString());
     }
 
     private void SendOriginMessage(string message)
