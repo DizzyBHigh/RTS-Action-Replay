@@ -240,7 +240,23 @@ public class CPHInline
         CPH.SetArgument("entryPoint", panelType.ToLowerInvariant());
         CPH.ExecuteMethod("RTS - Action Replay - Core - Preset Store", "ResolveEntryPoint");
         CPH.ExecuteMethod("RTS - Action Replay - Core - Preset Store", "ApplyVisualAndBranding");
+        ApplyVisualBrandingHandoff();
         return true;
+    }
+
+
+    private void ApplyVisualBrandingHandoff()
+    {
+        var key = "rts.actionreplay.handoff.visualBranding";
+        CPH.TryGetArg("replayQueueEntryId", out string entryId);
+        if (!string.IsNullOrWhiteSpace(entryId)) key += "." + entryId;
+        var raw = CPH.GetGlobalVar<string>(key, false);
+        if (string.IsNullOrWhiteSpace(raw)) return;
+        try
+        {
+            ApplyArguments(JObject.Parse(raw));
+        }
+        catch { }
     }
 
     private string ResolvePanelPreset(JObject panel, string panelType)
