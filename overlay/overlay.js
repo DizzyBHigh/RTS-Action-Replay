@@ -12,6 +12,24 @@ RTSReplayOverlay.handleEvent = message => {
     queueEntryId: args?.replayQueueEntryId
   });
   if (args.replayCommand === 'load') {
+    let positions = null;
+    const rawPositions = args.replayPlayerPositions ?? args.replayPositions;
+    try { positions = typeof rawPositions === 'string' ? JSON.parse(rawPositions) : rawPositions; } catch (_) {}
+    const positionKeys = positions && typeof positions === 'object' ? Object.keys(positions) : [];
+    window.RTSDevToolbar?.log?.('Player position payload received', {
+      present: rawPositions != null,
+      type: typeof rawPositions,
+      length: typeof rawPositions === 'string' ? rawPositions.length : 0,
+      count: positionKeys.length,
+      keys: positionKeys,
+      requested: ['mini-right-hidden', 'mr-angled', 'center-large'].map(tag => {
+        const key = positionKeys.find(k =>
+          k.toLowerCase() === tag ||
+          String(positions[k]?.tag || '').trim().toLowerCase() === tag
+        );
+        return key ? { tag, key, position: positions[key] } : { tag, missing: true };
+      })
+    });
     let profile = null;
     try { profile = typeof args.replayAnimationProfile === 'string' ? JSON.parse(args.replayAnimationProfile) : args.replayAnimationProfile; } catch (_) {}
     window.RTSDevToolbar?.log?.('Replay load payload', {
