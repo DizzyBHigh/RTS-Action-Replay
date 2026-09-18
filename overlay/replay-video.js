@@ -9,6 +9,42 @@ let youtubeBoundaryTimer = null;
 let youtubeEndedNotified = false;
 let youtubeReplayToken = 0;
 let hlsPlayer = null;
+const playerRunner = RTSAnimationEngine.createRunner({
+  target: RTSReplayVideo.player,
+  defaultPosition: { scale: 100, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, fov: 90 }
+});
+
+RTSReplayVideo.getPosition = name => playerRunner.resolve(name);
+RTSReplayVideo.positionsEqual = (a, b) => RTSAnimationEngine.positionsEqual(a, b);
+RTSReplayVideo.applyPosition = (position, immediate = false) => {
+  if (immediate) playerRunner.cancel();
+  playerRunner.apply(position);
+  RTSReplayVideo.activePosition = position;
+};
+RTSReplayVideo.animatePosition = (start, end, complete) => {
+  const rawDuration = Number(RTSReplayVideo.currentCommand?.replayAnimationDuration);
+  const duration = Math.max(100, Number.isFinite(rawDuration) ? (rawDuration < 10 ? rawDuration * 1000 : rawDuration) : 500);
+  playerRunner.transition(start, end, duration, RTSReplayVideo.currentCommand?.replayAnimationEasing, () => {
+    RTSReplayVideo.activePosition = end;
+    complete?.();
+  });
+};
+RTSReplayVideo.animateIn = (start, end) => {
+  RTSReplayVideo.player.classList.add('show');
+  RTSReplayVideo.applyPosition(start || end, true);
+  if (RTSReplayVideo.positionsEqual(start || end, end)) return;
+  RTSReplayVideo.animatePosition(start || end, end);
+};
+RTSReplayVideo.animateOut = () => {
+  const start = RTSReplayVideo.activePosition || RTSReplayVideo.getPosition('Full Screen');
+  const end = RTSReplayVideo.getPosition(RTSReplayVideo.currentCommand?.replayStartPosition || 'Full Screen');
+  if (RTSReplayVideo.positionsEqual(start, end)) {
+    RTSReplayVideo.player.classList.remove('show');
+    RTSReplayVideo.activePosition = end;
+    return;
+  }
+  RTSReplayVideo.animatePosition(start, end, () => RTSReplayVideo.player.classList.remove('show'));
+};
 
 window.onYouTubeIframeAPIReady = () => {
   youtubeReady = true;
@@ -186,12 +222,12 @@ RTSReplayVideo.loadReplay = command => {
   RTSReplayControls.configure(command);
   RTSReplayElements.configure(command);
 
-  const profile = RTSReplayAnimation.readProfile(command);
+  playerRunner.configure(command.replayPlayerPositions);\n  const profile = RTSAnimationEngine.readProfile(command.replayAnimationProfile);
   const startSequence = Array.isArray(profile?.start) ? profile.start : [];
   const startName = command.replayStartPosition || command.replayPosition || 'Full Screen';
   const endName = command.replayEndPosition || startName;
-  const startPosition = startSequence.length ? RTSReplayAnimation.getPosition(startSequence[0].position) : RTSReplayVideo.getPosition(startName);
-  const endPosition = startSequence.length ? RTSReplayAnimation.getPosition(startSequence[startSequence.length - 1].position) : RTSReplayVideo.getPosition(endName);
+  const startPosition = startSequence.length ? playerRunner.resolve(startSequence[0].position) : RTSReplayVideo.getPosition(startName);
+  const endPosition = startSequence.length ? playerRunner.resolve(startSequence[startSequence.length - 1].position) : RTSReplayVideo.getPosition(endName);
   const alreadyVisible = RTSReplayVideo.player.classList.contains('show');
 
   if (isYouTube) {
@@ -200,12 +236,12 @@ RTSReplayVideo.loadReplay = command => {
     RTSReplayVideo.visiblePosition = endPosition;
     RTSReplayVideo.player.classList.add('show');
     if (alreadyVisible) {
-      RTSReplayAnimation.cancelSequence();
+      playerRunner.cancel();
       RTSReplayVideo.applyPosition(endPosition, true);
       RTSReplayVideo.activePosition = endPosition;
       replayDevLog('YouTube replay loaded while player already visible', { replayId: command.replayId, position: endPosition.name || endName });
     } else if (startSequence.length) {
-      RTSReplayAnimation.runSequence(startSequence);
+      playerRunner.run(startSequence);
     } else {
       RTSReplayVideo.applyPosition(startPosition, true);
       RTSReplayVideo.activePosition = startPosition;
@@ -221,8 +257,8 @@ RTSReplayVideo.loadReplay = command => {
   host?.setAttribute('aria-hidden', 'true');
   RTSReplayVideo.video.style.display = 'block';
   RTSReplayVideo.visiblePosition = endPosition;
-  if (alreadyVisible) { RTSReplayAnimation.cancelSequence(); RTSReplayVideo.applyPosition(endPosition, true); RTSReplayVideo.activePosition = endPosition; }
-  else if (startSequence.length) { RTSReplayAnimation.runSequence(startSequence); RTSReplayVideo.player.classList.add('show'); }
+  if (alreadyVisible) { playerRunner.cancel(); RTSReplayVideo.applyPosition(endPosition, true); RTSReplayVideo.activePosition = endPosition; }
+  else if (startSequence.length) { playerRunner.run(startSequence); RTSReplayVideo.player.classList.add('show'); }
   else RTSReplayVideo.animateIn(startPosition, endPosition);
   if (isHlsUrl(command.replayUrl)) loadHlsReplay(command.replayUrl, command); else loadNativeReplay(command.replayUrl, command);
 };
@@ -249,11 +285,11 @@ RTSReplayVideo.showPlayer = () => {
 
 RTSReplayVideo.hideReplay = () => {
   const command = RTSReplayVideo.currentCommand || {};
-  RTSReplayAnimation.cancelSequence(); stopYouTubeBoundaryTimer();
+  playerRunner.cancel(); stopYouTubeBoundaryTimer();
   if (command.replaySource?.toLowerCase() === 'youtube') { youtubePlayer?.pauseVideo?.(); } else RTSReplayVideo.video.pause();
   RTSReplayVideo.visiblePosition = RTSReplayVideo.activePosition;
-  const profile = RTSReplayAnimation.readProfile(command);
-  if (Array.isArray(profile?.end) && profile.end.length) { RTSReplayAnimation.runEndSequence(profile.end, () => RTSReplayVideo.player.classList.remove('show')); return; }
+  const profile = RTSAnimationEngine.readProfile(command.replayAnimationProfile);
+  if (Array.isArray(profile?.end) && profile.end.length) { playerRunner.runEnd(profile.end, () => RTSReplayVideo.player.classList.remove('show')); return; }
   RTSReplayVideo.animateOut();
 };
 
