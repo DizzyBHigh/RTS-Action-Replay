@@ -31,7 +31,7 @@ const clapperAdapter = {
   },
   applyPosition: (position, immediate) => {
     if (immediate) RTSReplayClapper.messageCard.style.transition = 'none';
-    RTSReplayClapper.messageCard.style.transform = RTSReplayClapper.transformFor(position);
+    RTSPositioningEngine.apply(RTSReplayClapper.messageCard, position);
     RTSReplayClapper.activePosition = position;
   }
 };
