@@ -92,17 +92,11 @@ const RTSAnimationEngine = {
       cancel();
       const runToken = token;
       let current = endRun ? active || resolve(steps[0].position) : resolve(steps[0].position);
-      if (!endRun) {
-        apply(current);
-        if (steps[0].delay > 0) timer = setTimeout(() => advance(1), steps[0].delay);
-        else advance(1);
-      } else advance(0);
-
       const advance = index => {
         if (runToken !== token) return;
         if (index >= steps.length) { active = current; complete?.(); return; }
         const step = steps[index], targetPosition = resolve(step.position), start = current;
-        const equal = this.positionsEqual(start, targetPosition);
+        const equal = RTSAnimationEngine.positionsEqual(start, targetPosition);
         log('Animation transition check', { index, position: step.position, duration: step.duration, delay: step.delay, equal, from: start, to: targetPosition });
         const finish = () => {
           current = targetPosition; active = current;
@@ -110,24 +104,26 @@ const RTSAnimationEngine = {
           else advance(index + 1);
         };
         if (step.duration <= 0 || equal) { apply(targetPosition); finish(); return; }
-        const ease = this.easing(step.easing), started = performance.now();
+        const ease = RTSAnimationEngine.easing(step.easing), started = performance.now();
         const draw = now => {
           if (runToken !== token) return;
           const progress = Math.min(1, Math.max(0, (now - started) / step.duration));
-          apply(this.interpolatePosition(start, targetPosition, ease(progress)));
+          apply(RTSAnimationEngine.interpolatePosition(start, targetPosition, ease(progress)));
           if (progress < 1) frame = requestAnimationFrame(draw);
           else { frame = null; apply(targetPosition); finish(); }
         };
         frame = requestAnimationFrame(draw);
       };
+      if (!endRun) {
+        apply(current);
+        if (steps[0].delay > 0) timer = setTimeout(() => advance(1), steps[0].delay);
+        else advance(1);
+      } else advance(0);
     };
     return {
       configure(raw) { positions = RTSAnimationEngine.getPositions(raw, {}); active = null; },
       resolve,
       apply,
-      animate(from, to, duration, easing, complete) {
-        run([{ position: '__target__', duration, easing }], complete);
-      },
       run(sequence, complete) { run(sequence, complete, false); },
       runEnd(sequence, complete) { run(sequence, complete, true); },
       cancel,
