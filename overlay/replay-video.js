@@ -36,6 +36,17 @@ RTSReplayVideo.animateIn = (start, end) => {
   if (RTSReplayVideo.positionsEqual(start || end, end)) return;
   RTSReplayVideo.animatePosition(start || end, end);
 };
+RTSReplayVideo.runAnimationProfile = command => {
+  const profile = RTSAnimationEngine.readProfile(command?.replayAnimationProfile);
+  if (Array.isArray(profile?.start) && profile.start.length) playerRunner.run(profile.start);
+};
+RTSReplayVideo.runEndAnimationProfile = (command, complete) => {
+  const profile = RTSAnimationEngine.readProfile(command?.replayAnimationProfile);
+  if (Array.isArray(profile?.end) && profile.end.length) playerRunner.runEnd(profile.end, complete);
+  else complete?.();
+};
+RTSReplayVideo.cancelAnimation = () => playerRunner.cancel();
+
 RTSReplayVideo.animateOut = () => {
   const start = RTSReplayVideo.activePosition || RTSReplayVideo.getPosition('Full Screen');
   const end = RTSReplayVideo.getPosition(RTSReplayVideo.currentCommand?.replayStartPosition || 'Full Screen');
