@@ -264,10 +264,24 @@ public class CPHInline
             CPH.SetArgument("replayPanelListColor", (string)p["textColor"] ?? "#FFFFFFFF");
             CPH.SetArgument("replayShowTitle", true);
             CPH.SetArgument("replayBrandingPresetId", CPH.GetGlobalVar<string>("rts.actionreplay.handoff.resolvedPreset", false) ?? "default");
-            Props("replayBroadcast", p["broadcast"] as JObject);
-            Props("replayCut", p["cut"] as JObject);
+            ApplyVisualObject("replayBroadcast", p["broadcast"] as JObject);
+            ApplyVisualObject("replayCut", p["cut"] as JObject);
         }
         catch { }
+    }
+
+    private void ApplyVisualObject(string prefix, JObject value)
+    {
+        foreach (var property in value?.Properties() ?? new JProperty[0])
+        {
+            var name = property.Name.Length == 0 ? "" : char.ToUpperInvariant(property.Name[0]) + property.Name.Substring(1);
+            object argument = property.Value.Type == JTokenType.Boolean
+                ? (object)(bool)property.Value
+                : property.Value.Type == JTokenType.Integer
+                    ? (object)(int)property.Value
+                    : property.Value.ToString();
+            CPH.SetArgument(prefix + name, argument);
+        }
     }
 
     private string ResolvePanelPreset(JObject panel, string panelType)
