@@ -14,6 +14,7 @@ const playerRunner = RTSAnimationEngine.createRunner({
   defaultPosition: { scale: 100, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, fov: 90 }
 });
 
+RTSReplayVideo.configurePositions = raw => playerRunner.configure(raw);
 RTSReplayVideo.getPosition = name => playerRunner.resolve(name);
 RTSReplayVideo.positionsEqual = (a, b) => RTSAnimationEngine.positionsEqual(a, b);
 RTSReplayVideo.applyPosition = (position, immediate = false) => {
