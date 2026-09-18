@@ -51,7 +51,7 @@ public class CPHInline
     public bool View()
     {
         var queue = LoadQueue();
-        if (queue.Count == 0) { SendPlaylistMessage("No Items in the playlist.", true); return true; }
+        if (queue.Count == 0) { SendPlaylistMessage("No Items in the playlist", true); return true; }
         var lines = "";
         for (var i = 0; i < queue.Count; i++) { var item = queue[i] as JObject; if (item == null) continue; var requester = (string)item["requesterName"]; if (string.IsNullOrWhiteSpace(requester)) requester = "Created automatically"; lines += (lines.Length == 0 ? "" : " | ") + "#" + (i + 1) + " " + (string)item["title"] + " — " + requester; }
         SendPlaylistMessage(lines);
