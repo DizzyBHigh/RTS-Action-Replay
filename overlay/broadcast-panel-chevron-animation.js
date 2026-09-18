@@ -16,8 +16,9 @@ RTSReplayPanelBroadcast.startPanelChevrons = (panel, command) => {
   const colour = value => { const raw = String(value || '').trim(); const match = raw.match(/^#([0-9a-f]{6}|[0-9a-f]{8})$/i); return match ? `#${match[1].slice(0, 6)}` : raw; };
   const number = (value, min, max, fallback) => Math.max(min, Math.min(max, Number(value) || fallback));
   const randomValue = (max, min = 1) => min + Math.random() * Math.max(0, max - min);
-  const primary = colour(command?.replayBroadcastPrimaryColor || '#0384CB');
-  const secondary = colour(command?.replayBroadcastSecondaryColor || '#FFD400');
+  const panelStyles = getComputedStyle(panel);
+  const primary = colour(command?.replayBroadcastPrimaryColor || panelStyles.getPropertyValue('--panel-primary') || '#0384CB');
+  const secondary = colour(command?.replayBroadcastSecondaryColor || panelStyles.getPropertyValue('--panel-secondary') || '#101416');
   const track = document.createElement('div');
   track.className = 'panel-broadcast-chevron-track';
   header.append(track);
