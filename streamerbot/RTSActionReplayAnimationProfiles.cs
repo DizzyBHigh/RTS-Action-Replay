@@ -234,10 +234,12 @@ public class CPHInline
         var end = sequences["endSequence"] as JArray ?? DefaultPanelEnd();
         if (start.Count == 0) start = DefaultPanelStart();
         if (end.Count == 0) end = DefaultPanelEnd();
-        CPH.SetArgument("replayPanelPreset", ResolvePanelPreset(panel, panelType));
         CPH.SetArgument("replayPanelPositions", (panel["positions"] as JObject ?? new JObject()).ToString(Newtonsoft.Json.Formatting.None));
         CPH.SetArgument("replayPanelAnimation", new JObject { ["id"] = profile, ["name"] = (string)item["name"] ?? "Default", ["start"] = start, ["end"] = end }.ToString(Newtonsoft.Json.Formatting.None));
-        CPH.ExecuteMethod("RTS - Action Replay - Core - Panel Presets", "Apply");
+        CPH.SetArgument("presetComponent", "panel");
+        CPH.SetArgument("entryPoint", panelType.ToLowerInvariant());
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Preset Store", "ResolveEntryPoint");
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Preset Store", "ApplyVisualAndBranding");
         return true;
     }
 
