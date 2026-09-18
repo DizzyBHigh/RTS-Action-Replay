@@ -6,18 +6,11 @@ RTSInformationPanels.defaultPositions = {
 
 RTSInformationPanels.getPositions = command => {
   try {
-    const raw = command?.replayPanelPositions ?? command?.replayPanelJsonPositions;
-    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-    return parsed && typeof parsed === 'object' ? parsed : RTSInformationPanels.defaultPositions;
-  } catch (_) { return RTSInformationPanels.defaultPositions; }
+    return RTSAnimationEngine.getPositions(command?.replayPanelPositions, RTSInformationPanels.defaultPositions);
 };
 
 RTSInformationPanels.getPosition = (command, name) => {
-  const positions = RTSInformationPanels.getPositions(command);
-  if (positions[name]) return positions[name];
-  const target = String(name || 'Centered').trim().toLowerCase();
-  const match = Object.keys(positions).find(key => key.toLowerCase() === target || String(positions[key]?.tag || '').trim().toLowerCase() === target);
-  return positions[match] || positions.Centered || RTSInformationPanels.defaultPositions.Centered;
+  return RTSAnimationEngine.resolvePosition(positions, name || 'Centered', positions.Centered || RTSInformationPanels.defaultPositions.Centered);
 };
 
 RTSInformationPanels.normalise = position => {
