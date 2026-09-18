@@ -311,10 +311,39 @@ public class CPHInline
 
     private void ApplyPlayerFrameSettings()
     {
-        CPH.SetArgument("replayFrameColor", CPH.GetGlobalVar<string>("rts.actionreplay.frameColor", true) ?? "#0384CBFF");
+        var custom = CPH.GetGlobalVar<string>("rts.actionreplay.frameColor", true) ?? "#0384CBFF";
+        var source = CPH.GetGlobalVar<string>("rts.actionreplay.frameColorSource", true) ?? "Custom";
+        var frameColor = custom;
+        if (!string.Equals(source, "Custom", StringComparison.OrdinalIgnoreCase))
+        {
+            var branding = ResolveActiveBrandingPreset();
+            if (branding != null)
+            {
+                var field = string.Equals(source, "Branding Secondary", StringComparison.OrdinalIgnoreCase) ? "secondaryColor" : "primaryColor";
+                frameColor = (string)branding[field] ?? custom;
+            }
+        }
+        CPH.SetArgument("replayFrameColor", frameColor);
         CPH.SetArgument("replayBorderGlow", CPH.GetGlobalVar<bool?>("rts.actionreplay.borderGlow", true) ?? true);
         CPH.SetArgument("replayBorderWidth", CPH.GetGlobalVar<int?>("rts.actionreplay.borderWidth", true) ?? 4);
         CPH.SetArgument("replayCornerRadius", CPH.GetGlobalVar<int?>("rts.actionreplay.cornerRadius", true) ?? 0);
+    }
+
+    private JObject ResolveActiveBrandingPreset()
+    {
+        var raw = CPH.GetGlobalVar<string>("rts.actionreplay.config.presets", true);
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+        try
+        {
+            var config = JObject.Parse(raw);
+            var branding = config["branding"] as JArray;
+            var id = Arg("replayBrandingPresetId", "default");
+            foreach (var item in branding ?? new JArray())
+                if (string.Equals((string)item["id"], id, StringComparison.OrdinalIgnoreCase))
+                    return item as JObject;
+        }
+        catch { }
+        return null;
     }
 
     public bool SetPlayerPosition() { if (!CPH.TryGetArg("rawInput", out string input) || string.IsNullOrWhiteSpace(input)) return false; var parts = input.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); if (parts.Length == 0) return false; var duration = 1000; if (parts.Length > 1 && int.TryParse(parts[1], out var requested) && requested >= 0) duration = requested; CPH.SetArgument("replayCommand", "move"); CPH.SetArgument("replayPosition", parts[0]); CPH.SetArgument("replayAnimationDuration", duration); CPH.SetArgument("replayAnimationEasing", CPH.GetGlobalVar<string>("rts.actionreplay.animation.default.easing", true) ?? "ease-in-out"); CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, true) ?? "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}"); CPH.TriggerEvent(EventName, true); return true; }
