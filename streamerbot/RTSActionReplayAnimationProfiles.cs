@@ -238,53 +238,10 @@ public class CPHInline
         CPH.SetArgument("replayPanelAnimation", new JObject { ["id"] = profile, ["name"] = (string)item["name"] ?? "Default", ["start"] = start, ["end"] = end }.ToString(Newtonsoft.Json.Formatting.None));
         CPH.SetArgument("presetComponent", "panel");
         CPH.SetArgument("entryPoint", panelType.ToLowerInvariant());
-        CPH.ExecuteMethod("RTS - Action Replay - Core - Preset Store", "ResolveEntryPoint");
-        CPH.ExecuteMethod("RTS - Action Replay - Core - Preset Store", "ApplyVisualAndBranding");
-        ApplyVisualBrandingHandoff();
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Panel Presets", "Apply");
         return true;
     }
 
-
-    private void ApplyVisualBrandingHandoff()
-    {
-        var key = "rts.actionreplay.handoff.visualBranding";
-        CPH.TryGetArg("replayQueueEntryId", out string entryId);
-        if (!string.IsNullOrWhiteSpace(entryId)) key += "." + entryId;
-        var raw = CPH.GetGlobalVar<string>(key, false);
-        if (string.IsNullOrWhiteSpace(raw) && key != "rts.actionreplay.handoff.visualBranding")
-            raw = CPH.GetGlobalVar<string>("rts.actionreplay.handoff.visualBranding", false);
-        if (string.IsNullOrWhiteSpace(raw)) return;
-        try
-        {
-            var p = JObject.Parse(raw);
-            CPH.SetArgument("replayPanelPreset", (string)p["style"] ?? "broadcast");
-            CPH.SetArgument("replayPanelPrimaryColor", (string)p["primaryColor"] ?? "#0384CBFF");
-            CPH.SetArgument("replayPanelSecondaryColor", (string)p["secondaryColor"] ?? "#101416FF");
-            CPH.SetArgument("replayPanelTitleFont", (string)p["font"] ?? "Inter");
-            CPH.SetArgument("replayPanelTitleSize", (int?)p["fontSize"] ?? 34);
-            CPH.SetArgument("replayPanelTitleColor", (string)p["textColor"] ?? "#FFFFFFFF");
-            CPH.SetArgument("replayPanelListColor", (string)p["textColor"] ?? "#FFFFFFFF");
-            CPH.SetArgument("replayShowTitle", true);
-            CPH.SetArgument("replayBrandingPresetId", CPH.GetGlobalVar<string>("rts.actionreplay.handoff.resolvedPreset", false) ?? "default");
-            ApplyVisualObject("replayBroadcast", p["broadcast"] as JObject);
-            ApplyVisualObject("replayCut", p["cut"] as JObject);
-        }
-        catch { }
-    }
-
-    private void ApplyVisualObject(string prefix, JObject value)
-    {
-        foreach (var property in value?.Properties() ?? new JProperty[0])
-        {
-            var name = property.Name.Length == 0 ? "" : char.ToUpperInvariant(property.Name[0]) + property.Name.Substring(1);
-            object argument = property.Value.Type == JTokenType.Boolean
-                ? (object)(bool)property.Value
-                : property.Value.Type == JTokenType.Integer
-                    ? (object)(int)property.Value
-                    : property.Value.ToString();
-            CPH.SetArgument(prefix + name, argument);
-        }
-    }
 
     private string ResolvePanelPreset(JObject panel, string panelType)
     {
