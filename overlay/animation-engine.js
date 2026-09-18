@@ -1,3 +1,5 @@
+const runnerRegistry = new WeakMap();
+
 const RTSAnimationEngine = {
   normalisePosition(position, fallbackScale = 100) {
     const scale = Number(position?.scale ?? fallbackScale);
@@ -60,6 +62,8 @@ const RTSAnimationEngine = {
     }
   },
   createRunner(options = {}) {
+    const existingTarget = options.target;
+    if (existingTarget && runnerRegistry.has(existingTarget)) return runnerRegistry.get(existingTarget);
     const adapter = options?.normaliseStep ? options : null;
     let target = options.target;
     let positions = options.positions || {};
@@ -114,10 +118,9 @@ const RTSAnimationEngine = {
         else advance(1);
       } else advance(0);
     };
-    return {
+    const runner = {
       configure(raw) { if (!adapter) positions = RTSAnimationEngine.getPositions(raw, {}); active = null; },
       resolve,
-      setTarget: value => { target = value; },
       apply,
       transition(from, to, duration, easing, complete) {
         cancel();
@@ -143,6 +146,8 @@ const RTSAnimationEngine = {
       getActive: () => active,
       setActive: value => { active = value; }
     };
+    if (existingTarget) runnerRegistry.set(existingTarget, runner);
+    return runner;
   }
 };
 window.RTSAnimationEngine = RTSAnimationEngine;
