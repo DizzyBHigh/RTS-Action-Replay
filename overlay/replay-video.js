@@ -222,7 +222,8 @@ RTSReplayVideo.loadReplay = command => {
   RTSReplayControls.configure(command);
   RTSReplayElements.configure(command);
 
-  playerRunner.configure(command.replayPlayerPositions);\n  const profile = RTSAnimationEngine.readProfile(command.replayAnimationProfile);
+  playerRunner.configure(command.replayPlayerPositions);
+  const profile = RTSAnimationEngine.readProfile(command.replayAnimationProfile);
   const startSequence = Array.isArray(profile?.start) ? profile.start : [];
   const startName = command.replayStartPosition || command.replayPosition || 'Full Screen';
   const endName = command.replayEndPosition || startName;
