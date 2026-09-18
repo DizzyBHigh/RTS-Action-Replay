@@ -1,4 +1,6 @@
 const RTSPositionPreview = window.RTSReplay;
+let panelPreviewRunner = null;
+let clapperPreviewRunner = null;
 
 RTSPositionPreview.previewVideoPosition = command => {
   const player = RTSPositionPreview.player;
