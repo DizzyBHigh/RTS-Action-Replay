@@ -39,3 +39,16 @@
     height: 28px;
   }
 }
+
+.panel-broadcast .panel-broadcast-chevron {
+  position: absolute;
+  left: 0;
+  width: var(--chevron-width, 42px);
+  height: var(--chevron-height, 42px);
+  box-sizing: border-box;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+  color: var(--chevron-color, var(--panel-primary, #0384CB));
+  opacity: 1;
+}
