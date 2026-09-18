@@ -57,6 +57,12 @@
   letter-spacing: .02em;
 }
 
+[data-rts-information-panel] .rts-search-summary {
+  color: rgba(255,255,255,.82);
+  font: 800 14px/1.2 var(--panel-title-font), sans-serif;
+  letter-spacing: .04em;
+}
+
 [data-rts-information-panel] .rts-panel-list {
   max-height: calc(min(760px, 100vh - 120px) - 145px);
   padding-bottom: 14px;
