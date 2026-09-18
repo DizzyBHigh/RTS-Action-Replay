@@ -30,12 +30,6 @@ const RTSPositioningEngine = {
     if (!element) return null;
     const transform = this.transformFor(element, position);
     element.style.transform = transform;
-    window.RTSDevToolbar?.log?.('Positioning engine applied', {
-      version: this.version,
-      elementId: element.id,
-      transform,
-      inlineTransform: element.style.transform
-    });
     return transform;
   }
 };
