@@ -124,6 +124,23 @@ const RTSAnimationEngine = {
       configure(raw) { positions = RTSAnimationEngine.getPositions(raw, {}); active = null; },
       resolve,
       apply,
+      transition(from, to, duration, easing, complete) {
+        cancel();
+        const start = RTSAnimationEngine.normalisePosition(from);
+        const end = RTSAnimationEngine.normalisePosition(to);
+        const ms = Math.max(0, Number(duration) || 0);
+        if (!ms || RTSAnimationEngine.positionsEqual(start, end)) { apply(end); complete?.(); return; }
+        const runToken = token, ease = RTSAnimationEngine.easing(easing), started = performance.now();
+        apply(start);
+        const draw = now => {
+          if (runToken !== token) return;
+          const progress = Math.min(1, Math.max(0, (now - started) / ms));
+          apply(RTSAnimationEngine.interpolatePosition(start, end, ease(progress)));
+          if (progress < 1) frame = requestAnimationFrame(draw);
+          else { frame = null; apply(end); complete?.(); }
+        };
+        frame = requestAnimationFrame(draw);
+      },
       run(sequence, complete) { run(sequence, complete, false); },
       runEnd(sequence, complete) { run(sequence, complete, true); },
       cancel,
