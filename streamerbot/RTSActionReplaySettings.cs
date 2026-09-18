@@ -79,9 +79,9 @@ public class CPHInline
         ui.EndSection();
     }
 
-    private static string ReadUiValue(string key) => CPH.GetGlobalVar<string>(key, true);
+    private string ReadUiValue(string key) => CPH.GetGlobalVar<string>(key, true);
 
-    private static void SaveUiValue(string key, object value, bool persisted)
+    private void SaveUiValue(string key, object value, bool persisted)
         => CPH.SetGlobalVar(key, value, persisted);
 
     private static void AddMessageOutput(RtsUI ui, string name, string message, string key, string messageHelp) { ui.BeginRow(); ui.AddTextbox(name + " Message", messageHelp, "Messages", key + ".text", message, false); ui.EndRow(); ui.BeginRow(); ui.AddToggleSwitch(name + " - Chat", "Send this message to the requesting platform's chat.", "Messages", key + ".chat", true); ui.AddToggleSwitch(name + " - Overlay", "Send this message to the Action Replay overlay.", "Messages", key + ".overlay", false); ui.EndRow(); }
