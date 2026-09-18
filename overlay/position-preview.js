@@ -10,7 +10,6 @@ RTSPositionPreview.previewVideoPosition = command => {
   const position = RTSPositionPreview.getPosition(command.replayPosition || 'Full Screen');
   const wasVisible = player.classList.contains('show');
   const start = RTSPositionPreview.activePosition;
-  RTSPositionPreview.cancelPendingTransition?.();
   panelPreviewRunner?.cancel(); clapperPreviewRunner?.cancel();
   RTSPositionPreview.video.style.display = 'block';
   player.classList.add('position-preview', 'show');
@@ -83,7 +82,6 @@ RTSPositionPreview.previewClapperPosition = command => {
 RTSPositionPreview.hidePositionPreview = () => {
   RTSPositionPreview.player?.classList.remove('position-preview');
   if (RTSPositionPreview.video) RTSPositionPreview.video.style.display = 'block';
-  RTSPositionPreview.cancelPendingTransition?.();
   if (RTSPositionPreview.panelAnimationFrame) { cancelAnimationFrame(RTSPositionPreview.panelAnimationFrame); RTSPositionPreview.panelAnimationFrame = null; }
   const panel = RTSPositionPreview.recentList;
   if (panel) { window.RTSInformationPanelAnimation?.cancel?.(); panel.classList.remove('position-preview'); panel.style.removeProperty('--preview-panel-width'); panel.style.removeProperty('--preview-panel-height'); panel.classList.remove('show'); panel.setAttribute('aria-hidden', 'true'); }
