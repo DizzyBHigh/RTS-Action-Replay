@@ -56,18 +56,7 @@ RTSInformationPanels.getViewportOffset = position => {
 RTSInformationPanels.applyPosition = (panel, command, name) => {
   if (!panel) return;
   const position = RTSInformationPanels.normalise(RTSInformationPanels.getPosition(command, name));
-  const dev = Boolean(document.getElementById('rts-dev-stage'));
-  if (dev) {
-    panel.style.left = `calc(50% + ${position.x * 19.2}px)`;
-    panel.style.top = `calc(50% - ${position.y * 10.8}px)`;
-  } else {
-    const offset = RTSInformationPanels.getViewportOffset(position);
-    panel.style.left = offset ? `${offset.left}px` : `calc(50% + ${position.x}vw)`;
-    panel.style.top = offset ? `${offset.top}px` : `calc(50% - ${position.y}vh)`;
-  }
-  panel.style.setProperty('--panel-scale-x', position.scaleX / 100);
-  panel.style.setProperty('--panel-scale-y', position.scaleY / 100);
-  panel.style.setProperty('--panel-rotate-z', `${position.rotateZ}deg`);
+  RTSPositioningEngine.apply(panel, position);
 };
 
 RTSInformationPanels.show = (panel, command, name) => {
