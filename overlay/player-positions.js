@@ -25,7 +25,7 @@ RTSReplayPlayer.getPositions = () => {
   }
 };
 
-RTSReplayPlayer.getPosition = name => {
+RTSReplayPlayer.resolvePositionTag = name => {
   const positions = RTSReplayPlayer.getPositions();
   if (positions[name]) {
     window.RTSDevToolbar?.log?.('Player position matched by name', { requested: name, key: name, position: positions[name] });
@@ -38,7 +38,7 @@ RTSReplayPlayer.getPosition = name => {
       return key.toLowerCase() === target || String(position?.tag || '').trim().toLowerCase() === target;
     });
     if (match) {
-      window.RTSDevToolbar?.log?.('Player position matched', { requested: name, key: match, position: positions[match] });
+      window.RTSDevToolbar?.log?.('Player position matched by tag', { requested: name, key: match, position: positions[match] });
       return positions[match];
     }
   }
@@ -46,6 +46,8 @@ RTSReplayPlayer.getPosition = name => {
   window.RTSDevToolbar?.log?.('Player position fallback', { requested: name, position: fallback });
   return fallback;
 };
+
+RTSReplayPlayer.getPosition = name => RTSReplayPlayer.resolvePositionTag(name);
 
 RTSReplayPlayer.configureTransition = () => {
   const rawDuration = Number(RTSReplayPlayer.currentCommand?.replayAnimationDuration);
