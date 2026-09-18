@@ -121,7 +121,7 @@ const RTSAnimationEngine = {
       } else advance(0);
     };
     const runner = {
-      configure(raw) { positions = RTSAnimationEngine.getPositions(raw, {}); active = null; },
+      configure(raw) { positions = RTSAnimationEngine.getPositions(raw, {}); },
       resolve,
       apply,
       transition(from, to, duration, easing, complete) {
