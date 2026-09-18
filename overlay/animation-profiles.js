@@ -46,6 +46,19 @@ const playerAdapter = {
     return position;
   },
   positionsEqual: (a, b) => RTSReplayAnimation.positionsEqual(a, b),
+  getVisualState: () => {
+    const player = RTSReplayAnimation.player;
+    if (!player) return null;
+    const style = getComputedStyle(player);
+    const rect = player.getBoundingClientRect();
+    return {
+      inlineTransform: player.style.transform,
+      computedTransform: style.transform,
+      opacity: style.opacity,
+      visibility: style.visibility,
+      rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height }
+    };
+  },
   interpolatePosition: (from, to, progress) => RTSReplayAnimation.interpolatePosition(from, to, progress),
   easing: name => RTSReplayAnimation.easing(name),
   applyPosition: (position, immediate) => {
