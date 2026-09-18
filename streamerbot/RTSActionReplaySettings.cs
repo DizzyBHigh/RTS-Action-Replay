@@ -18,20 +18,13 @@ public class CPHInline
     private void BuildSettings(RtsUI ui)
     {
         AddGeneralSettings(ui); AddBrandingSettings(ui); AddPlaylistSettings(ui); AddTwitchSettings(ui); AddYouTubeSettings(ui);
-        AddPlayerSettings(ui); AddAppearanceSettings(ui); AddPanelSettings(ui); AddMessageSettings(ui);
+        AddPlayerSettings(ui); AddMessageSettings(ui);
     }
 
     private void AddGeneralSettings(RtsUI ui)
     {
         ui.AddThemeSelector("Settings Theme", "Choose the RtsUI theme.", "General", "rts.actionreplay.uiTheme", "Dark");
         ui.BeginSection("Replay Source", "General"); ui.AddFolderPicker("Replay Folder", "Folder containing local OBS Replay Buffer files. Downloaded Twitch and Kick clips use their own separate folders and are never stored here.", "General", "rts.actionreplay.replayFolder", ""); ui.AddTextbox("Replay File Types", "File extensions accepted when scanning the Replay Folder. Separate multiple extensions with commas, for example .mp4, .mkv.", "General", "rts.actionreplay.replayFileTypes", ".mp4, .mkv", false); ui.AddTextbox("HTTP Mapping", "URL path used by Streamer.bot's HTTP server to serve files from the Replay Folder. For example, replays creates the /replays/ path.", "General", "rts.actionreplay.httpMapping", "replays", false); ui.AddNumericTextbox("HTTP Port", "Port used by Streamer.bot's HTTP server to serve replay media. This must match the HTTP server configuration in Streamer.bot.", "General", "rts.actionreplay.httpPort", 7474, 1, 65535); ui.EndSection();
-    }
-
-    private void AddBrandingSettings(RtsUI ui)
-    {
-        ui.BeginSection("Branding", "Branding");
-        ui.AddToggleSwitch("Show Replay Branding", "Display the branding on the top left of the replay screen.", "Branding", "rts.actionreplay.showBranding", true);
-        ui.EndSection();
     }
 
     private void AddPlaylistSettings(RtsUI ui)
@@ -60,30 +53,6 @@ public class CPHInline
         ui.BeginRow();
         ui.AddDecimalTextbox("Default Playback Speed", "Playback speed applied when a replay is loaded. 1.0 is normal speed.", "Player", "rts.actionreplay.playbackSpeed", 1.0, 0.25, 2.0, 0.25);
         ui.AddDropdown("Show Visibility", "Choose when the playback speed indicator is shown.", "Player", "rts.actionreplay.playbackSpeedVisibility", new[] { "Always", "Only when greater or less than 1", "Never" }, "Only when greater or less than 1");
-        ui.EndRow();
-        ui.EndSection();
-    }
-
-    private void AddAppearanceSettings(RtsUI ui)
-    {
-        ui.BeginSection("Player Frame", "Appearance");
-        ui.BeginRow();
-        ui.AddColorPicker("Frame Color", "Main colour used for the player frame and playback progress indicator.", "Appearance", "rts.actionreplay.frameColor", "#0384CBFF");
-        ui.AddToggleSwitch("Border Glow", "Add a branded glow around the player border.", "Appearance", "rts.actionreplay.borderGlow", true);
-        ui.EndRow();
-        ui.BeginRow();
-        ui.AddSlider("Border Width", "Width of the player border in pixels.", "Appearance", "rts.actionreplay.borderWidth", 0, 12, 4);
-        ui.AddSlider("Corner Radius", "Round the player corners in pixels.", "Appearance", "rts.actionreplay.cornerRadius", 0, 48, 0);
-        ui.EndRow();
-        ui.EndSection();
-    }
-
-    private void AddPanelSettings(RtsUI ui)
-    {
-        ui.BeginSection("Information Panels", "Information Panels");
-        ui.BeginRow();
-        ui.AddNumericTextbox("Panel Width", "Information panel width in 1920×1080 output pixels.", "Information Panels", "rts.actionreplay.panel.width", 500, 100, 1920);
-        ui.AddNumericTextbox("Panel Height", "Information panel height in 1920×1080 output pixels.", "Information Panels", "rts.actionreplay.panel.height", 700, 100, 1080);
         ui.EndRow();
         ui.EndSection();
     }
