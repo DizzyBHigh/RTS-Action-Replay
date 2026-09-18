@@ -22,9 +22,6 @@ const RTSPositioningEngine = {
     const perspective = Math.max(1, (viewportWidth / 2) / Math.tan((fov * Math.PI / 180) / 2));
     const xValue = `${x * viewportWidth / 100}px`;
     const yValue = `${-y * viewportHeight / 100}px`;
-    const size = this.getSize(element);
-    element.style.setProperty('--rts-base-width', `${size.width}px`);
-    element.style.setProperty('--rts-base-height', `${size.height}px`);
     return `perspective(${perspective}px) translate(-50%, -50%) translate3d(${xValue}, ${yValue}, ${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX}, ${scaleY}, 1)`;
   },
 
