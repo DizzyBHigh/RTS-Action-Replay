@@ -174,14 +174,18 @@ public class CPHInline
         var player = ReadConfig(PlayerKey, CreatePlayerDefaults());
         NormalizePositionConfig(player, false);
         var profiles = NormalizeProfiles(player["animationProfiles"] as JArray);
+        CPH.LogInfo("RTS Action Replay TRACE: ApplyProfile after NormalizeProfiles; profile=" + (profile ?? "<none>") + "; profiles=" + profiles.ToString(Newtonsoft.Json.Formatting.None));
         var positions = GetUnifiedPlayerPositions();
         NormalizeSequences(player, positions);
+        profiles = (JArray)player["animationProfiles"];
+        CPH.LogInfo("RTS Action Replay TRACE: ApplyProfile after NormalizeSequences; profile=" + (profile ?? "<none>") + "; profiles=" + profiles.ToString(Newtonsoft.Json.Formatting.None));
         if (string.IsNullOrWhiteSpace(profile)) profile = (string)((JObject)player["animation"])?["selectedProfile"];
         profile = ResolveProfileId(profiles, profile) ?? "default";
         CPH.UnsetGlobalVar(PlaybackProfileHandoffKey, false);
         var item = FindProfile(profiles, profile) ?? CreateProfile("default", "Default");
         var start = item["startSequence"] as JArray ?? new JArray();
         var end = item["endSequence"] as JArray ?? new JArray();
+        CPH.LogInfo("RTS Action Replay TRACE: ApplyProfile selected profile=" + profile + "; start=" + start.ToString(Newtonsoft.Json.Formatting.None) + "; end=" + end.ToString(Newtonsoft.Json.Formatting.None));
         if (start.Count == 0) start = DefaultPlayerStart();
         if (end.Count == 0) end = DefaultPlayerEnd();
         var profileJson = new JObject { ["id"] = profile, ["name"] = (string)item["name"] ?? "Default", ["start"] = start, ["end"] = end }.ToString(Newtonsoft.Json.Formatting.None);
