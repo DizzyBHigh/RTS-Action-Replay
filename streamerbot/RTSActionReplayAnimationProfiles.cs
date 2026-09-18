@@ -254,7 +254,18 @@ public class CPHInline
         if (string.IsNullOrWhiteSpace(raw)) return;
         try
         {
-            ApplyArguments(JObject.Parse(raw));
+            var p = JObject.Parse(raw);
+            CPH.SetArgument("replayPanelPreset", (string)p["style"] ?? "broadcast");
+            CPH.SetArgument("replayPanelPrimaryColor", (string)p["primaryColor"] ?? "#0384CBFF");
+            CPH.SetArgument("replayPanelSecondaryColor", (string)p["secondaryColor"] ?? "#101416FF");
+            CPH.SetArgument("replayPanelTitleFont", (string)p["font"] ?? "Inter");
+            CPH.SetArgument("replayPanelTitleSize", (int?)p["fontSize"] ?? 34);
+            CPH.SetArgument("replayPanelTitleColor", (string)p["textColor"] ?? "#FFFFFFFF");
+            CPH.SetArgument("replayPanelListColor", (string)p["textColor"] ?? "#FFFFFFFF");
+            CPH.SetArgument("replayShowTitle", true);
+            CPH.SetArgument("replayBrandingPresetId", CPH.GetGlobalVar<string>("rts.actionreplay.handoff.resolvedPreset", false) ?? "default");
+            Props("replayBroadcast", p["broadcast"] as JObject);
+            Props("replayCut", p["cut"] as JObject);
         }
         catch { }
     }
