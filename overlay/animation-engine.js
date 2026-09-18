@@ -61,7 +61,7 @@ const RTSAnimationEngine = {
   },
   createRunner(options = {}) {
     const adapter = options?.normaliseStep ? options : null;
-    const target = options.target;
+    let target = options.target;
     let positions = options.positions || {};
     const fallback = options.defaultPosition || { scale: 100, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, fov: 90 };
     let active = null, token = 0, timer = null, frame = null;
@@ -117,6 +117,7 @@ const RTSAnimationEngine = {
     return {
       configure(raw) { if (!adapter) positions = RTSAnimationEngine.getPositions(raw, {}); active = null; },
       resolve,
+      setTarget: value => { target = value; },
       apply,
       transition(from, to, duration, easing, complete) {
         cancel();
