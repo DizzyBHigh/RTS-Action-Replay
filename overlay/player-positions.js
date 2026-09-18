@@ -119,26 +119,6 @@ RTSReplayPlayer.interpolatePosition = (from, to, progress) => {
   };
 };
 
-RTSReplayPlayer.transformFor = (p, scaleFactor = 1) => {
-  const legacyScale = RTSReplayPlayer.numberOr(p?.scale, 100) / 100;
-  const scaleX = RTSReplayPlayer.numberOr(p?.scaleX, legacyScale * 100) / 100 * scaleFactor;
-  const scaleY = RTSReplayPlayer.numberOr(p?.scaleY, legacyScale * 100) / 100 * scaleFactor;
-  const z = RTSReplayPlayer.numberOr(p?.z, 0);
-  const rotateX = -RTSReplayPlayer.numberOr(p?.rotateX, 0);
-  const rotateY = RTSReplayPlayer.numberOr(p?.rotateY, 0);
-  const rotateZ = -RTSReplayPlayer.numberOr(p?.rotateZ, 0);
-  const fov = Math.max(30, Math.min(120, RTSReplayPlayer.numberOr(p?.fov, 90)));
-  const viewportWidth = Math.max(1, window.innerWidth || 1920);
-  const perspective = Math.max(1, (viewportWidth / 2) / Math.tan((fov * Math.PI / 180) / 2));
-  RTSReplayPlayer.stage.style.perspective = `${perspective}px`;
-  RTSReplayPlayer.stage.style.perspectiveOrigin = 'center center';
-  const x = RTSReplayPlayer.numberOr(p?.x, 0);
-  const y = RTSReplayPlayer.numberOr(p?.y, 0);
-  RTSReplayPlayer.stage.style.left = `calc(50% + ${x}vw)`;
-  RTSReplayPlayer.stage.style.top = `calc(50% - ${y}vh)`;
-  return `translate(-50%, -50%) translateZ(${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX}, ${scaleY}, 1)`;
-};
-
 RTSReplayPlayer.positionsEqual = (a, b) => {
   if (!a || !b) return false;
   const defaults = { scale: 100, scaleX: null, scaleY: null, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, fov: 90 };
@@ -152,7 +132,7 @@ RTSReplayPlayer.positionsEqual = (a, b) => {
 RTSReplayPlayer.applyPosition = (position, immediate = false) => {
   const p = position || RTSReplayPlayer.defaultPositions['Full Screen'];
   if (immediate) RTSReplayPlayer.cancelPendingTransition();
-  RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(p);
+  RTSPositioningEngine.apply(RTSReplayPlayer.player, p);
 };
 
 RTSReplayPlayer.cancelPendingTransition = () => {
@@ -180,15 +160,15 @@ RTSReplayPlayer.animatePosition = (startPosition, endPosition, onComplete) => {
     const rawProgress = Math.min(1, Math.max(0, (now - started) / duration));
     const progress = easing(rawProgress);
     const current = RTSReplayPlayer.interpolatePosition(start, end, progress);
-    RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(current);
+    RTSPositioningEngine.apply(RTSReplayPlayer.player, current);
     if (rawProgress < 1) { RTSReplayPlayer.animationFrame = requestAnimationFrame(frame); return; }
     RTSReplayPlayer.animationFrame = null;
-    RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(end);
+    RTSPositioningEngine.apply(RTSReplayPlayer.player, end);
     if (onComplete) onComplete();
   };
   RTSReplayPlayer.player.classList.remove('player-transition');
   RTSReplayPlayer.stage.classList.remove('player-transition');
-  RTSReplayPlayer.player.style.transform = RTSReplayPlayer.transformFor(start);
+  RTSPositioningEngine.apply(RTSReplayPlayer.player, start);
   RTSReplayPlayer.animationFrame = requestAnimationFrame(frame);
 };
 
