@@ -46,7 +46,11 @@ public class CPHInline
     private void ApplyPanelVisualHandoff()
     {
         var raw = CPH.GetGlobalVar<string>("rts.actionreplay.handoff.visualBranding", false);
-        if (string.IsNullOrWhiteSpace(raw)) return;
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            CPH.LogWarn("RTS Action Replay: panel visual handoff was not found before search-panel trigger.");
+            return;
+        }
         try
         {
             var p = JObject.Parse(raw);
@@ -61,6 +65,11 @@ public class CPHInline
             CPH.SetArgument("replayShowTitle", true);
             SetPanelVisualObject("replayBroadcast", p["broadcast"] as JObject);
             SetPanelVisualObject("replayCut", p["cut"] as JObject);
+            CPH.LogInfo("RTS Action Replay: panel visual handoff hydrated search arguments. " +
+                "design=" + Arg("replayPanelPreset", "missing") +
+                ", primary=" + Arg("replayPanelPrimaryColor", "missing") +
+                ", secondary=" + Arg("replayPanelSecondaryColor", "missing") +
+                ", branding=" + Arg("replayBrandingPresetId", "missing"));
         }
         catch { CPH.LogWarn("RTS Action Replay: panel visual handoff could not be parsed."); }
     }
