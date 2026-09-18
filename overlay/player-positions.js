@@ -6,24 +6,45 @@ RTSReplayPlayer.defaultPositions = {
 
 RTSReplayPlayer.getPositions = () => {
   try {
-    const raw = RTSReplayPlayer.currentCommand?.replayPlayerPositions ?? RTSReplayPlayer.currentCommand?.replayPositions;
+    const command = RTSReplayPlayer.currentCommand;
+    const raw = command?.replayPlayerPositions ?? command?.replayPositions;
     const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-    return parsed && typeof parsed === 'object' ? parsed : RTSReplayPlayer.defaultPositions;
-  } catch (_) { return RTSReplayPlayer.defaultPositions; }
+    const positions = parsed && typeof parsed === 'object' ? parsed : RTSReplayPlayer.defaultPositions;
+    window.RTSDevToolbar?.log?.('Player positions lookup', {
+      commandPresent: !!command,
+      payloadPresent: raw != null,
+      payloadType: typeof raw,
+      payloadLength: typeof raw === 'string' ? raw.length : 0,
+      count: Object.keys(positions).length,
+      keys: Object.keys(positions)
+    });
+    return positions;
+  } catch (error) {
+    window.RTSDevToolbar?.log?.('Player positions lookup failed', { error: String(error) });
+    return RTSReplayPlayer.defaultPositions;
+  }
 };
 
 RTSReplayPlayer.getPosition = name => {
   const positions = RTSReplayPlayer.getPositions();
-  if (positions[name]) return positions[name];
+  if (positions[name]) {
+    window.RTSDevToolbar?.log?.('Player position matched by name', { requested: name, key: name, position: positions[name] });
+    return positions[name];
+  }
   const target = String(name || '').trim().toLowerCase();
   if (target) {
     const match = Object.keys(positions).find(key => {
       const position = positions[key];
       return key.toLowerCase() === target || String(position?.tag || '').trim().toLowerCase() === target;
     });
-    if (match) return positions[match];
+    if (match) {
+      window.RTSDevToolbar?.log?.('Player position matched', { requested: name, key: match, position: positions[match] });
+      return positions[match];
+    }
   }
-  return positions['Full Screen'] || RTSReplayPlayer.defaultPositions['Full Screen'];
+  const fallback = positions['Full Screen'] || RTSReplayPlayer.defaultPositions['Full Screen'];
+  window.RTSDevToolbar?.log?.('Player position fallback', { requested: name, position: fallback });
+  return fallback;
 };
 
 RTSReplayPlayer.configureTransition = () => {
