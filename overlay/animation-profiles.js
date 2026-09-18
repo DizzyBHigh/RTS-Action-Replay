@@ -34,7 +34,7 @@ const playerAdapter = {
   getPosition: name => {
     const command = RTSReplayAnimation.currentCommand;
     const raw = command?.replayPlayerPositions ?? command?.replayPositions;
-    const position = RTSReplayAnimation.getPosition(name);
+    const position = RTSReplayAnimation.resolvePositionTag(name);
     animationDevLog('Animation resolver boundary', {
       requested: name,
       commandPresent: !!command,
