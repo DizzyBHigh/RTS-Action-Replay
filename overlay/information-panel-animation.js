@@ -33,12 +33,7 @@ const panelAdapter = {
   applyPosition: position => {
     const panel = activePanel;
     if (!panel || !position) return;
-    const offset = RTSInformationPanels.getViewportOffset(position);
-    panel.style.left = offset ? `${offset.left}px` : `calc(50% + ${position.x}vw)`;
-    panel.style.top = offset ? `${offset.top}px` : `calc(50% - ${position.y}vh)`;
-    panel.style.setProperty('--panel-scale-x', position.scaleX / 100);
-    panel.style.setProperty('--panel-scale-y', position.scaleY / 100);
-    panel.style.setProperty('--panel-rotate-z', `${position.rotateZ}deg`);
+    RTSPositioningEngine.apply(panel, position);
   }
 };
 
