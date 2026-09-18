@@ -37,7 +37,6 @@ public class CPHInline
         clapper["animationProfiles"] = profiles;
         clapper["animation"] = animation;
         SaveConfig(ClapperKey, clapper);
-        RemoveProfileSequences("clapperboard", id);
         return true;
     }
 
@@ -50,7 +49,6 @@ public class CPHInline
         EnsureSequenceStore("player", profiles, legacyProfiles);
         player["animationProfiles"] = profiles;
         var animation = player["animation"] as JObject ?? new JObject();
-        var profiles = (JArray)player["animationProfiles"];
         animation["selectedProfile"] = ResolveProfileId(profiles, (string)animation["selectedProfile"]) ?? "default";
         animation["entryPoints"] = NormalizeEntryPoints(animation["entryPoints"] as JObject, profiles, new[] { "obs", "twitch", "youtube", "kick", "recent", "catalog", "playlist" });
         player["animation"] = animation;
@@ -66,7 +64,6 @@ public class CPHInline
         EnsureSequenceStore("panel", profiles, legacyProfiles);
         panel["animationProfiles"] = profiles;
         var animation = panel["animation"] as JObject ?? new JObject();
-        var profiles = (JArray)panel["animationProfiles"];
         animation["entryPoints"] = NormalizeEntryPoints(animation["entryPoints"] as JObject, profiles, new[] { "recent", "playlist", "creatorLeaderboard" });
         panel["animation"] = animation;
         panel["preset"] = NormalizePresetConfig(panel["preset"]);
@@ -160,6 +157,7 @@ public class CPHInline
         clapper["animationProfiles"] = profiles;
         clapper["animation"] = animation;
         SaveConfig(ClapperKey, clapper);
+        RemoveProfileSequences("clapperboard", id);
         return true;
     }
 
@@ -259,17 +257,6 @@ public class CPHInline
         catch { return new JObject(); }
     }
 
-    private void NormalizeClapperSequences(JArray profiles)
-    {
-        var positions = ReadClapperPositions();
-        foreach (var token in profiles ?? new JArray())
-        {
-            var profile = token as JObject;
-            if (profile == null) continue;
-            // Clapperboard sequences are stored in the shared animation JSON.
-        }
-    }
-
     private JObject ReadClapperPositions()
     {
         var raw = CPH.GetGlobalVar<string>(ClapperPositionsKey, true);
@@ -315,7 +302,7 @@ public class CPHInline
         {
             var id = (string)token["id"];
             if (string.IsNullOrWhiteSpace(id) || FindProfile(result, id) != null) continue;
-            var item = new JObject { ["id"] = id, ["name"] = id == "default" ? "Default" : (string)token["name"] ?? "New Profile", ["startSequence"] = token["startSequence"] as JArray ?? new JArray(), ["endSequence"] = token["endSequence"] as JArray ?? new JArray() };
+            var item = new JObject { ["id"] = id, ["name"] = id == "default" ? "Default" : (string)token["name"] ?? "New Profile" };
             if (id == "default") defaultProfile = item; else result.Add(item);
         }
         result.Insert(0, defaultProfile ?? CreateProfile("default", "Default"));
