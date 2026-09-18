@@ -193,8 +193,8 @@ public class CPHInline
         CPH.UnsetGlobalVar(PlaybackProfileHandoffKey, false);
         var item = FindProfile(profiles, profile) ?? CreateProfile("default", "Default");
         var sequences = GetProfileSequences("player", profile);
-        var start = sequences["startSequence"] as JArray ?? new JArray();
-        var end = sequences["endSequence"] as JArray ?? new JArray();
+        var start = ToStoredSequence("player", sequences["startSequence"] as JArray ?? new JArray());
+        var end = ToStoredSequence("player", sequences["endSequence"] as JArray ?? new JArray());
         if (start.Count == 0) start = DefaultPlayerStart();
         if (end.Count == 0) end = DefaultPlayerEnd();
         var profileJson = new JObject { ["id"] = profile, ["name"] = (string)item["name"] ?? "Default", ["start"] = start, ["end"] = end }.ToString(Newtonsoft.Json.Formatting.None);
@@ -247,6 +247,21 @@ public class CPHInline
         var entries = preset?["entryPoints"] as JObject;
         var value = (string)entries?[panelType.ToLowerInvariant()];
         return string.IsNullOrWhiteSpace(value) ? (string)preset?["fallback"] ?? "Broadcast" : value;
+    }
+
+    private JArray ToStoredSequence(string target, JArray input)
+    {
+        var positions = (ReadConfig("rts.actionreplay.config.presets", new JObject())["positions"] as JObject)?[target] as JObject ?? new JObject();
+        var rows = new JArray();
+        foreach (var token in input ?? new JArray())
+        {
+            var row = token as JObject ?? new JObject();
+            var value = (string)row["position"] ?? "";
+            var position = positions[value] as JObject;
+            var tag = (string)position?["tag"] ?? value;
+            rows.Add(new JObject { ["position"] = tag, ["duration"] = (int?)row["duration"] ?? 0, ["delay"] = (int?)row["delay"] ?? 0, ["easing"] = (string)row["easing"] ?? "ease-in-out" });
+        }
+        return rows;
     }
 
     private JObject GetUnifiedPlayerPositions()
