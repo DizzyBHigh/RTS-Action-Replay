@@ -19,11 +19,14 @@
 }
 
 .panel-broadcast .panel-broadcast-chevron-mover {
+  position: absolute;
+  display: block;
   top: 0;
   height: 100%;
 }
 
 .panel-broadcast .panel-broadcast-chevron {
+  display: block;
   top: 50%;
   transform: translateY(-50%);
 }
