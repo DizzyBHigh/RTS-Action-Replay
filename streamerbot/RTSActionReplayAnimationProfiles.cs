@@ -251,6 +251,8 @@ public class CPHInline
         CPH.TryGetArg("replayQueueEntryId", out string entryId);
         if (!string.IsNullOrWhiteSpace(entryId)) key += "." + entryId;
         var raw = CPH.GetGlobalVar<string>(key, false);
+        if (string.IsNullOrWhiteSpace(raw) && key != "rts.actionreplay.handoff.visualBranding")
+            raw = CPH.GetGlobalVar<string>("rts.actionreplay.handoff.visualBranding", false);
         if (string.IsNullOrWhiteSpace(raw)) return;
         try
         {
