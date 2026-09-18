@@ -31,7 +31,20 @@ const playerAdapter = {
     delay: normaliseDuration(step?.delay),
     easing: step?.easing || 'ease-in-out'
   }),
-  getPosition: name => RTSReplayAnimation.getPosition(name),
+  getPosition: name => {
+    const command = RTSReplayAnimation.currentCommand;
+    const raw = command?.replayPlayerPositions ?? command?.replayPositions;
+    const position = RTSReplayAnimation.getPosition(name);
+    animationDevLog('Animation resolver boundary', {
+      requested: name,
+      commandPresent: !!command,
+      payloadPresent: raw != null,
+      payloadType: typeof raw,
+      payloadLength: typeof raw === 'string' ? raw.length : 0,
+      returned: position
+    });
+    return position;
+  },
   positionsEqual: (a, b) => RTSReplayAnimation.positionsEqual(a, b),
   interpolatePosition: (from, to, progress) => RTSReplayAnimation.interpolatePosition(from, to, progress),
   easing: name => RTSReplayAnimation.easing(name),
