@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 public class CPHInline
 {
     private const string PlayerKey = "rts.actionreplay.config.player";
+    private const string AnimationKey = "rts.actionreplay.config.animation";
     private const string PanelKey = "rts.actionreplay.config.panel";
     private const string ClapperKey = "rts.actionreplay.config.clapper";
     private const string ClapperPositionsKey = "rts.actionreplay.clapper.positions";
@@ -28,13 +29,15 @@ public class CPHInline
     public bool EnsureClapperProfiles()
     {
         var clapper = ReadConfig(ClapperKey, CreateClapperDefaults());
-        var profiles = NormalizeProfiles(clapper["animationProfiles"] as JArray);
-        NormalizeClapperSequences(profiles);
+        var legacyProfiles = clapper["animationProfiles"] as JArray;
+        var profiles = NormalizeProfiles(legacyProfiles);
+        EnsureSequenceStore("clapperboard", profiles, legacyProfiles);
         var animation = clapper["animation"] as JObject ?? new JObject();
         animation["selectedProfile"] = ResolveProfileId(profiles, (string)animation["selectedProfile"]) ?? "default";
         clapper["animationProfiles"] = profiles;
         clapper["animation"] = animation;
         SaveConfig(ClapperKey, clapper);
+        RemoveProfileSequences("clapperboard", id);
         return true;
     }
 
@@ -42,9 +45,10 @@ public class CPHInline
     {
         var player = ReadConfig(PlayerKey, CreatePlayerDefaults());
         NormalizePositionConfig(player, false);
-        player["animationProfiles"] = NormalizeProfiles(player["animationProfiles"] as JArray);
-        var positions = GetUnifiedPlayerPositions();
-        NormalizeSequences(player, positions);
+        var legacyProfiles = player["animationProfiles"] as JArray;
+        var profiles = NormalizeProfiles(legacyProfiles);
+        EnsureSequenceStore("player", profiles, legacyProfiles);
+        player["animationProfiles"] = profiles;
         var animation = player["animation"] as JObject ?? new JObject();
         var profiles = (JArray)player["animationProfiles"];
         animation["selectedProfile"] = ResolveProfileId(profiles, (string)animation["selectedProfile"]) ?? "default";
@@ -57,8 +61,10 @@ public class CPHInline
     {
         var panel = ReadConfig(PanelKey, CreatePanelDefaults());
         NormalizePositionConfig(panel, true);
-        panel["animationProfiles"] = NormalizeProfiles(panel["animationProfiles"] as JArray);
-        NormalizeSequences(panel, panel["positions"] as JObject ?? new JObject());
+        var legacyProfiles = panel["animationProfiles"] as JArray;
+        var profiles = NormalizeProfiles(legacyProfiles);
+        EnsureSequenceStore("panel", profiles, legacyProfiles);
+        panel["animationProfiles"] = profiles;
         var animation = panel["animation"] as JObject ?? new JObject();
         var profiles = (JArray)panel["animationProfiles"];
         animation["entryPoints"] = NormalizeEntryPoints(animation["entryPoints"] as JObject, profiles, new[] { "recent", "playlist", "creatorLeaderboard" });
@@ -72,9 +78,11 @@ public class CPHInline
         var player = ReadConfig(PlayerKey, CreatePlayerDefaults());
         var profiles = NormalizeProfiles(player["animationProfiles"] as JArray);
         var name = CPH.TryGetArg("profileName", out string requested) && !string.IsNullOrWhiteSpace(requested) ? requested.Trim() : "New Profile";
-        profiles.Add(CreateProfile(Guid.NewGuid().ToString("N"), name));
+        var id = Guid.NewGuid().ToString("N");
+        profiles.Add(CreateProfile(id, name));
         player["animationProfiles"] = profiles;
         SaveConfig(PlayerKey, player);
+        EnsureSequenceStore("player", profiles, null);
         return true;
     }
 
@@ -92,6 +100,7 @@ public class CPHInline
         player["animationProfiles"] = profiles;
         player["animation"] = animation;
         SaveConfig(PlayerKey, player);
+        RemoveProfileSequences("player", id);
         return true;
     }
 
@@ -100,9 +109,11 @@ public class CPHInline
         var panel = ReadConfig(PanelKey, CreatePanelDefaults());
         var profiles = NormalizeProfiles(panel["animationProfiles"] as JArray);
         var name = CPH.TryGetArg("panelProfileName", out string requested) && !string.IsNullOrWhiteSpace(requested) ? requested.Trim() : "New Panel Profile";
-        profiles.Add(CreatePanelProfile(Guid.NewGuid().ToString("N"), name));
+        var id = Guid.NewGuid().ToString("N");
+        profiles.Add(CreatePanelProfile(id, name));
         panel["animationProfiles"] = profiles;
         SaveConfig(PanelKey, panel);
+        EnsureSequenceStore("panel", profiles, null);
         return true;
     }
 
@@ -119,6 +130,7 @@ public class CPHInline
         panel["animationProfiles"] = profiles;
         panel["animation"] = animation;
         SaveConfig(PanelKey, panel);
+        RemoveProfileSequences("panel", id);
         return true;
     }
 
@@ -127,9 +139,11 @@ public class CPHInline
         var clapper = ReadConfig(ClapperKey, CreateClapperDefaults());
         var profiles = NormalizeProfiles(clapper["animationProfiles"] as JArray);
         var name = CPH.TryGetArg("clapperProfileName", out string requested) && !string.IsNullOrWhiteSpace(requested) ? requested.Trim() : "New Clapperboard Profile";
-        profiles.Add(CreateClapperProfile(Guid.NewGuid().ToString("N"), name));
+        var id = Guid.NewGuid().ToString("N");
+        profiles.Add(CreateClapperProfile(id, name));
         clapper["animationProfiles"] = profiles;
         SaveConfig(ClapperKey, clapper);
+        EnsureSequenceStore("clapperboard", profiles, null);
         return true;
     }
 
@@ -173,22 +187,20 @@ public class CPHInline
         if (string.IsNullOrWhiteSpace(profile)) profile = CPH.GetGlobalVar<string>(PlaybackProfileHandoffKey, false);
         var player = ReadConfig(PlayerKey, CreatePlayerDefaults());
         NormalizePositionConfig(player, false);
-        var profiles = NormalizeProfiles(player["animationProfiles"] as JArray);
-        CPH.LogInfo("RTS Action Replay TRACE: ApplyProfile after NormalizeProfiles; profile=" + (profile ?? "<none>") + "; profiles=" + profiles.ToString(Newtonsoft.Json.Formatting.None));
-        var positions = GetUnifiedPlayerPositions();
-        NormalizeSequences(player, positions);
-        profiles = (JArray)player["animationProfiles"];
-        CPH.LogInfo("RTS Action Replay TRACE: ApplyProfile after NormalizeSequences; profile=" + (profile ?? "<none>") + "; profiles=" + profiles.ToString(Newtonsoft.Json.Formatting.None));
+        var legacyProfiles = player["animationProfiles"] as JArray;
+        var profiles = NormalizeProfiles(legacyProfiles);
+        EnsureSequenceStore("player", profiles, legacyProfiles);
         if (string.IsNullOrWhiteSpace(profile)) profile = (string)((JObject)player["animation"])?["selectedProfile"];
         profile = ResolveProfileId(profiles, profile) ?? "default";
         CPH.UnsetGlobalVar(PlaybackProfileHandoffKey, false);
         var item = FindProfile(profiles, profile) ?? CreateProfile("default", "Default");
-        var start = item["startSequence"] as JArray ?? new JArray();
-        var end = item["endSequence"] as JArray ?? new JArray();
-        CPH.LogInfo("RTS Action Replay TRACE: ApplyProfile selected profile=" + profile + "; start=" + start.ToString(Newtonsoft.Json.Formatting.None) + "; end=" + end.ToString(Newtonsoft.Json.Formatting.None));
+        var sequences = GetProfileSequences("player", profile);
+        var start = sequences["startSequence"] as JArray ?? new JArray();
+        var end = sequences["endSequence"] as JArray ?? new JArray();
         if (start.Count == 0) start = DefaultPlayerStart();
         if (end.Count == 0) end = DefaultPlayerEnd();
         var profileJson = new JObject { ["id"] = profile, ["name"] = (string)item["name"] ?? "Default", ["start"] = start, ["end"] = end }.ToString(Newtonsoft.Json.Formatting.None);
+        var positions = GetUnifiedPlayerPositions();
         var playerPositions = positions.ToString(Newtonsoft.Json.Formatting.None);
         CPH.SetArgument("profileId", profile);
         CPH.SetArgument("replayAnimationProfile", profileJson);
@@ -212,14 +224,16 @@ public class CPHInline
         var panelType = CPH.TryGetArg("panelType", out string requested) && !string.IsNullOrWhiteSpace(requested) ? requested.Trim() : "recent";
         var panel = ReadConfig(PanelKey, CreatePanelDefaults());
         NormalizePositionConfig(panel, true);
-        var profiles = NormalizeProfiles(panel["animationProfiles"] as JArray);
-        NormalizeSequences(panel, panel["positions"] as JObject ?? new JObject());
+        var legacyProfiles = panel["animationProfiles"] as JArray;
+        var profiles = NormalizeProfiles(legacyProfiles);
+        EnsureSequenceStore("panel", profiles, legacyProfiles);
         var animation = panel["animation"] as JObject ?? new JObject();
         var entries = animation["entryPoints"] as JObject ?? new JObject();
         var profile = ResolveProfileId(profiles, (string)entries[panelType.ToLowerInvariant()]) ?? "default";
         var item = FindProfile(profiles, profile) ?? CreatePanelProfile("default", "Default");
-        var start = item["startSequence"] as JArray ?? DefaultPanelStart();
-        var end = item["endSequence"] as JArray ?? DefaultPanelEnd();
+        var sequences = GetProfileSequences("panel", profile);
+        var start = sequences["startSequence"] as JArray ?? DefaultPanelStart();
+        var end = sequences["endSequence"] as JArray ?? DefaultPanelEnd();
         if (start.Count == 0) start = DefaultPanelStart();
         if (end.Count == 0) end = DefaultPanelEnd();
         CPH.SetArgument("replayPanelPreset", ResolvePanelPreset(panel, panelType));
@@ -252,8 +266,7 @@ public class CPHInline
         {
             var profile = token as JObject;
             if (profile == null) continue;
-            profile["startSequence"] = FilterSequence(profile["startSequence"] as JArray, positions);
-            profile["endSequence"] = FilterSequence(profile["endSequence"] as JArray, positions);
+            // Clapperboard sequences are stored in the shared animation JSON.
         }
     }
 
@@ -292,26 +305,6 @@ public class CPHInline
             : new JObject { ["name"] = "Full Screen", ["tag"] = "full-screen", ["scale"] = 100, ["scaleX"] = 100, ["scaleY"] = 100, ["x"] = 0, ["y"] = 0, ["z"] = 0, ["rotateX"] = 0, ["rotateY"] = 0, ["rotateZ"] = 0, ["fov"] = 90 };
         positions[panel ? "Centered" : "Full Screen"] = builtIn;
         config["positions"] = positions;
-    }
-
-    private void NormalizeSequences(JObject config, JObject positions)
-    {
-        var profiles = config["animationProfiles"] as JArray ?? new JArray();
-        foreach (var token in profiles)
-        {
-            var profile = token as JObject;
-            if (profile == null) continue;
-            profile["startSequence"] = FilterSequence(profile["startSequence"] as JArray, positions);
-            profile["endSequence"] = FilterSequence(profile["endSequence"] as JArray, positions);
-        }
-    }
-
-    private JArray FilterSequence(JArray source, JObject positions)
-    {
-        // Animation profiles are the source of truth for their sequences.
-        // Do not delete rows because the position store is temporarily empty,
-        // stale, or does not currently contain a referenced position.
-        return source ?? new JArray();
     }
 
     private JArray NormalizeProfiles(JArray source)
@@ -360,13 +353,63 @@ public class CPHInline
         return null;
     }
 
-    private JObject CreateProfile(string id, string name) => new JObject { ["id"] = id, ["name"] = name, ["startSequence"] = DefaultPlayerStart(), ["endSequence"] = DefaultPlayerEnd() };
-    private JObject CreatePanelProfile(string id, string name) => new JObject { ["id"] = id, ["name"] = name, ["startSequence"] = DefaultPanelStart(), ["endSequence"] = DefaultPanelEnd() };
-    private JObject CreateClapperProfile(string id, string name) => new JObject { ["id"] = id, ["name"] = name, ["startSequence"] = DefaultClapperStart(), ["endSequence"] = DefaultClapperEnd() };
+    private JObject CreateProfile(string id, string name) => new JObject { ["id"] = id, ["name"] = name };
+    private JObject CreatePanelProfile(string id, string name) => new JObject { ["id"] = id, ["name"] = name };
+    private JObject CreateClapperProfile(string id, string name) => new JObject { ["id"] = id, ["name"] = name };
 
     private JObject CreatePlayerDefaults() => new JObject { ["version"] = 1, ["positions"] = new JObject(), ["animationProfiles"] = new JArray(CreateProfile("default", "Default")), ["animation"] = new JObject { ["selectedProfile"] = "default", ["entryPoints"] = new JObject { ["obs"] = "default", ["twitch"] = "default", ["youtube"] = "default", ["kick"] = "default", ["recent"] = "default", ["catalog"] = "default", ["playlist"] = "default" } } };
     private JObject CreatePanelDefaults() => new JObject { ["version"] = 1, ["width"] = 500, ["height"] = 700, ["positions"] = new JObject(), ["animationProfiles"] = new JArray(CreatePanelProfile("default", "Default")), ["animation"] = new JObject { ["entryPoints"] = new JObject { ["recent"] = "default", ["playlist"] = "default", ["creatorLeaderboard"] = "default" } }, ["preset"] = new JObject { ["fallback"] = "Broadcast", ["entryPoints"] = new JObject { ["recent"] = "Broadcast", ["playlist"] = "Broadcast", ["creatorLeaderboard"] = "Broadcast" } } };
     private JObject CreateClapperDefaults() => new JObject { ["version"] = 1, ["animationProfiles"] = new JArray(CreateClapperProfile("default", "Default")), ["animation"] = new JObject { ["selectedProfile"] = "default" } };
+
+    private JObject GetProfileSequences(string target, string id)
+    {
+        var store = ReadConfig(AnimationKey, new JObject());
+        var targetObject = store[target] as JObject;
+        var profile = targetObject?[id] as JObject;
+        return profile ?? new JObject();
+    }
+
+    private void EnsureSequenceStore(string target, JArray profiles, JArray legacyProfiles)
+    {
+        var store = ReadConfig(AnimationKey, new JObject());
+        var targetObject = store[target] as JObject ?? new JObject();
+        var changed = false;
+        foreach (var token in profiles ?? new JArray())
+        {
+            var id = (string)token["id"];
+            if (string.IsNullOrWhiteSpace(id)) continue;
+            if (targetObject[id] is JObject) continue;
+            var legacy = FindProfile(legacyProfiles, id);
+            targetObject[id] = new JObject
+            {
+                ["startSequence"] = legacy?["startSequence"] as JArray ?? DefaultSequence(target),
+                ["endSequence"] = legacy?["endSequence"] as JArray ?? DefaultEndSequence(target)
+            };
+            changed = true;
+        }
+        store[target] = targetObject;
+        if (changed) SaveConfig(AnimationKey, store);
+    }
+
+    private void RemoveProfileSequences(string target, string id)
+    {
+        var store = ReadConfig(AnimationKey, new JObject());
+        var targetObject = store[target] as JObject;
+        if (targetObject == null || targetObject[id] == null) return;
+        targetObject.Remove(id);
+        store[target] = targetObject;
+        SaveConfig(AnimationKey, store);
+    }
+
+    private JArray DefaultSequence(string target)
+    {
+        return target == "player" ? DefaultPlayerStart() : target == "panel" ? DefaultPanelStart() : DefaultClapperStart();
+    }
+
+    private JArray DefaultEndSequence(string target)
+    {
+        return target == "player" ? DefaultPlayerEnd() : target == "panel" ? DefaultPanelEnd() : DefaultClapperEnd();
+    }
 
     private JArray DefaultPlayerStart() => new JArray(new JObject { ["position"] = "Full Screen", ["duration"] = 0, ["delay"] = 0, ["easing"] = "ease-in-out" });
     private JArray DefaultPlayerEnd() => new JArray(new JObject { ["position"] = "Full Screen", ["duration"] = 0, ["delay"] = 0, ["easing"] = "ease-in-out" });
