@@ -17,7 +17,7 @@ public class CPHInline
 
     private void BuildSettings(RtsUI ui)
     {
-        AddGeneralSettings(ui); AddBrandingSettings(ui); AddPlaylistSettings(ui); AddTwitchSettings(ui); AddYouTubeSettings(ui);
+        AddGeneralSettings(ui); AddPlaylistSettings(ui); AddTwitchSettings(ui); AddYouTubeSettings(ui);
         AddPlayerSettings(ui); AddMessageSettings(ui);
     }
 
