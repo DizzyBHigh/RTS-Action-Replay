@@ -8,6 +8,7 @@ const getPanelRunner = command => {
     target: activePanel,
     defaultPosition: { scale: 100, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, fov: 90 }
   });
+  panelRunner.setTarget(activePanel);
   panelRunner.configure(command?.replayPanelPositions);
   return panelRunner;
 };
