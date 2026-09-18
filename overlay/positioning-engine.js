@@ -1,4 +1,5 @@
 const RTSPositioningEngine = {
+  version: '20260918-4',
   referenceWidth: 1920,
   referenceHeight: 1080,
 
@@ -29,6 +30,12 @@ const RTSPositioningEngine = {
     if (!element) return null;
     const transform = this.transformFor(element, position);
     element.style.transform = transform;
+    window.RTSDevToolbar?.log?.('Positioning engine applied', {
+      version: this.version,
+      elementId: element.id,
+      transform,
+      inlineTransform: element.style.transform
+    });
     return transform;
   }
 };
