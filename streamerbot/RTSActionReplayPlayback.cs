@@ -118,7 +118,9 @@ public class CPHInline
         CPH.SetGlobalVar(PlaybackProfileHandoffKey, profile, false);
         if (!CPH.ExecuteMethod(AnimationAction, "ApplyProfile")) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - animation profile '{profile}' could not be applied."); return false; }
         ApplyAnimationHandoff();
-        CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false) ?? "");
+        var playerPositions = CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false) ?? "";
+        CPH.SetArgument("replayPlayerPositions", playerPositions);
+        CPH.SetArgument("replayPositions", playerPositions);
         CPH.TriggerEvent(EventName, true); SendMessage("play"); CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay completed dispatch for replay {(string)replay["id"]}."); return true;
     }
 
@@ -160,6 +162,9 @@ public class CPHInline
         try
         {
             var p = JObject.Parse(raw); CPH.SetArgument("replayAnimationProfile", raw); CPH.SetArgument("replayAnimationProfileId", (string)p["id"] ?? "default");
+            var positions = CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false) ?? "";
+            CPH.SetArgument("replayPlayerPositions", positions);
+            CPH.LogInfo($"RTS Action Replay: animation handoff positions supplied; length={positions.Length}.");
             CPH.SetArgument("replayStartPosition", (string)p["start"]?[0]?["position"] ?? "Full Screen");
             var end = p["end"] as JArray; CPH.SetArgument("replayEndPosition", (string)end?[end.Count - 1]?["position"] ?? "Full Screen");
             CPH.UnsetGlobalVar(AnimationProfileHandoffKey, false);
