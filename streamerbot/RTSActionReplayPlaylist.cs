@@ -51,7 +51,7 @@ public class CPHInline
     public bool View()
     {
         var queue = LoadQueue();
-        if (queue.Count == 0) { SendPlaylistMessage("Playlist is empty."); return true; }
+        if (queue.Count == 0) { SendPlaylistMessage("No Items in the playlist.", true); return true; }
         var lines = "";
         for (var i = 0; i < queue.Count; i++) { var item = queue[i] as JObject; if (item == null) continue; var requester = (string)item["requesterName"]; if (string.IsNullOrWhiteSpace(requester)) requester = "Created automatically"; lines += (lines.Length == 0 ? "" : " | ") + "#" + (i + 1) + " " + (string)item["title"] + " — " + requester; }
         SendPlaylistMessage(lines);
@@ -133,10 +133,11 @@ public class CPHInline
         catch { CPH.LogWarn("RTS Action Replay: resolved preset handoff could not be parsed."); }
     }
 
-    private void SendPlaylistMessage(string text)
+    private void SendPlaylistMessage(string text, bool forceChat = false)
     {
         var key = "rts.actionreplay.message.playlist"; var playlistText = text; CPH.SetArgument("replayPlaylist", playlistText); var configured = CPH.GetGlobalVar<string>(key + ".text", true); var chatText = string.IsNullOrWhiteSpace(configured) ? playlistText : CPH.Parse(configured, new Dictionary<string, object> { ["replayPlaylist"] = playlistText });
-        if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) SendOriginMessage(chatText);
+        if (forceChat) SendOriginMessage(playlistText);
+        else if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) SendOriginMessage(chatText);
         if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false) { CPH.SetArgument("replayPanelWidth", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500); CPH.SetArgument("replayPanelHeight", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700); CPH.SetArgument("panelType", "playlist"); CPH.ExecuteMethod(AnimationAction, "ResolvePanelAnimation"); CPH.SetArgument("replayCommand", "playlist-panel"); CPH.SetArgument("replayPlaylist", playlistText); CPH.TriggerEvent("RTS-Action Replay", true); }
     }
 
