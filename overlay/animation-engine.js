@@ -19,6 +19,12 @@ const RTSAnimationEngine = {
       return position;
     };
 
+    const logVisualState = (phase, details = {}) => {
+      const visual = adapter.getVisualState?.();
+      if (!visual) return;
+      log('Animation visual state', { phase, ...visual, ...details });
+    };
+
     const cancel = () => {
       token += 1;
       if (timer) clearTimeout(timer);
@@ -35,6 +41,7 @@ const RTSAnimationEngine = {
       const first = resolve(steps[0].position, 0);
       active = first;
       adapter.applyPosition(first, true);
+      logVisualState('initial', { position: describe(first) });
 
       const advance = index => {
         if (runToken !== token) return;
@@ -57,12 +64,16 @@ const RTSAnimationEngine = {
         }
         const easing = adapter.easing(step.easing);
         const started = performance.now();
+        logVisualState('transition-start', { index, position: step.position, from: describe(start), to: describe(target) });
+        setTimeout(() => {
+          if (runToken === token) logVisualState('transition-mid', { index, position: step.position });
+        }, step.duration / 2);
         const draw = now => {
           if (runToken !== token) return;
           const raw = Math.min(1, Math.max(0, (now - started) / step.duration));
           adapter.applyPosition(adapter.interpolatePosition(start, target, easing(raw)), true);
           if (raw < 1) frame = requestAnimationFrame(draw);
-          else { frame = null; adapter.applyPosition(target, true); finish(); }
+          else { frame = null; adapter.applyPosition(target, true); logVisualState('transition-end', { index, position: step.position, to: describe(target) }); finish(); }
         };
         frame = requestAnimationFrame(draw);
       };
@@ -99,12 +110,16 @@ const RTSAnimationEngine = {
         }
         const easing = adapter.easing(step.easing);
         const started = performance.now();
+        logVisualState('end-transition-start', { index, position: step.position, from: describe(start), to: describe(target) });
+        setTimeout(() => {
+          if (runToken === token) logVisualState('end-transition-mid', { index, position: step.position });
+        }, step.duration / 2);
         const draw = now => {
           if (runToken !== token) return;
           const raw = Math.min(1, Math.max(0, (now - started) / step.duration));
           adapter.applyPosition(adapter.interpolatePosition(start, target, easing(raw)), true);
           if (raw < 1) frame = requestAnimationFrame(draw);
-          else { frame = null; adapter.applyPosition(target, true); finish(); }
+          else { frame = null; adapter.applyPosition(target, true); logVisualState('end-transition-end', { index, position: step.position, to: describe(target) }); finish(); }
         };
         frame = requestAnimationFrame(draw);
       };
