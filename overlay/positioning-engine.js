@@ -2,12 +2,6 @@ const RTSPositioningEngine = {
   referenceWidth: 1920,
   referenceHeight: 1080,
 
-  getSize(element) {
-    if (!element) return { width: this.referenceWidth, height: this.referenceHeight };
-    const rect = element.getBoundingClientRect();
-    return { width: Math.max(1, rect.width), height: Math.max(1, rect.height) };
-  },
-
   transformFor(element, position) {
     const p = position || {};
     const number = (value, fallback) => {
