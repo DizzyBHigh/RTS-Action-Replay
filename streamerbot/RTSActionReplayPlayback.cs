@@ -337,7 +337,7 @@ public class CPHInline
         {
             var config = JObject.Parse(raw);
             var branding = config["branding"] as JArray;
-            var id = Arg("replayBrandingPresetId", "default");
+            var id = Arg("replayBrandingPresetId"); if (string.IsNullOrWhiteSpace(id)) id = "default";
             foreach (var item in branding ?? new JArray())
                 if (string.Equals((string)item["id"], id, StringComparison.OrdinalIgnoreCase))
                     return item as JObject;
