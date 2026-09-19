@@ -83,6 +83,7 @@ RTSInformationPanelPresets.apply = (panel, command) => {
   const titleColor = RTSInformationPanelPresets.toCssColor(command?.replayPanelTitleColor || '#FFFFFFFF');
   const listSize = Math.max(8, Number(command?.replayPanelListSize) || 15);
   const listColor = RTSInformationPanelPresets.toCssColor(command?.replayPanelListColor || '#FFFFFFFF');
+  const listShadowColor = RTSInformationPanelPresets.toCssColor(command?.replayPanelListShadowColor || '#000000FF');
   const className = ['broadcast', 'cinematic', 'cut', 'minimal'].includes(preset) ? preset : 'broadcast';
   panel.classList.remove('panel-broadcast', 'panel-cinematic', 'panel-cut', 'panel-minimal');
   panel.classList.add(`panel-${className}`);
@@ -94,6 +95,7 @@ RTSInformationPanelPresets.apply = (panel, command) => {
   panel.style.setProperty('--panel-title-color', titleColor);
   panel.style.setProperty('--panel-list-size', `${listSize}px`);
   panel.style.setProperty('--panel-list-color', listColor);
+  panel.style.setProperty('--panel-list-shadow', listShadowColor);
   if (className === 'cut' || className === 'broadcast') {
     const readable = RTSInformationPanelPresets.readableText(background) || listColor;
     panel.style.setProperty('--panel-cut-background', background);
