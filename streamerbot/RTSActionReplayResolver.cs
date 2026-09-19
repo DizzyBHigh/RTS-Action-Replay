@@ -16,6 +16,42 @@ public class CPHInline
 
     public bool Execute()=>EnsureProfiles();
 
+    public bool SendConfigurationToOverlay()
+    {
+        var config = new JObject
+        {
+            ["player"] = Read(PlayerKey),
+            ["panel"] = Read(PanelKey),
+            ["clapperboard"] = Read(ClapperKey),
+            ["presets"] = Read(PresetsKey),
+            ["animation"] = Read(AnimationKey),
+            ["globals"] = new JObject
+            {
+                ["showControls"] = CPH.GetGlobalVar<bool?>("rts.actionreplay.showControls", true) ?? false,
+                ["showProgress"] = CPH.GetGlobalVar<bool?>("rts.actionreplay.showProgress", true) ?? true,
+                ["playbackSpeed"] = CPH.GetGlobalVar<double?>("rts.actionreplay.playbackSpeed", true) ?? 1.0,
+                ["playbackSpeedVisibility"] = CPH.GetGlobalVar<string>("rts.actionreplay.playbackSpeedVisibility", true) ?? "Only when greater or less than 1",
+                ["frameColorSource"] = CPH.GetGlobalVar<string>("rts.actionreplay.frameColorSource", true) ?? "Custom",
+                ["frameColor"] = CPH.GetGlobalVar<string>("rts.actionreplay.frameColor", true) ?? "#0384CBFF",
+                ["borderGlow"] = CPH.GetGlobalVar<bool?>("rts.actionreplay.borderGlow", true) ?? true,
+                ["borderWidth"] = CPH.GetGlobalVar<int?>("rts.actionreplay.borderWidth", true) ?? 4,
+                ["cornerRadius"] = CPH.GetGlobalVar<int?>("rts.actionreplay.cornerRadius", true) ?? 0,
+                ["panelWidth"] = CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500,
+                ["panelHeight"] = CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700,
+                ["clapperBoardColor"] = CPH.GetGlobalVar<string>("rts.actionreplay.clapper.boardColor", true) ?? "#101416",
+                ["clapperTextColor"] = CPH.GetGlobalVar<string>("rts.actionreplay.clapper.textColor", true) ?? "#0384CB",
+                ["clapperStripeLight"] = CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeLight", true) ?? "#EEEEEE",
+                ["clapperStripeDark"] = CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeDark", true) ?? "#111111",
+                ["clapperAccent"] = CPH.GetGlobalVar<string>("rts.actionreplay.clapper.accent", true) ?? "#0384CB",
+                ["clapperFont"] = CPH.GetGlobalVar<string>("rts.actionreplay.clapper.font", true) ?? "Inter"
+            }
+        };
+        CPH.SetArgument("replayCommand", "config-test");
+        CPH.SetArgument("replayConfig", config.ToString(Newtonsoft.Json.Formatting.None));
+        CPH.TriggerEvent(EventName, true);
+        return true;
+    }
+
     public bool ResolvePlayerConfiguration()
     {
         var config=Read(PlayerKey); var entry=Entry(config,"play");
