@@ -14,7 +14,7 @@ RTSInformationPanelPresets.toCssShadowColor = value => RTSInformationPanelPreset
 RTSInformationPanelPresets.readableText = color => {
   const raw = String(color || '').trim();
   const hex = raw.match(/^#([0-9a-f]{6,8})$/i);
-  const rgba = raw.match(/^rgba?\\(\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)/i);
+  const rgba = raw.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
   if (!hex && !rgba) return null;
   const rgb = hex
     ? hex[1].slice(0, 6).match(/../g).map(value => parseInt(value, 16) / 255)
