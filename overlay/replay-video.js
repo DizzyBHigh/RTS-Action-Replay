@@ -9,6 +9,7 @@ let youtubeBoundaryTimer = null;
 let youtubeEndedNotified = false;
 let youtubeReplayToken = 0;
 let hlsPlayer = null;
+let endedCommand = null;
 const playerRunner = RTSAnimationEngine.createRunner({
   target: RTSReplayVideo.player,
   defaultPosition: { scale: 100, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, fov: 90 }
@@ -208,10 +209,45 @@ const loadYouTubePlayer = async command => {
 };
 
 
+RTSReplayVideo.youtubePlayer = () => youtubePlayer;
 RTSReplayVideo.notifyPlaybackEnded = command => {
-  if (!command?.replayId || !RTSReplayVideo.socket || RTSReplayVideo.socket.readyState !== WebSocket.OPEN) return;
+  if (!command?.replayId || endedCommand === command) return;
+  if (!RTSReplayVideo.socket || RTSReplayVideo.socket.readyState !== WebSocket.OPEN) return;
+  endedCommand = command;
   replayDevLog('sending playback ended action', { action: RTSReplayVideo.config.endedAction, replayId: command.replayId, replayQueueEntryId: command.replayQueueEntryId || '' });
   RTSReplayVideo.socket.send(JSON.stringify({ request: 'DoAction', id: `rts-replay-ended-${Date.now()}`, action: { name: RTSReplayVideo.config.endedAction }, args: { replayId: command.replayId, replayQueueEntryId: command.replayQueueEntryId || '' } }));
+};
+
+RTSReplayVideo.recoverPlayback = () => {
+  const command = RTSReplayVideo.currentCommand;
+  if (!command) return false;
+  if (command.replaySource?.toLowerCase() === 'youtube') {
+    if (!youtubePlayer?.seekTo || !youtubePlayer?.playVideo) return false;
+    const current = Number(youtubePlayer.getCurrentTime?.() || command.replayStartTime || 0);
+    youtubePlayer.seekTo(Math.max(Number(command.replayStartTime || 0), current - 0.5), true);
+    youtubePlayer.playVideo();
+    return true;
+  }
+  const video = RTSReplayVideo.video;
+  const current = Number(video.currentTime || 0);
+  if (hlsPlayer) {
+    hlsPlayer.stopLoad?.();
+    hlsPlayer.startLoad?.(Math.max(0, current - 0.5));
+    video.play().catch(() => {});
+    return true;
+  }
+  const url = video.currentSrc || command.replayUrl;
+  if (!url) return false;
+  video.pause();
+  video.src = url;
+  video.load();
+  const resume = () => {
+    try { video.currentTime = Math.max(0, current - 0.5); } catch (_) {}
+    video.play().catch(() => {});
+  };
+  if (video.readyState >= 1) resume();
+  else video.addEventListener('loadedmetadata', resume, { once: true });
+  return true;
 };
 
 RTSReplayVideo.playReplay = command => {
@@ -226,6 +262,7 @@ RTSReplayVideo.loadReplay = command => {
   const isYouTube = command?.replaySource?.toLowerCase() === 'youtube';
   if (!isYouTube && !command.replayUrl) return;
   RTSReplayVideo.currentCommand = command;
+  endedCommand = null;
   window.RTSDevToolbar?.updateClapper?.(command);
   RTSReplayControls.configure(command);
   RTSReplayElements.configure(command);
