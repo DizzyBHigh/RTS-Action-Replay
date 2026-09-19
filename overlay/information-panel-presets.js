@@ -94,12 +94,13 @@ RTSInformationPanelPresets.apply = (panel, command) => {
   panel.style.setProperty('--panel-title-color', titleColor);
   panel.style.setProperty('--panel-list-size', `${listSize}px`);
   panel.style.setProperty('--panel-list-color', listColor);
-  if (className === 'cut') {
+  if (className === 'cut' || className === 'broadcast') {
     const readable = RTSInformationPanelPresets.readableText(background) || listColor;
     panel.style.setProperty('--panel-cut-background', background);
-    panel.style.setProperty('--panel-cut-text', readable);
+    panel.style.setProperty(className === 'cut' ? '--panel-cut-text' : '--panel-broadcast-text', readable);
   } else {
     panel.style.removeProperty('--panel-cut-text');
+    panel.style.removeProperty('--panel-broadcast-text');
   }
   RTSInformationPanelPresets.loadFont(titleFont);
   if (window.RTSReplayPanelBroadcast) window.RTSReplayPanelBroadcast.command = command;
