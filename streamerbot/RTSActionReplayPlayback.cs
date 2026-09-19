@@ -22,7 +22,6 @@ public class CPHInline
     private const string PlayerOperationKey = "rts.actionreplay.operation.player";
     private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
     private const string CatalogAction = "RTS - Action Replay - Core - Catalog";
-    private const string PresetStoreAction = "RTS - Action Replay - Core - Presets Store";
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
     private const string PlaybackProfileHandoffKey = "rts.actionreplay.handoff.playbackProfile";
     private const string PlaybackQueueEntryHandoffKey = "rts.actionreplay.handoff.playbackQueueEntryId";
@@ -86,9 +85,8 @@ public class CPHInline
         CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay resolved replayId={(string)replay["id"]}; title={(string)replay["title"]}; queueEntryId={queueEntryId ?? "<none>"}.");
         if (string.IsNullOrWhiteSpace(queueEntryId))
         {
-            CPH.SetGlobalVar(ReplayIdHandoffKey, (string)replay["id"] ?? "", false); CPH.SetArgument("presetComponent", "player"); CPH.SetArgument("entryPoint", "play");
-            CPH.LogInfo("RTS Action Replay TRACE: PlayReplay selection path; resolving Play — Replay presets before enqueue.");
-            if (!CPH.ExecuteMethod(PresetStoreAction, "ResolveEntryPoint")) { CPH.LogWarn("RTS Action Replay TRACE: PlayReplay failed - Play — Replay preset resolution returned false."); return false; }
+            CPH.SetGlobalVar(ReplayIdHandoffKey, (string)replay["id"] ?? "", false);
+            CPH.LogInfo("RTS Action Replay TRACE: PlayReplay selection path; handing replay to playlist for resolver configuration.");
             return CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay");
         }
 
