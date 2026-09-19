@@ -69,6 +69,17 @@ public class CPHInline
     JObject Broadcast(JObject d,JObject b)=>new JObject{["primaryColor"]=(string)b["primaryColor"]??"#0384CBFF",["secondaryColor"]=(string)b["secondaryColor"]??"#101416FF",["chevronHeight"]=(int?)d["chevronHeight"]??42,["randomHeight"]=(bool?)d["randomHeight"]??false,["chevronWidth"]=(int?)d["chevronWidth"]??42,["randomWidth"]=(bool?)d["randomWidth"]??false,["chevronSpacing"]=(int?)d["chevronSpacing"]??0,["randomSpacing"]=(bool?)d["randomSpacing"]??false,["chevronSpeed"]=(int?)d["chevronSpeed"]??95,["decorationColor"]=(string)b["titlePrefixSuffixColor"]??"#0384CBFF",["titleColor"]=(string)b["titleColor"]??"#FFFFFFFF"};
     JObject Cut(JObject d,JObject b)=>new JObject{["primaryColor"]=(string)b["primaryColor"]??"#0384CBFF",["secondaryColor"]=(string)b["secondaryColor"]??"#101416FF",["blockWidth"]=(int?)d["blockWidth"]??170,["randomWidth"]=(bool?)d["randomWidth"]??true,["barHeight"]=(int?)d["barHeight"]??5,["decorationColor"]=(string)b["titlePrefixSuffixColor"]??"#0384CBFF",["titleColor"]=(string)b["titleColor"]??"#FFFFFFFF"};
 
+    void Props(string prefix,JObject value)
+    {
+        foreach(var property in value?.Properties() ?? new JProperty[0])
+        {
+            var name=property.Name.Length==0 ? "" : char.ToUpperInvariant(property.Name[0])+property.Name.Substring(1);
+            var v=property.Value;
+            object o=v.Type==JTokenType.Boolean ? (object)(bool)v : v.Type==JTokenType.Integer ? (object)(int)v : v.ToString();
+            CPH.SetArgument(prefix+name,o);
+        }
+    }
+
     JObject PlatformBranding(string platform){foreach(var x in Read(PresetsKey)["branding"] as JArray??new JArray()){var b=x as JObject;if(b!=null&&string.Equals((string)b["platform"],platform,StringComparison.OrdinalIgnoreCase))return b;}return null;}
     void ApplyObject(JObject value){foreach(var p in value.Properties()){var v=p.Value;object o=v.Type==JTokenType.Boolean?(object)(bool)v:v.Type==JTokenType.Integer?(object)(int)v:v.Type==JTokenType.Float?(object)(double)v:v.ToString();CPH.SetArgument(p.Name,o);}}
     JObject Find(JArray values,string id){foreach(var x in values??new JArray())if(string.Equals((string)x["id"],id,StringComparison.OrdinalIgnoreCase))return x as JObject;return null;}
