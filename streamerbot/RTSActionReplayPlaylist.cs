@@ -14,11 +14,9 @@ public class CPHInline
     private const string CatalogAction = "RTS - Action Replay - Core - Catalog";
     private const string ResolverAction = "RTS - Action Replay - Core - Resolver";
     private const string PanelOperationKey = "rts.actionreplay.operation.panel";
-    private const string PresetStoreAction = "RTS - Action Replay - Core - Presets Store";
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
     private const string PlaybackProfileHandoffKey = "rts.actionreplay.handoff.playbackProfile";
     private const string PlaybackQueueEntryHandoffKey = "rts.actionreplay.handoff.playbackQueueEntryId";
-    private const string ResolvedPresetHandoffKey = "rts.actionreplay.handoff.resolvedPreset";
 
     public bool Execute() => View();
 
@@ -32,19 +30,16 @@ public class CPHInline
         CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName); CPH.TryGetArg("userType", out string userType); CPH.TryGetArg("broadcast.id", out string broadcastId);
         var creator = replay["creator"] as JObject; var requester = string.IsNullOrWhiteSpace(userName) ? (string)creator?["name"] ?? "" : userName;
         var requesterPlatform = NormalizePlatform(userType);
-        CPH.SetArgument("presetComponent", "player"); CPH.SetArgument("entryPoint", "play");
-        if (!CPH.ExecuteMethod(PresetStoreAction, "ResolveEntryPoint")) return false;
-        ApplyResolvedPresetHandoff();
+        CPH.SetArgument("entryPoint", "play");
         CPH.SetArgument("replaySource", (string)replay["sourceType"] ?? "OBS");
-        if (!CPH.ExecuteMethod(PresetStoreAction, "ResolveBrandingForSource")) return false;
-        ApplyResolvedPresetHandoff();
+        if (!CPH.ExecuteMethod(ResolverAction, "ResolvePlayerConfiguration")) return false;
         var profile = Arg("animationProfile", "default");
         var designProfile = Arg("designPreset", Arg("visualPreset", "broadcast"));
         var titleProfile = Arg("titlePreset", "default");
         var brandingProfile = Arg("brandingPreset", "default");
         var queue = LoadQueue();
         queue.Add(new JObject { ["entryId"] = Guid.NewGuid().ToString("N"), ["replayId"] = replayId, ["title"] = (string)replay["title"] ?? "Replay", ["requesterId"] = userId ?? "", ["requesterName"] = requester, ["requesterPlatform"] = requesterPlatform ?? "", ["requesterBroadcastId"] = broadcastId ?? "", ["animationProfileId"] = profile, ["designPresetId"] = designProfile, ["titlePresetId"] = titleProfile, ["brandingPresetId"] = brandingProfile, ["queued"] = DateTime.Now.ToString("o") });
-        SaveQueue(queue); CPH.UnsetGlobalVar(ReplayIdHandoffKey, false); CPH.UnsetGlobalVar(ResolvedPresetHandoffKey, false);
+        SaveQueue(queue); CPH.UnsetGlobalVar(ReplayIdHandoffKey, false);
         if (!IsPaused() && ActiveId() == null) return PlayNext(queue);
         return true;
     }
@@ -115,23 +110,6 @@ public class CPHInline
         CPH.UnsetGlobalVar(ReplayIdHandoffKey, false); CPH.UnsetGlobalVar(PlaybackQueueEntryHandoffKey, false); CPH.UnsetGlobalVar(PlaybackProfileHandoffKey, false);
         if (started) { CPH.SetGlobalVar(ActiveKey, (string)item["entryId"], false); CPH.SetGlobalVar(ActiveReplayKey, (string)item["replayId"], false); CPH.SetArgument("historyReplayId", (string)item["replayId"] ?? ""); CPH.SetArgument("historyReplayTitle", (string)item["title"] ?? "Replay"); CPH.SetArgument("historyReplayCreator", (string)FindReplay(catalog, (string)item["replayId"])?["creator"]?["name"] ?? ""); CPH.SetArgument("historyReplayRequester", (string)item["requesterName"] ?? ""); CPH.SetArgument("historyReplayPlatform", (string)item["requesterPlatform"] ?? ""); CPH.ExecuteMethod(CatalogAction, "RecordPlayed"); }
         return started;
-    }
-
-    private void ApplyResolvedPresetHandoff()
-    {
-        var raw = CPH.GetGlobalVar<string>(ResolvedPresetHandoffKey, false);
-        if (string.IsNullOrWhiteSpace(raw)) return;
-        try
-        {
-            var value = JObject.Parse(raw);
-            CPH.SetArgument("animationProfile", (string)value["animationProfile"] ?? "default");
-            CPH.SetArgument("designPreset", (string)value["designPreset"] ?? "broadcast");
-            CPH.SetArgument("visualPreset", (string)value["designPreset"] ?? "broadcast");
-            CPH.SetArgument("titlePreset", (string)value["titlePreset"] ?? "default");
-            CPH.SetArgument("brandingPreset", (string)value["brandingPreset"] ?? "default");
-            CPH.SetArgument("useSourcePlatformBranding", (bool?)value["useSourcePlatformBranding"] ?? false);
-        }
-        catch { CPH.LogWarn("RTS Action Replay: resolved preset handoff could not be parsed."); }
     }
 
     private void SendPlaylistMessage(string text)
