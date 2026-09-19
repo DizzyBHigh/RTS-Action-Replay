@@ -17,7 +17,7 @@ RTS - Action Replay - Catalog - Search By Creator : Execute Method(RTS - Action 
 RTS - Action Replay - Catalog - Search By Date : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalogDate)
 RTS - Action Replay - Catalog - Search By Views : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalogMostViews)
 RTS - Action Replay - Catalog - Search Top Rated : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalogTopRated)
-RTS - Action Replay - Catalog - Search Panel Clear : Execute Method(RTS - Action Replay - Core - SearchQueue,Clear)
+RTS - Action Replay - Catalog - Search Panel Clear : Execute Method(RTS - Action Replay - Core - SearchQueue, Clear)
 RTS - Action Replay - Catalog - Search Panel Ended : Execute Method(RTS - Action Replay - Core - SearchQueue, SearchPanelEnded)
 
 RTS - Action Replay - Core
@@ -37,9 +37,9 @@ RTS - Action Replay - Init Store : Execute Method (RTS - Action Replay - Core - 
 RTS - Action Replay - Core - Platforms : Execute Code (RTS - Action Replay - Core - Platforms) - streamerbot/RTSActionReplayPlatforms.cs
 
 RTS - Action Replay Kick
-RTS - Action Replay - Capture KickBot Clip : Execute Method (RTS - Action Replay - Core - Platform, CaptureKickBotClip) - 
-RTS - Action Replay - Capture Native Kick Clip : Execute Method (RTS - Action Replay - Core - Platform, CaptureKickClip)
-RTS - Action Replay - Create Kick Clip : Execute Method (RTS - Action Replay - Core - Platform, RequestKickBotClip)
+RTS - Action Replay - Capture KickBot Clip : Execute Method (RTS - Action Replay - Core - Platforms, CaptureKickBotClip) - 
+RTS - Action Replay - Capture Native Kick Clip : Execute Method (RTS - Action Replay - Core - Platforms, CaptureKickClip)
+RTS - Action Replay - Create Kick Clip : Execute Method (RTS - Action Replay - Core - Platforms, RequestKickBotClip)
 
 RTS - Action Replay - Playlist : 
 RTS - Action Replay - List Playlist : Execute Method (RTS - Action Replay - Core - Playlist, View)
@@ -56,8 +56,8 @@ RTS - Action Replay - Store - Show Creator Leaderboard : Execute Method (RTS - A
 RTS - Action Replay - Store - Show Playback Leaderboard: Execute Method (RTS - Action Replay - Core - Store, PlaybackLeaderboard) 
 
 RTS - Action Replay - Twitch
-RTS - Action Replay - Create Twitch Clip : Execute Method (RTS - Action Replay - Core - Platform, CreateTwitchClip)
-RTS - Action Replay - Twitch Sync : Execute Method (RTS - Action Replay - Core - Platform, SyncTwitchClips)
+RTS - Action Replay - Create Twitch Clip : Execute Method (RTS - Action Replay - Core - Platforms, CreateTwitchClip)
+RTS - Action Replay - Twitch Sync : Execute Method (RTS - Action Replay - Core - Platforms, SyncTwitchClips)
 
 RTS - Action Replay - Video
 RTS - Action Replay - Video - Hide Player : Execute Method (RTS - Action Replay - Core - Video Controls, HidePlayer)
@@ -68,8 +68,8 @@ RTS - Action Replay - Video - Set Speed : Execute Method (RTS - Action Replay - 
 RTS - Action Replay - Video - Show Player : Execute Method (RTS - Action Replay - Core - Video Controls, ShowPlayer)
 
 RTS - Action Replay - YouTube : 
-RTS - Action Replay - Create YouTube Clip : Execute Method (RTS - Action Replay - Core - Platform, CreateYouTubeClip)
-RTS - Action Replay - YouTube Broadcast Started : Execute Method (RTS - Action Replay - Core - Platform, BroadcastStarted)
+RTS - Action Replay - Create YouTube Clip : Execute Method (RTS - Action Replay - Core - Platforms, CreateYouTubeClip)
+RTS - Action Replay - YouTube Broadcast Started : Execute Method (RTS - Action Replay - Core - Platforms, BroadcastStarted)
 
 
 Deleted - RTS - Action Replay - Core - Position Store : Execute Code (RTS - Action Replay - Core - Position Store) - streamerbot/RTSActionReplayPositionStore.cs - Deleted
