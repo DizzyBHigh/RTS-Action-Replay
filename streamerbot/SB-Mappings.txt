@@ -27,7 +27,7 @@ RTS - Action Replay - Confirm Playback : Execute Method (RTS - Action Replay - C
 RTS - Action Replay - Core - Catalog : Execute Code (RTS - Action Replay - Core - Catalog) - streamerbot/RTSActionReplayCatalog.cs
 RTS - Action Replay - Core - Playback : Execute Code (RTS - Action Replay - Core - Playback) - streamerbot/RTSActionReplayPlayback.cs
 RTS - Action Replay - Core - Playlist : Execute Code (RTS - Action Replay - Core - Playlist) - streamerbot/RTSActionReplayPlaylist.cs
-RTS - Action Replay - Core - Settings  : Execute Code (RTS - Action Replay - Core - Settings) - streamerbot/RTSActionReplayPresetSettings.cs
+RTS - Action Replay - Core - Settings  : Execute Code (RTS - Action Replay - Core - Settings) - streamerbot/RTSActionReplaySettings.cs
 RTS - Action Replay - Core - Resolver : Execute Code (RTS - Action Replay - Core - Resolver) - streamerbot/RTSActionReplayResolver.cs
 RTS - Action Replay - Core - Search Queue: Execute Code (RTS - Action Replay - Core - Search Queue) - streamerbot/RTSActionReplaySearchQueue.cs
 RTS - Action Replay - Core - Store : Execute Code (RTS - Action Replay - Core - Store) - streamerbot/RTSActionReplayStore.cs
