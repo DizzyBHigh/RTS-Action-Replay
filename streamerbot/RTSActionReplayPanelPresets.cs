@@ -52,10 +52,15 @@ public class CPHInline
         var key = "rts.actionreplay.handoff.visualBranding";
         CPH.TryGetArg("replayQueueEntryId", out string entryId);
         if (!string.IsNullOrWhiteSpace(entryId)) key += "." + entryId;
-        var raw = CPH.GetGlobalVar<string>(key, true);
+        var raw = CPH.GetGlobalVar<string>(key, false);
         if (string.IsNullOrWhiteSpace(raw) && key != "rts.actionreplay.handoff.visualBranding")
-            raw = CPH.GetGlobalVar<string>("rts.actionreplay.handoff.visualBranding", true);
-        if (string.IsNullOrWhiteSpace(raw)) return;
+            raw = CPH.GetGlobalVar<string>("rts.actionreplay.handoff.visualBranding", false);
+        if (string.IsNullOrWhiteSpace(raw))
+{
+    CPH.LogInfo("RTS Action Replay: panel visual handoff read (nonpersistent): missing");
+    return;
+}
+CPH.LogInfo("RTS Action Replay: panel visual handoff read (nonpersistent): found");
         try
         {
             var p = JObject.Parse(raw);
