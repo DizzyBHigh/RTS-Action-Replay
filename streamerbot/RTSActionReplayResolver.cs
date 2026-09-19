@@ -18,8 +18,7 @@ public class CPHInline
 
     public bool SendConfigurationToOverlay()
     {
-        if (!CPH.ExecuteMethod("RTS - Action Replay - Core - Store", "GetConfigurationSnapshot"))
-            return false;
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Store", "GetConfigurationSnapshot");
 
         string config;
         if (!CPH.TryGetArg("replayConfig", out config) || string.IsNullOrWhiteSpace(config))
