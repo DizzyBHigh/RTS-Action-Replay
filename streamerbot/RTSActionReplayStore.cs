@@ -56,6 +56,8 @@ public class CPHInline
     private void ApplyPendingCreator(ref string platform, ref string id, ref string name) { var raw = CPH.GetGlobalVar<string>(PendingKey, false); if (string.IsNullOrWhiteSpace(raw)) return; try { var pending = JObject.Parse(raw); if (!string.IsNullOrWhiteSpace((string)pending["platform"])) platform = NormalizePlatform((string)pending["platform"]); if (!string.IsNullOrWhiteSpace((string)pending["id"])) id = (string)pending["id"]; if (!string.IsNullOrWhiteSpace((string)pending["name"])) name = (string)pending["name"]; } catch { } }
     private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); } }
     private void Save(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
+    private void Save(string key, JObject value) => CPH.SetGlobalVar(key, value.ToString(Newtonsoft.Json.Formatting.None), true);
+
     private JArray GetCatalog(JObject data) { var catalog = data["catalog"] as JArray; if (catalog != null) return catalog; var legacy = CPH.GetGlobalVar<string>(LegacyCatalogKey, true); try { catalog = string.IsNullOrWhiteSpace(legacy) ? new JArray() : JArray.Parse(legacy); } catch { catalog = new JArray(); } data["catalog"] = catalog; return catalog; }
 
 
