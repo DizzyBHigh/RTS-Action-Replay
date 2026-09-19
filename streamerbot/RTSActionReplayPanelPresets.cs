@@ -41,10 +41,9 @@ public class CPHInline
 
     public bool Apply()
     {
-        CPH.ExecuteMethod("RTS - Action Replay - Core - Preset Store", "ResolveEntryPoint");
-        CPH.ExecuteMethod("RTS - Action Replay - Core - Preset Store", "ApplyVisualAndBranding");
-        ApplyHandoff();
-        return true;
+        var panelType = CPH.TryGetArg("panelType", out string requested) && !string.IsNullOrWhiteSpace(requested) ? requested.Trim() : "recent";
+        CPH.SetGlobalVar("rts.actionreplay.operation.panel", new JObject { ["panelType"] = panelType, ["triggerEvent"] = false }.ToString(Newtonsoft.Json.Formatting.None), false);
+        return CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolvePanel");
     }
 
     private void ApplyHandoff()
