@@ -139,7 +139,6 @@ public class CPHInline
         CPH.SetGlobalVar(PlayerOperationKey, operation.ToString(Newtonsoft.Json.Formatting.None), false);
         CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay dispatching resolved operation; replayId={(string)replay["id"]}; url={url}; animationProfile={profile}; designPreset={designProfile}; brandingPreset={brandingProfile}; queueEntryId={queueEntryId}; source={source}.");
         return CPH.ExecuteMethod(ResolverAction, "ResolvePlayer");
- true;
     }
 
     private string ResolveReplayUrl(JObject replay)
