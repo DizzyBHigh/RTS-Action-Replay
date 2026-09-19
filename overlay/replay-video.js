@@ -251,6 +251,7 @@ RTSReplayVideo.recoverPlayback = () => {
 };
 
 RTSReplayVideo.playReplay = command => {
+  endedCommand = null;
   RTSReplayVideo.expectedPlaying = true;
   RTSReplayWatchdog?.start?.();
   if (command?.replaySource?.toLowerCase() === 'youtube') {
