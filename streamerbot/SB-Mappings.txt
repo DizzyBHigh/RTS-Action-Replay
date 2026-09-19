@@ -21,7 +21,7 @@ RTS - Action Replay - Catalog - Search Panel Clear : Execute Method(RTS - Action
 RTS - Action Replay - Catalog - Search Panel Ended : Execute Method(RTS - Action Replay - Core - SearchQueue, SearchPanelEnded)
 
 RTS - Action Replay - Core
-RTS - Action Replay - AddReplay : Execute Method (RTS - Action Replay - Core - Store, AddReplay) {}if (%replay% Equals "True") True Result (2): Execute Method(RTS - Action Replay - Core - Animation, ResolveEntryPointProfile), Execute Method(RTS - Action Replay - Core - Playlist, EnqueueCurrentReplay) False Result(0): None
+RTS - Action Replay - AddReplay : Execute Method (RTS - Action Replay - Core - Store, AddReplay) {}if (%replay% Equals "True") True Result (2): Execute Method(RTS - Action Replay - Core - Resolver, ResolveEntryPointProfile), Execute Method(RTS - Action Replay - Core - Playlist, EnqueueCurrentReplay) False Result(0): None
 RTS - Action Replay - Confirm Playback : Execute Method (RTS - Action Replay - Core - Playback, ConfirmPlayback)
 RTS - Action Replay - Core - Animation : Execute Code (RTS - Action Replay - Core - Animation) - streamerbot/RTSActionReplayAnimationProfiles.cs
 RTS - Action Replay - Core - Catalog : Execute Code (RTS - Action Replay - Core - Catalog) - streamerbot/RTSActionReplayCatalog.cs
@@ -48,9 +48,9 @@ RTS - Action Replay - Test - Positions : Execute Code (RTS - Action Replay - Tes
 RTS - Action Replay - Core - Platforms : Execute Code (RTS - Action Replay - Core - Platforms) - streamerbot/RTSActionReplayPlatforms.cs
 
 RTS - Action Replay Kick
-RTS - Action Replay - Capture KickBot Clip : Execute Method (RTS - Action Replay - Core - Kick, CaptureKickBotClip) - 
-RTS - Action Replay - Capture Native Kick Clip : Execute Method (RTS - Action Replay - Core - Kick, CaptureKickClip)
-RTS - Action Replay - Create Kick Clip : Execute Method (RTS - Action Replay - Core - Kick, RequestKickBotClip)
+RTS - Action Replay - Capture KickBot Clip : Execute Method (RTS - Action Replay - Core - Platform, CaptureKickBotClip) - 
+RTS - Action Replay - Capture Native Kick Clip : Execute Method (RTS - Action Replay - Core - Platform, CaptureKickClip)
+RTS - Action Replay - Create Kick Clip : Execute Method (RTS - Action Replay - Core - Platform, RequestKickBotClip)
 
 RTS - Action Replay - Playlist : 
 RTS - Action Replay - List Playlist : Execute Method (RTS - Action Replay - Core - Playlist, View)
@@ -67,17 +67,17 @@ RTS - Action Replay - Store - Show Creator Leaderboard : Execute Method (RTS - A
 RTS - Action Replay - Store - Show Playback Leaderboard: Execute Method (RTS - Action Replay - Core - Store, PlaybackLeaderboard) 
 
 RTS - Action Replay - Twitch
-RTS - Action Replay - Create Twitch Clip : Execute Method (RTS - Action Replay - Core - Twitch, CreateTwitchClip)
-RTS - Action Replay - Twitch Sync : Execute Code (RTS - Action Replay - Core - Twitch Sync) - streamerbot/RTSActionReplayTwitchSync.cs
+RTS - Action Replay - Create Twitch Clip : Execute Method (RTS - Action Replay - Core - Platform, CreateTwitchClip)
+RTS - Action Replay - Twitch Sync : Execute Method (RTS - Action Replay - Core - Platform, SyncTwitchClips)
 
 RTS - Action Replay - Video
 RTS - Action Replay - Video - Hide Player : Execute Method (RTS - Action Replay - Core - Video Controls, HidePlayer)
 RTS - Action Replay - Video - Pause : Execute Method (RTS - Action Replay - Core - Video Controls, PauseVideo)
 RTS - Action Replay - Video - Play : Execute Method (RTS - Action Replay - Core - Video Controls, PlayVideo) 
-RTS - Action Replay - Video - Screen Position : Execute Method (RTS - Action Replay - Core - Playback, SetPLayerPosition)
+RTS - Action Replay - Video - Screen Position : Execute Method (RTS - Action Replay - Core - Playback, SetPlayerPosition)
 RTS - Action Replay - Video - Set Speed : Execute Method (RTS - Action Replay - Core - Video Controls, SetVideoSpeed) 
 RTS - Action Replay - Video - Show Player : Execute Method (RTS - Action Replay - Core - Video Controls, ShowPlayer)
 
 RTS - Action Replay - YouTube : 
-RTS - Action Replay - Create YouTube Clip : Execute Method (RTS - Action Replay - Core - YouTube, CreateYouTubeClip)
-RTS - Action Replay - YouTube Broadcast Started : Execute Method (RTS - Action Replay - Core - YouTube, BroadcastStarted)
+RTS - Action Replay - Create YouTube Clip : Execute Method (RTS - Action Replay - Core - Platform, CreateYouTubeClip)
+RTS - Action Replay - YouTube Broadcast Started : Execute Method (RTS - Action Replay - Core - Platform, BroadcastStarted)
