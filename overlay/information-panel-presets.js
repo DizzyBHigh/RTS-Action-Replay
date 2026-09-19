@@ -77,6 +77,7 @@ RTSInformationPanelPresets.apply = (panel, command) => {
   const preset = String(command?.replayPanelPreset || 'Broadcast').toLowerCase();
   const primary = RTSInformationPanelPresets.toCssColor(command?.replayPanelPrimaryColor || '#0384CBFF');
   const secondary = RTSInformationPanelPresets.toCssColor(command?.replayPanelSecondaryColor || '#101416FF');
+  const background = RTSInformationPanelPresets.toCssColor(command?.replayPanelBackgroundColor || secondary);
   const titleFont = String(command?.replayPanelTitleFont || 'Inter').trim();
   const titleSize = Math.max(12, Number(command?.replayPanelTitleSize) || 24);
   const titleColor = RTSInformationPanelPresets.toCssColor(command?.replayPanelTitleColor || '#FFFFFFFF');
@@ -87,13 +88,14 @@ RTSInformationPanelPresets.apply = (panel, command) => {
   panel.classList.add(`panel-${className}`);
   panel.style.setProperty('--panel-primary', primary);
   panel.style.setProperty('--panel-secondary', secondary);
+  panel.style.setProperty('--panel-background', background);
   panel.style.setProperty('--panel-title-font', `'${titleFont.replace(/'/g, '')}', system-ui, sans-serif`);
   panel.style.setProperty('--panel-title-size', `${titleSize}px`);
   panel.style.setProperty('--panel-title-color', titleColor);
   panel.style.setProperty('--panel-list-size', `${listSize}px`);
   panel.style.setProperty('--panel-list-color', listColor);
   if (className === 'cut') {
-    const readable = RTSInformationPanelPresets.readableText(secondary) || listColor;
+    const readable = RTSInformationPanelPresets.readableText(background) || listColor;
     panel.style.setProperty('--panel-cut-background', secondary);
     panel.style.setProperty('--panel-cut-text', readable);
   } else {
