@@ -26,9 +26,6 @@ public class CPHInline
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
     private const string PlaybackProfileHandoffKey = "rts.actionreplay.handoff.playbackProfile";
     private const string PlaybackQueueEntryHandoffKey = "rts.actionreplay.handoff.playbackQueueEntryId";
-    private const string PlayerPositionsHandoffKey = "rts.actionreplay.handoff.playerPositions";
-    private const string AnimationProfileHandoffKey = "rts.actionreplay.handoff.animationProfile";
-    private const string VisualHandoffKey = "rts.actionreplay.handoff.visualBranding";
 
     public bool Execute() => PlayReplay();
 
