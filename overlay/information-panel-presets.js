@@ -5,6 +5,15 @@ RTSInformationPanelPresets.toCssColor = value => {
   return /^#[0-9a-f]{6,8}$/i.test(raw) ? `#${raw.slice(1, 7)}` : raw;
 };
 
+RTSInformationPanelPresets.toCssShadowColor = value => {
+  const raw = String(value || '').trim();
+  const match = raw.match(/^#([0-9a-f]{8})$/i);
+  if (!match) return RTSInformationPanelPresets.toCssColor(raw);
+  const hex = match[1];
+  const alpha = parseInt(hex.slice(6, 8), 16) / 255;
+  return `rgba(${parseInt(hex.slice(0, 2), 16)},${parseInt(hex.slice(2, 4), 16)},${parseInt(hex.slice(4, 6), 16)},${alpha})`;
+};
+
 RTSInformationPanelPresets.readableText = color => {
   const match = String(color || '').trim().match(/^#([0-9a-f]{6})$/i);
   if (!match) return null;
@@ -83,7 +92,7 @@ RTSInformationPanelPresets.apply = (panel, command) => {
   const titleColor = RTSInformationPanelPresets.toCssColor(command?.replayPanelTitleColor || '#FFFFFFFF');
   const listSize = Math.max(8, Number(command?.replayPanelListSize) || 15);
   const listColor = RTSInformationPanelPresets.toCssColor(command?.replayPanelListColor || '#FFFFFFFF');
-  const listShadowColor = RTSInformationPanelPresets.toCssColor(command?.replayPanelListShadowColor || '#000000FF');
+  const listShadowColor = RTSInformationPanelPresets.toCssShadowColor(command?.replayPanelListShadowColor || '#000000FF');
   const className = ['broadcast', 'cinematic', 'cut', 'minimal'].includes(preset) ? preset : 'broadcast';
   panel.classList.remove('panel-broadcast', 'panel-cinematic', 'panel-cut', 'panel-minimal');
   panel.classList.add(`panel-${className}`);
