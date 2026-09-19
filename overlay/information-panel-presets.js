@@ -2,20 +2,13 @@ const RTSInformationPanelPresets = window.RTSInformationPanelPresets || {};
 
 RTSInformationPanelPresets.toCssColor = value => {
   const raw = String(value || '').trim();
-  return /^#[0-9a-f]{6,8}$/i.test(raw) ? `#${raw.slice(1, 7)}` : raw;
+  return /^#[0-9a-f]{6,8}$/i.test(raw) ? raw : raw;
 };
 
-RTSInformationPanelPresets.toCssShadowColor = value => {
-  const raw = String(value || '').trim();
-  const match = raw.match(/^#([0-9a-f]{8})$/i);
-  if (!match) return RTSInformationPanelPresets.toCssColor(raw);
-  const hex = match[1];
-  const alpha = parseInt(hex.slice(6, 8), 16) / 255;
-  return `rgba(${parseInt(hex.slice(0, 2), 16)},${parseInt(hex.slice(2, 4), 16)},${parseInt(hex.slice(4, 6), 16)},${alpha})`;
-};
+RTSInformationPanelPresets.toCssShadowColor = value => RTSInformationPanelPresets.toCssColor(value);
 
 RTSInformationPanelPresets.readableText = color => {
-  const match = String(color || '').trim().match(/^#([0-9a-f]{6})$/i);
+  const match = String(color || '').trim().match(/^#([0-9a-f]{6,8})$/i);
   if (!match) return null;
   const rgb = match[1].match(/../g).map(value => parseInt(value, 16) / 255);
   const linear = value => value <= 0.03928 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
@@ -46,7 +39,7 @@ RTSInformationPanelPresets.startCutBlocks = (panel, command) => {
   const header = panel.querySelector('.rts-panel-header');
   if (!header) return;
   RTSInformationPanelPresets.stopCutBlocks(panel);
-  const colour = value => { const raw = String(value || '').trim(); const match = raw.match(/^#([0-9a-f]{6}|[0-9a-f]{8})$/i); return match ? `#${match[1].slice(0, 6)}` : raw; };
+  const colour = RTSInformationPanelPresets.toCssColor;
   const number = (value, min, max, fallback) => Math.max(min, Math.min(max, Number(value) || fallback));
   const randomValue = max => 1 + Math.random() * Math.max(0, max - 1);
   const primary = colour(getComputedStyle(panel).getPropertyValue('--panel-primary')) || '#0384CB';
