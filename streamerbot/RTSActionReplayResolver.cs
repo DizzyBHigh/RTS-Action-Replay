@@ -88,7 +88,7 @@ public class CPHInline
     }
 
     JObject Broadcast(JObject d,JObject b)=>new JObject{["primaryColor"]=(string)b["primaryColor"]??"#0384CBFF",["secondaryColor"]=(string)b["secondaryColor"]??"#101416FF",["chevronHeight"]=(int?)d["chevronHeight"]??42,["randomHeight"]=(bool?)d["randomHeight"]??false,["chevronWidth"]=(int?)d["chevronWidth"]??42,["randomWidth"]=(bool?)d["randomWidth"]??false,["chevronSpacing"]=(int?)d["chevronSpacing"]??0,["randomSpacing"]=(bool?)d["randomSpacing"]??false,["chevronSpeed"]=(int?)d["chevronSpeed"]??95,["decorationColor"]=(string)b["titlePrefixSuffixColor"]??"#0384CBFF",["titleColor"]=(string)b["titleColor"]??"#FFFFFFFF"};
-    JObject Cut(JObject d,JObject b)=>new JObject{["primaryColor"]=(string)b["primaryColor"]??"#0384CBFF",["secondaryColor"]=(string)b["secondaryColor"]??"#101416FF",["blockWidth"]=(int?)d["blockWidth"]??170,["randomWidth"]=(bool?)d["randomWidth"]??true,["barHeight"]=(int?)d["barHeight"]??5,["decorationColor"]=(string)b["titlePrefixSuffixColor"]??"#0384CBFF",["titleColor"]=(string)b["titleColor"]??"#FFFFFFFF"};
+    JObject Cut(JObject d,JObject b)=>new JObject{["primaryColor"]=(string)b["primaryColor"]??"#0384CBFF",["secondaryColor"]=(string)b["secondaryColor"]??"#101416FF",["backgroundColor"]=(string)d["backgroundColor"]??(string)b["secondaryColor"]??"#101416FF",["blockWidth"]=(int?)d["blockWidth"]??170,["randomWidth"]=(bool?)d["randomWidth"]??true,["barHeight"]=(int?)d["barHeight"]??5,["decorationColor"]=(string)b["titlePrefixSuffixColor"]??"#0384CBFF",["titleColor"]=(string)b["titleColor"]??"#FFFFFFFF"};
 
     void Props(string prefix,JObject value)
     {
