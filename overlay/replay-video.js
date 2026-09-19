@@ -200,6 +200,7 @@ const loadYouTubePlayer = async command => {
         }
       }
     });
+    RTSReplayVideo.youtubePlayer = youtubePlayer;
   };
 
   if (youtubePlayer?.cueVideoById) {
@@ -209,7 +210,6 @@ const loadYouTubePlayer = async command => {
 };
 
 
-RTSReplayVideo.youtubePlayer = () => youtubePlayer;
 RTSReplayVideo.notifyPlaybackEnded = command => {
   if (!command?.replayId || endedCommand === command) return;
   if (!RTSReplayVideo.socket || RTSReplayVideo.socket.readyState !== WebSocket.OPEN) return;
