@@ -13,12 +13,12 @@
 
 #replay-player {
   position: absolute;
-  left: 50%;
-  top: 50%;
+  left: 0;
+  top: 0;
   width: 100%;
   height: auto;
   aspect-ratio: 16 / 9;
-  transform: translate(-50%, -50%) translateZ(0) rotateZ(0deg) rotateY(0deg) rotateX(0deg) scale3d(1, 1, 1);
+  transform: translateZ(0) rotateZ(0deg) rotateY(0deg) rotateX(0deg) scale3d(1, 1, 1);
   transform-origin: center center;
   transform-style: preserve-3d;
   backface-visibility: visible;
