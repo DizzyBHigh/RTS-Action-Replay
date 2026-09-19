@@ -117,9 +117,8 @@ public class CPHInline
     public bool EnsureClapperProfiles()
     {
         var clapper = ReadConfig(ClapperKey, CreateClapperDefaults());
-        var legacyProfiles = clapper["animationProfiles"] as JArray;
-        var profiles = NormalizeProfiles(legacyProfiles);
-        EnsureSequenceStore("clapperboard", profiles, legacyProfiles);
+        var profiles = NormalizeProfiles(clapper["animationProfiles"] as JArray);
+        EnsureSequenceStore("clapperboard", profiles);
         var animation = clapper["animation"] as JObject ?? new JObject();
         animation["selectedProfile"] = ResolveProfileId(profiles, (string)animation["selectedProfile"]) ?? "default";
         clapper["animationProfiles"] = profiles;
@@ -132,9 +131,8 @@ public class CPHInline
     {
         var player = ReadConfig(PlayerKey, CreatePlayerDefaults());
         NormalizePositionConfig(player, false);
-        var legacyProfiles = player["animationProfiles"] as JArray;
-        var profiles = NormalizeProfiles(legacyProfiles);
-        EnsureSequenceStore("player", profiles, legacyProfiles);
+        var profiles = NormalizeProfiles(player["animationProfiles"] as JArray);
+        EnsureSequenceStore("player", profiles);
         player["animationProfiles"] = profiles;
         var animation = player["animation"] as JObject ?? new JObject();
         animation["selectedProfile"] = ResolveProfileId(profiles, (string)animation["selectedProfile"]) ?? "default";
@@ -147,14 +145,12 @@ public class CPHInline
     {
         var panel = ReadConfig(PanelKey, CreatePanelDefaults());
         NormalizePositionConfig(panel, true);
-        var legacyProfiles = panel["animationProfiles"] as JArray;
-        var profiles = NormalizeProfiles(legacyProfiles);
-        EnsureSequenceStore("panel", profiles, legacyProfiles);
+        var profiles = NormalizeProfiles(panel["animationProfiles"] as JArray);
+        EnsureSequenceStore("panel", profiles);
         panel["animationProfiles"] = profiles;
         var animation = panel["animation"] as JObject ?? new JObject();
         animation["entryPoints"] = NormalizeEntryPoints(animation["entryPoints"] as JObject, profiles, new[] { "recent", "playlist", "creatorLeaderboard" });
         panel["animation"] = animation;
-        panel["preset"] = NormalizePresetConfig(panel["preset"]);
         SaveConfig(PanelKey, panel);
     }
 
@@ -167,7 +163,7 @@ public class CPHInline
         profiles.Add(CreateProfile(id, name));
         player["animationProfiles"] = profiles;
         SaveConfig(PlayerKey, player);
-        EnsureSequenceStore("player", profiles, null);
+        EnsureSequenceStore("player", profiles);
         return true;
     }
 
@@ -198,7 +194,7 @@ public class CPHInline
         profiles.Add(CreatePanelProfile(id, name));
         panel["animationProfiles"] = profiles;
         SaveConfig(PanelKey, panel);
-        EnsureSequenceStore("panel", profiles, null);
+        EnsureSequenceStore("panel", profiles);
         return true;
     }
 
@@ -228,7 +224,7 @@ public class CPHInline
         profiles.Add(CreateClapperProfile(id, name));
         clapper["animationProfiles"] = profiles;
         SaveConfig(ClapperKey, clapper);
-        EnsureSequenceStore("clapperboard", profiles, null);
+        EnsureSequenceStore("clapperboard", profiles);
         return true;
     }
 
@@ -286,14 +282,6 @@ public class CPHInline
         return true;
     }
 
-    private string ResolvePanelPreset(JObject panel, string panelType)
-    {
-        var preset = panel["preset"] as JObject;
-        var entries = preset?["entryPoints"] as JObject;
-        var value = (string)entries?[panelType.ToLowerInvariant()];
-        return string.IsNullOrWhiteSpace(value) ? (string)preset?["fallback"] ?? "Broadcast" : value;
-    }
-
     private JObject ReadClapperPositions()
     {
         var raw = CPH.GetGlobalVar<string>(ClapperPositionsKey, true);
@@ -306,28 +294,14 @@ public class CPHInline
         catch { return new JObject { ["Centered"] = new JObject { ["name"] = "Centered", ["tag"] = "centered", ["scale"] = 50, ["scaleX"] = 50, ["scaleY"] = 50, ["x"] = 0, ["y"] = 0, ["z"] = 0, ["rotateX"] = 0, ["rotateY"] = 0, ["rotateZ"] = 0, ["fov"] = 90 } }; }
     }
 
-    private JObject NormalizePresetConfig(JToken source)
-    {
-        var legacy = source as JValue;
-        var legacyPreset = legacy?.Type == JTokenType.String ? legacy.ToString() : null;
-        var objectSource = source as JObject;
-        var entries = objectSource?["entryPoints"] as JObject;
-        var fallback = (string)objectSource?["fallback"] ?? legacyPreset ?? "Broadcast";
-        var result = new JObject { ["fallback"] = fallback, ["entryPoints"] = new JObject() };
-        foreach (var name in new[] { "recent", "playlist", "creatorLeaderboard" }) result["entryPoints"][name] = (string)entries?[name] ?? fallback;
-        return result;
-    }
-
     private void NormalizePositionConfig(JObject config, bool panel)
     {
         var positions = config["positions"] as JObject ?? new JObject();
-        var obsolete = new[] { "Hidden Left", "Hidden Right", "Hidden Top", "Hidden Bottom", "Center", "Top", "Bottom", "Top Left", "Top Right", "Bottom Left", "Bottom Right" };
-        foreach (var name in obsolete) positions.Remove(name);
-        if (panel) positions.Remove("Full Screen");
         var builtIn = panel
             ? new JObject { ["name"] = "Centered", ["tag"] = "centered", ["scale"] = 100, ["scaleX"] = 100, ["scaleY"] = 100, ["x"] = 0, ["y"] = 0, ["z"] = 0, ["rotateX"] = 0, ["rotateY"] = 0, ["rotateZ"] = 0, ["fov"] = 90 }
             : new JObject { ["name"] = "Full Screen", ["tag"] = "full-screen", ["scale"] = 100, ["scaleX"] = 100, ["scaleY"] = 100, ["x"] = 0, ["y"] = 0, ["z"] = 0, ["rotateX"] = 0, ["rotateY"] = 0, ["rotateZ"] = 0, ["fov"] = 90 };
-        positions[panel ? "Centered" : "Full Screen"] = builtIn;
+        if (!positions.ContainsKey(panel ? "Centered" : "Full Screen"))
+            positions[panel ? "Centered" : "Full Screen"] = builtIn;
         config["positions"] = positions;
     }
 
@@ -381,7 +355,7 @@ public class CPHInline
     private JObject CreatePanelProfile(string id, string name) => new JObject { ["id"] = id, ["name"] = name };
     private JObject CreateClapperProfile(string id, string name) => new JObject { ["id"] = id, ["name"] = name };
 
-    private JObject CreatePlayerDefaults() => new JObject { ["version"] = 1, ["positions"] = new JObject(), ["animationProfiles"] = new JArray(CreateProfile("default", "Default")), ["animation"] = new JObject { ["selectedProfile"] = "default", ["entryPoints"] = new JObject { ["obs"] = "default", ["twitch"] = "default", ["youtube"] = "default", ["kick"] = "default", ["recent"] = "default", ["catalog"] = "default", ["playlist"] = "default" } } };
+    private JObject CreatePlayerDefaults() => new JObject { ["positions"] = new JObject(), ["animationProfiles"] = new JArray(CreateProfile("default", "Default")), ["animation"] = new JObject { ["selectedProfile"] = "default", ["entryPoints"] = new JObject { ["obs"] = "default", ["twitch"] = "default", ["youtube"] = "default", ["kick"] = "default", ["recent"] = "default", ["catalog"] = "default", ["playlist"] = "default" } } };
     private JObject CreatePanelDefaults() => new JObject { ["version"] = 1, ["width"] = 500, ["height"] = 700, ["positions"] = new JObject(), ["animationProfiles"] = new JArray(CreatePanelProfile("default", "Default")), ["animation"] = new JObject { ["entryPoints"] = new JObject { ["recent"] = "default", ["playlist"] = "default", ["creatorLeaderboard"] = "default" } }, ["preset"] = new JObject { ["fallback"] = "Broadcast", ["entryPoints"] = new JObject { ["recent"] = "Broadcast", ["playlist"] = "Broadcast", ["creatorLeaderboard"] = "Broadcast" } } };
     private JObject CreateClapperDefaults() => new JObject { ["version"] = 1, ["animationProfiles"] = new JArray(CreateClapperProfile("default", "Default")), ["animation"] = new JObject { ["selectedProfile"] = "default" } };
 
@@ -393,7 +367,7 @@ public class CPHInline
         return profile ?? new JObject();
     }
 
-    private void EnsureSequenceStore(string target, JArray profiles, JArray legacyProfiles)
+    private void EnsureSequenceStore(string target, JArray profiles)
     {
         var store = ReadConfig(AnimationKey, new JObject());
         var targetObject = store[target] as JObject ?? new JObject();
@@ -401,13 +375,11 @@ public class CPHInline
         foreach (var token in profiles ?? new JArray())
         {
             var id = (string)token["id"];
-            if (string.IsNullOrWhiteSpace(id)) continue;
-            if (targetObject[id] is JObject) continue;
-            var legacy = FindProfile(legacyProfiles, id);
+            if (string.IsNullOrWhiteSpace(id) || targetObject[id] is JObject) continue;
             targetObject[id] = new JObject
             {
-                ["startSequence"] = legacy?["startSequence"] as JArray ?? ProfileDefaultSequence(target),
-                ["endSequence"] = legacy?["endSequence"] as JArray ?? ProfileDefaultEndSequence(target)
+                ["startSequence"] = ProfileDefaultSequence(target),
+                ["endSequence"] = ProfileDefaultEndSequence(target)
             };
             changed = true;
         }
