@@ -265,7 +265,7 @@ RTSReplayVideo.loadReplay = command => {
   if (!isYouTube && !command.replayUrl) return;
   RTSReplayVideo.currentCommand = command;
   RTSReplayVideo.expectedPlaying = false;
-  RTSReplayWatchdog?.start?.();
+  RTSReplayWatchdog?.stop?.();
   endedCommand = null;
   window.RTSDevToolbar?.updateClapper?.(command);
   RTSReplayControls.configure(command);
