@@ -26,6 +26,7 @@ public class CPHInline
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
     private const string PlaybackProfileHandoffKey = "rts.actionreplay.handoff.playbackProfile";
     private const string PlaybackQueueEntryHandoffKey = "rts.actionreplay.handoff.playbackQueueEntryId";
+    private const string PlayerPositionsHandoffKey = "rts.actionreplay.handoff.playerPositions";
 
     public bool Execute() => PlayReplay();
 
@@ -139,6 +140,23 @@ public class CPHInline
         if (resolved) SendMessage("play");
         CPH.LogInfo($"RTS Action Replay: PlayReplay completed dispatch for replay {(string)replay["id"]}.");
         return resolved;
+    }
+
+    private bool TryParseUserSelection(string input, out string platform, out string userName, out int index)
+    {
+        platform = null; userName = null; index = 0;
+        var parts = (input ?? "").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length != 2 || !int.TryParse(parts[1], out index) || index < 1) return false;
+        var target = parts[0]; var separator = target.IndexOf(':');
+        if (separator <= 0 || separator == target.Length - 1) return false;
+        platform = target.Substring(0, separator).Trim();
+        userName = target.Substring(separator + 1).Trim();
+        if (!string.Equals(platform, "Twitch", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(platform, "Kick", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(platform, "YouTube", StringComparison.OrdinalIgnoreCase)) return false;
+        if (string.IsNullOrWhiteSpace(userName)) return false;
+        platform = NormalizePlatform(platform);
+        return true;
     }
 
     private string ResolveReplayUrl(JObject replay)
