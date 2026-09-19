@@ -11,10 +11,6 @@ public class CPHInline
     private const string ClapperPositionsKey = "rts.actionreplay.clapper.positions";
     private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
     private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
-    private const string PlaybackProfileHandoffKey = "rts.actionreplay.handoff.playbackProfile";
-    private const string AnimationProfileHandoffKey = "rts.actionreplay.handoff.animationProfile";
-    private const string PlayerPositionsHandoffKey = "rts.actionreplay.handoff.playerPositions";
-    private const string PositionStoreAction = "RTS - Action Replay - Core - Position Store";
 
     public bool Execute() => EnsureProfiles();
 
@@ -177,46 +173,6 @@ public class CPHInline
         return true;
     }
 
-    public bool ApplyProfile()
-    {
-        var handoffRequested = !string.IsNullOrWhiteSpace(CPH.GetGlobalVar<string>(PlaybackProfileHandoffKey, false));
-        string profile = null;
-        if (CPH.TryGetArg("replayAnimationProfileId", out string explicitProfile) && !string.IsNullOrWhiteSpace(explicitProfile)) profile = explicitProfile.Trim();
-        if (string.IsNullOrWhiteSpace(profile)) profile = CPH.GetGlobalVar<string>(PlaybackProfileHandoffKey, false);
-        var player = ReadConfig(PlayerKey, CreatePlayerDefaults());
-        NormalizePositionConfig(player, false);
-        var legacyProfiles = player["animationProfiles"] as JArray;
-        var profiles = NormalizeProfiles(legacyProfiles);
-        EnsureSequenceStore("player", profiles, legacyProfiles);
-        if (string.IsNullOrWhiteSpace(profile)) profile = (string)((JObject)player["animation"])?["selectedProfile"];
-        profile = ResolveProfileId(profiles, profile) ?? "default";
-        CPH.UnsetGlobalVar(PlaybackProfileHandoffKey, false);
-        var item = FindProfile(profiles, profile) ?? CreateProfile("default", "Default");
-        var sequences = GetProfileSequences("player", profile);
-        var start = ToStoredSequence("player", sequences["startSequence"] as JArray ?? new JArray());
-        var end = ToStoredSequence("player", sequences["endSequence"] as JArray ?? new JArray());
-        if (start.Count == 0) start = DefaultPlayerStart();
-        if (end.Count == 0) end = DefaultPlayerEnd();
-        var profileJson = new JObject { ["id"] = profile, ["name"] = (string)item["name"] ?? "Default", ["start"] = start, ["end"] = end }.ToString(Newtonsoft.Json.Formatting.None);
-        var positions = GetUnifiedPlayerPositions();
-        var playerPositions = positions.ToString(Newtonsoft.Json.Formatting.None);
-        CPH.SetArgument("profileId", profile);
-        CPH.SetArgument("replayAnimationProfile", profileJson);
-        CPH.SetArgument("replayPlayerPositions", playerPositions);
-        CPH.SetArgument("replayStartPosition", (string)start[0]["position"] ?? "Full Screen");
-        CPH.SetArgument("replayEndPosition", (string)end[end.Count - 1]["position"] ?? "Full Screen");
-        CPH.SetArgument("replayAnimationDuration", 0.5);
-        CPH.SetArgument("replayAnimationEasing", (string)start[0]["easing"] ?? "ease-in-out");
-        if (handoffRequested)
-        {
-            CPH.SetGlobalVar(AnimationProfileHandoffKey, profileJson, false);
-            CPH.SetGlobalVar(PlayerPositionsHandoffKey, playerPositions, false);
-        }
-        return true;
-    }
-
-    public bool GetProfile() => ApplyProfile();
-
     public bool ResolvePanelAnimation()
     {
         var panelType = CPH.TryGetArg("panelType", out string requested) && !string.IsNullOrWhiteSpace(requested) ? requested.Trim() : "recent";
@@ -249,29 +205,6 @@ public class CPHInline
         var entries = preset?["entryPoints"] as JObject;
         var value = (string)entries?[panelType.ToLowerInvariant()];
         return string.IsNullOrWhiteSpace(value) ? (string)preset?["fallback"] ?? "Broadcast" : value;
-    }
-
-    private JArray ToStoredSequence(string target, JArray input)
-    {
-        var positions = (ReadConfig("rts.actionreplay.config.presets", new JObject())["positions"] as JObject)?[target] as JObject ?? new JObject();
-        var rows = new JArray();
-        foreach (var token in input ?? new JArray())
-        {
-            var row = token as JObject ?? new JObject();
-            var value = (string)row["position"] ?? "";
-            var position = positions[value] as JObject;
-            var tag = (string)position?["tag"] ?? value;
-            rows.Add(new JObject { ["position"] = tag, ["duration"] = (int?)row["duration"] ?? 0, ["delay"] = (int?)row["delay"] ?? 0, ["easing"] = (string)row["easing"] ?? "ease-in-out" });
-        }
-        return rows;
-    }
-
-    private JObject GetUnifiedPlayerPositions()
-    {
-        CPH.ExecuteMethod(PositionStoreAction, "GetPlayerPositions");
-        var raw = CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false);
-        try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); }
-        catch { return new JObject(); }
     }
 
     private JObject ReadClapperPositions()
