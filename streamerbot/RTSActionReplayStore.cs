@@ -16,6 +16,7 @@ public class CPHInline
     private const string PlayerKey = "rts.actionreplay.config.player";
     private const string PanelKey = "rts.actionreplay.config.panel";
     private const string ClapperPositionsKey = "rts.actionreplay.clapper.positions";
+    private const string ConfigurationSnapshotKey = "rts.actionreplay.handoff.configurationSnapshot";
     private const int ClapperboardPreviewWidth = 680;
     private const int ClapperboardPreviewHeight = 372;
 
@@ -68,6 +69,94 @@ public class CPHInline
     const string PresetsKey = "rts.actionreplay.config.presets";
 
     public bool EnsureDefaults() { var p = Read(PresetsKey, Defaults()); var d = Defaults(); if (!(p["branding"] is JArray)) p["branding"] = d["branding"]; if (!(p["visual"] is JArray)) p["visual"] = d["visual"]; if (!(p["title"] is JArray)) p["title"] = TitleDefaults(); EnsureBranding(p); EnsureVisuals(p); EnsureTitlePresets(p); Save(PresetsKey, p); CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "EnsurePositions"); return true; }
+
+    public bool GetConfigurationSnapshot()
+    {
+        EnsureData();
+        EnsureDefaults();
+        EnsureEntryPoints();
+
+        var config = new JObject
+        {
+            ["data"] = Load(),
+            ["player"] = Read(PlayerKey, CreatePlayerDefaults()),
+            ["panel"] = Read(PanelKey, CreatePanelDefaults()),
+            ["clapperboard"] = Read(ClapperKey, CreateClapperDefaults()),
+            ["presets"] = Read(PresetsKey, Defaults()),
+            ["animation"] = Read("rts.actionreplay.config.animation", new JObject()),
+            ["clapperPositions"] = ReadStringObject(ClapperPositionsKey),
+            ["globals"] = new JObject()
+        };
+
+        var globals = (JObject)config["globals"];
+        AddSnapshotGlobal(globals, "uiTheme", "rts.actionreplay.uiTheme");
+        AddSnapshotGlobal(globals, "replayFolder", "rts.actionreplay.replayFolder");
+        AddSnapshotGlobal(globals, "replayFileTypes", "rts.actionreplay.replayFileTypes");
+        AddSnapshotGlobal(globals, "httpMapping", "rts.actionreplay.httpMapping");
+        AddSnapshotGlobal(globals, "httpPort", "rts.actionreplay.httpPort");
+        AddSnapshotGlobal(globals, "replayTitle", "rts.actionreplay.replayTitle");
+        AddSnapshotGlobal(globals, "newReplayTitle", "rts.actionreplay.newReplayTitle");
+        AddSnapshotGlobal(globals, "maxHistory", "rts.actionreplay.maxHistory");
+        AddSnapshotGlobal(globals, "autoAdd", "rts.actionreplay.autoAdd");
+        AddSnapshotGlobal(globals, "autoPlay", "rts.actionreplay.autoPlay");
+        AddSnapshotGlobal(globals, "playlistPersist", "rts.actionreplay.playlistPersist");
+        AddSnapshotGlobal(globals, "twitchPlaybackMode", "rts.actionreplay.twitch.playbackMode");
+        AddSnapshotGlobal(globals, "twitchFolder", "rts.actionreplay.twitch.folder");
+        AddSnapshotGlobal(globals, "twitchHttpMapping", "rts.actionreplay.twitch.httpMapping");
+        AddSnapshotGlobal(globals, "twitchClipDuration", "rts.actionreplay.twitch.clipDuration");
+        AddSnapshotGlobal(globals, "kickPlaybackMode", "rts.actionreplay.kick.playbackMode");
+        AddSnapshotGlobal(globals, "kickFolder", "rts.actionreplay.kick.folder");
+        AddSnapshotGlobal(globals, "kickHttpMapping", "rts.actionreplay.kick.httpMapping");
+        AddSnapshotGlobal(globals, "youtubeClipDuration", "rts.actionreplay.youtube.clipDuration");
+        AddSnapshotGlobal(globals, "showControls", "rts.actionreplay.showControls");
+        AddSnapshotGlobal(globals, "showProgress", "rts.actionreplay.showProgress");
+        AddSnapshotGlobal(globals, "playbackSpeed", "rts.actionreplay.playbackSpeed");
+        AddSnapshotGlobal(globals, "playbackSpeedVisibility", "rts.actionreplay.playbackSpeedVisibility");
+        AddSnapshotGlobal(globals, "frameColorSource", "rts.actionreplay.frameColorSource");
+        AddSnapshotGlobal(globals, "frameColor", "rts.actionreplay.frameColor");
+        AddSnapshotGlobal(globals, "borderGlow", "rts.actionreplay.borderGlow");
+        AddSnapshotGlobal(globals, "borderWidth", "rts.actionreplay.borderWidth");
+        AddSnapshotGlobal(globals, "cornerRadius", "rts.actionreplay.cornerRadius");
+        AddSnapshotGlobal(globals, "brandLogoUrl", "rts.actionreplay.brandLogoUrl");
+        AddSnapshotGlobal(globals, "clapperPosition", "rts.actionreplay.clapper.position");
+        AddSnapshotGlobal(globals, "clapperDuration", "rts.actionreplay.clapper.duration");
+        AddSnapshotGlobal(globals, "clapperBoardColor", "rts.actionreplay.clapper.boardColor");
+        AddSnapshotGlobal(globals, "clapperTextColor", "rts.actionreplay.clapper.textColor");
+        AddSnapshotGlobal(globals, "clapperStripeLight", "rts.actionreplay.clapper.stripeLight");
+        AddSnapshotGlobal(globals, "clapperStripeDark", "rts.actionreplay.clapper.stripeDark");
+        AddSnapshotGlobal(globals, "clapperAccent", "rts.actionreplay.clapper.accent");
+        AddSnapshotGlobal(globals, "clapperFont", "rts.actionreplay.clapper.font");
+
+        foreach (var prefix in new[] { "save", "name", "play", "recent", "playlist" })
+        {
+            AddSnapshotGlobal(globals, "message" + Cap(prefix) + "Text", "rts.actionreplay.message." + prefix + ".text");
+            AddSnapshotGlobal(globals, "message" + Cap(prefix) + "Chat", "rts.actionreplay.message." + prefix + ".chat");
+            AddSnapshotGlobal(globals, "message" + Cap(prefix) + "Overlay", "rts.actionreplay.message." + prefix + ".overlay");
+        }
+
+        CPH.SetGlobalVar(ConfigurationSnapshotKey, config.ToString(Newtonsoft.Json.Formatting.None), false);
+        CPH.LogInfo("RTS Action Replay: configuration snapshot prepared.");
+        return true;
+    }
+
+    private string Cap(string value) => char.ToUpperInvariant(value[0]) + value.Substring(1);
+
+    private JToken ReadStringObject(string key)
+    {
+        var raw = CPH.GetGlobalVar<string>(key, true);
+        if (string.IsNullOrWhiteSpace(raw)) return new JObject();
+        try { return JObject.Parse(raw); } catch { return new JObject(); }
+    }
+
+    private void AddSnapshotGlobal(JObject target, string name, string key)
+    {
+        var raw = CPH.GetGlobalVar<string>(key, true);
+        if (raw == null) return;
+        if (bool.TryParse(raw, out var b)) target[name] = b;
+        else if (int.TryParse(raw, out var i)) target[name] = i;
+        else if (double.TryParse(raw, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var d)) target[name] = d;
+        else target[name] = raw;
+    }
 
     public bool EnsureEntryPoints() { EnsureDefaults(); var player = Read(PlayerKey, CreatePlayerDefaults()); var panel = Read(PanelKey, CreatePanelDefaults()); var clapper = Read(ClapperKey, CreateClapperDefaults()); if (!(player["entryPoints"] is JObject)) player["entryPoints"] = CreatePlayerEntryPoints(); if (!(panel["entryPoints"] is JObject)) panel["entryPoints"] = CreatePanelEntryPoints(); if (!(clapper["entryPoint"] is JObject)) clapper["entryPoint"] = CreateClapperEntryPoint(); Save(PlayerKey, player); Save(PanelKey, panel); Save(ClapperKey, clapper); return true; }
 

@@ -12,9 +12,32 @@ public class CPHInline
     private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
     private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
     private const string PlayerPositionsHandoffKey = "rts.actionreplay.handoff.playerPositions";
+    private const string ConfigurationSnapshotKey = "rts.actionreplay.handoff.configurationSnapshot";
 
 
     public bool Execute()=>EnsureProfiles();
+
+    public bool SendConfigurationToOverlay()
+    {
+        CPH.LogInfo("RTS Action Replay: configuration test requested.");
+        if (!CPH.ExecuteMethod("RTS - Action Replay - Core - Store", "GetConfigurationSnapshot"))
+        {
+            CPH.LogWarn("RTS Action Replay: Store configuration snapshot method failed.");
+            return false;
+        }
+
+        var config = CPH.GetGlobalVar<string>(ConfigurationSnapshotKey, false);
+        if (string.IsNullOrWhiteSpace(config))
+        {
+            CPH.LogWarn("RTS Action Replay: configuration snapshot was not produced.");
+            return false;
+        }
+
+        CPH.SetArgument("replayConfig", config);
+        CPH.SetArgument("replayCommand", "config-test");
+        CPH.TriggerEvent(EventName, true);
+        return true;
+    }
 
     public bool ResolvePlayerConfiguration()
     {

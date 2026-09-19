@@ -63,6 +63,21 @@ RTSReplayOverlay.handleEvent = message => {
       brandingLabelColor: args.replayBrandLabelColor || '<missing>'
     });
   }
+  if (args.replayCommand === 'config-test') {
+    let config = args.replayConfig;
+    try { config = typeof config === 'string' ? JSON.parse(config) : config; } catch (_) { config = null; }
+    window.rtsOverlayConfig = config;
+    window.RTSDevToolbar?.log?.('Overlay configuration received', {
+      player: !!config?.player,
+      panel: !!config?.panel,
+      clapperboard: !!config?.clapperboard,
+      presets: !!config?.presets,
+      animation: !!config?.animation,
+      globals: !!config?.globals
+    });
+    window.dispatchEvent(new CustomEvent('rts-overlay-config', { detail: config }));
+    return;
+  }
   if (args.replayCommand === 'avatar-response') {
     window.RTSSearchPanel?.handleAvatar?.(args);
     return;
