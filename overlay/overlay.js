@@ -44,10 +44,6 @@ RTSReplayOverlay.handleEvent = message => {
       brandingLabelColor: args.replayBrandLabelColor || '<missing>'
     });
   }
-  if (args.replayCommand === 'settings-sync') {
-    window.RTSReplaySettingsSync?.apply?.(args);
-    return;
-  }
   if (args.replayCommand === 'avatar-response') {
     window.RTSSearchPanel?.handleAvatar?.(args);
     return;
