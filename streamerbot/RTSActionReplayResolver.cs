@@ -105,14 +105,6 @@ public class CPHInline
     JObject Find(JArray values,string id){foreach(var x in values??new JArray())if(string.Equals((string)x["id"],id,StringComparison.OrdinalIgnoreCase))return x as JObject;return null;}
     JObject Read(string key){var raw=key==PlayerOperationKey||key==PanelOperationKey?CPH.GetGlobalVar<string>(key,false):CPH.GetGlobalVar<string>(key,true);try{return string.IsNullOrWhiteSpace(raw)?new JObject():JObject.Parse(raw);}catch{return new JObject();}}
 
-    private const string PlayerKey = "rts.actionreplay.config.player";
-    private const string AnimationKey = "rts.actionreplay.config.animation";
-    private const string PanelKey = "rts.actionreplay.config.panel";
-    private const string ClapperKey = "rts.actionreplay.config.clapper";
-    private const string ClapperPositionsKey = "rts.actionreplay.clapper.positions";
-    private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
-    private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
-
     public bool EnsureProfiles()
     {
         EnsurePlayerProfiles();
@@ -437,7 +429,6 @@ public class CPHInline
 
     private void SaveConfig(string key, JObject value) => CPH.SetGlobalVar(key, value.ToString(Newtonsoft.Json.Formatting.None), true);
 
-    const string PresetsKey="rts.actionreplay.config.presets";
     const string HandoffKey="rts.actionreplay.handoff.playerPositions";
 
     public bool EnsurePositions()
