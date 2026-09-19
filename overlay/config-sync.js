@@ -20,7 +20,7 @@
         String(p?.tag || '').toLowerCase() === name.toLowerCase()
       );
       return {
-        position: String(position?.tag || name),
+        position: String(name),
         duration: Number(step?.duration) || 0,
         delay: Number(step?.delay) || 0,
         easing: step?.easing || 'ease-in-out'
