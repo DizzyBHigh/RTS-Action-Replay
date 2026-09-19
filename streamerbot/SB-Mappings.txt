@@ -22,7 +22,7 @@ RTS - Action Replay - Catalog - Search Panel Ended : Execute Method(RTS - Action
 
 RTS - Action Replay - Core
 RTS - Action Replay - AddReplay: Execute Method (RTS - Action Replay - Core - Store, AddReplay) {}if (%replay% Equals "True") True Result (2): Execute Method(RTS - Action Replay - Core - Resolver, ResolveEntryPointProfile), Execute Method(RTS - Action Replay - Core - Playlist, EnqueueCurrentReplay) False Result(0): None
-RTS - Action Replay - Confirm Playback : Execute Method (RTS - Action Replay - Core - Playback, ConfirmPlayback)
+
 
 RTS - Action Replay - Core - Catalog : Execute Code (RTS - Action Replay - Core - Catalog) - streamerbot/RTSActionReplayCatalog.cs
 RTS - Action Replay - Core - Playback : Execute Code (RTS - Action Replay - Core - Playback) - streamerbot/RTSActionReplayPlayback.cs
@@ -84,4 +84,5 @@ Deleted - RTS - Action Replay - Test - Clip Test : Execute Code (RTS - Action Re
 Deleted - RTS - Action Replay - Test - Positions : Execute Code (RTS - Action Replay - Test - Positions) - no longer in repo, probably legacy and removed - Deleted
 Deleted - RTS - Action Replay - Store - Show Playback Leaderboard: Execute Method (RTS - Action Replay - Core - Store, PlaybackLeaderboard) - Deleted
 Deleted - RTS - Action Replay - Store - Show Creator Leaderboard : Execute Method (RTS - Action Replay - Core - Store, CreatorLeaderboard) - Deleted
+Deleted - RTS - Action Replay - Confirm Playback : Execute Method (RTS - Action Replay - Core - Playback, ConfirmPlayback) - Deleted
 
