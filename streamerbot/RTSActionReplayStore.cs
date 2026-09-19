@@ -16,6 +16,7 @@ public class CPHInline
     private const string PlayerKey = "rts.actionreplay.config.player";
     private const string PanelKey = "rts.actionreplay.config.panel";
     private const string ClapperPositionsKey = "rts.actionreplay.clapper.positions";
+    private const string ConfigurationSnapshotKey = "rts.actionreplay.handoff.configurationSnapshot";
     private const int ClapperboardPreviewWidth = 680;
     private const int ClapperboardPreviewHeight = 372;
 
@@ -133,7 +134,8 @@ public class CPHInline
             AddSnapshotGlobal(globals, "message" + Cap(prefix) + "Overlay", "rts.actionreplay.message." + prefix + ".overlay");
         }
 
-        CPH.SetArgument("replayConfig", config.ToString(Newtonsoft.Json.Formatting.None));
+        CPH.SetGlobalVar(ConfigurationSnapshotKey, config.ToString(Newtonsoft.Json.Formatting.None), false);
+        CPH.LogInfo("RTS Action Replay: configuration snapshot prepared.");
         return true;
     }
 
