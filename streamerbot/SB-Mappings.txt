@@ -21,30 +21,19 @@ RTS - Action Replay - Catalog - Search Panel Clear : Execute Method(RTS - Action
 RTS - Action Replay - Catalog - Search Panel Ended : Execute Method(RTS - Action Replay - Core - SearchQueue, SearchPanelEnded)
 
 RTS - Action Replay - Core
-RTS - Action Replay - AddReplay : Execute Method (RTS - Action Replay - Core - Store, AddReplay) {}if (%replay% Equals "True") True Result (2): Execute Method(RTS - Action Replay - Core - Resolver, ResolveEntryPointProfile), Execute Method(RTS - Action Replay - Core - Playlist, EnqueueCurrentReplay) False Result(0): None
+RTS - Action Replay - AddReplay: Execute Method (RTS - Action Replay - Core - Store, AddReplay) {}if (%replay% Equals "True") True Result (2): Execute Method(RTS - Action Replay - Core - Resolver, ResolveEntryPointProfile), Execute Method(RTS - Action Replay - Core - Playlist, EnqueueCurrentReplay) False Result(0): None
 RTS - Action Replay - Confirm Playback : Execute Method (RTS - Action Replay - Core - Playback, ConfirmPlayback)
-RTS - Action Replay - Core - Animation : Execute Code (RTS - Action Replay - Core - Animation) - streamerbot/RTSActionReplayAnimationProfiles.cs
+
 RTS - Action Replay - Core - Catalog : Execute Code (RTS - Action Replay - Core - Catalog) - streamerbot/RTSActionReplayCatalog.cs
-RTS - Action Replay - Core - Identity : Execute Code (RTS - Action Replay - Core - Identity) - streamerbot/RTSActionReplayIdentity.cs
-RTS - Action Replay - Core - Kick : Execute Code (RTS - Action Replay - Core - Kick) - streamerbot/RTSActionReplayKick.cs
-RTS - Action Replay - Core - Panel Presets : Execute Code (RTS - Action Replay - Core - Panel Presets) - streamerbot/RTSActionReplayPanelPresets.cs
 RTS - Action Replay - Core - Playback : Execute Code (RTS - Action Replay - Core - Playback) - streamerbot/RTSActionReplayPlayback.cs
 RTS - Action Replay - Core - Playlist : Execute Code (RTS - Action Replay - Core - Playlist) - streamerbot/RTSActionReplayPlaylist.cs
-RTS - Action Replay - Core - Position Store : Execute Code (RTS - Action Replay - Core - Position Store) - streamerbot/RTSActionReplayPositionStore.cs
-RTS - Action Replay - Core - Preset Settings  : Execute Code (RTS - Action Replay - Core - Preset Settings) - streamerbot/RTSActionReplayPresetSettings.cs
-RTS - Action Replay - Core - Preset Store: Execute Code (RTS - Action Replay - Core - Preset Store) - streamerbot/RTSActionReplayPresetStore.cs
+RTS - Action Replay - Core - Settings  : Execute Code (RTS - Action Replay - Core - Settings) - streamerbot/RTSActionReplayPresetSettings.cs
 RTS - Action Replay - Core - Resolver : Execute Code (RTS - Action Replay - Core - Resolver) - streamerbot/RTSActionReplayResolver.cs
 RTS - Action Replay - Core - Search Queue: Execute Code (RTS - Action Replay - Core - Search Queue) - streamerbot/RTSActionReplaySearchQueue.cs
 RTS - Action Replay - Core - Store : Execute Code (RTS - Action Replay - Core - Store) - streamerbot/RTSActionReplayStore.cs
-RTS - Action Replay - Core - Title : Execute Code (RTS - Action Replay - Core - Title) - no longer in repo probably legacy and removed
-RTS - Action Replay - Core - Twitch : Execute Code (RTS - Action Replay - Core - Twitch) - streamerbot/RTSActionReplayTwitch.cs
 RTS - Action Replay - Core - Video Controls : Execute Code (RTS - Action Replay - Core - Video Controls) - streamerbot/RTSActionReplayVideoControl.cs
-RTS - Action Replay - Core - YouTube : Execute Code (RTS - Action Replay - Core - YouTube) - streamerbot/RTSActionReplayYouTube.cs
 RTS - Action Replay - Core - Event Trigger : CUSTOM TRIGGER (RTS-Action Replay)
-RTS - Action Replay - Init Store : Execute Method (RTS - Action Replay - Core - Store, Initalize)
-RTS - Action Replay - Overlay - Settings - Sync : Execute Code (RTS - Action Replay - Overlay - Settings - Sync) - no longer in repo probably legacy and removed
-RTS - Action Replay - Test - Clip Test : Execute Code (RTS - Action Replay - Test - Clip Test) - no longer in repo probably legacy and removed
-RTS - Action Replay - Test - Positions : Execute Code (RTS - Action Replay - Test - Positions) - no longer in repo probably legacy and removed
+RTS - Action Replay - Init Store : Execute Method (RTS - Action Replay - Core - Store, Initialize)
 RTS - Action Replay - Core - Platforms : Execute Code (RTS - Action Replay - Core - Platforms) - streamerbot/RTSActionReplayPlatforms.cs
 
 RTS - Action Replay Kick
@@ -81,3 +70,16 @@ RTS - Action Replay - Video - Show Player : Execute Method (RTS - Action Replay 
 RTS - Action Replay - YouTube : 
 RTS - Action Replay - Create YouTube Clip : Execute Method (RTS - Action Replay - Core - Platform, CreateYouTubeClip)
 RTS - Action Replay - YouTube Broadcast Started : Execute Method (RTS - Action Replay - Core - Platform, BroadcastStarted)
+
+
+Deleted - RTS - Action Replay - Core - Position Store : Execute Code (RTS - Action Replay - Core - Position Store) - streamerbot/RTSActionReplayPositionStore.cs - Deleted
+Deleted - RTS - Action Replay - Core - Preset Store: Execute Code (RTS - Action Replay - Core - Preset Store) - streamerbot/RTSActionReplayPresetStore.cs - Deleted
+Deleted - RTS - Action Replay - Core - Animation : Execute Code (RTS - Action Replay - Core - Animation) - streamerbot/RTSActionReplayAnimationProfiles.cs - Deleted
+Deleted - RTS - Action Replay - Core - Identity : Execute Code (RTS - Action Replay - Core - Identity) - streamerbot/RTSActionReplayIdentity.cs Deleted
+Deleted - RTS - Action Replay - Core - Kick : Execute Code (RTS - Action Replay - Core - Kick) - streamerbot/RTSActionReplayKick.cs - Deleted
+Deleted - RTS - Action Replay - Core - Panel Presets : Execute Code (RTS - Action Replay - Core - Panel Presets) - streamerbot/RTSActionReplayPanelPresets.cs - Deleted
+Deleted - RTS - Action Replay - Core - Title : Execute Code (RTS - Action Replay - Core - Title) - no longer in repo probably legacy and removed - Deleted
+Deleted - RTS - Action Replay - Core - Twitch : Execute Code (RTS - Action Replay - Core - Twitch) - streamerbot/RTSActionReplayTwitch.cs - Deleted
+Deleted - RTS - Action Replay - Core - YouTube : Execute Code (RTS - Action Replay - Core - YouTube) - streamerbot/RTSActionReplayYouTube.cs - Deleted
+Deleted - RTS - Action Replay - Test - Clip Test : Execute Code (RTS - Action Replay - Test - Clip Test) - no longer in repo probably legacy and removed - Deleted
+Deleted - RTS - Action Replay - Test - Positions : Execute Code (RTS - Action Replay - Test - Positions) - no longer in repo probably legacy and removed - Deleted
