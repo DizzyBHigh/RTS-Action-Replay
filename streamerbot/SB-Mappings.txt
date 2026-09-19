@@ -45,7 +45,7 @@ RTS - Action Replay - Init Store : Execute Method (RTS - Action Replay - Core - 
 RTS - Action Replay - Overlay - Settings - Sync : Execute Code (RTS - Action Replay - Overlay - Settings - Sync) - no longer in repo probably legacy and removed
 RTS - Action Replay - Test - Clip Test : Execute Code (RTS - Action Replay - Test - Clip Test) - no longer in repo probably legacy and removed
 RTS - Action Replay - Test - Positions : Execute Code (RTS - Action Replay - Test - Positions) - no longer in repo probably legacy and removed
-
+RTS - Action Replay - Core - Platforms : Execute Code (RTS - Action Replay - Core - Platforms) - streamerbot/RTSActionReplayPlatforms.cs
 
 RTS - Action Replay Kick
 RTS - Action Replay - Capture KickBot Clip : Execute Method (RTS - Action Replay - Core - Kick, CaptureKickBotClip) - 
