@@ -41,7 +41,7 @@ RTSInformationPanelPresets.startCutBlocks = (panel, command) => {
   const number = (value, min, max, fallback) => Math.max(min, Math.min(max, Number(value) || fallback));
   const randomValue = max => 1 + Math.random() * Math.max(0, max - 1);
   const primary = colour(getComputedStyle(panel).getPropertyValue('--panel-primary')) || '#0384CB';
-  const secondary = colour(getComputedStyle(panel).getPropertyValue('--panel-secondary')) || '#101416';
+  const secondary = colour(command?.replayCutBackgroundColor || getComputedStyle(panel).getPropertyValue('--panel-secondary')) || '#101416';
   const blockWidth = number(command?.replayCutBlockWidth, 1, 1000, 170);
   const randomWidth = command?.replayCutRandomWidth === undefined ? true : command.replayCutRandomWidth === true;
   const barHeight = number(command?.replayCutBarHeight, 1, 50, 5);
@@ -94,6 +94,7 @@ RTSInformationPanelPresets.apply = (panel, command) => {
   panel.style.setProperty('--panel-list-color', listColor);
   if (className === 'cut') {
     const readable = RTSInformationPanelPresets.readableText(secondary) || listColor;
+    panel.style.setProperty('--panel-cut-background', secondary);
     panel.style.setProperty('--panel-cut-text', readable);
   } else {
     panel.style.removeProperty('--panel-cut-text');
