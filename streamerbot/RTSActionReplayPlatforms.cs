@@ -236,7 +236,7 @@ public bool CreateYouTubeClip()
             ["creator"] = new JObject { ["platform"] = creatorPlatform, ["id"] = Arg("userId"), ["name"] = Arg("userName") },
             ["plays"] = 0, ["users"] = new JObject()
         };
-        catalog.Insert(0, item); data["catalog"] = catalog; AddRecent(data, id); Save(data);
+        catalog.Insert(0, item); data["catalog"] = catalog; AddRecent((JArray)data["recentIds"], id); Save(data);
         CPH.LogInfo($"RTS Action Replay: added YouTube timestamp replay {id} ({startTime}s + {duration}s) title='{title}'.");
         return BroadcastReplay(item);
     }
@@ -313,7 +313,7 @@ public bool CaptureKickBotClip()
             ["title"] = title, ["customTitle"] = title != "Kick Clip", ["duration"] = duration, ["added"] = DateTime.Now.ToString("o"), ["captured"] = DateTime.Now.ToString("o"),
             ["acquisitionMethod"] = "KickBot", ["creator"] = creator, ["plays"] = 0, ["users"] = new JObject()
         };
-        catalog.Insert(0, item); data["catalog"] = catalog; AddRecent(data, (string)item["id"]); ClearPending(); Save(data); return BroadcastReplay(item);
+        catalog.Insert(0, item); data["catalog"] = catalog; AddRecent((JArray)data["recentIds"], (string)item["id"]); ClearPending(); Save(data); return BroadcastReplay(item);
     }
 
 public bool CaptureKickClip()
@@ -345,7 +345,7 @@ public bool CaptureKickClip()
             ["title"] = title, ["customTitle"] = false, ["duration"] = duration, ["added"] = DateTime.Now.ToString("o"), ["captured"] = DateTime.Now.ToString("o"),
             ["acquisitionMethod"] = "Kick", ["creator"] = creatorInfo, ["plays"] = 0, ["users"] = new JObject()
         };
-        catalog.Insert(0, item); data["catalog"] = catalog; AddRecent(data, (string)item["id"]); Save(data);
+        catalog.Insert(0, item); data["catalog"] = catalog; AddRecent((JArray)data["recentIds"], (string)item["id"]); Save(data);
         CPH.LogInfo($"RTS Action Replay: native Kick clip captured; clipId={clipId}; title={title}; duration={duration}.");
         return BroadcastReplay(item);
     }
