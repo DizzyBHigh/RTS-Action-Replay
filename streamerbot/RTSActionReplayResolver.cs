@@ -18,75 +18,16 @@ public class CPHInline
 
     public bool SendConfigurationToOverlay()
     {
-        var config = new JObject
-        {
-            ["player"] = Read(PlayerKey),
-            ["panel"] = Read(PanelKey),
-            ["clapperboard"] = Read(ClapperKey),
-            ["presets"] = Read(PresetsKey),
-            ["animation"] = Read(AnimationKey),
-            ["globals"] = new JObject()
-        };
-        var globals = (JObject)config["globals"];
-        AddGlobal(globals, "replayFolder", "rts.actionreplay.replayFolder", "");
-        AddGlobal(globals, "replayFileTypes", "rts.actionreplay.replayFileTypes", ".mp4, .mkv");
-        AddGlobal(globals, "httpMapping", "rts.actionreplay.httpMapping", "replays");
-        AddGlobal(globals, "httpPort", "rts.actionreplay.httpPort", 7474);
-        AddGlobal(globals, "replayTitle", "rts.actionreplay.replayTitle", "%replayName%");
-        AddGlobal(globals, "newReplayTitle", "rts.actionreplay.newReplayTitle", "New Replay");
-        AddGlobal(globals, "maxHistory", "rts.actionreplay.maxHistory", 20);
-        AddGlobal(globals, "autoAdd", "rts.actionreplay.autoAdd", true);
-        AddGlobal(globals, "autoPlay", "rts.actionreplay.autoPlay", false);
-        AddGlobal(globals, "playlistPersist", "rts.actionreplay.playlistPersist", false);
-        AddGlobal(globals, "twitchPlaybackMode", "rts.actionreplay.twitch.playbackMode", "Download Locally");
-        AddGlobal(globals, "twitchFolder", "rts.actionreplay.twitch.folder", "");
-        AddGlobal(globals, "twitchHttpMapping", "rts.actionreplay.twitch.httpMapping", "twitch");
-        AddGlobal(globals, "twitchClipDuration", "rts.actionreplay.twitch.clipDuration", 30);
-        AddGlobal(globals, "kickPlaybackMode", "rts.actionreplay.kick.playbackMode", "Kick URL");
-        AddGlobal(globals, "kickFolder", "rts.actionreplay.kick.folder", "");
-        AddGlobal(globals, "kickHttpMapping", "rts.actionreplay.kick.httpMapping", "kick");
-        AddGlobal(globals, "youtubeClipDuration", "rts.actionreplay.youtube.clipDuration", 30);
-        AddGlobal(globals, "showControls", "rts.actionreplay.showControls", false);
-        AddGlobal(globals, "showProgress", "rts.actionreplay.showProgress", true);
-        AddGlobal(globals, "playbackSpeed", "rts.actionreplay.playbackSpeed", 1.0);
-        AddGlobal(globals, "playbackSpeedVisibility", "rts.actionreplay.playbackSpeedVisibility", "Only when greater or less than 1");
-        AddGlobal(globals, "frameColorSource", "rts.actionreplay.frameColorSource", "Custom");
-        AddGlobal(globals, "frameColor", "rts.actionreplay.frameColor", "#0384CBFF");
-        AddGlobal(globals, "borderGlow", "rts.actionreplay.borderGlow", true);
-        AddGlobal(globals, "borderWidth", "rts.actionreplay.borderWidth", 4);
-        AddGlobal(globals, "cornerRadius", "rts.actionreplay.cornerRadius", 0);
-        AddGlobal(globals, "panelWidth", "rts.actionreplay.panel.width", 500);
-        AddGlobal(globals, "panelHeight", "rts.actionreplay.panel.height", 700);
-        AddGlobal(globals, "clapperBoardColor", "rts.actionreplay.clapper.boardColor", "#101416");
-        AddGlobal(globals, "clapperTextColor", "rts.actionreplay.clapper.textColor", "#0384CB");
-        AddGlobal(globals, "clapperStripeLight", "rts.actionreplay.clapper.stripeLight", "#EEEEEE");
-        AddGlobal(globals, "clapperStripeDark", "rts.actionreplay.clapper.stripeDark", "#111111");
-        AddGlobal(globals, "clapperAccent", "rts.actionreplay.clapper.accent", "#0384CB");
-        AddGlobal(globals, "clapperFont", "rts.actionreplay.clapper.font", "Inter");
-        foreach (var prefix in new[] { "save", "name", "play", "recent", "playlist" })
-        {
-            AddGlobal(globals, "message" + char.ToUpperInvariant(prefix[0]) + prefix.Substring(1) + "Text", "rts.actionreplay.message." + prefix + ".text", "");
-            AddGlobal(globals, "message" + char.ToUpperInvariant(prefix[0]) + prefix.Substring(1) + "Chat", "rts.actionreplay.message." + prefix + ".chat", true);
-            AddGlobal(globals, "message" + char.ToUpperInvariant(prefix[0]) + prefix.Substring(1) + "Overlay", "rts.actionreplay.message." + prefix + ".overlay", false);
-        }
+        if (!CPH.ExecuteMethod("RTS - Action Replay - Core - Store", "GetConfigurationSnapshot"))
+            return false;
+
+        string config;
+        if (!CPH.TryGetArg("replayConfig", out config) || string.IsNullOrWhiteSpace(config))
+            return false;
+
         CPH.SetArgument("replayCommand", "config-test");
-        CPH.SetArgument("replayConfig", config.ToString(Newtonsoft.Json.Formatting.None));
         CPH.TriggerEvent(EventName, true);
         return true;
-    }
-
-    void AddGlobal(JObject target, string name, string key, object fallback)
-    {
-        var raw = CPH.GetGlobalVar<string>(key, true);
-        if (raw == null)
-        {
-            target[name] = JToken.FromObject(fallback);
-            return;
-        }
-        if (bool.TryParse(raw, out var boolean)) target[name] = boolean;
-        else if (int.TryParse(raw, out var integer)) target[name] = integer;
-        else if (double.TryParse(raw, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var number)) target[name] = number;
-        else target[name] = raw;
     }
 
     public bool ResolvePlayerConfiguration()
