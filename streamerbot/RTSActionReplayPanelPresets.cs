@@ -46,58 +46,6 @@ public class CPHInline
         return CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolvePanel");
     }
 
-    private void ApplyHandoff()
-    {
-        var key = "rts.actionreplay.handoff.visualBranding";
-        CPH.TryGetArg("replayQueueEntryId", out string entryId);
-        if (!string.IsNullOrWhiteSpace(entryId)) key += "." + entryId;
-        var raw = CPH.GetGlobalVar<string>(key, false);
-        if (string.IsNullOrWhiteSpace(raw) && key != "rts.actionreplay.handoff.visualBranding")
-            raw = CPH.GetGlobalVar<string>("rts.actionreplay.handoff.visualBranding", false);
-        if (string.IsNullOrWhiteSpace(raw))
-{
-    CPH.LogInfo("RTS Action Replay: panel visual handoff read (nonpersistent): missing");
-    return;
-}
-CPH.LogInfo("RTS Action Replay: panel visual handoff read (nonpersistent): found");
-        try
-        {
-            var p = JObject.Parse(raw);
-            Set("replayPanelPreset", p["style"], "broadcast");
-            Set("replayPanelPrimaryColor", p["primaryColor"], "#0384CBFF");
-            Set("replayPanelSecondaryColor", p["secondaryColor"], "#101416FF");
-            Set("replayPanelTitleFont", p["font"], "Inter");
-            Set("replayPanelTitleSize", p["fontSize"], 34);
-            Set("replayPanelTitleColor", p["textColor"], "#FFFFFFFF");
-            Set("replayPanelListColor", p["textColor"], "#FFFFFFFF");
-            Set("replayBrandingPresetId", p["brandingPresetId"], "default");
-            CPH.SetArgument("replayShowTitle", true);
-            ApplyVisualObject("replayBroadcast", p["broadcast"] as JObject);
-            ApplyVisualObject("replayCut", p["cut"] as JObject);
-        }
-        catch { }
-    }
-
-    private void ApplyVisualObject(string prefix, JObject value)
-    {
-        foreach (var property in value?.Properties() ?? new JProperty[0])
-        {
-            var name = property.Name.Length == 0 ? "" : char.ToUpperInvariant(property.Name[0]) + property.Name.Substring(1);
-            var argument = property.Value.Type == JTokenType.Boolean
-                ? (object)(bool)property.Value
-                : property.Value.Type == JTokenType.Integer
-                    ? (object)(int)property.Value
-                    : property.Value.ToString();
-            CPH.SetArgument(prefix + name, argument);
-        }
-    }
-
-    private void Set(string name, JToken value, object fallback)
-    {
-        var argument = value == null ? fallback : value.Type == JTokenType.Integer ? (object)(int)value : value.ToString();
-        CPH.SetArgument(name, argument);
-    }
-
     public void Preview()
     {
         var raw = CPH.GetGlobalVar<string>(PanelKey, true);
