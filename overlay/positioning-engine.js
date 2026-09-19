@@ -28,7 +28,7 @@ const RTSPositioningEngine = {
     const depthFactor = (perspective - z) / perspective;
     const xValue = `${x * viewportWidth / 100 * depthFactor}px`;
     const yValue = `${-y * viewportHeight / 100 * depthFactor}px`;
-    return `perspective(${perspective}px) translate(-50%, -50%) translate3d(${xValue}, ${yValue}, ${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX}, ${scaleY}, 1)`;
+    return `perspective(${perspective}px) translate3d(${xValue}, ${yValue}, ${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX}, ${scaleY}, 1)`;
   },
 
   apply(element, position) {
