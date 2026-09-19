@@ -149,7 +149,18 @@ public class CPHInline
         CPH.SetArgument("replayBrandLabelColor", (string)b["textColor"] ?? "#FFFFFFFF");
         Props("replayBroadcast", Broadcast(d, b));
         Props("replayCut", Cut(d, b));
-        CPH.SetArgument("replayDesignPresetId", (string)d["id"] ?? "broadcast");
+        CPH.SetArgument("replayDesignPresetId", (string)d["id"] ?? "broadcast");        if (!panel)
+        {
+            var frameSource = CPH.GetGlobalVar<string>("rts.actionreplay.frameColorSource", true) ?? "Custom";
+            var frameColor = CPH.GetGlobalVar<string>("rts.actionreplay.frameColor", true) ?? "#0384CBFF";
+            if (!string.Equals(frameSource, "Custom", StringComparison.OrdinalIgnoreCase))
+                frameColor = (string)b[string.Equals(frameSource, "Branding Secondary", StringComparison.OrdinalIgnoreCase) ? "secondaryColor" : "primaryColor"] ?? frameColor;
+            CPH.SetArgument("replayFrameColor", frameColor);
+            CPH.SetArgument("replayBorderGlow", CPH.GetGlobalVar<bool?>("rts.actionreplay.borderGlow", true) ?? true);
+            CPH.SetArgument("replayBorderWidth", CPH.GetGlobalVar<int?>("rts.actionreplay.borderWidth", true) ?? 4);
+            CPH.SetArgument("replayCornerRadius", CPH.GetGlobalVar<int?>("rts.actionreplay.cornerRadius", true) ?? 0);
+        }
+
         CPH.SetArgument("replayTitlePresetId", (string)t["id"] ?? "default");
         CPH.SetArgument("replayBrandingPresetId", (string)b["id"] ?? "default");
     }
