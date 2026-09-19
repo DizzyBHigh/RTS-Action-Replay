@@ -252,6 +252,7 @@ RTSReplayVideo.recoverPlayback = () => {
 
 RTSReplayVideo.playReplay = command => {
   RTSReplayVideo.expectedPlaying = true;
+  RTSReplayWatchdog?.start?.();
   if (command?.replaySource?.toLowerCase() === 'youtube') {
     if (youtubePlayer?.playVideo) { youtubePlayer.playVideo(); startYouTubeBoundaryTimer(command, youtubeReplayToken); }
     return;
@@ -264,6 +265,7 @@ RTSReplayVideo.loadReplay = command => {
   if (!isYouTube && !command.replayUrl) return;
   RTSReplayVideo.currentCommand = command;
   RTSReplayVideo.expectedPlaying = false;
+  RTSReplayWatchdog?.start?.();
   endedCommand = null;
   window.RTSDevToolbar?.updateClapper?.(command);
   RTSReplayControls.configure(command);
@@ -334,6 +336,7 @@ RTSReplayVideo.showPlayer = () => {
 RTSReplayVideo.hideReplay = () => {
   const command = RTSReplayVideo.currentCommand || {};
   RTSReplayVideo.expectedPlaying = false;
+  RTSReplayWatchdog?.stop?.();
   playerRunner.cancel(); stopYouTubeBoundaryTimer();
   if (command.replaySource?.toLowerCase() === 'youtube') { youtubePlayer?.pauseVideo?.(); } else RTSReplayVideo.video.pause();
   RTSReplayVideo.visiblePosition = RTSReplayVideo.activePosition;
@@ -348,7 +351,7 @@ RTSReplayVideo.handleReplayCommand = command => {
   if (command.replayCommand === 'load') RTSReplayVideo.loadReplay(command);
   if (command.replayCommand === 'title-test') RTSReplayVideo.testTitle(command);
   if (command.replayCommand === 'play') RTSReplayVideo.playReplay(activeCommand);
-  if (command.replayCommand === 'pause') { RTSReplayVideo.expectedPlaying = false; activeCommand.replaySource?.toLowerCase() === 'youtube' ? youtubePlayer?.pauseVideo?.() : RTSReplayVideo.video.pause(); }
+  if (command.replayCommand === 'pause') { RTSReplayVideo.expectedPlaying = false; RTSReplayWatchdog?.stop?.(); activeCommand.replaySource?.toLowerCase() === 'youtube' ? youtubePlayer?.pauseVideo?.() : RTSReplayVideo.video.pause(); }
   if (command.replayCommand === 'speed') {
     const speed = Math.max(0.25, Math.min(4, Number(command.replayPlaybackSpeed ?? activeCommand.replayPlaybackSpeed) || 1));
     if (activeCommand.replaySource?.toLowerCase() === 'youtube') youtubePlayer?.setPlaybackRate?.(speed); else RTSReplayVideo.video.playbackRate = speed;
@@ -356,12 +359,12 @@ RTSReplayVideo.handleReplayCommand = command => {
   if (command.replayCommand === 'move') RTSReplayVideo.moveReplay(activeCommand);
   if (command.replayCommand === 'hide') RTSReplayVideo.hideReplay(activeCommand);
   if (command.replayCommand === 'show') RTSReplayVideo.showPlayer(activeCommand);
-  if (command.replayCommand === 'stop') { RTSReplayVideo.expectedPlaying = false; if (activeCommand.replaySource?.toLowerCase() === 'youtube') youtubePlayer?.stopVideo?.(); else { RTSReplayVideo.video.pause(); RTSReplayVideo.video.currentTime = 0; } }
+  if (command.replayCommand === 'stop') { RTSReplayVideo.expectedPlaying = false; RTSReplayWatchdog?.stop?.(); if (activeCommand.replaySource?.toLowerCase() === 'youtube') youtubePlayer?.stopVideo?.(); else { RTSReplayVideo.video.pause(); RTSReplayVideo.video.currentTime = 0; } }
   if (command.replayCommand === 'replay') { if (activeCommand.replaySource?.toLowerCase() === 'youtube') { youtubeEndedNotified = false; youtubePlayer?.seekTo?.(Number(activeCommand.replayStartTime || 0), true); RTSReplayVideo.playReplay(activeCommand); } else { RTSReplayVideo.video.currentTime = 0; RTSReplayVideo.playReplay(activeCommand); } }
 };
 
 RTSReplayVideo.video.addEventListener('ended', () => {
   const command = RTSReplayVideo.currentCommand;
   if (command?.replaySource?.toLowerCase() === 'youtube') return;
-  if (command) RTSReplayVideo.notifyPlaybackEnded(command);
+  if (command) { RTSReplayVideo.notifyPlaybackEnded(command); RTSReplayWatchdog?.stop?.(); }
 });
