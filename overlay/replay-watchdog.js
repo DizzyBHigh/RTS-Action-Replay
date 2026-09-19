@@ -26,11 +26,12 @@ const reset = active => {
 };
 
 const fail = active => {
+  const attempts = recoveryAttempts;
   RTSReplayWatchdog.stop();
   window.RTSDevToolbar?.log?.('Playback watchdog exhausted recovery attempts', {
     replayId: active?.replayId,
     replayQueueEntryId: active?.replayQueueEntryId || '',
-    attempts: recoveryAttempts
+    attempts
   });
   RTSReplayVideo.notifyPlaybackEnded(active);
 };
