@@ -20,7 +20,7 @@ public class CPHInline
     private const int ClapperboardPreviewHeight = 372;
 
     public bool Execute() => Initialize();
-    public bool Initialize() { var data = Load(); if (data.Count == 0) { data = CreateDataDefaults(); Save(data); } else { if (!(data["catalog"] is JArray)) data["catalog"] = new JArray(); if (!(data["playHistory"] is JArray)) data["playHistory"] = new JArray(); if (data["version"] == null) data["version"] = "1.0"; Save(data); } return true; }
+    public bool Initialize() { var data = Load(); if (data.Count == 0) { data = CreateDataDefaults(); Save(data); } else { if (!(data["catalog"] is JArray)) data["catalog"] = new JArray(); if (!(data["playHistory"] is JArray)) data["playHistory"] = new JArray(); data["version"] = "1.0"; Save(data); } return true; }
     public bool EnsureData() => Initialize();
     private JObject CreateDataDefaults() => new JObject { ["version"] = "1.0", ["catalog"] = new JArray(), ["playHistory"] = new JArray() };
     public bool Ensure() { EnsurePlayer(); EnsureObject(PanelKey, CreatePanelDefaults()); return true; }
