@@ -96,9 +96,9 @@
     const command = buildCommand(config);
     window.RTSReplaySettingsSync = { config, command };
     window.RTSReplay.command = command;
-    window.RTSReplayVideo.currentCommand = command;
-    window.RTSReplayVideo.configurePositions(command.replayPlayerPositions);
-    window.RTSReplayVideo.applyPosition(window.RTSReplayVideo.getPosition(command.replayStartPosition), true);
+    window.RTSReplay.currentCommand = command;
+    window.RTSReplay.configurePositions(command.replayPlayerPositions);
+    window.RTSReplay.applyPosition(window.RTSReplay.getPosition(command.replayStartPosition), true);
     window.RTSReplayElements?.configure?.(command);
     window.RTSReplayControls?.configure?.(command);
     window.RTSInformationPanels?.applySize?.(window.RTSReplay.recentList, command);
