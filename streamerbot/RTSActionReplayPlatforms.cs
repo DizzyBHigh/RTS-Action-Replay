@@ -9,31 +9,29 @@ using Twitch.Common.Models.Api;
 
 public class CPHInline
 {
-    private const string DataKey = "rts.actionreplay.data";
+private const string DataKey = "rts.actionreplay.data";
 
-    private const string LegacyCatalogKey = "rts.actionreplay.catalog";
+private const string LegacyCatalogKey = "rts.actionreplay.catalog";
 
-    private const string MaxRecentKey = "rts.actionreplay.maxHistory";
+private const string MaxRecentKey = "rts.actionreplay.maxHistory";
 
-    private const string PlaybackModeKey = "rts.actionreplay.twitch.playbackMode";
+private const string PlaybackModeKey = "rts.actionreplay.twitch.playbackMode";
 
-    private const string TwitchFolderKey = "rts.actionreplay.twitch.folder";
+private const string TwitchFolderKey = "rts.actionreplay.twitch.folder";
 
-    private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
+private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
 
-    private const string ResolverAction = "RTS - Action Replay - Core - Resolver";
+private const string ResolverAction = "RTS - Action Replay - Core - Resolver";
 
-    private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
+private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
 
-    private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
+private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
 
-    private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
+private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
 
+public bool Execute() => CreateTwitchClip();
 
-    public bool Execute() => CreateTwitchClip();
-
-
-    public bool CreateTwitchClip()
+public bool CreateTwitchClip()
     {
         CPH.TryGetArg("rawInput", out string rawInput); rawInput = rawInput == null ? "" : rawInput.Trim();
         var duration = Math.Max(5, Math.Min(60, GetSettingInt("rts.actionreplay.twitch.clipDuration", 30))); string title = null;
@@ -57,8 +55,7 @@ public class CPHInline
         return BroadcastReplay(item);
     }
 
-
-    public bool SyncTwitchClips()
+public bool SyncTwitchClips()
     {
         var data = Load(); List<ClipData> clips;
         try { clips = CPH.GetClips(1000, null); } catch (Exception ex) { CPH.LogError("RTS Action Replay: Twitch reconciliation failed: " + ex.Message); return false; }
@@ -74,8 +71,7 @@ public class CPHInline
         TrimRecent(recent); data["recentIds"] = recent; Save(data); CPH.LogInfo("RTS Action Replay: Twitch reconciliation added " + added + " new clip(s); discovered clips were not played."); return true;
     }
 
-
-    private JObject AddTwitchClip(ClipData clip, bool playAfterAdd)
+private JObject AddTwitchClip(ClipData clip, bool playAfterAdd)
     {
         var data = Load(); var catalog = (JArray)data["catalog"]; var recent = (JArray)data["recentIds"]; var existing = FindTwitchClip(catalog, clip.Id);
         if (existing != null) { EnsureLocalCopyIfConfigured(data, existing, clip.Id); return existing; }
@@ -96,8 +92,7 @@ public class CPHInline
         return item;
     }
 
-
-    private void EnsureLocalCopyIfConfigured(JObject data, JObject item, string clipId)
+private void EnsureLocalCopyIfConfigured(JObject data, JObject item, string clipId)
     {
         if (!ModeNeedsLocalCopy(GetPlaybackMode())) return;
         var current = (string)item["filePath"]; if (!string.IsNullOrWhiteSpace(current) && File.Exists(current)) return;
@@ -105,8 +100,7 @@ public class CPHInline
         item["file"] = Path.GetFileName(path); item["filePath"] = path; Save(data);
     }
 
-
-    private bool BroadcastReplay(JObject item)
+private bool BroadcastReplay(JObject item)
     {
         CPH.SetGlobalVar(ReplayIdHandoffKey, (string)item["id"] ?? "", false);
         var sourceType = ((string)item["sourceType"] ?? "").ToLowerInvariant();
@@ -117,8 +111,7 @@ public class CPHInline
         return CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay");
     }
 
-
-    private string ResolvePlaybackUrl(JObject item)
+private string ResolvePlaybackUrl(JObject item)
     {
         var mode = GetPlaybackMode(); var clipId = (string)item["sourceId"];
         if (string.Equals(mode, "Twitch URL", StringComparison.OrdinalIgnoreCase)) return GetTwitchMediaUrl(clipId);
@@ -130,16 +123,14 @@ public class CPHInline
         return GetTwitchMediaUrl(clipId);
     }
 
-
-    private string GetTwitchMediaUrl(string clipId)
+private string GetTwitchMediaUrl(string clipId)
     {
         if (string.IsNullOrWhiteSpace(clipId)) return null;
         for (var attempt = 1; attempt <= 10; attempt++) { try { var urls = CPH.TwitchGetClipDownloadUrls(clipId); var url = urls?.LandscapeDownloadUrl ?? urls?.PortraitDownloadUrl; if (!string.IsNullOrWhiteSpace(url)) return url; } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: Twitch media URL attempt " + attempt + " failed: " + ex.Message); } if (attempt < 10) CPH.Wait(2000); }
         return null;
     }
 
-
-    private string DownloadClip(string clipId)
+private string DownloadClip(string clipId)
     {
         var folder = CPH.GetGlobalVar<string>(TwitchFolderKey, true); var replayFolder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true);
         if (string.IsNullOrWhiteSpace(folder) || (!string.IsNullOrWhiteSpace(replayFolder) && PathsEqual(folder, replayFolder))) return null;
@@ -150,8 +141,7 @@ public class CPHInline
         return null;
     }
 
-
-    private JObject Load()
+private JObject Load()
     {
         var raw = CPH.GetGlobalVar<string>(DataKey, true); JObject data;
         if (string.IsNullOrWhiteSpace(raw)) data = new JObject { ["version"] = 2, ["catalog"] = new JArray(), ["recentIds"] = new JArray() };
@@ -161,35 +151,33 @@ public class CPHInline
         data["version"] = 2; data["catalog"] = catalog; data["recentIds"] = data["recentIds"] as JArray ?? new JArray(); data.Remove("replays"); return data;
     }
 
+private void Save(JObject data) { data["version"] = 2; data["catalog"] = data["catalog"] as JArray ?? new JArray(); data["recentIds"] = data["recentIds"] as JArray ?? new JArray(); data.Remove("replays"); CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true); CPH.SetGlobalVar("rts.actionreplay.recentIds", ((JArray)data["recentIds"]).ToString(Newtonsoft.Json.Formatting.None), true); }
 
-    private void Save(JObject data) { data["version"] = 2; data["catalog"] = data["catalog"] as JArray ?? new JArray(); data["recentIds"] = data["recentIds"] as JArray ?? new JArray(); data.Remove("replays"); CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true); CPH.SetGlobalVar("rts.actionreplay.recentIds", ((JArray)data["recentIds"]).ToString(Newtonsoft.Json.Formatting.None), true); }
+private void MergeCatalog(JArray target, JArray source) { foreach (var token in source) { var item = token as JObject; if (item == null) continue; var id = (string)item["id"]; var type = (string)item["sourceType"] ?? "OBS"; var sourceId = (string)item["sourceId"]; if (target.OfType<JObject>().Any(x => (!string.IsNullOrWhiteSpace(id) && string.Equals((string)x["id"], id, StringComparison.OrdinalIgnoreCase)) || (!string.IsNullOrWhiteSpace(sourceId) && string.Equals((string)x["sourceType"] ?? "OBS", type, StringComparison.OrdinalIgnoreCase) && string.Equals((string)x["sourceId"], sourceId, StringComparison.OrdinalIgnoreCase)))) continue; var clone = (JObject)item.DeepClone(); if (string.IsNullOrWhiteSpace((string)clone["sourceType"])) clone["sourceType"] = "OBS"; if (string.IsNullOrWhiteSpace((string)clone["sourceId"])) clone["sourceId"] = (string)clone["id"] ?? ""; if (clone["plays"] == null) clone["plays"] = 0; if (clone["users"] == null) clone["users"] = new JObject(); target.Add(clone); } }
 
-    private void MergeCatalog(JArray target, JArray source) { foreach (var token in source) { var item = token as JObject; if (item == null) continue; var id = (string)item["id"]; var type = (string)item["sourceType"] ?? "OBS"; var sourceId = (string)item["sourceId"]; if (target.OfType<JObject>().Any(x => (!string.IsNullOrWhiteSpace(id) && string.Equals((string)x["id"], id, StringComparison.OrdinalIgnoreCase)) || (!string.IsNullOrWhiteSpace(sourceId) && string.Equals((string)x["sourceType"] ?? "OBS", type, StringComparison.OrdinalIgnoreCase) && string.Equals((string)x["sourceId"], sourceId, StringComparison.OrdinalIgnoreCase)))) continue; var clone = (JObject)item.DeepClone(); if (string.IsNullOrWhiteSpace((string)clone["sourceType"])) clone["sourceType"] = "OBS"; if (string.IsNullOrWhiteSpace((string)clone["sourceId"])) clone["sourceId"] = (string)clone["id"] ?? ""; if (clone["plays"] == null) clone["plays"] = 0; if (clone["users"] == null) clone["users"] = new JObject(); target.Add(clone); } }
+private JObject FindTwitchClip(JArray catalog, string clipId) { if (catalog == null) return null; return catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["sourceType"], "Twitch", StringComparison.OrdinalIgnoreCase) && string.Equals((string)x["sourceId"], clipId, StringComparison.OrdinalIgnoreCase)); }
 
-    private JObject FindTwitchClip(JArray catalog, string clipId) { if (catalog == null) return null; return catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["sourceType"], "Twitch", StringComparison.OrdinalIgnoreCase) && string.Equals((string)x["sourceId"], clipId, StringComparison.OrdinalIgnoreCase)); }
+private void AddRecent(JArray recent, string id) { for (var i = recent.Count - 1; i >= 0; i--) if (string.Equals((string)recent[i], id, StringComparison.OrdinalIgnoreCase)) recent.RemoveAt(i); recent.Insert(0, id); }
 
-    private void AddRecent(JArray recent, string id) { for (var i = recent.Count - 1; i >= 0; i--) if (string.Equals((string)recent[i], id, StringComparison.OrdinalIgnoreCase)) recent.RemoveAt(i); recent.Insert(0, id); }
+private void TrimRecent(JArray recent) { var max = CPH.GetGlobalVar<int?>(MaxRecentKey, true) ?? 20; while (recent.Count > Math.Max(1, max)) recent.RemoveAt(recent.Count - 1); }
 
-    private void TrimRecent(JArray recent) { var max = CPH.GetGlobalVar<int?>(MaxRecentKey, true) ?? 20; while (recent.Count > Math.Max(1, max)) recent.RemoveAt(recent.Count - 1); }
+private bool ModeNeedsLocalCopy(string mode) => string.Equals(mode, "Download Locally", StringComparison.OrdinalIgnoreCase) || string.Equals(mode, "Both", StringComparison.OrdinalIgnoreCase);
 
-    private bool ModeNeedsLocalCopy(string mode) => string.Equals(mode, "Download Locally", StringComparison.OrdinalIgnoreCase) || string.Equals(mode, "Both", StringComparison.OrdinalIgnoreCase);
+private string GetPlaybackMode() { var mode = CPH.GetGlobalVar<string>(PlaybackModeKey, true); if (string.Equals(mode, "Twitch URL", StringComparison.OrdinalIgnoreCase)) return "Twitch URL"; if (string.Equals(mode, "Both", StringComparison.OrdinalIgnoreCase)) return "Both"; return "Download Locally"; }
 
-    private string GetPlaybackMode() { var mode = CPH.GetGlobalVar<string>(PlaybackModeKey, true); if (string.Equals(mode, "Twitch URL", StringComparison.OrdinalIgnoreCase)) return "Twitch URL"; if (string.Equals(mode, "Both", StringComparison.OrdinalIgnoreCase)) return "Both"; return "Download Locally"; }
+private string BuildTwitchHttpUrl(string fileName) { var mapping = CPH.GetGlobalVar<string>("rts.actionreplay.twitch.httpMapping", true) ?? "twitch"; var port = CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474; return "http://localhost:" + port + "/" + mapping.Trim('/') + "/" + CPH.UrlEncode(fileName ?? ""); }
 
-    private string BuildTwitchHttpUrl(string fileName) { var mapping = CPH.GetGlobalVar<string>("rts.actionreplay.twitch.httpMapping", true) ?? "twitch"; var port = CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474; return "http://localhost:" + port + "/" + mapping.Trim('/') + "/" + CPH.UrlEncode(fileName ?? ""); }
+private bool PathsEqual(string a, string b) { try { return string.Equals(Path.GetFullPath(a).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), Path.GetFullPath(b).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), StringComparison.OrdinalIgnoreCase); } catch { return string.Equals(a, b, StringComparison.OrdinalIgnoreCase); } }
 
-    private bool PathsEqual(string a, string b) { try { return string.Equals(Path.GetFullPath(a).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), Path.GetFullPath(b).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), StringComparison.OrdinalIgnoreCase); } catch { return string.Equals(a, b, StringComparison.OrdinalIgnoreCase); } }
+private string Sanitize(string value) { var invalid = Path.GetInvalidFileNameChars(); var chars = value.ToCharArray(); for (var i = 0; i < chars.Length; i++) for (var j = 0; j < invalid.Length; j++) if (chars[i] == invalid[j]) chars[i] = '_'; return new string(chars); }
 
-    private string Sanitize(string value) { var invalid = Path.GetInvalidFileNameChars(); var chars = value.ToCharArray(); for (var i = 0; i < chars.Length; i++) for (var j = 0; j < invalid.Length; j++) if (chars[i] == invalid[j]) chars[i] = '_'; return new string(chars); }
+private int GetSettingInt(string key, int fallback) { try { object value = CPH.GetGlobalVar<object>(key, true); return value == null ? fallback : Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture); } catch { return fallback; } }
 
-    private int GetSettingInt(string key, int fallback) { try { object value = CPH.GetGlobalVar<object>(key, true); return value == null ? fallback : Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture); } catch { return fallback; } }
-}
+private const string YouTubeBroadcastIdKey = "rts.actionreplay.youtube.broadcastId";
 
-    private const string YouTubeBroadcastIdKey = "rts.actionreplay.youtube.broadcastId";
+private const string YouTubeStartTimeKey = "rts.actionreplay.youtube.actualStartTime";
 
-    private const string YouTubeStartTimeKey = "rts.actionreplay.youtube.actualStartTime";
-
-    public bool BroadcastStarted()
+public bool BroadcastStarted()
     {
         var broadcastId = Arg("broadcast.id").Trim();
         if (string.IsNullOrWhiteSpace(broadcastId))
@@ -205,8 +193,7 @@ public class CPHInline
         return true;
     }
 
-
-    public bool CreateYouTubeClip()
+public bool CreateYouTubeClip()
     {
         var duration = Math.Max(5, Math.Min(60, GetSettingInt("rts.actionreplay.youtube.clipDuration", 30)));
         var rawInput = Arg("rawInput").Trim();
@@ -254,8 +241,7 @@ public class CPHInline
         return BroadcastReplay(item);
     }
 
-
-    private bool TryGetStartTime(string videoId, out long startTime)
+private bool TryGetStartTime(string videoId, out long startTime)
     {
         startTime = 0;
         var storedId = GetGlobalString(YouTubeBroadcastIdKey);
@@ -267,17 +253,15 @@ public class CPHInline
         return startTime >= 0;
     }
 
+private string GetGlobalString(string key) { try { return CPH.GetGlobalVar<string>(key, true) ?? ""; } catch { return ""; } }
 
-    private string GetGlobalString(string key) { try { return CPH.GetGlobalVar<string>(key, true) ?? ""; } catch { return ""; } }
+private long GetGlobalLong(string key) { try { return CPH.GetGlobalVar<long?>(key, true) ?? 0L; } catch { return 0L; } }
 
-    private long GetGlobalLong(string key) { try { return CPH.GetGlobalVar<long?>(key, true) ?? 0L; } catch { return 0L; } }
+private string NormalizePlatform(string userType) => string.Equals(userType, "YouTube", StringComparison.OrdinalIgnoreCase) ? "YouTube" : string.Equals(userType, "Kick", StringComparison.OrdinalIgnoreCase) ? "Kick" : "Twitch";
 
-    private string NormalizePlatform(string userType) => string.Equals(userType, "YouTube", StringComparison.OrdinalIgnoreCase) ? "YouTube" : string.Equals(userType, "Kick", StringComparison.OrdinalIgnoreCase) ? "Kick" : "Twitch";
+private string Arg(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
 
-    private string Arg(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
-
-
-    private void SendOriginMessage(string message)
+private void SendOriginMessage(string message)
     {
         var platform = Arg("userType");
         if (string.Equals(platform, "Kick", StringComparison.OrdinalIgnoreCase))
@@ -292,12 +276,10 @@ public class CPHInline
         }
         CPH.SendMessage(message);
     }
-}
 
+private const string PendingKey = "rts.actionreplay.kick.pending";
 
-    private const string PendingKey = "rts.actionreplay.kick.pending";
-
-    public bool RequestKickBotClip()
+public bool RequestKickBotClip()
     {
         var message = Arg("text");
         if (string.IsNullOrWhiteSpace(message)) message = Arg("message");
@@ -307,8 +289,7 @@ public class CPHInline
         return RequestKickBotClipInternal(message);
     }
 
-
-    public bool CaptureKickBotClip()
+public bool CaptureKickBotClip()
     {
         var message = Arg("text");
         if (string.IsNullOrWhiteSpace(message)) message = Arg("message");
@@ -335,8 +316,7 @@ public class CPHInline
         catalog.Insert(0, item); data["catalog"] = catalog; AddRecent(data, (string)item["id"]); ClearPending(); Save(data); return BroadcastReplay(item);
     }
 
-
-    public bool CaptureKickClip()
+public bool CaptureKickClip()
     {
         var message = Arg("text");
         if (string.IsNullOrWhiteSpace(message)) message = Arg("message");
@@ -370,8 +350,7 @@ public class CPHInline
         return BroadcastReplay(item);
     }
 
-
-    private JObject GetNativeKickClipMetadata(string clipId)
+private JObject GetNativeKickClipMetadata(string clipId)
     {
         var json = DownloadString("https://kick.com/api/v2/clips/" + CPH.UrlEncode(clipId) + "/play");
         if (string.IsNullOrWhiteSpace(json)) return null;
@@ -379,16 +358,14 @@ public class CPHInline
         catch (Exception ex) { CPH.LogWarn("RTS Action Replay: native Kick clip metadata could not be parsed: " + ex.Message); return null; }
     }
 
-
-    private string NormalizeCreateClipMessage(string message)
+private string NormalizeCreateClipMessage(string message)
     {
         if (Regex.IsMatch(message ?? "", @"^!create-clip(?:\s|$)", RegexOptions.IgnoreCase)) return message;
         var command = Arg("command"); if (!string.Equals(command, "!create-clip", StringComparison.OrdinalIgnoreCase)) return message;
         var rawInput = Arg("rawInput"); return string.IsNullOrWhiteSpace(rawInput) ? command : command + " " + rawInput;
     }
 
-
-    private bool RequestKickBotClipInternal(string message)
+private bool RequestKickBotClipInternal(string message)
     {
         var duration = ParseDuration(message); var title = ParseTitle(message); CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName);
         var pending = new JObject { ["duration"] = duration, ["title"] = title, ["creatorId"] = userId ?? "", ["creatorName"] = userName ?? "", ["requestedAt"] = DateTime.Now.ToString("o") };
@@ -396,22 +373,19 @@ public class CPHInline
         CPH.LogInfo($"RTS Action Replay: KickBot clip requested; duration={duration}; title={title}; creator={userName}."); return true;
     }
 
-
-    private int ParseDuration(string message)
+private int ParseDuration(string message)
     {
         var match = Regex.Match(message ?? "", @"^!create-clip(?:\s+(\d+))?", RegexOptions.IgnoreCase);
         if (!match.Success || !int.TryParse(match.Groups[1].Value, out var duration)) return 30; return Math.Max(5, Math.Min(240, duration));
     }
 
-
-    private string ParseTitle(string message)
+private string ParseTitle(string message)
     {
         var match = Regex.Match(message ?? "", @"^!create-clip(?:\s+\d+)?(?:\s+(.*))?$", RegexOptions.IgnoreCase);
         var title = match.Success ? match.Groups[1].Value.Trim() : ""; return string.IsNullOrWhiteSpace(title) ? "Kick Clip" : title;
     }
 
-
-    private JObject LoadPending()
+private JObject LoadPending()
     {
         var raw = CPH.GetGlobalVar<string>(PendingKey, false); if (string.IsNullOrWhiteSpace(raw)) return null;
         try
@@ -423,43 +397,36 @@ public class CPHInline
         catch { return null; }
     }
 
+private void ClearPending() => CPH.UnsetGlobalVar(PendingKey, false);
 
-    private void ClearPending() => CPH.UnsetGlobalVar(PendingKey, false);
-
-
-    private string ExtractKickBotUrl(string text)
+private string ExtractKickBotUrl(string text)
     {
         var match = Regex.Match(text ?? "", @"https?://(?:www\.)?kickbot\.com/clip/[A-Za-z0-9]+", RegexOptions.IgnoreCase); return match.Success ? match.Value : null;
     }
 
-
-    private string ExtractKickBotId(string url)
+private string ExtractKickBotId(string url)
     {
         var match = Regex.Match(url ?? "", @"kickbot\.com/clip/([A-Za-z0-9]+)", RegexOptions.IgnoreCase); return match.Success ? match.Groups[1].Value : null;
     }
 
-
-    private string ExtractKickClipUrl(string text)
+private string ExtractKickClipUrl(string text)
     {
         var match = Regex.Match(text ?? "", @"https?://(?:www\.)?kick\.com/[A-Za-z0-9_-]+/clips/clip_[A-Za-z0-9_-]+", RegexOptions.IgnoreCase); return match.Success ? match.Value : null;
     }
 
-
-    private string ExtractKickClipId(string value)
+private string ExtractKickClipId(string value)
     {
         var match = Regex.Match(value ?? "", @"/clips/(clip_[A-Za-z0-9_-]+)", RegexOptions.IgnoreCase); return match.Success ? match.Groups[1].Value : null;
     }
 
-
-    private string DownloadString(string url)
+private string DownloadString(string url)
     {
         if (string.IsNullOrWhiteSpace(url)) return null;
         try { using (var client = new WebClient()) { client.Headers[HttpRequestHeader.Accept] = "application/json"; client.Headers[HttpRequestHeader.UserAgent] = "RTS-Action-Replay"; return client.DownloadString(url); } }
         catch (Exception ex) { CPH.LogWarn("RTS Action Replay: Kick request failed: " + ex.Message); return null; }
     }
 
-
-    private JObject Find(JArray catalog, string clipId)
+private JObject Find(JArray catalog, string clipId)
     {
         if (catalog == null) return null;
         return catalog.OfType<JObject>().FirstOrDefault(item =>
@@ -467,8 +434,7 @@ public class CPHInline
             string.Equals((string)item["sourceId"], clipId, StringComparison.OrdinalIgnoreCase));
     }
 
-
-    private bool EnsureLocalCopy(JObject item, string clipId)
+private bool EnsureLocalCopy(JObject item, string clipId)
     {
         var current = (string)item["filePath"];
         if (!string.IsNullOrWhiteSpace(current) && File.Exists(current)) return false;
@@ -479,8 +445,7 @@ public class CPHInline
         return true;
     }
 
-
-    private string Download(string clipId)
+private string Download(string clipId)
     {
         var folder = CPH.GetGlobalVar<string>(TwitchFolderKey, true);
         var replayFolder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true);
@@ -519,5 +484,4 @@ public class CPHInline
         }
         return null;
     }
-
 }
