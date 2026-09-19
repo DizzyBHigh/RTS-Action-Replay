@@ -173,32 +173,6 @@ public class CPHInline
         return true;
     }
 
-    public bool ResolvePanelAnimation()
-    {
-        var panelType = CPH.TryGetArg("panelType", out string requested) && !string.IsNullOrWhiteSpace(requested) ? requested.Trim() : "recent";
-        var panel = ReadConfig(PanelKey, CreatePanelDefaults());
-        NormalizePositionConfig(panel, true);
-        var legacyProfiles = panel["animationProfiles"] as JArray;
-        var profiles = NormalizeProfiles(legacyProfiles);
-        EnsureSequenceStore("panel", profiles, legacyProfiles);
-        var animation = panel["animation"] as JObject ?? new JObject();
-        var entries = animation["entryPoints"] as JObject ?? new JObject();
-        var profile = ResolveProfileId(profiles, (string)entries[panelType.ToLowerInvariant()]) ?? "default";
-        var item = FindProfile(profiles, profile) ?? CreatePanelProfile("default", "Default");
-        var sequences = GetProfileSequences("panel", profile);
-        var start = sequences["startSequence"] as JArray ?? DefaultPanelStart();
-        var end = sequences["endSequence"] as JArray ?? DefaultPanelEnd();
-        if (start.Count == 0) start = DefaultPanelStart();
-        if (end.Count == 0) end = DefaultPanelEnd();
-        CPH.SetArgument("replayPanelPositions", (panel["positions"] as JObject ?? new JObject()).ToString(Newtonsoft.Json.Formatting.None));
-        CPH.SetArgument("replayPanelAnimation", new JObject { ["id"] = profile, ["name"] = (string)item["name"] ?? "Default", ["start"] = start, ["end"] = end }.ToString(Newtonsoft.Json.Formatting.None));
-        CPH.SetArgument("presetComponent", "panel");
-        CPH.SetArgument("entryPoint", panelType.ToLowerInvariant());
-        CPH.ExecuteMethod("RTS - Action Replay - Core - Panel Presets", "Apply");
-        return true;
-    }
-
-
     private string ResolvePanelPreset(JObject panel, string panelType)
     {
         var preset = panel["preset"] as JObject;
