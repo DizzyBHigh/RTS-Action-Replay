@@ -2,7 +2,11 @@ const RTSInformationPanelPresets = window.RTSInformationPanelPresets || {};
 
 RTSInformationPanelPresets.toCssColor = value => {
   const raw = String(value || '').trim();
-  return raw;
+  const match = raw.match(/^#([0-9a-f]{8})$/i);
+  if (!match) return raw;
+  const hex = match[1];
+  const alpha = parseInt(hex.slice(6, 8), 16) / 255;
+  return `rgba(${parseInt(hex.slice(0, 2), 16)},${parseInt(hex.slice(2, 4), 16)},${parseInt(hex.slice(4, 6), 16)},${alpha})`;
 };
 
 RTSInformationPanelPresets.toCssShadowColor = value => RTSInformationPanelPresets.toCssColor(value);
