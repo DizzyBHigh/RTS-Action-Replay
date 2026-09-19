@@ -4,7 +4,6 @@ RTSReplay.config = {
   host: '127.0.0.1',
   port: 8080,
   eventName: 'RTS-Action Replay',
-  confirmAction: 'RTS Action Replay - Playback Confirm',
   endedAction: 'RTS - Action Replay - Playlist - Playback Ended',
   searchEndedAction: 'RTS - Action Replay - Search Panel Ended',
   reconnectDelay: 3000,

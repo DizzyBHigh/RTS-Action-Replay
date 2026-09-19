@@ -21,8 +21,12 @@ const RTSPositioningEngine = {
     const viewportWidth = dev ? this.referenceWidth : Math.max(1, window.innerWidth || this.referenceWidth);
     const viewportHeight = dev ? this.referenceHeight : Math.max(1, window.innerHeight || this.referenceHeight);
     const perspective = Math.max(1, (viewportWidth / 2) / Math.tan((fov * Math.PI / 180) / 2));
-    const xValue = `${x * viewportWidth / 100}px`;
-    const yValue = `${-y * viewportHeight / 100}px`;
+    // X/Y are screen-space positioning values. Compensate their
+    // translation for Z depth so Z zooms around the existing screen position
+    // instead of causing the element to drift toward/away from the center.
+    const depthFactor = (perspective - z) / perspective;
+    const xValue = `${x * viewportWidth / 100 * depthFactor}px`;
+    const yValue = `${-y * viewportHeight / 100 * depthFactor}px`;
     return `perspective(${perspective}px) translate(-50%, -50%) translate3d(${xValue}, ${yValue}, ${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX}, ${scaleY}, 1)`;
   },
 

@@ -207,10 +207,6 @@ const loadYouTubePlayer = async command => {
   } else create();
 };
 
-RTSReplayVideo.confirmPlayback = (replayId, userId, userName) => {
-  if (!replayId || !RTSReplayVideo.socket || RTSReplayVideo.socket.readyState !== WebSocket.OPEN) return;
-  RTSReplayVideo.socket.send(JSON.stringify({ request: 'DoAction', id: `rts-replay-confirm-${Date.now()}`, action: { name: RTSReplayVideo.config.confirmAction }, args: { replayId, userId: userId || '', userName: userName || '' } }));
-};
 
 RTSReplayVideo.notifyPlaybackEnded = command => {
   if (!command?.replayId || !RTSReplayVideo.socket || RTSReplayVideo.socket.readyState !== WebSocket.OPEN) return;
@@ -223,7 +219,7 @@ RTSReplayVideo.playReplay = command => {
     if (youtubePlayer?.playVideo) { youtubePlayer.playVideo(); startYouTubeBoundaryTimer(command, youtubeReplayToken); }
     return;
   }
-  RTSReplayVideo.video.play().then(() => RTSReplayVideo.confirmPlayback(command.replayId, command.replayUserId, command.replayUserName)).catch(error => console.warn('Replay play failed', error));
+  RTSReplayVideo.video.play().catch(error => console.warn('Replay play failed', error));
 };
 
 RTSReplayVideo.loadReplay = command => {
