@@ -18,7 +18,8 @@ public class CPHInline
     private const string KickFolderKey = "rts.actionreplay.kick.folder";
     private const string KickMappingKey = "rts.actionreplay.kick.httpMapping";
     private const string KickModeKey = "rts.actionreplay.kick.playbackMode";
-    private const string AnimationAction = "RTS - Action Replay - Core - Animation";
+    private const string ResolverAction = "RTS - Action Replay - Core - Resolver";
+    private const string PlayerOperationKey = "rts.actionreplay.operation.player";
     private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
     private const string CatalogAction = "RTS - Action Replay - Core - Catalog";
     private const string PresetStoreAction = "RTS - Action Replay - Core - Presets Store";
@@ -106,93 +107,39 @@ public class CPHInline
         CPH.SetArgument("replayCommand", "load"); CPH.SetArgument("replayId", (string)replay["id"]); CPH.SetArgument("replayUrl", url); CPH.SetArgument("replayAutoplay", true); CPH.SetArgument("replayQueueEntryId", queueEntryId); CPH.SetArgument("replayUserId", userId ?? ""); CPH.SetArgument("replayUserName", userName ?? ""); CPH.SetArgument("replayDirector", creatorName);
         CPH.SetArgument("replayNumber", Array.IndexOf(list.ToArray(), replay) + 1); CPH.SetArgument("replayTitle", (string)replay["title"] ?? ""); CPH.SetArgument("replayPlayedCount", ((int?)replay["plays"] ?? 0) + 1); CPH.SetArgument("replaySource", source); CPH.SetArgument("replaySourceId", (string)replay["sourceId"] ?? "");
         if (string.Equals(source, "YouTube", StringComparison.OrdinalIgnoreCase)) { CPH.SetArgument("replayStartTime", (long?)replay["startTime"] ?? 0); CPH.SetArgument("replayDuration", (int?)replay["duration"] ?? 0); }
-        var profile = CPH.TryGetArg("replayAnimationProfileId", out string requestedProfile) && !string.IsNullOrWhiteSpace(requestedProfile) ? requestedProfile.Trim() : CPH.GetGlobalVar<string>(PlaybackProfileHandoffKey, false); if (string.IsNullOrWhiteSpace(profile)) profile = "default";
+        var profile = CPH.TryGetArg("replayAnimationProfileId", out string requestedProfile) && !string.IsNullOrWhiteSpace(requestedProfile)
+            ? requestedProfile.Trim() : CPH.GetGlobalVar<string>(PlaybackProfileHandoffKey, false);
+        if (string.IsNullOrWhiteSpace(profile)) profile = "default";
         var designProfile = CPH.TryGetArg("designPreset", out string requestedDesign) && !string.IsNullOrWhiteSpace(requestedDesign) ? requestedDesign.Trim() : "broadcast";
         var titleProfile = CPH.TryGetArg("titlePreset", out string requestedTitle) && !string.IsNullOrWhiteSpace(requestedTitle) ? requestedTitle.Trim() : "default";
         var brandingProfile = CPH.TryGetArg("brandingPreset", out string requestedBranding) && !string.IsNullOrWhiteSpace(requestedBranding) ? requestedBranding.Trim() : "default";
-        CPH.SetArgument("animationProfile", profile); CPH.SetArgument("designPreset", designProfile); CPH.SetArgument("titlePreset", titleProfile); CPH.SetArgument("brandingPreset", brandingProfile);
-        CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay dispatching load; replayId={(string)replay["id"]}; url={url}; animationProfile={profile}; designPreset={designProfile}; titlePreset={titleProfile}; brandingPreset={brandingProfile}; queueEntryId={queueEntryId}; source={source}.");
-        if (!CPH.ExecuteMethod(PresetStoreAction, "ApplyVisualAndBranding")) { CPH.LogWarn("RTS Action Replay TRACE: PlayReplay failed - queued visual/title/branding presets could not be applied."); return false; }
-        ApplyVisualHandoff(queueEntryId);
-        ApplyPlayerFrameSettings();
-        CPH.SetArgument("replayAnimationProfileId", profile);
-        CPH.SetGlobalVar(PlaybackProfileHandoffKey, profile, false);
-        if (!CPH.ExecuteMethod(AnimationAction, "ApplyProfile")) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - animation profile '{profile}' could not be applied."); return false; }
-        ApplyAnimationHandoff();
-        var playerPositions = CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false) ?? "";
-        CPH.SetArgument("replayPlayerPositions", playerPositions);
-        CPH.SetArgument("replayPositions", playerPositions);
-        CPH.TriggerEvent(EventName, true); SendMessage("play"); CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay completed dispatch for replay {(string)replay["id"]}."); return true;
-    }
-
-    private void ApplyVisualHandoff(string queueEntryId)
-    {
-        var key = VisualHandoffKey + "." + (queueEntryId ?? "");
-        var raw = CPH.GetGlobalVar<string>(key, false); if (string.IsNullOrWhiteSpace(raw)) return;
-        try
-        {
-            var p = JObject.Parse(raw);
-            CPH.SetArgument("replayShowTitle", (bool?)p["showTitle"] ?? true);
-            CPH.SetArgument("replayTitleDecorationPosition", (string)p["decorationPosition"] ?? "Prefix");
-            CPH.SetArgument("replayTitleDecoration", (string)p["decoration"] ?? "Action Replay -");
-            CPH.SetArgument("replayTitlePosition", (string)p["position"] ?? "Bottom");
-            CPH.SetArgument("replayTitleAnimation", (string)p["animation"] ?? "Left to right");
-            CPH.SetArgument("replayTitleDelay", (int?)p["delay"] ?? 2000);
-            CPH.SetArgument("replayTitleDuration", (int?)p["duration"] ?? 10000);
-            CPH.SetArgument("replayTitleAnimationDuration", (int?)p["animationDuration"] ?? 1000);
-            CPH.SetArgument("replayTitleFont", (string)p["font"] ?? "Inter");
-            CPH.SetArgument("replayTitleFontSize", (int?)p["fontSize"] ?? 34);
-            CPH.SetArgument("replayTitleTextColor", (string)p["textColor"] ?? "#FFFFFFFF");
-            CPH.SetArgument("replayTitleShadowColor", (string)p["shadowColor"] ?? "#000000FF");
-            CPH.SetArgument("replayTitlePrimaryColor", (string)p["primaryColor"] ?? "#0384CBFF");
-            CPH.SetArgument("replayTitleSecondaryColor", (string)p["secondaryColor"] ?? "#101416FF");
-            CPH.SetArgument("replayBrandLogoUrl", (string)p["brandLogoUrl"] ?? "");
-            CPH.SetArgument("replayBrandFallbackText", (string)p["brandFallbackText"] ?? "RTS");
-            CPH.SetArgument("replayBrandLabel", (string)p["brandLabel"] ?? "ACTION REPLAY");
-            CPH.SetArgument("replayBrandFallbackTextColor", (string)p["brandFallbackTextColor"] ?? "#0384CBFF");
-            CPH.SetArgument("replayBrandLabelColor", (string)p["brandLabelColor"] ?? "#FFFFFFFF");
-            ApplyProperties("replayBroadcast", p["broadcast"] as JObject); ApplyProperties("replayCut", p["cut"] as JObject);
-            CPH.UnsetGlobalVar(key, false);
+        var operation = new JObject {
+            ["replayCommand"] = "load",
+            ["replayId"] = (string)replay["id"],
+            ["replayUrl"] = url,
+            ["replayAutoplay"] = true,
+            ["replayQueueEntryId"] = queueEntryId ?? "",
+            ["replayUserId"] = userId ?? "",
+            ["replayUserName"] = userName ?? "",
+            ["replayDirector"] = creatorName,
+            ["replayNumber"] = Array.IndexOf(list.ToArray(), replay) + 1,
+            ["replayTitle"] = (string)replay["title"] ?? "",
+            ["replayPlayedCount"] = ((int?)replay["plays"] ?? 0) + 1,
+            ["replaySource"] = source,
+            ["replaySourceId"] = (string)replay["sourceId"] ?? "",
+            ["animationProfileId"] = profile,
+            ["designPresetId"] = designProfile,
+            ["titlePresetId"] = titleProfile,
+            ["brandingPresetId"] = brandingProfile
+        };
+        if (string.Equals(source, "YouTube", StringComparison.OrdinalIgnoreCase)) {
+            operation["replayStartTime"] = (long?)replay["startTime"] ?? 0;
+            operation["replayDuration"] = (int?)replay["duration"] ?? 0;
         }
-        catch { CPH.LogWarn("RTS Action Replay: visual/branding preset handoff could not be parsed."); }
-    }
-
-    private void ApplyAnimationHandoff()
-    {
-        var raw = CPH.GetGlobalVar<string>(AnimationProfileHandoffKey, false); if (string.IsNullOrWhiteSpace(raw)) return;
-        try
-        {
-            var p = JObject.Parse(raw); CPH.SetArgument("replayAnimationProfile", raw); CPH.SetArgument("replayAnimationProfileId", (string)p["id"] ?? "default");
-            var positions = CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false) ?? "";
-            CPH.SetArgument("replayPlayerPositions", positions);
-            CPH.LogInfo($"RTS Action Replay: animation handoff positions supplied; length={positions.Length}.");
-            CPH.SetArgument("replayStartPosition", (string)p["start"]?[0]?["position"] ?? "Full Screen");
-            var end = p["end"] as JArray; CPH.SetArgument("replayEndPosition", (string)end?[end.Count - 1]?["position"] ?? "Full Screen");
-            CPH.UnsetGlobalVar(AnimationProfileHandoffKey, false);
-        }
-        catch { CPH.LogWarn("RTS Action Replay: animation profile handoff could not be parsed."); }
-    }
-
-    private void ApplyProperties(string prefix, JObject value)
-    {
-        foreach (var property in value?.Properties() ?? new JProperty[0]) CPH.SetArgument(prefix + char.ToUpperInvariant(property.Name[0]) + property.Name.Substring(1), property.Value.Type == JTokenType.Boolean ? (object)(bool)property.Value : property.Value.Type == JTokenType.Integer ? (object)(int)property.Value : property.Value.ToString());
-    }
-
-    private bool TryParseUserSelection(string selector, out string platform, out string userName, out int index)
-    {
-        platform = ""; userName = ""; index = 0;
-        var parts = (selector ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length != 2 || !int.TryParse(parts[1], out index) || index < 1) return false;
-        var target = parts[0].Trim(); if (string.IsNullOrWhiteSpace(target)) return false;
-        platform = Arg("userType"); userName = target;
-        var separator = target.IndexOf(':');
-        if (separator > 0)
-        {
-            var prefix = target.Substring(0, separator); var name = target.Substring(separator + 1).Trim();
-            if (!prefix.Equals("twitch", StringComparison.OrdinalIgnoreCase) && !prefix.Equals("kick", StringComparison.OrdinalIgnoreCase) && !prefix.Equals("youtube", StringComparison.OrdinalIgnoreCase)) return false;
-            platform = prefix; userName = name;
-        }
-        return !string.IsNullOrWhiteSpace(userName);
+        CPH.SetGlobalVar(PlayerOperationKey, operation.ToString(Newtonsoft.Json.Formatting.None), false);
+        CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay dispatching resolved operation; replayId={(string)replay["id"]}; url={url}; animationProfile={profile}; designPreset={designProfile}; brandingPreset={brandingProfile}; queueEntryId={queueEntryId}; source={source}.");
+        return CPH.ExecuteMethod(ResolverAction, "ResolvePlayer");
+ true;
     }
 
     private string ResolveReplayUrl(JObject replay)
@@ -308,26 +255,6 @@ public class CPHInline
     private string BuildTwitchHttpUrl(string fileName) { var mapping = CPH.GetGlobalVar<string>(TwitchMappingKey, true) ?? "twitch"; var port = CPH.GetGlobalVar<int?>("rts.actionreplay.httpPort", true) ?? 7474; return "http://localhost:" + port + "/" + mapping.Trim('/') + "/" + CPH.UrlEncode(fileName ?? ""); }
     private string GetTwitchMediaUrl(string clipId) { for (var attempt = 1; attempt <= 10; attempt++) { try { var urls = CPH.TwitchGetClipDownloadUrls(clipId); var url = urls == null ? null : urls.LandscapeDownloadUrl; if (string.IsNullOrWhiteSpace(url)) url = urls == null ? null : urls.PortraitDownloadUrl; if (!string.IsNullOrWhiteSpace(url)) return url; } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: Twitch media URL attempt " + attempt + " failed for " + clipId + ": " + ex.Message); } if (attempt < 10) CPH.Wait(2000); } return null; }
     private string DownloadTwitchClip(string clipId) { var folder = CPH.GetGlobalVar<string>(TwitchFolderKey, true); var replayFolder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true); if (string.IsNullOrWhiteSpace(folder)) return null; if (!string.IsNullOrWhiteSpace(replayFolder) && PathsEqual(folder, replayFolder)) { CPH.LogError("RTS Action Replay: Twitch Clip Folder must be different from the OBS Replay Folder."); return null; } Directory.CreateDirectory(folder); var destination = Path.Combine(folder, "twitch-" + Sanitize(clipId) + ".mp4"); if (File.Exists(destination) && new FileInfo(destination).Length > 0) return destination; var url = GetTwitchMediaUrl(clipId); if (string.IsNullOrWhiteSpace(url)) return null; try { using (var client = new WebClient()) client.DownloadFile(url, destination + ".tmp"); if (File.Exists(destination + ".tmp") && new FileInfo(destination + ".tmp").Length > 0) { if (File.Exists(destination)) File.Delete(destination); File.Move(destination + ".tmp", destination); return destination; } } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: Twitch clip download failed for " + clipId + ": " + ex.Message); } try { if (File.Exists(destination + ".tmp")) File.Delete(destination + ".tmp"); } catch { } return null; }
-
-    private void ApplyPlayerFrameSettings()
-    {
-        var custom = CPH.GetGlobalVar<string>("rts.actionreplay.frameColor", true) ?? "#0384CBFF";
-        var source = CPH.GetGlobalVar<string>("rts.actionreplay.frameColorSource", true) ?? "Custom";
-        var frameColor = custom;
-        if (!string.Equals(source, "Custom", StringComparison.OrdinalIgnoreCase))
-        {
-            var branding = ResolveActiveBrandingPreset();
-            if (branding != null)
-            {
-                var field = string.Equals(source, "Branding Secondary", StringComparison.OrdinalIgnoreCase) ? "secondaryColor" : "primaryColor";
-                frameColor = (string)branding[field] ?? custom;
-            }
-        }
-        CPH.SetArgument("replayFrameColor", frameColor);
-        CPH.SetArgument("replayBorderGlow", CPH.GetGlobalVar<bool?>("rts.actionreplay.borderGlow", true) ?? true);
-        CPH.SetArgument("replayBorderWidth", CPH.GetGlobalVar<int?>("rts.actionreplay.borderWidth", true) ?? 4);
-        CPH.SetArgument("replayCornerRadius", CPH.GetGlobalVar<int?>("rts.actionreplay.cornerRadius", true) ?? 0);
-    }
 
     private JObject ResolveActiveBrandingPreset()
     {
