@@ -8,6 +8,19 @@ public class CPHInline
 
     public bool Execute()=>false;
 
+    public bool ResolvePlayerConfiguration()
+    {
+        var config=Read(PlayerKey); var entry=Entry(config,"play");
+        var design=(string)entry["designPreset"]??(string)entry["visualPreset"]??"broadcast";
+        var title=(string)entry["titlePreset"]??"default";
+        var brand=(string)entry["brandingPreset"]??"default";
+        if((bool?)entry["useSourcePlatformBranding"]==true){CPH.TryGetArg("replaySource",out string source);var b=PlatformBranding(source??"");if(b!=null)brand=(string)b["id"]??brand;}
+        CPH.SetArgument("animationProfile",(string)entry["animationProfile"]??"default");
+        CPH.SetArgument("visualPreset",design); CPH.SetArgument("designPreset",design); CPH.SetArgument("titlePreset",title); CPH.SetArgument("brandingPreset",brand);
+        CPH.SetArgument("useSourcePlatformBranding",(bool?)entry["useSourcePlatformBranding"]??false);
+        return true;
+    }
+
     public bool ResolvePlayer()
     {
         var op=Read(PlayerOperationKey); if(op==null)return false;
