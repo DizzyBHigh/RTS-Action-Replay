@@ -5,6 +5,15 @@ RTSInformationPanelPresets.toCssColor = value => {
   return /^#[0-9a-f]{6,8}$/i.test(raw) ? `#${raw.slice(1, 7)}` : raw;
 };
 
+RTSInformationPanelPresets.readableText = color => {
+  const match = String(color || '').trim().match(/^#([0-9a-f]{6})$/i);
+  if (!match) return null;
+  const rgb = match[1].match(/../g).map(value => parseInt(value, 16) / 255);
+  const linear = value => value <= 0.03928 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
+  const luminance = 0.2126 * linear(rgb[0]) + 0.7152 * linear(rgb[1]) + 0.0722 * linear(rgb[2]);
+  return luminance > 0.179 ? '#111111' : '#FFFFFF';
+};
+
 RTSInformationPanelPresets.loadFont = font => {
   const name = String(font || 'Inter').trim();
   if (!name) return;
@@ -83,6 +92,12 @@ RTSInformationPanelPresets.apply = (panel, command) => {
   panel.style.setProperty('--panel-title-color', titleColor);
   panel.style.setProperty('--panel-list-size', `${listSize}px`);
   panel.style.setProperty('--panel-list-color', listColor);
+  if (className === 'cut') {
+    const readable = RTSInformationPanelPresets.readableText(secondary) || listColor;
+    panel.style.setProperty('--panel-cut-text', readable);
+  } else {
+    panel.style.removeProperty('--panel-cut-text');
+  }
   RTSInformationPanelPresets.loadFont(titleFont);
   if (window.RTSReplayPanelBroadcast) window.RTSReplayPanelBroadcast.command = command;
 };
