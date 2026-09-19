@@ -1,5 +1,6 @@
 const RTSPositioningEngine = {
-  version: '20260918-4',
+  version: '20260919-5',
+  diagnostics: new WeakMap(),
   referenceWidth: 1920,
   referenceHeight: 1080,
 
@@ -34,6 +35,51 @@ const RTSPositioningEngine = {
     if (!element) return null;
     const transform = this.transformFor(element, position);
     element.style.transform = transform;
+
+    if (document.getElementById('rts-dev-stage')) {
+      const name = String(position?.name || position?.tag || '');
+      const z = Number(position?.z);
+      if (/center.?hidden/i.test(name) || (Number.isFinite(z) && z <= -2500)) {
+        const signature = [name, position?.x, position?.y, position?.z, position?.scaleX, position?.scaleY, position?.fov].join('|');
+        if (this.diagnostics.get(element) !== signature) {
+          this.diagnostics.set(element, signature);
+          const stage = document.getElementById('replay-player-stage');
+          const screen = document.getElementById('rts-dev-screen');
+          const rect = element.getBoundingClientRect();
+          const stageRect = stage?.getBoundingClientRect();
+          const screenRect = screen?.getBoundingClientRect();
+          window.RTSDevToolbar?.log?.('Position geometry diagnostic', {
+            name,
+            position: {
+              x: position?.x, y: position?.y, z: position?.z,
+              scaleX: position?.scaleX, scaleY: position?.scaleY, fov: position?.fov
+            },
+            transform,
+            rectCenter: {
+              x: rect.left + rect.width / 2,
+              y: rect.top + rect.height / 2
+            },
+            stageCenter: stageRect ? {
+              x: stageRect.left + stageRect.width / 2,
+              y: stageRect.top + stageRect.height / 2
+            } : null,
+            screenCenter: screenRect ? {
+              x: screenRect.left + screenRect.width / 2,
+              y: screenRect.top + screenRect.height / 2
+            } : null,
+            computed: {
+              width: getComputedStyle(element).width,
+              height: getComputedStyle(element).height,
+              transformOrigin: getComputedStyle(element).transformOrigin,
+              stageTransform: stage ? getComputedStyle(stage).transform : null,
+              stagePerspective: stage ? getComputedStyle(stage).perspective : null,
+              stagePerspectiveOrigin: stage ? getComputedStyle(stage).perspectiveOrigin : null
+            }
+          });
+        }
+      }
+    }
+
     return transform;
   }
 };
