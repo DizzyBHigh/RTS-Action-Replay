@@ -14,7 +14,8 @@ public class CPHInline
     private const string PlaylistKey = "rts.actionreplay.playlist";
     private const string ActiveKey = "rts.actionreplay.playlistActive";
     private const string SearchQueueAction = "RTS - Action Replay - Core - Search Queue";
-    private const string PanelAnimationAction = "RTS - Action Replay - Core - Animation";
+    private const string ResolverAction = "RTS - Action Replay - Core - Resolver";
+    private const string PanelOperationKey = "rts.actionreplay.operation.panel";
     private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
     private static readonly object AvatarCacheLock = new object();
     private static readonly Dictionary<string, string> AvatarCache = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -39,60 +40,39 @@ public class CPHInline
     public bool UserSearchPrevious() => ShowUserSearchPage(-1);
     public bool ResolveSelection() { var selector = Arg("rawInput").Trim(); if (!int.TryParse(selector, out var index) || index < 1) return false; var state = LoadUserState(); if (string.Equals((string)state["filterType"], "leaderboard", StringComparison.OrdinalIgnoreCase)) return false; return ResolveStateSelection(state, index); }
     public bool ResolveSelectionForUser() { var selector = Arg("rawInput").Trim(); var parts = selector.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var indexText = parts.Length == 1 ? parts[0] : parts.Length == 2 ? parts[1] : ""; if (!int.TryParse(indexText, out var index) || index < 1) return false; var platform = Arg("catalogSelectionPlatform"); var userName = Arg("catalogSelectionUser"); if (!TryParseUserTarget(platform + ":" + userName, out platform, out userName)) return false; var userId = ResolveUserId(platform, userName); if (string.IsNullOrWhiteSpace(userId)) return false; var state = LoadUserSearchState(platform, userId, userName); if (state == null || string.Equals((string)state["filterType"], "leaderboard", StringComparison.OrdinalIgnoreCase)) return false; return ResolveStateSelection(state, index); }
-    public bool RenderSearchRequest() { var json = Arg("replaySearchRequest"); if (string.IsNullOrWhiteSpace(json)) return false; JObject request; try { request = JObject.Parse(json); } catch { return false; } var isLeaderboard = string.Equals((string)request["filterType"], "leaderboard", StringComparison.OrdinalIgnoreCase); var results = Query(request); var amount = Math.Max(1, (int?)request["amount"] ?? MaxAmount()); var page = Math.Max(1, (int?)request["page"] ?? 1); var pages = Math.Max(1, (int)Math.Ceiling(results.Count / (double)amount)); page = Math.Min(page, pages); var start = (page - 1) * amount; if (isLeaderboard) { var entries = results.Skip(start).Take(amount).OfType<JObject>().Select((x, i) => new JObject { ["rank"] = start + i + 1, ["creator"] = (string)x["creator"] ?? "Unknown creator", ["count"] = (int?)x["count"] ?? 0 }).ToList(); CPH.SetArgument("replayLeaderboardEntries", new JArray(entries).ToString(Newtonsoft.Json.Formatting.None)); CPH.SetArgument("replayLeaderboardPeriod", LeaderboardPeriodLabel((string)request["filter"] ?? "")); } else { var entries = results.Skip(start).Take(amount).OfType<JObject>().Select((x, i) => Entry(x, start + i + 1)).ToList(); CPH.SetArgument("replaySearchEntries", new JArray(entries).ToString(Newtonsoft.Json.Formatting.None)); } CPH.SetArgument("replaySearchHeader", Header(request, page, pages, results.Count)); CPH.SetArgument("replaySearchRequester", (string)request["requesterName"] ?? ""); CPH.SetArgument("replaySearchRequesterPlatform", (string)request["platform"] ?? ""); CPH.SetArgument("replaySearchParameters", Parameters(request)); CPH.SetArgument("replaySearchMode", string.Equals((string)request["filterType"], "lastplayed", StringComparison.OrdinalIgnoreCase) ? "lastPlayed" : ""); CPH.SetArgument("replaySearchRequestId", (string)request["requestId"] ?? ""); CPH.SetArgument("replaySearchDuration", CPH.GetGlobalVar<int?>("rts.actionreplay.searchPanel.duration", true) ?? 10000); CPH.SetArgument("replayPanelWidth", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500); CPH.SetArgument("replayPanelHeight", CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700); CPH.SetArgument("panelType", isLeaderboard ? "creatorLeaderboard" : "recent"); CPH.ExecuteMethod(PanelAnimationAction, "ResolvePanelAnimation"); ApplyPanelVisualHandoff(); CPH.SetArgument("replayCommand", isLeaderboard ? "leaderboard-panel" : "search-panel"); CPH.TriggerEvent("RTS-Action Replay", true); return true; }
+    public bool RenderSearchRequest() {
+        var json = Arg("replaySearchRequest"); if (string.IsNullOrWhiteSpace(json)) return false;
+        JObject request; try { request = JObject.Parse(json); } catch { return false; }
+        var isLeaderboard = string.Equals((string)request["filterType"], "leaderboard", StringComparison.OrdinalIgnoreCase);
+        var results = Query(request); var amount = Math.Max(1, (int?)request["amount"] ?? MaxAmount());
+        var page = Math.Max(1, (int?)request["page"] ?? 1); var pages = Math.Max(1, (int)Math.Ceiling(results.Count / (double)amount));
+        page = Math.Min(page, pages); var start = (page - 1) * amount;
+        var operation = (JObject)request.DeepClone();
+        operation["replaySearchHeader"] = Header(request, page, pages, results.Count);
+        operation["replaySearchRequester"] = (string)request["requesterName"] ?? "";
+        operation["replaySearchRequesterPlatform"] = (string)request["platform"] ?? "";
+        operation["replaySearchParameters"] = Parameters(request);
+        operation["replaySearchMode"] = string.Equals((string)request["filterType"], "lastplayed", StringComparison.OrdinalIgnoreCase) ? "lastPlayed" : "";
+        operation["replaySearchRequestId"] = (string)request["requestId"] ?? "";
+        operation["replaySearchDuration"] = CPH.GetGlobalVar<int?>("rts.actionreplay.searchPanel.duration", true) ?? 10000;
+        operation["replayPanelWidth"] = CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500;
+        operation["replayPanelHeight"] = CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700;
+        operation["panelType"] = isLeaderboard ? "creatorLeaderboard" : "recent";
+        operation["replayCommand"] = isLeaderboard ? "leaderboard-panel" : "search-panel";
+        if (isLeaderboard) {
+            var entries = results.Skip(start).Take(amount).OfType<JObject>().Select((x, i) => new JObject { ["rank"] = start + i + 1, ["creator"] = (string)x["creator"] ?? "Unknown creator", ["count"] = (int?)x["count"] ?? 0 }).ToList();
+            operation["replayLeaderboardEntries"] = new JArray(entries).ToString(Newtonsoft.Json.Formatting.None);
+            operation["replayLeaderboardPeriod"] = LeaderboardPeriodLabel((string)request["filter"] ?? "");
+        } else {
+            var entries = results.Skip(start).Take(amount).OfType<JObject>().Select((x, i) => Entry(x, start + i + 1)).ToList();
+            operation["replaySearchEntries"] = new JArray(entries).ToString(Newtonsoft.Json.Formatting.None);
+        }
+        CPH.SetGlobalVar(PanelOperationKey, operation.ToString(Newtonsoft.Json.Formatting.None), false);
+        return CPH.ExecuteMethod(ResolverAction, "ResolvePanel");
+    }
+
     public bool RecordPlayed() { var replayId = Arg("historyReplayId"); if (string.IsNullOrWhiteSpace(replayId)) return false; var data = Load(); var catalog = data["catalog"] as JArray ?? new JArray(); var replay = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase)); if (replay == null) return false; replay["plays"] = Math.Max(0, (int?)replay["plays"] ?? 0) + 1; var history = data["playHistory"] as JArray ?? new JArray(); var existing = history.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["replayId"], replayId, StringComparison.OrdinalIgnoreCase)); var count = existing == null ? 1 : Math.Max(1, (int?)existing["count"] ?? 1) + 1; if (existing != null) history.Remove(existing); var requesterId = ""; var activeId = CPH.GetGlobalVar<string>(ActiveKey, false); var queueRaw = CPH.GetGlobalVar<string>(PlaylistKey, false); if (!string.IsNullOrWhiteSpace(queueRaw)) { try { var queue = JArray.Parse(queueRaw); var active = queue.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["entryId"], activeId, StringComparison.OrdinalIgnoreCase)); requesterId = (string)active?["requesterId"] ?? ""; } catch { } } history.Insert(0, new JObject { ["replayId"] = replayId, ["title"] = Arg("historyReplayTitle"), ["creator"] = Arg("historyReplayCreator"), ["count"] = count, ["lastPlayedBy"] = Arg("historyReplayRequester"), ["lastPlayedPlatform"] = Arg("historyReplayPlatform"), ["lastPlayedUserId"] = requesterId, ["lastPlayed"] = DateTime.Now.ToString("o") }); while (history.Count > MaxAmount()) history.RemoveAt(history.Count - 1); data["playHistory"] = history; Save(data); return true; }
     public bool RateReplay() { var input = Arg("rawInput").Trim(); if (!int.TryParse(input, out var rating) || rating < 1 || rating > 5) { SendCatalogMessage("Please provide a rating from 1 to 5 for the currently playing replay."); return false; } var userId = Arg("userId"); if (string.IsNullOrWhiteSpace(userId)) { SendCatalogMessage("A user account is required to rate a replay."); return false; } var replayId = CPH.GetGlobalVar<string>(ActiveReplayKey, false); if (string.IsNullOrWhiteSpace(replayId)) { SendCatalogMessage("There is no replay currently playing."); return false; } var data = Load(); var catalog = data["catalog"] as JArray ?? new JArray(); var replay = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase)); if (replay == null) { SendCatalogMessage("The currently playing replay is no longer in the Catalog."); return false; } var ratings = replay["ratings"] as JObject ?? new JObject(); ratings[IdentityKey(CurrentPlatform(), userId)] = rating; replay["ratings"] = ratings; Save(data); SendCatalogMessage($"Rated {(string)replay["title"] ?? "Replay"} {rating}/5."); return true; }
-
-    private void ApplyPanelVisualHandoff()
-    {
-        var raw = CPH.GetGlobalVar<string>("rts.actionreplay.handoff.visualBranding", false);
-        if (string.IsNullOrWhiteSpace(raw))
-        {
-            CPH.LogWarn("RTS Action Replay: panel visual handoff was not found before search-panel trigger.");
-            return;
-        }
-        try
-        {
-            var p = JObject.Parse(raw);
-            SetPanelArgument("replayPanelPreset", p["style"], "broadcast");
-            SetPanelArgument("replayPanelPrimaryColor", p["primaryColor"], "#0384CBFF");
-            SetPanelArgument("replayPanelSecondaryColor", p["secondaryColor"], "#101416FF");
-            SetPanelArgument("replayPanelTitleFont", p["font"], "Inter");
-            SetPanelArgument("replayPanelTitleSize", p["fontSize"], 34);
-            SetPanelArgument("replayPanelTitleColor", p["textColor"], "#FFFFFFFF");
-            SetPanelArgument("replayPanelListColor", p["textColor"], "#FFFFFFFF");
-            SetPanelArgument("replayBrandingPresetId", p["brandingPresetId"], "default");
-            CPH.SetArgument("replayShowTitle", true);
-            SetPanelVisualObject("replayBroadcast", p["broadcast"] as JObject);
-            SetPanelVisualObject("replayCut", p["cut"] as JObject);
-            CPH.LogInfo("RTS Action Replay: panel visual handoff hydrated search arguments. " +
-                "design=" + GetArgument("replayPanelPreset", "missing") +
-                ", primary=" + GetArgument("replayPanelPrimaryColor", "missing") +
-                ", secondary=" + GetArgument("replayPanelSecondaryColor", "missing") +
-                ", branding=" + GetArgument("replayBrandingPresetId", "missing"));
-        }
-        catch { CPH.LogWarn("RTS Action Replay: panel visual handoff could not be parsed."); }
-    }
-
-    private string GetArgument(string name, string fallback)
-    {
-        return CPH.TryGetArg(name, out string value) && !string.IsNullOrWhiteSpace(value) ? value : fallback;
-    }
-
-    private void SetPanelVisualObject(string prefix, JObject value)
-    {
-        foreach (var property in value?.Properties() ?? new JProperty[0])
-        {
-            var name = property.Name.Length == 0 ? "" : char.ToUpperInvariant(property.Name[0]) + property.Name.Substring(1);
-            var argument = property.Value.Type == JTokenType.Boolean ? (object)(bool)property.Value : property.Value.Type == JTokenType.Integer ? (object)(int)property.Value : property.Value.ToString();
-            CPH.SetArgument(prefix + name, argument);
-        }
-    }
-
-    private void SetPanelArgument(string name, JToken value, object fallback)
-    {
-        CPH.SetArgument(name, value == null ? fallback : value.Type == JTokenType.Integer ? (object)(int)value : value.ToString());
-    }
 
     private string ResolveAvatarUrl(string platform, string userId, string userName)
     {
