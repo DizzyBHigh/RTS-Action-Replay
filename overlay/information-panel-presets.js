@@ -2,7 +2,26 @@ const RTSInformationPanelPresets = window.RTSInformationPanelPresets || {};
 
 RTSInformationPanelPresets.toCssColor = value => {
   const raw = String(value || '').trim();
-  return /^#[0-9a-f]{6,8}$/i.test(raw) ? `#${raw.slice(1, 7)}` : raw;
+  const match = raw.match(/^#([0-9a-f]{8})$/i);
+  if (!match) return raw;
+  const hex = match[1];
+  const alpha = parseInt(hex.slice(6, 8), 16) / 255;
+  return `rgba(${parseInt(hex.slice(0, 2), 16)},${parseInt(hex.slice(2, 4), 16)},${parseInt(hex.slice(4, 6), 16)},${alpha})`;
+};
+
+RTSInformationPanelPresets.toCssShadowColor = value => RTSInformationPanelPresets.toCssColor(value);
+
+RTSInformationPanelPresets.readableText = color => {
+  const raw = String(color || '').trim();
+  const hex = raw.match(/^#([0-9a-f]{6,8})$/i);
+  const rgba = raw.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+  if (!hex && !rgba) return null;
+  const rgb = hex
+    ? hex[1].slice(0, 6).match(/../g).map(value => parseInt(value, 16) / 255)
+    : [Number(rgba[1]) / 255, Number(rgba[2]) / 255, Number(rgba[3]) / 255];
+  const linear = value => value <= 0.03928 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
+  const luminance = 0.2126 * linear(rgb[0]) + 0.7152 * linear(rgb[1]) + 0.0722 * linear(rgb[2]);
+  return luminance > 0.179 ? '#111111' : '#FFFFFF';
 };
 
 RTSInformationPanelPresets.loadFont = font => {
@@ -28,11 +47,11 @@ RTSInformationPanelPresets.startCutBlocks = (panel, command) => {
   const header = panel.querySelector('.rts-panel-header');
   if (!header) return;
   RTSInformationPanelPresets.stopCutBlocks(panel);
-  const colour = value => { const raw = String(value || '').trim(); const match = raw.match(/^#([0-9a-f]{6}|[0-9a-f]{8})$/i); return match ? `#${match[1].slice(0, 6)}` : raw; };
+  const colour = RTSInformationPanelPresets.toCssColor;
   const number = (value, min, max, fallback) => Math.max(min, Math.min(max, Number(value) || fallback));
   const randomValue = max => 1 + Math.random() * Math.max(0, max - 1);
   const primary = colour(getComputedStyle(panel).getPropertyValue('--panel-primary')) || '#0384CB';
-  const secondary = colour(getComputedStyle(panel).getPropertyValue('--panel-secondary')) || '#101416';
+  const secondary = colour(command?.replayCutBackgroundColor || getComputedStyle(panel).getPropertyValue('--panel-secondary')) || '#101416';
   const blockWidth = number(command?.replayCutBlockWidth, 1, 1000, 170);
   const randomWidth = command?.replayCutRandomWidth === undefined ? true : command.replayCutRandomWidth === true;
   const barHeight = number(command?.replayCutBarHeight, 1, 50, 5);
@@ -68,21 +87,33 @@ RTSInformationPanelPresets.apply = (panel, command) => {
   const preset = String(command?.replayPanelPreset || 'Broadcast').toLowerCase();
   const primary = RTSInformationPanelPresets.toCssColor(command?.replayPanelPrimaryColor || '#0384CBFF');
   const secondary = RTSInformationPanelPresets.toCssColor(command?.replayPanelSecondaryColor || '#101416FF');
+  const background = RTSInformationPanelPresets.toCssColor(command?.replayPanelBackgroundColor || secondary);
   const titleFont = String(command?.replayPanelTitleFont || 'Inter').trim();
   const titleSize = Math.max(12, Number(command?.replayPanelTitleSize) || 24);
   const titleColor = RTSInformationPanelPresets.toCssColor(command?.replayPanelTitleColor || '#FFFFFFFF');
   const listSize = Math.max(8, Number(command?.replayPanelListSize) || 15);
   const listColor = RTSInformationPanelPresets.toCssColor(command?.replayPanelListColor || '#FFFFFFFF');
+  const listShadowColor = RTSInformationPanelPresets.toCssShadowColor(command?.replayPanelListShadowColor || '#000000FF');
   const className = ['broadcast', 'cinematic', 'cut', 'minimal'].includes(preset) ? preset : 'broadcast';
   panel.classList.remove('panel-broadcast', 'panel-cinematic', 'panel-cut', 'panel-minimal');
   panel.classList.add(`panel-${className}`);
   panel.style.setProperty('--panel-primary', primary);
   panel.style.setProperty('--panel-secondary', secondary);
+  panel.style.setProperty('--panel-background', background);
   panel.style.setProperty('--panel-title-font', `'${titleFont.replace(/'/g, '')}', system-ui, sans-serif`);
   panel.style.setProperty('--panel-title-size', `${titleSize}px`);
   panel.style.setProperty('--panel-title-color', titleColor);
   panel.style.setProperty('--panel-list-size', `${listSize}px`);
   panel.style.setProperty('--panel-list-color', listColor);
+  panel.style.setProperty('--panel-list-shadow', listShadowColor);
+  if (className === 'cut' || className === 'broadcast') {
+    const readable = RTSInformationPanelPresets.readableText(background) || listColor;
+    panel.style.setProperty('--panel-cut-background', background);
+    panel.style.setProperty(className === 'cut' ? '--panel-cut-text' : '--panel-broadcast-text', readable);
+  } else {
+    panel.style.removeProperty('--panel-cut-text');
+    panel.style.removeProperty('--panel-broadcast-text');
+  }
   RTSInformationPanelPresets.loadFont(titleFont);
   if (window.RTSReplayPanelBroadcast) window.RTSReplayPanelBroadcast.command = command;
 };
