@@ -252,45 +252,6 @@ public class CPHInline
     private string GetTwitchMediaUrl(string clipId) { for (var attempt = 1; attempt <= 10; attempt++) { try { var urls = CPH.TwitchGetClipDownloadUrls(clipId); var url = urls == null ? null : urls.LandscapeDownloadUrl; if (string.IsNullOrWhiteSpace(url)) url = urls == null ? null : urls.PortraitDownloadUrl; if (!string.IsNullOrWhiteSpace(url)) return url; } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: Twitch media URL attempt " + attempt + " failed for " + clipId + ": " + ex.Message); } if (attempt < 10) CPH.Wait(2000); } return null; }
     private string DownloadTwitchClip(string clipId) { var folder = CPH.GetGlobalVar<string>(TwitchFolderKey, true); var replayFolder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true); if (string.IsNullOrWhiteSpace(folder)) return null; if (!string.IsNullOrWhiteSpace(replayFolder) && PathsEqual(folder, replayFolder)) { CPH.LogError("RTS Action Replay: Twitch Clip Folder must be different from the OBS Replay Folder."); return null; } Directory.CreateDirectory(folder); var destination = Path.Combine(folder, "twitch-" + Sanitize(clipId) + ".mp4"); if (File.Exists(destination) && new FileInfo(destination).Length > 0) return destination; var url = GetTwitchMediaUrl(clipId); if (string.IsNullOrWhiteSpace(url)) return null; try { using (var client = new WebClient()) client.DownloadFile(url, destination + ".tmp"); if (File.Exists(destination + ".tmp") && new FileInfo(destination + ".tmp").Length > 0) { if (File.Exists(destination)) File.Delete(destination); File.Move(destination + ".tmp", destination); return destination; } } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: Twitch clip download failed for " + clipId + ": " + ex.Message); } try { if (File.Exists(destination + ".tmp")) File.Delete(destination + ".tmp"); } catch { } return null; }
 
-    private JObject ResolveActiveBrandingPreset()
-    {
-        var raw = CPH.GetGlobalVar<string>("rts.actionreplay.config.presets", true);
-        if (string.IsNullOrWhiteSpace(raw)) return null;
-        try
-        {
-            var config = JObject.Parse(raw);
-            var branding = config["branding"] as JArray;
-            var id = Arg("replayBrandingPresetId"); if (string.IsNullOrWhiteSpace(id)) id = "default";
-            foreach (var item in branding ?? new JArray())
-                if (string.Equals((string)item["id"], id, StringComparison.OrdinalIgnoreCase))
-                    return item as JObject;
-        }
-        catch { }
-        return null;
-    }
-
-    public bool SetPlayerPosition() { if (!CPH.TryGetArg("rawInput", out string input) || string.IsNullOrWhiteSpace(input)) return false; var parts = input.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); if (parts.Length == 0) return false; var duration = 1000; if (parts.Length > 1 && int.TryParse(parts[1], out var requested) && requested >= 0) duration = requested; CPH.SetArgument("replayCommand", "move"); CPH.SetArgument("replayPosition", parts[0]); CPH.SetArgument("replayAnimationDuration", duration); CPH.SetArgument("replayAnimationEasing", CPH.GetGlobalVar<string>("rts.actionreplay.animation.default.easing", true) ?? "ease-in-out"); CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, true) ?? "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}"); CPH.TriggerEvent(EventName, true); return true; }
-    public bool HidePlayer() { CPH.SetArgument("replayCommand", "hide"); CPH.TriggerEvent(EventName, true); return true; }
-    public bool ConfirmPlayback() { var replayId = Arg("replayId"); if (string.IsNullOrWhiteSpace(replayId)) return false; var data = Load(); var list = GetCatalog(data); var replay = list.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase)); if (replay == null) return false; replay["plays"] = ((int?)replay["plays"] ?? 0) + 1; SaveData(data); return true; }
-    private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); if (string.IsNullOrWhiteSpace(raw)) raw = CPH.GetGlobalVar<string>(LegacyCatalogKey, true); if (string.IsNullOrWhiteSpace(raw)) return new JObject { ["version"] = 2, ["catalog"] = new JArray(), ["recentIds"] = new JArray() }; try { return JObject.Parse(raw); } catch { return new JObject { ["version"] = 2, ["catalog"] = new JArray(), ["recentIds"] = new JArray() }; } }
-    private JArray GetCatalog(JObject data) => data["catalog"] as JArray ?? new JArray();
-    private string Arg(string name) { try { CPH.TryGetArg(name, out string value); return value ?? ""; } catch { return ""; } }
-    private void SaveData(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
-    private void SendMessage(string text)
-    {
-        if (string.IsNullOrWhiteSpace(text)) return;
-        var platform = Arg("requesterPlatform");
-        if (string.IsNullOrWhiteSpace(platform)) platform = Arg("userType");
-        if (string.Equals(platform, "Kick", StringComparison.OrdinalIgnoreCase)) { CPH.SendKickMessage(text); return; }
-        if (string.Equals(platform, "YouTube", StringComparison.OrdinalIgnoreCase))
-        {
-            var broadcastId = Arg("requesterBroadcastId");
-            if (!string.IsNullOrWhiteSpace(broadcastId)) { CPH.SendYouTubeMessage(text, true, true, broadcastId); return; }
-            CPH.SendYouTubeMessageToLatestMonitored(text); return;
-        }
-        if (string.Equals(platform, "Twitch", StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage(text); return; }
-        CPH.LogWarn("RTS Action Replay: unable to route playback chat response because the originating platform is unknown.");
-    }
     private bool PathsEqual(string a, string b) => string.Equals(Path.GetFullPath(a ?? "").TrimEnd(Path.DirectorySeparatorChar), Path.GetFullPath(b ?? "").TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase);
     private string Sanitize(string value) { foreach (var c in Path.GetInvalidFileNameChars()) value = value.Replace(c, '_'); return value; }
     private string GetTwitchPlaybackMode() => CPH.GetGlobalVar<string>(TwitchModeKey, true) ?? "Twitch URL";
