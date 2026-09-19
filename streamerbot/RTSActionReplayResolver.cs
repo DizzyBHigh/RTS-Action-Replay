@@ -248,6 +248,27 @@ public class CPHInline
         return true;
     }
 
+    public bool ResolveClapperAnimation()
+    {
+        var clapper = ReadConfig(ClapperKey, CreateClapperDefaults());
+        var profiles = NormalizeProfiles(clapper["animationProfiles"] as JArray);
+        var animation = clapper["animation"] as JObject ?? new JObject();
+        var selected = ResolveProfileId(profiles, (string)animation["selectedProfile"]) ?? "default";
+        var store = ReadConfig(AnimationKey, new JObject());
+        var target = store["clapperboard"] as JObject;
+        var sequence = target?[selected] as JObject ?? new JObject();
+        var start = sequence["startSequence"] as JArray ?? DefaultClapperStart();
+        var end = sequence["endSequence"] as JArray ?? DefaultClapperEnd();
+        CPH.SetArgument("replayClapperAnimation", new JObject
+        {
+            ["id"] = selected,
+            ["name"] = (string)profiles.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], selected, StringComparison.Ordinal))?["name"] ?? "Default",
+            ["start"] = start,
+            ["end"] = end
+        }.ToString(Newtonsoft.Json.Formatting.None));
+        return true;
+    }
+
     public bool ResolveEntryPointProfile()
     {
         var entryPoint = CPH.TryGetArg("animationEntryPoint", out string requested) && !string.IsNullOrWhiteSpace(requested) ? requested.Trim() : CPH.GetGlobalVar<string>(EntryPointHandoffKey, false);
