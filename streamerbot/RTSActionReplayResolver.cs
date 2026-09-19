@@ -6,3 +6,495 @@ public class CPHInline
 {
     const string PlayerKey="rts.actionreplay.config.player", PanelKey="rts.actionreplay.config.panel", PresetsKey="rts.actionreplay.config.presets", AnimationKey="rts.actionreplay.config.animation";
     const string PlayerOperationKey="rts.actionreplay.operation.player", PanelOperationKey="rts.actionreplay.operation.panel", EventName="RTS-Action Replay";
+
+    private const string ClapperKey = "rts.actionreplay.config.clapper";
+    private const string ClapperPositionsKey = "rts.actionreplay.clapper.positions";
+    private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
+    private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
+    private const string PlayerPositionsHandoffKey = "rts.actionreplay.handoff.playerPositions";
+
+
+    public bool Execute()=>EnsureProfiles();
+
+    public bool ResolvePlayerConfiguration()
+    {
+        var config=Read(PlayerKey); var entry=Entry(config,"play");
+        var design=(string)entry["designPreset"]??(string)entry["visualPreset"]??"broadcast";
+        var title=(string)entry["titlePreset"]??"default";
+        var brand=(string)entry["brandingPreset"]??"default";
+        if((bool?)entry["useSourcePlatformBranding"]==true){CPH.TryGetArg("replaySource",out string source);var b=PlatformBranding(source??"");if(b!=null)brand=(string)b["id"]??brand;}
+        CPH.SetArgument("animationProfile",(string)entry["animationProfile"]??"default");
+        CPH.SetArgument("visualPreset",design); CPH.SetArgument("designPreset",design); CPH.SetArgument("titlePreset",title); CPH.SetArgument("brandingPreset",brand);
+        CPH.SetArgument("useSourcePlatformBranding",(bool?)entry["useSourcePlatformBranding"]??false);
+        return true;
+    }
+
+    public bool ResolvePlayer()
+    {
+        var op=Read(PlayerOperationKey); if(op==null)return false;
+        ApplyObject(op); var config=Read(PlayerKey); var entry=Entry(config,"play");
+        var animation=Animation(config,"player",(string)op["animationProfileId"]??(string)entry["animationProfile"]);
+        var design=(string)op["designPresetId"]??(string)entry["designPreset"]??(string)entry["visualPreset"]??"broadcast";
+        var title=(string)op["titlePresetId"]??(string)entry["titlePreset"]??"default";
+        var brand=(string)op["brandingPresetId"]??(string)entry["brandingPreset"]??"default";
+        if((bool?)entry["useSourcePlatformBranding"]==true){var b=PlatformBranding((string)op["replaySource"]??"");if(b!=null)brand=(string)b["id"]??brand;}
+        ApplyPresentation(design,title,brand,animation,false); CPH.TriggerEvent(EventName,true); CPH.UnsetGlobalVar(PlayerOperationKey,false); return true;
+    }
+
+    public bool ResolvePanel()
+    {
+        var op=Read(PanelOperationKey); if(op==null)return false;
+        ApplyObject(op); var config=Read(PanelKey); var type=(string)op["panelType"]??"recent"; var entry=Entry(config,type);
+        var animation=Animation(config,"panel",(string)entry["animationProfile"]);
+        ApplyPresentation((string)entry["designPreset"]??(string)entry["visualPreset"]??"broadcast",(string)entry["titlePreset"]??"default",(string)entry["brandingPreset"]??"default",animation,true);
+        if((bool?)op["triggerEvent"]!=false) CPH.TriggerEvent(EventName,true); CPH.UnsetGlobalVar(PanelOperationKey,false); return true;
+    }
+
+    JObject Entry(JObject config,string id)
+    {
+        var entries=config["entryPoints"] as JObject??new JObject(); return entries[id] as JObject??entries["recent"] as JObject??new JObject();
+    }
+
+    JObject Animation(JObject config,string target,string profileId)
+    {
+        profileId=string.IsNullOrWhiteSpace(profileId)?"default":profileId;
+        var store=Read(AnimationKey); var item=(store[target] as JObject)?[profileId] as JObject??new JObject();
+        var positions=((Read(PresetsKey)["positions"] as JObject)?[target] as JObject)??new JObject();
+        var start=StoredSequence(item["startSequence"] as JArray,positions,target=="panel"?"Centered":"Full Screen");
+        var end=StoredSequence(item["endSequence"] as JArray,positions,target=="panel"?"Centered":"Full Screen");
+        return new JObject{["id"]=profileId,["name"]=profileId,["start"]=start.Count>0?start:DefaultSequence(target),["end"]=end.Count>0?end:DefaultSequence(target),["positions"]=positions};
+    }
+
+    JArray StoredSequence(JArray source,JObject positions,string fallback)
+    {
+        var result=new JArray(); foreach(var token in source??new JArray()){var row=token as JObject??new JObject();var name=(string)row["position"]??fallback;var p=positions[name] as JObject;result.Add(new JObject{["position"]=(string)p?["tag"]??name,["duration"]=(int?)row["duration"]??0,["delay"]=(int?)row["delay"]??0,["easing"]=(string)row["easing"]??"ease-in-out"});} return result;
+    }
+
+    JArray DefaultSequence(string target)=>new JArray(new JObject{["position"]=target=="panel"?"centered":"full-screen",["duration"]=0,["delay"]=0,["easing"]="ease-in-out"});
+
+    void ApplyPresentation(string designId,string titleId,string brandId,JObject animation,bool panel)
+    {
+        var presets=Read(PresetsKey);var d=Find(presets["visual"] as JArray,designId)??Find(presets["visual"] as JArray,"broadcast");
+        var t=Find(presets["title"] as JArray,titleId)??Find(presets["title"] as JArray,"default");
+        var b=Find(presets["branding"] as JArray,brandId)??Find(presets["branding"] as JArray,"default");if(d==null||t==null||b==null)return;
+        var design=(string)d["design"]??(string)d["id"]??"broadcast";var positions=((JObject)animation["positions"]??new JObject()).ToString(Newtonsoft.Json.Formatting.None);
+        if(panel){CPH.SetArgument("replayPanelPositions",positions);CPH.SetArgument("replayPanelAnimation",animation.ToString(Newtonsoft.Json.Formatting.None));}
+        else{CPH.SetArgument("replayAnimationProfile",animation.ToString(Newtonsoft.Json.Formatting.None));CPH.SetArgument("replayAnimationProfileId",(string)animation["id"]);CPH.SetArgument("replayPlayerPositions",positions);CPH.SetArgument("replayPositions",positions);var start=animation["start"] as JArray??new JArray();var end=animation["end"] as JArray??new JArray();CPH.SetArgument("replayStartPosition",(string)start[0]?["position"]??"full-screen");CPH.SetArgument("replayEndPosition",(string)end[end.Count-1]?["position"]??"full-screen");}
+        CPH.SetArgument("replayPanelPreset",design);CPH.SetArgument("replayPanelPrimaryColor",(string)b["primaryColor"]??"#0384CBFF");CPH.SetArgument("replayPanelSecondaryColor",(string)b["secondaryColor"]??"#101416FF");CPH.SetArgument("replayPanelTitleFont",(string)b["font"]??"Inter");CPH.SetArgument("replayPanelTitleSize",(int?)b["fontSize"]??34);CPH.SetArgument("replayPanelTitleColor",(string)b["textColor"]??"#FFFFFFFF");CPH.SetArgument("replayPanelListColor",(string)b["textColor"]??"#FFFFFFFF");
+        CPH.SetArgument("replayShowTitle",(bool?)t["showTitle"]??true);CPH.SetArgument("replayTitleDecorationPosition",(string)t["decorationPosition"]??"Prefix");CPH.SetArgument("replayTitleDecoration",(string)t["decoration"]??"Action Replay -");CPH.SetArgument("replayTitlePosition",(string)t["position"]??"Bottom");CPH.SetArgument("replayTitleAnimation",(string)t["animation"]??"Left to right");CPH.SetArgument("replayTitleDelay",(int?)t["delay"]??2000);CPH.SetArgument("replayTitleDuration",(int?)t["duration"]??10000);CPH.SetArgument("replayTitleAnimationDuration",(int?)t["animationDuration"]??1000);
+        CPH.SetArgument("replayTitleFont",(string)b["font"]??"Inter");CPH.SetArgument("replayTitleFontSize",(int?)b["fontSize"]??34);CPH.SetArgument("replayTitleTextColor",(string)b["textColor"]??"#FFFFFFFF");CPH.SetArgument("replayTitleShadowColor",(string)b["shadowColor"]??"#000000FF");CPH.SetArgument("replayTitlePrimaryColor",(string)b["primaryColor"]??"#0384CBFF");CPH.SetArgument("replayTitleSecondaryColor",(string)b["secondaryColor"]??"#101416FF");CPH.SetArgument("replayBrandLogoUrl",(string)b["logo"]??"");CPH.SetArgument("replayBrandFallbackText",(string)b["fallbackText"]??"RTS");CPH.SetArgument("replayBrandLabel",(string)b["brandLabel"]??"ACTION REPLAY");CPH.SetArgument("replayBrandFallbackTextColor",(string)b["primaryColor"]??"#0384CBFF");CPH.SetArgument("replayBrandLabelColor",(string)b["textColor"]??"#FFFFFFFF");
+        Props("replayBroadcast",Broadcast(d,b));Props("replayCut",Cut(d,b));CPH.SetArgument("replayDesignPresetId",(string)d["id"]??"broadcast");CPH.SetArgument("replayTitlePresetId",(string)t["id"]??"default");CPH.SetArgument("replayBrandingPresetId",(string)b["id"]??"default");
+        if(!panel){var source=CPH.GetGlobalVar<string>("rts.actionreplay.frameColorSource",true)??"Custom";var frame=CPH.GetGlobalVar<string>("rts.actionreplay.frameColor",true)??"#0384CBFF";if(!string.Equals(source,"Custom",StringComparison.OrdinalIgnoreCase))frame=(string)b[string.Equals(source,"Branding Secondary",StringComparison.OrdinalIgnoreCase)?"secondaryColor":"primaryColor"]??frame;CPH.SetArgument("replayFrameColor",frame);CPH.SetArgument("replayBorderGlow",CPH.GetGlobalVar<bool?>("rts.actionreplay.borderGlow",true)??true);CPH.SetArgument("replayBorderWidth",CPH.GetGlobalVar<int?>("rts.actionreplay.borderWidth",true)??4);CPH.SetArgument("replayCornerRadius",CPH.GetGlobalVar<int?>("rts.actionreplay.cornerRadius",true)??0);}
+    }
+
+    JObject Broadcast(JObject d,JObject b)=>new JObject{["primaryColor"]=(string)b["primaryColor"]??"#0384CBFF",["secondaryColor"]=(string)b["secondaryColor"]??"#101416FF",["chevronHeight"]=(int?)d["chevronHeight"]??42,["randomHeight"]=(bool?)d["randomHeight"]??false,["chevronWidth"]=(int?)d["chevronWidth"]??42,["randomWidth"]=(bool?)d["randomWidth"]??false,["chevronSpacing"]=(int?)d["chevronSpacing"]??0,["randomSpacing"]=(bool?)d["randomSpacing"]??false,["chevronSpeed"]=(int?)d["chevronSpeed"]??95,["decorationColor"]=(string)b["titlePrefixSuffixColor"]??"#0384CBFF",["titleColor"]=(string)b["titleColor"]??"#FFFFFFFF"};
+    JObject Cut(JObject d,JObject b)=>new JObject{["primaryColor"]=(string)b["primaryColor"]??"#0384CBFF",["secondaryColor"]=(string)b["secondaryColor"]??"#101416FF",["blockWidth"]=(int?)d["blockWidth"]??170,["randomWidth"]=(bool?)d["randomWidth"]??true,["barHeight"]=(int?)d["barHeight"]??5,["decorationColor"]=(string)b["titlePrefixSuffixColor"]??"#0384CBFF",["titleColor"]=(string)b["titleColor"]??"#FFFFFFFF"};
+
+    void Props(string prefix,JObject value)
+    {
+        foreach(var property in value?.Properties() ?? new JProperty[0])
+        {
+            var name=property.Name.Length==0 ? "" : char.ToUpperInvariant(property.Name[0])+property.Name.Substring(1);
+            var v=property.Value;
+            object o=v.Type==JTokenType.Boolean ? (object)(bool)v : v.Type==JTokenType.Integer ? (object)(int)v : v.ToString();
+            CPH.SetArgument(prefix+name,o);
+        }
+    }
+
+    JObject PlatformBranding(string platform){foreach(var x in Read(PresetsKey)["branding"] as JArray??new JArray()){var b=x as JObject;if(b!=null&&string.Equals((string)b["platform"],platform,StringComparison.OrdinalIgnoreCase))return b;}return null;}
+    void ApplyObject(JObject value){foreach(var p in value.Properties()){var v=p.Value;object o=v.Type==JTokenType.Boolean?(object)(bool)v:v.Type==JTokenType.Integer?(object)(int)v:v.Type==JTokenType.Float?(object)(double)v:v.ToString();CPH.SetArgument(p.Name,o);}}
+    JObject Find(JArray values,string id){foreach(var x in values??new JArray())if(string.Equals((string)x["id"],id,StringComparison.OrdinalIgnoreCase))return x as JObject;return null;}
+    JObject Read(string key){var raw=key==PlayerOperationKey||key==PanelOperationKey?CPH.GetGlobalVar<string>(key,false):CPH.GetGlobalVar<string>(key,true);try{return string.IsNullOrWhiteSpace(raw)?new JObject():JObject.Parse(raw);}catch{return new JObject();}}
+
+    public bool EnsureProfiles()
+    {
+        EnsurePlayerProfiles();
+        EnsurePanelProfiles();
+        EnsureClapperProfiles();
+        return true;
+    }
+
+    public bool EnsureClapperProfiles()
+    {
+        var clapper = ReadConfig(ClapperKey, CreateClapperDefaults());
+        var legacyProfiles = clapper["animationProfiles"] as JArray;
+        var profiles = NormalizeProfiles(legacyProfiles);
+        EnsureSequenceStore("clapperboard", profiles, legacyProfiles);
+        var animation = clapper["animation"] as JObject ?? new JObject();
+        animation["selectedProfile"] = ResolveProfileId(profiles, (string)animation["selectedProfile"]) ?? "default";
+        clapper["animationProfiles"] = profiles;
+        clapper["animation"] = animation;
+        SaveConfig(ClapperKey, clapper);
+        return true;
+    }
+
+    private void EnsurePlayerProfiles()
+    {
+        var player = ReadConfig(PlayerKey, CreatePlayerDefaults());
+        NormalizePositionConfig(player, false);
+        var legacyProfiles = player["animationProfiles"] as JArray;
+        var profiles = NormalizeProfiles(legacyProfiles);
+        EnsureSequenceStore("player", profiles, legacyProfiles);
+        player["animationProfiles"] = profiles;
+        var animation = player["animation"] as JObject ?? new JObject();
+        animation["selectedProfile"] = ResolveProfileId(profiles, (string)animation["selectedProfile"]) ?? "default";
+        animation["entryPoints"] = NormalizeEntryPoints(animation["entryPoints"] as JObject, profiles, new[] { "obs", "twitch", "youtube", "kick", "recent", "catalog", "playlist" });
+        player["animation"] = animation;
+        SaveConfig(PlayerKey, player);
+    }
+
+    private void EnsurePanelProfiles()
+    {
+        var panel = ReadConfig(PanelKey, CreatePanelDefaults());
+        NormalizePositionConfig(panel, true);
+        var legacyProfiles = panel["animationProfiles"] as JArray;
+        var profiles = NormalizeProfiles(legacyProfiles);
+        EnsureSequenceStore("panel", profiles, legacyProfiles);
+        panel["animationProfiles"] = profiles;
+        var animation = panel["animation"] as JObject ?? new JObject();
+        animation["entryPoints"] = NormalizeEntryPoints(animation["entryPoints"] as JObject, profiles, new[] { "recent", "playlist", "creatorLeaderboard" });
+        panel["animation"] = animation;
+        panel["preset"] = NormalizePresetConfig(panel["preset"]);
+        SaveConfig(PanelKey, panel);
+    }
+
+    public bool AddProfile()
+    {
+        var player = ReadConfig(PlayerKey, CreatePlayerDefaults());
+        var profiles = NormalizeProfiles(player["animationProfiles"] as JArray);
+        var name = CPH.TryGetArg("profileName", out string requested) && !string.IsNullOrWhiteSpace(requested) ? requested.Trim() : "New Profile";
+        var id = Guid.NewGuid().ToString("N");
+        profiles.Add(CreateProfile(id, name));
+        player["animationProfiles"] = profiles;
+        SaveConfig(PlayerKey, player);
+        EnsureSequenceStore("player", profiles, null);
+        return true;
+    }
+
+    public bool RemoveProfile()
+    {
+        if (!CPH.TryGetArg("profileId", out string id) || string.IsNullOrWhiteSpace(id) || id.Trim() == "default") return false;
+        id = id.Trim();
+        var player = ReadConfig(PlayerKey, CreatePlayerDefaults());
+        var profiles = NormalizeProfiles(player["animationProfiles"] as JArray);
+        for (var i = profiles.Count - 1; i >= 0; i--)
+            if (string.Equals((string)profiles[i]["id"], id, StringComparison.Ordinal)) profiles.RemoveAt(i);
+        var animation = player["animation"] as JObject ?? new JObject();
+        animation["selectedProfile"] = ResolveProfileId(profiles, (string)animation["selectedProfile"]) ?? "default";
+        animation["entryPoints"] = ResetRemovedEntries(animation["entryPoints"] as JObject, id);
+        player["animationProfiles"] = profiles;
+        player["animation"] = animation;
+        SaveConfig(PlayerKey, player);
+        RemoveProfileSequences("player", id);
+        return true;
+    }
+
+    public bool AddPanelProfile()
+    {
+        var panel = ReadConfig(PanelKey, CreatePanelDefaults());
+        var profiles = NormalizeProfiles(panel["animationProfiles"] as JArray);
+        var name = CPH.TryGetArg("panelProfileName", out string requested) && !string.IsNullOrWhiteSpace(requested) ? requested.Trim() : "New Panel Profile";
+        var id = Guid.NewGuid().ToString("N");
+        profiles.Add(CreatePanelProfile(id, name));
+        panel["animationProfiles"] = profiles;
+        SaveConfig(PanelKey, panel);
+        EnsureSequenceStore("panel", profiles, null);
+        return true;
+    }
+
+    public bool RemovePanelProfile()
+    {
+        if (!CPH.TryGetArg("panelProfileId", out string id) || string.IsNullOrWhiteSpace(id) || id.Trim() == "default") return false;
+        id = id.Trim();
+        var panel = ReadConfig(PanelKey, CreatePanelDefaults());
+        var profiles = NormalizeProfiles(panel["animationProfiles"] as JArray);
+        for (var i = profiles.Count - 1; i >= 0; i--)
+            if (string.Equals((string)profiles[i]["id"], id, StringComparison.Ordinal)) profiles.RemoveAt(i);
+        var animation = panel["animation"] as JObject ?? new JObject();
+        animation["entryPoints"] = ResetRemovedEntries(animation["entryPoints"] as JObject, id);
+        panel["animationProfiles"] = profiles;
+        panel["animation"] = animation;
+        SaveConfig(PanelKey, panel);
+        RemoveProfileSequences("panel", id);
+        return true;
+    }
+
+    public bool AddClapperProfile()
+    {
+        var clapper = ReadConfig(ClapperKey, CreateClapperDefaults());
+        var profiles = NormalizeProfiles(clapper["animationProfiles"] as JArray);
+        var name = CPH.TryGetArg("clapperProfileName", out string requested) && !string.IsNullOrWhiteSpace(requested) ? requested.Trim() : "New Clapperboard Profile";
+        var id = Guid.NewGuid().ToString("N");
+        profiles.Add(CreateClapperProfile(id, name));
+        clapper["animationProfiles"] = profiles;
+        SaveConfig(ClapperKey, clapper);
+        EnsureSequenceStore("clapperboard", profiles, null);
+        return true;
+    }
+
+    public bool RemoveClapperProfile()
+    {
+        if (!CPH.TryGetArg("clapperProfileId", out string id) || string.IsNullOrWhiteSpace(id) || id.Trim() == "default") return false;
+        id = id.Trim();
+        var clapper = ReadConfig(ClapperKey, CreateClapperDefaults());
+        var profiles = NormalizeProfiles(clapper["animationProfiles"] as JArray);
+        for (var i = profiles.Count - 1; i >= 0; i--)
+            if (string.Equals((string)profiles[i]["id"], id, StringComparison.Ordinal)) profiles.RemoveAt(i);
+        var animation = clapper["animation"] as JObject ?? new JObject();
+        animation["selectedProfile"] = ResolveProfileId(profiles, (string)animation["selectedProfile"]) ?? "default";
+        clapper["animationProfiles"] = profiles;
+        clapper["animation"] = animation;
+        SaveConfig(ClapperKey, clapper);
+        RemoveProfileSequences("clapperboard", id);
+        return true;
+    }
+
+    public bool ResolveClapperAnimation()
+    {
+        var clapper = ReadConfig(ClapperKey, CreateClapperDefaults());
+        var profiles = NormalizeProfiles(clapper["animationProfiles"] as JArray);
+        var animation = clapper["animation"] as JObject ?? new JObject();
+        var selected = ResolveProfileId(profiles, (string)animation["selectedProfile"]) ?? "default";
+        var store = ReadConfig(AnimationKey, new JObject());
+        var target = store["clapperboard"] as JObject;
+        var sequence = target?[selected] as JObject ?? new JObject();
+        var start = sequence["startSequence"] as JArray ?? DefaultClapperStart();
+        var end = sequence["endSequence"] as JArray ?? DefaultClapperEnd();
+        CPH.SetArgument("replayClapperAnimation", new JObject
+        {
+            ["id"] = selected,
+            ["name"] = (string)profiles.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], selected, StringComparison.Ordinal))?["name"] ?? "Default",
+            ["start"] = start,
+            ["end"] = end
+        }.ToString(Newtonsoft.Json.Formatting.None));
+        return true;
+    }
+
+    public bool ResolveEntryPointProfile()
+    {
+        var entryPoint = CPH.TryGetArg("animationEntryPoint", out string requested) && !string.IsNullOrWhiteSpace(requested) ? requested.Trim() : CPH.GetGlobalVar<string>(EntryPointHandoffKey, false);
+        CPH.UnsetGlobalVar(EntryPointHandoffKey, false);
+        if (string.IsNullOrWhiteSpace(entryPoint)) return false;
+        var player = ReadConfig(PlayerKey, CreatePlayerDefaults());
+        var profiles = NormalizeProfiles(player["animationProfiles"] as JArray);
+        var animation = player["animation"] as JObject ?? new JObject();
+        var entries = animation["entryPoints"] as JObject ?? new JObject();
+        var profile = ResolveProfileId(profiles, (string)entries[entryPoint.ToLowerInvariant()]) ?? "default";
+        CPH.SetArgument("replayTitleEntryPoint", entryPoint.ToLowerInvariant());
+        CPH.SetGlobalVar(ResolvedProfileHandoffKey, profile, false);
+        CPH.SetArgument("replayAnimationProfileId", profile);
+        return true;
+    }
+
+    private string ResolvePanelPreset(JObject panel, string panelType)
+    {
+        var preset = panel["preset"] as JObject;
+        var entries = preset?["entryPoints"] as JObject;
+        var value = (string)entries?[panelType.ToLowerInvariant()];
+        return string.IsNullOrWhiteSpace(value) ? (string)preset?["fallback"] ?? "Broadcast" : value;
+    }
+
+    private JObject ReadClapperPositions()
+    {
+        var raw = CPH.GetGlobalVar<string>(ClapperPositionsKey, true);
+        try
+        {
+            var positions = string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw);
+            if (!positions.ContainsKey("Centered")) positions["Centered"] = new JObject { ["name"] = "Centered", ["tag"] = "centered", ["scale"] = 50, ["scaleX"] = 50, ["scaleY"] = 50, ["x"] = 0, ["y"] = 0, ["z"] = 0, ["rotateX"] = 0, ["rotateY"] = 0, ["rotateZ"] = 0, ["fov"] = 90 };
+            return positions;
+        }
+        catch { return new JObject { ["Centered"] = new JObject { ["name"] = "Centered", ["tag"] = "centered", ["scale"] = 50, ["scaleX"] = 50, ["scaleY"] = 50, ["x"] = 0, ["y"] = 0, ["z"] = 0, ["rotateX"] = 0, ["rotateY"] = 0, ["rotateZ"] = 0, ["fov"] = 90 } }; }
+    }
+
+    private JObject NormalizePresetConfig(JToken source)
+    {
+        var legacy = source as JValue;
+        var legacyPreset = legacy?.Type == JTokenType.String ? legacy.ToString() : null;
+        var objectSource = source as JObject;
+        var entries = objectSource?["entryPoints"] as JObject;
+        var fallback = (string)objectSource?["fallback"] ?? legacyPreset ?? "Broadcast";
+        var result = new JObject { ["fallback"] = fallback, ["entryPoints"] = new JObject() };
+        foreach (var name in new[] { "recent", "playlist", "creatorLeaderboard" }) result["entryPoints"][name] = (string)entries?[name] ?? fallback;
+        return result;
+    }
+
+    private void NormalizePositionConfig(JObject config, bool panel)
+    {
+        var positions = config["positions"] as JObject ?? new JObject();
+        var obsolete = new[] { "Hidden Left", "Hidden Right", "Hidden Top", "Hidden Bottom", "Center", "Top", "Bottom", "Top Left", "Top Right", "Bottom Left", "Bottom Right" };
+        foreach (var name in obsolete) positions.Remove(name);
+        if (panel) positions.Remove("Full Screen");
+        var builtIn = panel
+            ? new JObject { ["name"] = "Centered", ["tag"] = "centered", ["scale"] = 100, ["scaleX"] = 100, ["scaleY"] = 100, ["x"] = 0, ["y"] = 0, ["z"] = 0, ["rotateX"] = 0, ["rotateY"] = 0, ["rotateZ"] = 0, ["fov"] = 90 }
+            : new JObject { ["name"] = "Full Screen", ["tag"] = "full-screen", ["scale"] = 100, ["scaleX"] = 100, ["scaleY"] = 100, ["x"] = 0, ["y"] = 0, ["z"] = 0, ["rotateX"] = 0, ["rotateY"] = 0, ["rotateZ"] = 0, ["fov"] = 90 };
+        positions[panel ? "Centered" : "Full Screen"] = builtIn;
+        config["positions"] = positions;
+    }
+
+    private JArray NormalizeProfiles(JArray source)
+    {
+        var result = new JArray();
+        JObject defaultProfile = null;
+        foreach (var token in source ?? new JArray())
+        {
+            var id = (string)token["id"];
+            if (string.IsNullOrWhiteSpace(id) || FindProfile(result, id) != null) continue;
+            var item = new JObject { ["id"] = id, ["name"] = id == "default" ? "Default" : (string)token["name"] ?? "New Profile" };
+            if (id == "default") defaultProfile = item; else result.Add(item);
+        }
+        result.Insert(0, defaultProfile ?? CreateProfile("default", "Default"));
+        return result;
+    }
+
+    private JObject NormalizeEntryPoints(JObject source, JArray profiles, string[] names)
+    {
+        var result = new JObject();
+        foreach (var name in names) result[name] = ResolveProfileId(profiles, (string)source?[name]) ?? "default";
+        return result;
+    }
+
+    private JObject ResetRemovedEntries(JObject source, string id)
+    {
+        var result = source ?? new JObject();
+        foreach (var property in result.Properties()) if (string.Equals((string)property.Value, id, StringComparison.Ordinal)) property.Value = "default";
+        return result;
+    }
+
+    private string ResolveProfileId(JArray profiles, string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        foreach (var item in profiles ?? new JArray())
+        {
+            if (string.Equals((string)item["id"], value, StringComparison.Ordinal)) return value;
+            if (string.Equals((string)item["name"], value, StringComparison.OrdinalIgnoreCase)) return (string)item["id"];
+        }
+        return null;
+    }
+
+    private JObject FindProfile(JArray profiles, string id)
+    {
+        foreach (var item in profiles ?? new JArray()) if (string.Equals((string)item["id"], id, StringComparison.Ordinal)) return (JObject)item;
+        return null;
+    }
+
+    private JObject CreateProfile(string id, string name) => new JObject { ["id"] = id, ["name"] = name };
+    private JObject CreatePanelProfile(string id, string name) => new JObject { ["id"] = id, ["name"] = name };
+    private JObject CreateClapperProfile(string id, string name) => new JObject { ["id"] = id, ["name"] = name };
+
+    private JObject CreatePlayerDefaults() => new JObject { ["version"] = 1, ["positions"] = new JObject(), ["animationProfiles"] = new JArray(CreateProfile("default", "Default")), ["animation"] = new JObject { ["selectedProfile"] = "default", ["entryPoints"] = new JObject { ["obs"] = "default", ["twitch"] = "default", ["youtube"] = "default", ["kick"] = "default", ["recent"] = "default", ["catalog"] = "default", ["playlist"] = "default" } } };
+    private JObject CreatePanelDefaults() => new JObject { ["version"] = 1, ["width"] = 500, ["height"] = 700, ["positions"] = new JObject(), ["animationProfiles"] = new JArray(CreatePanelProfile("default", "Default")), ["animation"] = new JObject { ["entryPoints"] = new JObject { ["recent"] = "default", ["playlist"] = "default", ["creatorLeaderboard"] = "default" } }, ["preset"] = new JObject { ["fallback"] = "Broadcast", ["entryPoints"] = new JObject { ["recent"] = "Broadcast", ["playlist"] = "Broadcast", ["creatorLeaderboard"] = "Broadcast" } } };
+    private JObject CreateClapperDefaults() => new JObject { ["version"] = 1, ["animationProfiles"] = new JArray(CreateClapperProfile("default", "Default")), ["animation"] = new JObject { ["selectedProfile"] = "default" } };
+
+    private JObject GetProfileSequences(string target, string id)
+    {
+        var store = ReadConfig(AnimationKey, new JObject());
+        var targetObject = store[target] as JObject;
+        var profile = targetObject?[id] as JObject;
+        return profile ?? new JObject();
+    }
+
+    private void EnsureSequenceStore(string target, JArray profiles, JArray legacyProfiles)
+    {
+        var store = ReadConfig(AnimationKey, new JObject());
+        var targetObject = store[target] as JObject ?? new JObject();
+        var changed = false;
+        foreach (var token in profiles ?? new JArray())
+        {
+            var id = (string)token["id"];
+            if (string.IsNullOrWhiteSpace(id)) continue;
+            if (targetObject[id] is JObject) continue;
+            var legacy = FindProfile(legacyProfiles, id);
+            targetObject[id] = new JObject
+            {
+                ["startSequence"] = legacy?["startSequence"] as JArray ?? ProfileDefaultSequence(target),
+                ["endSequence"] = legacy?["endSequence"] as JArray ?? ProfileDefaultEndSequence(target)
+            };
+            changed = true;
+        }
+        store[target] = targetObject;
+        if (changed) SaveConfig(AnimationKey, store);
+    }
+
+    private void RemoveProfileSequences(string target, string id)
+    {
+        var store = ReadConfig(AnimationKey, new JObject());
+        var targetObject = store[target] as JObject;
+        if (targetObject == null || targetObject[id] == null) return;
+        targetObject.Remove(id);
+        store[target] = targetObject;
+        SaveConfig(AnimationKey, store);
+    }
+
+    private JArray ProfileDefaultSequence(string target)
+    {
+        return target == "player" ? DefaultPlayerStart() : target == "panel" ? DefaultPanelStart() : DefaultClapperStart();
+    }
+
+    private JArray ProfileDefaultEndSequence(string target)
+    {
+        return target == "player" ? DefaultPlayerEnd() : target == "panel" ? DefaultPanelEnd() : DefaultClapperEnd();
+    }
+
+    private JArray DefaultPlayerStart() => new JArray(new JObject { ["position"] = "Full Screen", ["duration"] = 0, ["delay"] = 0, ["easing"] = "ease-in-out" });
+    private JArray DefaultPlayerEnd() => new JArray(new JObject { ["position"] = "Full Screen", ["duration"] = 0, ["delay"] = 0, ["easing"] = "ease-in-out" });
+    private JArray DefaultPanelStart() => new JArray(new JObject { ["position"] = "Centered", ["duration"] = 0, ["delay"] = 0, ["easing"] = "ease-in-out" });
+    private JArray DefaultPanelEnd() => new JArray(new JObject { ["position"] = "Centered", ["duration"] = 0, ["delay"] = 0, ["easing"] = "ease-in-out" });
+    private JArray DefaultClapperStart() => new JArray(new JObject { ["position"] = "Centered", ["duration"] = 0, ["delay"] = 0, ["easing"] = "ease-in-out" });
+    private JArray DefaultClapperEnd() => new JArray(new JObject { ["position"] = "Centered", ["duration"] = 0, ["delay"] = 0, ["easing"] = "ease-in-out" });
+
+    private JObject ReadConfig(string key, JObject defaults)
+    {
+        var raw = CPH.GetGlobalVar<string>(key, true);
+        if (string.IsNullOrWhiteSpace(raw)) return defaults;
+        try { return JObject.Parse(raw); } catch { return defaults; }
+    }
+
+    private void SaveConfig(string key, JObject value) => CPH.SetGlobalVar(key, value.ToString(Newtonsoft.Json.Formatting.None), true);
+
+    const string HandoffKey="rts.actionreplay.handoff.playerPositions";
+
+    public bool EnsurePositions()
+    {
+        var presets=ReadPositionStore(PresetsKey);
+        var positions=presets["positions"] as JObject ?? new JObject();
+        positions["player"]=EnsurePositionSet(positions["player"] as JObject,"Full Screen","full-screen",100);
+        positions["panel"]=EnsurePositionSet(positions["panel"] as JObject,"Centered","centered",100);
+        positions["clapperboard"]=EnsurePositionSet(positions["clapperboard"] as JObject,"Centered","centered",50);
+        presets["positions"]=positions;
+        SavePositionStore(PresetsKey,presets);
+        return true;
+    }
+
+    public bool GetPlayerPositions(){EnsurePositions();var presets=ReadPositionStore(PresetsKey);var positions=(presets["positions"] as JObject)?["player"] as JObject??new JObject();CPH.SetGlobalVar(HandoffKey,positions.ToString(Newtonsoft.Json.Formatting.None),false);return true;}
+    public bool GetPanelPositions(){EnsurePositions();var presets=ReadPositionStore(PresetsKey);var positions=(presets["positions"] as JObject)?["panel"] as JObject??new JObject();CPH.SetGlobalVar("rts.actionreplay.handoff.panelPositions",positions.ToString(Newtonsoft.Json.Formatting.None),false);return true;}
+    public bool GetClapperboardPositions(){EnsurePositions();var presets=ReadPositionStore(PresetsKey);var positions=(presets["positions"] as JObject)?["clapperboard"] as JObject??new JObject();CPH.SetGlobalVar("rts.actionreplay.handoff.clapperPositions",positions.ToString(Newtonsoft.Json.Formatting.None),false);return true;}
+
+    JObject EnsurePositionSet(JObject value,string name,string tag,int scale)
+    {
+        if(value!=null&&value.Count>0)return value;
+        return CreatePositionSet(name,tag,scale);
+    }
+    JObject ReadPositionStore(string key){var raw=CPH.GetGlobalVar<string>(key,true);try{return string.IsNullOrWhiteSpace(raw)?new JObject():JObject.Parse(raw);}catch{return new JObject();}}
+    void SavePositionStore(string key,JObject value)=>CPH.SetGlobalVar(key,value.ToString(Newtonsoft.Json.Formatting.None),true);
+    JObject CreatePositionSet(string name,string tag,int scale)=>new JObject{[name]=new JObject{["name"]=name,["tag"]=tag,["scale"]=scale,["scaleX"]=scale,["scaleY"]=scale,["x"]=0,["y"]=0,["z"]=0,["rotateX"]=0,["rotateY"]=0,["rotateZ"]=0,["fov"]=90}};
+
+    public bool ApplyPanelPreset()
+    {
+        var panelType = CPH.TryGetArg("panelType", out string requested) && !string.IsNullOrWhiteSpace(requested) ? requested.Trim() : "recent";
+        CPH.SetGlobalVar(PanelOperationKey, new JObject { ["panelType"] = panelType, ["triggerEvent"] = false }.ToString(Newtonsoft.Json.Formatting.None), false);
+        return ResolvePanel();
+    }
+
+    public void PreviewPanelPreset()
+    {
+        ApplyPanelPreset();
+        var panel = Read(PanelKey);
+        CPH.SetArgument("replayCommand", "panel-position-preview");
+        CPH.SetArgument("replayPanelPosition", "Centered");
+        CPH.SetArgument("replayPanelPositions", (panel["positions"] as JObject ?? new JObject()).ToString(Newtonsoft.Json.Formatting.None));
+        CPH.SetArgument("replayPanelWidth", (int?)panel["width"] ?? 500);
+        CPH.SetArgument("replayPanelHeight", (int?)panel["height"] ?? 700);
+        CPH.TriggerEvent(EventName, true);
+    }
+
+}
