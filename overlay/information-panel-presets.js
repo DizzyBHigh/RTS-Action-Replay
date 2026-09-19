@@ -96,7 +96,7 @@ RTSInformationPanelPresets.apply = (panel, command) => {
   panel.style.setProperty('--panel-list-color', listColor);
   if (className === 'cut') {
     const readable = RTSInformationPanelPresets.readableText(background) || listColor;
-    panel.style.setProperty('--panel-cut-background', secondary);
+    panel.style.setProperty('--panel-cut-background', background);
     panel.style.setProperty('--panel-cut-text', readable);
   } else {
     panel.style.removeProperty('--panel-cut-text');
