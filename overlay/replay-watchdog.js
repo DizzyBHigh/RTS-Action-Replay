@@ -85,9 +85,9 @@ const sample = () => {
     return;
   }
 
-  if (!playing) return;
   if (Date.now() - startedAt < STARTUP_GRACE) return;
   if (!stalled && Date.now() - lastProgressAt < threshold) return;
+  if (!stalled && !playing) return;
   recover(active);
 };
 
@@ -103,4 +103,3 @@ RTSReplayWatchdog.stop = () => {
 };
 
 window.RTSReplayWatchdog = RTSReplayWatchdog;
-RTSReplayWatchdog.start();
