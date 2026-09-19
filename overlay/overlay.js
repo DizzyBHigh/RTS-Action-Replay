@@ -1,10 +1,29 @@
 const RTSReplayOverlay = window.RTSReplay;
 
+RTSReplayOverlay.normalizeColors = value => {
+  if (typeof value === 'string') {
+    const raw = value.trim();
+    const match = raw.match(/^#([0-9a-f]{8})$/i);
+    if (match) {
+      const hex = match[1];
+      return `rgba(${parseInt(hex.slice(0, 2), 16)},${parseInt(hex.slice(2, 4), 16)},${parseInt(hex.slice(4, 6), 16)},${parseInt(hex.slice(6, 8), 16) / 255})`;
+    }
+    return value;
+  }
+  if (Array.isArray(value)) return value.map(RTSReplayOverlay.normalizeColors);
+  if (value && typeof value === 'object') {
+    const result = {};
+    Object.keys(value).forEach(key => { result[key] = RTSReplayOverlay.normalizeColors(value[key]); });
+    return result;
+  }
+  return value;
+};
+
 RTSReplayOverlay.handleEvent = message => {
   if (message?.event?.source !== 'Custom' || message?.event?.type !== 'Event') return;
   const data = message.data;
   if (data?.eventName !== RTSReplayOverlay.config.eventName || !data.args) return;
-  const args = data.args;
+  const args = RTSReplayOverlay.normalizeColors(data.args);
   window.RTSDevToolbar?.log?.('Custom replay event accepted', {
     eventName: data.eventName,
     replayCommand: args?.replayCommand,
