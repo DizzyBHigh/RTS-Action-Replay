@@ -6,8 +6,6 @@
   height: 100%;
   transform: translate(-50%, -50%);
   transform-style: preserve-3d;
-  perspective: 960px;
-  perspective-origin: center center;
   overflow: visible;
   pointer-events: none;
   will-change: left, top;
