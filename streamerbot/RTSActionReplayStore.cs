@@ -57,4 +57,30 @@ public class CPHInline
     private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); } }
     private void Save(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
     private JArray GetCatalog(JObject data) { var catalog = data["catalog"] as JArray; if (catalog != null) return catalog; var legacy = CPH.GetGlobalVar<string>(LegacyCatalogKey, true); try { catalog = string.IsNullOrWhiteSpace(legacy) ? new JArray() : JArray.Parse(legacy); } catch { catalog = new JArray(); } data["catalog"] = catalog; return catalog; }
+
+
+    // Consolidated preset/config persistence from RTSActionReplayPresetStore.
+    private JObject Read(string key, JObject fallback) { var raw = CPH.GetGlobalVar<string>(key, true); try { return string.IsNullOrWhiteSpace(raw) ? fallback : JObject.Parse(raw); } catch { return fallback; } }
+
+    const string ClapperKey = "rts.actionreplay.config.clapper";
+
+    const string PresetsKey = "rts.actionreplay.config.presets";
+
+    public bool EnsureDefaults() { var p = Read(PresetsKey, Defaults()); var d = Defaults(); if (!(p["branding"] is JArray)) p["branding"] = d["branding"]; if (!(p["visual"] is JArray)) p["visual"] = d["visual"]; if (!(p["title"] is JArray)) p["title"] = TitleDefaults(); MigrateBranding(p); EnsureBranding(p); EnsureVisuals(p); EnsureTitlePresets(p); p["version"] = 4; Save(PresetsKey, p); CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "EnsurePositions"); return true; }
+
+    public bool EnsureEntryPoints() { EnsureDefaults(); var player = Read(PlayerKey, new JObject()); var panel = Read(PanelKey, new JObject()); var clapper = Read(ClapperKey, new JObject()); MigratePlayer(player); MigratePanel(panel); MigrateClapper(clapper); Save(PlayerKey, player); Save(PanelKey, panel); Save(ClapperKey, clapper); return true; }
+
+    public JArray Branding() => Read(PresetsKey, Defaults())["branding"] as JArray ?? new JArray();
+
+    public JArray Visuals() => Read(PresetsKey, Defaults())["visual"] as JArray ?? new JArray();
+
+    public JArray Titles() => Read(PresetsKey, Defaults())["title"] as JArray ?? new JArray();
+
+    static JObject Find(JArray a, string id) { foreach (var x in a ?? new JArray()) if (string.Equals((string)x["id"], id, StringComparison.OrdinalIgnoreCase)) return x as JObject; return null; }
+
+    static string ResolveId(JArray a, string id) { var x = Find(a, id); return x == null ? null : (string)x["id"]; }
+
+    static string Normalize(string v) { v = (v ?? "").Trim().ToLowerInvariant(); return v == "cinematic" || v == "cut" || v == "minimal" ? v : "broadcast"; }
+
+    static void Put(JObject c, string id, JObject e) { var a = c["entryPoints"] as JObject ?? new JObject(); a[id] = e; c["entryPoints"] = a; }
 }
