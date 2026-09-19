@@ -68,14 +68,14 @@ const sample = () => {
     const player = RTSReplayVideo.youtubePlayer;
     const state = player?.getPlayerState?.();
     position = Number(player?.getCurrentTime?.() || 0);
-    playing = state === 1;
-    stalled = state === 3;
+    playing = !!active.replayAutoplay && RTSReplayVideo.expectedPlaying === true && state === 1;
+    stalled = RTSReplayVideo.expectedPlaying === true && state !== 1;
     threshold = YOUTUBE_STALL_AFTER;
   } else {
     const video = RTSReplayVideo.video;
     position = Number(video?.currentTime || 0);
-    playing = !!video && !video.paused && !video.ended;
-    stalled = !!video && (video.readyState < 3 || video.networkState === 2 || video.seeking);
+    playing = !!video && RTSReplayVideo.expectedPlaying === true && !video.paused && !video.ended;
+    stalled = !!video && RTSReplayVideo.expectedPlaying === true && (video.paused || video.ended || video.readyState < 3 || video.networkState === 2 || video.seeking);
   }
 
   if (position > lastPosition + 0.05) {
