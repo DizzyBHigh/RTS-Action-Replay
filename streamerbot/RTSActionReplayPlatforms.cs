@@ -31,6 +31,35 @@ private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resol
 
 public bool Execute() => CreateTwitchClip();
 
+public bool ResolveIdentity()
+    {
+        var platform = NormalizePlatform(Arg("userType"));
+        var id = Arg("userId");
+        var name = Arg("userName");
+        if (string.IsNullOrWhiteSpace(id)) return false;
+
+        CPH.SetArgument("replayPlatform", platform);
+        CPH.SetArgument("replayUserId", id);
+        CPH.SetArgument("replayUserName", name);
+        CPH.SetArgument("replayIdentityKey", IdentityKey(platform, id));
+        CPH.SetArgument("replayIdentity", new JObject
+        {
+            ["platform"] = platform,
+            ["id"] = id,
+            ["name"] = name
+        }.ToString(Newtonsoft.Json.Formatting.None));
+        return true;
+    }
+
+public static string NormalizePlatform(string userType) => string.Equals(userType, "YouTube", StringComparison.OrdinalIgnoreCase)
+    ? "YouTube"
+    : string.Equals(userType, "Kick", StringComparison.OrdinalIgnoreCase)
+        ? "Kick"
+        : "Twitch";
+
+public static string IdentityKey(string platform, string id) =>
+    NormalizePlatform(platform).ToLowerInvariant() + ":" + (id ?? "").Trim();
+
 public bool CreateTwitchClip()
     {
         CPH.TryGetArg("rawInput", out string rawInput); rawInput = rawInput == null ? "" : rawInput.Trim();
@@ -256,8 +285,6 @@ private bool TryGetStartTime(string videoId, out long startTime)
 private string GetGlobalString(string key) { try { return CPH.GetGlobalVar<string>(key, true) ?? ""; } catch { return ""; } }
 
 private long GetGlobalLong(string key) { try { return CPH.GetGlobalVar<long?>(key, true) ?? 0L; } catch { return 0L; } }
-
-private string NormalizePlatform(string userType) => string.Equals(userType, "YouTube", StringComparison.OrdinalIgnoreCase) ? "YouTube" : string.Equals(userType, "Kick", StringComparison.OrdinalIgnoreCase) ? "Kick" : "Twitch";
 
 private string Arg(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
 
