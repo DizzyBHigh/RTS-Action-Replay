@@ -34,6 +34,7 @@ RTSReplayBroadcast.startBroadcastChevrons = () => {
   const randomSpacing = RTSReplayBroadcast.command?.replayBroadcastRandomSpacing === true;
   const speed = number(RTSReplayBroadcast.command?.replayBroadcastChevronSpeed, 10, 500, 95);
   const trackWidth = track.clientWidth;
+  replayDevLog('Broadcast chevrons starting', { titleClass: broadcastTitle.className, trackWidth, trackHeight: track.clientHeight, primary, secondary, height: heightSetting, width: widthSetting, spacing: spacingSetting, speed, reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches });
   const getHeight = () => randomHeight ? randomValue(heightSetting, 1) : heightSetting;
   const getWidth = () => randomWidth ? randomValue(widthSetting, 1) : widthSetting;
   const getSpacing = () => randomSpacing ? randomValue(spacingSetting, 0) : spacingSetting;
@@ -116,15 +117,18 @@ RTSReplayBroadcast.observeBroadcastChevrons = () => {
   let chevronsRunning = false;
   const observer = new MutationObserver(() => {
     const shouldRun = broadcastTitle.classList.contains('title-broadcast') && broadcastTitle.classList.contains('visible');
-    if (shouldRun && !chevronsRunning) {
+    const trackExists = !!broadcastTitle.querySelector('.broadcast-chevron-track');
+    if (shouldRun && (!chevronsRunning || !trackExists)) {
+      replayDevLog('Broadcast chevron observer', { shouldRun, trackExists, titleClass: broadcastTitle.className, running: chevronsRunning });
       chevronsRunning = true;
       RTSReplayBroadcast.startBroadcastChevrons();
     } else if (!shouldRun && chevronsRunning) {
+      replayDevLog('Broadcast chevron observer', { shouldRun, trackExists, titleClass: broadcastTitle.className, running: chevronsRunning });
       chevronsRunning = false;
       RTSReplayBroadcast.stopBroadcastChevrons();
     }
   });
-  observer.observe(broadcastTitle, { attributes: true, attributeFilter: ['class'] });
+  observer.observe(broadcastTitle, { attributes: true, attributeFilter: ['class'], childList: true });
 };
 
 RTSReplayBroadcast.observeBroadcastChevrons();

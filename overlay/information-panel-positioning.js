@@ -1,35 +1,22 @@
 const RTSInformationPanels = window.RTSInformationPanels || {};
 
 RTSInformationPanels.defaultPositions = {
-  "Centered": { scale: 100, x: 0, y: 0, rotateZ: 0 }
+  Centered: { scale: 100, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, fov: 90 }
 };
 
-RTSInformationPanels.getPositions = command => {
-  try {
-    const raw = command?.replayPanelPositions ?? command?.replayPanelJsonPositions;
-    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-    return parsed && typeof parsed === 'object' ? parsed : RTSInformationPanels.defaultPositions;
-  } catch (_) { return RTSInformationPanels.defaultPositions; }
-};
+RTSInformationPanels.getPositions = command =>
+  RTSAnimationEngine.getPositions(command?.replayPanelPositions, RTSInformationPanels.defaultPositions);
 
 RTSInformationPanels.getPosition = (command, name) => {
   const positions = RTSInformationPanels.getPositions(command);
-  if (positions[name]) return positions[name];
-  const target = String(name || 'Centered').trim().toLowerCase();
-  const match = Object.keys(positions).find(key => key.toLowerCase() === target || String(positions[key]?.tag || '').trim().toLowerCase() === target);
-  return positions[match] || positions.Centered || RTSInformationPanels.defaultPositions.Centered;
+  return RTSAnimationEngine.resolvePosition(
+    positions,
+    name || 'Centered',
+    positions.Centered || RTSInformationPanels.defaultPositions.Centered
+  );
 };
 
-RTSInformationPanels.normalise = position => {
-  const scale = Number(position?.scale ?? 100);
-  return {
-    scaleX: Number.isFinite(Number(position?.scaleX)) ? Number(position.scaleX) : scale,
-    scaleY: Number.isFinite(Number(position?.scaleY)) ? Number(position.scaleY) : scale,
-    x: Number.isFinite(Number(position?.x)) ? Number(position.x) : 0,
-    y: Number.isFinite(Number(position?.y)) ? Number(position.y) : 0,
-    rotateZ: Number.isFinite(Number(position?.rotateZ)) ? Number(position.rotateZ) : 0
-  };
-};
+RTSInformationPanels.normalise = position => RTSAnimationEngine.normalisePosition(position);
 
 RTSInformationPanels.applySize = (panel, command) => {
   if (!panel) return;
@@ -55,19 +42,7 @@ RTSInformationPanels.getViewportOffset = position => {
 
 RTSInformationPanels.applyPosition = (panel, command, name) => {
   if (!panel) return;
-  const position = RTSInformationPanels.normalise(RTSInformationPanels.getPosition(command, name));
-  const dev = Boolean(document.getElementById('rts-dev-stage'));
-  if (dev) {
-    panel.style.left = `calc(50% + ${position.x * 19.2}px)`;
-    panel.style.top = `calc(50% - ${position.y * 10.8}px)`;
-  } else {
-    const offset = RTSInformationPanels.getViewportOffset(position);
-    panel.style.left = offset ? `${offset.left}px` : `calc(50% + ${position.x}vw)`;
-    panel.style.top = offset ? `${offset.top}px` : `calc(50% - ${position.y}vh)`;
-  }
-  panel.style.setProperty('--panel-scale-x', position.scaleX / 100);
-  panel.style.setProperty('--panel-scale-y', position.scaleY / 100);
-  panel.style.setProperty('--panel-rotate-z', `${position.rotateZ}deg`);
+  RTSPositioningEngine.apply(panel, RTSInformationPanels.getPosition(command, name));
 };
 
 RTSInformationPanels.show = (panel, command, name) => {

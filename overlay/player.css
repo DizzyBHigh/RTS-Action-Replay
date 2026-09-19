@@ -41,6 +41,7 @@
 
 #player-frame {
   position: relative;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   border: var(--border-width) solid var(--frame-color);
   border-radius: var(--corner-radius);
@@ -53,15 +54,21 @@
 #player-frame.border-none { border-width: 0; background: var(--frame-color); box-shadow: none; }
 
 #video {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
-  height: auto;
-  max-height: 100vh;
+  height: 100%;
+  max-height: none;
   object-fit: contain;
   background: #000;
 }
 
 #player-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   align-items: center;
   gap: 12px;

@@ -1,100 +1,155 @@
+const runnerRegistry = new WeakMap();
+
 const RTSAnimationEngine = {
-  createRunner(adapter) {
-    let token = 0;
-    let timer = null;
-    let frame = null;
-    let active = null;
-
+  normalisePosition(position, fallbackScale = 100) {
+    const scale = Number(position?.scale ?? fallbackScale);
+    const value = (key, fallback) => {
+      const n = Number(position?.[key]);
+      return Number.isFinite(n) ? n : fallback;
+    };
+    return {
+      scaleX: value('scaleX', Number.isFinite(scale) ? scale : fallbackScale),
+      scaleY: value('scaleY', Number.isFinite(scale) ? scale : fallbackScale),
+      x: value('x', 0), y: value('y', 0), z: value('z', 0),
+      rotateX: value('rotateX', 0), rotateY: value('rotateY', 0),
+      rotateZ: value('rotateZ', 0), fov: Math.max(30, Math.min(120, value('fov', 90)))
+    };
+  },
+  getPositions(raw, fallback = {}) {
+    try {
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : fallback;
+    } catch (_) {
+      return fallback;
+    }
+  },
+  resolvePosition(positions, name, fallback) {
+    const target = String(name || '').trim().toLowerCase();
+    const keys = Object.keys(positions || {});
+    const key = keys.find(k => k.toLowerCase() === target ||
+      String(positions[k]?.tag || '').trim().toLowerCase() === target);
+    return key ? positions[key] : fallback;
+  },
+  positionsEqual(a, b) {
+    if (!a || !b) return false;
+    const x = this.normalisePosition(a);
+    const y = this.normalisePosition(b);
+    return ['scaleX','scaleY','x','y','z','rotateX','rotateY','rotateZ','fov']
+      .every(key => x[key] === y[key]);
+  },
+  easing(name) {
+    switch (String(name || 'ease-in-out').toLowerCase()) {
+      case 'linear': return t => t;
+      case 'ease-in': return t => t * t * t;
+      case 'ease-out': return t => 1 - Math.pow(1 - t, 3);
+      default: return t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+  },
+  interpolatePosition(from, to, progress) {
+    const a = this.normalisePosition(from);
+    const b = this.normalisePosition(to);
+    const lerp = (x, y) => x + (y - x) * progress;
+    return Object.fromEntries(Object.keys(a).map(key => [key, lerp(a[key], b[key], progress)]));
+  },
+  readProfile(raw) {
+    if (!raw) return null;
+    try {
+      const profile = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      return profile && typeof profile === 'object' ? profile : null;
+    } catch (error) {
+      window.RTSDevToolbar?.log?.('Animation profile parse failed', { error: String(error) });
+      return null;
+    }
+  },
+  createRunner(options = {}) {
+    const existingTarget = options.target;
+    if (existingTarget && runnerRegistry.has(existingTarget)) return runnerRegistry.get(existingTarget);
+    const target = options.target;
+    let positions = options.positions || {};
+    const fallback = options.defaultPosition || { scale: 100, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, fov: 90 };
+    let active = null, token = 0, timer = null, frame = null;
+    const log = (message, details) => window.RTSDevToolbar?.log?.(message, details);
+    const resolve = name => RTSAnimationEngine.resolvePosition(positions, name, fallback);
+    const apply = position => {
+      if (target) RTSPositioningEngine.apply(target, position);
+      active = position;
+    };
     const cancel = () => {
-      token += 1;
+      token++;
       if (timer) clearTimeout(timer);
-      timer = null;
       if (frame) cancelAnimationFrame(frame);
-      frame = null;
+      timer = frame = null;
     };
-
-    const run = (sequence, onComplete) => {
-      const steps = Array.isArray(sequence) ? sequence.map(adapter.normaliseStep) : [];
-      if (!steps.length) { onComplete?.(); return; }
+    const normaliseStep = step => ({
+      position: step?.position || step?.name || Object.keys(positions)[0],
+      duration: Math.max(0, Number(step?.duration) || 0),
+      delay: Math.max(0, Number(step?.delay) || 0),
+      easing: step?.easing || 'ease-in-out'
+    });
+    const run = (sequence, complete, endRun = false) => {
+      const steps = Array.isArray(sequence) ? sequence.map(normaliseStep) : [];
+      if (!steps.length) { complete?.(); return; }
       cancel();
       const runToken = token;
-      const first = adapter.getPosition(steps[0].position);
-      active = first;
-      adapter.applyPosition(first, true);
-
+      let current = endRun ? active || resolve(steps[0].position) : resolve(steps[0].position);
       const advance = index => {
         if (runToken !== token) return;
-        if (index >= steps.length) { onComplete?.(); return; }
-        const step = steps[index];
-        const target = adapter.getPosition(step.position);
-        const start = active || target;
+        if (index >= steps.length) { active = current; complete?.(); return; }
+        const step = steps[index], targetPosition = resolve(step.position), start = current;
+        const equal = RTSAnimationEngine.positionsEqual(start, targetPosition);
+        log('Animation transition check', { index, position: step.position, duration: step.duration, delay: step.delay, equal, from: start, to: targetPosition });
         const finish = () => {
-          if (runToken !== token) return;
-          active = target;
+          current = targetPosition; active = current;
           if (step.delay > 0) timer = setTimeout(() => advance(index + 1), step.delay);
           else advance(index + 1);
         };
-        if (step.duration <= 0 || adapter.positionsEqual?.(start, target)) {
-          adapter.applyPosition(target, true);
-          finish();
-          return;
-        }
-        const easing = adapter.easing(step.easing);
-        const started = performance.now();
+        if (step.duration <= 0 || equal) { apply(targetPosition); finish(); return; }
+        const ease = RTSAnimationEngine.easing(step.easing), started = performance.now();
         const draw = now => {
           if (runToken !== token) return;
-          const raw = Math.min(1, Math.max(0, (now - started) / step.duration));
-          adapter.applyPosition(adapter.interpolatePosition(start, target, easing(raw)), true);
-          if (raw < 1) frame = requestAnimationFrame(draw);
-          else { frame = null; adapter.applyPosition(target, true); finish(); }
+          const progress = Math.min(1, Math.max(0, (now - started) / step.duration));
+          apply(RTSAnimationEngine.interpolatePosition(start, targetPosition, ease(progress)));
+          if (progress < 1) frame = requestAnimationFrame(draw);
+          else { frame = null; apply(targetPosition); finish(); }
         };
         frame = requestAnimationFrame(draw);
       };
-
-      if (steps[0].delay > 0) timer = setTimeout(() => advance(1), steps[0].delay);
-      else advance(1);
+      if (!endRun) {
+        apply(current);
+        if (steps[0].delay > 0) timer = setTimeout(() => advance(1), steps[0].delay);
+        else advance(1);
+      } else advance(0);
     };
-
-    const runEnd = (sequence, onComplete) => {
-      const steps = Array.isArray(sequence) ? sequence.map(adapter.normaliseStep) : [];
-      if (!steps.length) { onComplete?.(); return; }
-      cancel();
-      const runToken = token;
-      let current = active || adapter.getPosition(steps[0].position);
-      const advance = index => {
-        if (runToken !== token) return;
-        if (index >= steps.length) { active = current; onComplete?.(); return; }
-        const step = steps[index];
-        const target = adapter.getPosition(step.position);
-        const start = current;
-        const finish = () => {
-          if (runToken !== token) return;
-          current = target;
-          active = target;
-          if (step.delay > 0) timer = setTimeout(() => advance(index + 1), step.delay);
-          else advance(index + 1);
-        };
-        if (step.duration <= 0 || adapter.positionsEqual?.(start, target)) {
-          adapter.applyPosition(target, true);
-          finish();
-          return;
-        }
-        const easing = adapter.easing(step.easing);
-        const started = performance.now();
+    const runner = {
+      configure(raw) { positions = RTSAnimationEngine.getPositions(raw, {}); },
+      resolve,
+      apply,
+      transition(from, to, duration, easing, complete) {
+        cancel();
+        const start = RTSAnimationEngine.normalisePosition(from);
+        const end = RTSAnimationEngine.normalisePosition(to);
+        const ms = Math.max(0, Number(duration) || 0);
+        const equal = RTSAnimationEngine.positionsEqual(start, end);
+        if (!ms || equal) { apply(end); complete?.(); return; }
+        const runToken = token, ease = RTSAnimationEngine.easing(easing), started = performance.now();
+        apply(start);
         const draw = now => {
           if (runToken !== token) return;
-          const raw = Math.min(1, Math.max(0, (now - started) / step.duration));
-          adapter.applyPosition(adapter.interpolatePosition(start, target, easing(raw)), true);
-          if (raw < 1) frame = requestAnimationFrame(draw);
-          else { frame = null; adapter.applyPosition(target, true); finish(); }
+          const progress = Math.min(1, Math.max(0, (now - started) / ms));
+          apply(RTSAnimationEngine.interpolatePosition(start, end, ease(progress)));
+          if (progress < 1) frame = requestAnimationFrame(draw);
+          else { frame = null; apply(end); complete?.(); }
         };
         frame = requestAnimationFrame(draw);
-      };
-      advance(0);
+      },
+      run(sequence, complete) { run(sequence, complete, false); },
+      runEnd(sequence, complete) { run(sequence, complete, true); },
+      cancel,
+      getActive: () => active,
+      setActive: value => { active = value; }
     };
-
-    return { cancel, run, runEnd, getActive: () => active, setActive: value => { active = value; } };
+    if (existingTarget) runnerRegistry.set(existingTarget, runner);
+    return runner;
   }
 };
-
 window.RTSAnimationEngine = RTSAnimationEngine;

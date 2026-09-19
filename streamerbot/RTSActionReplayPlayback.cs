@@ -18,15 +18,12 @@ public class CPHInline
     private const string KickFolderKey = "rts.actionreplay.kick.folder";
     private const string KickMappingKey = "rts.actionreplay.kick.httpMapping";
     private const string KickModeKey = "rts.actionreplay.kick.playbackMode";
-    private const string AnimationAction = "RTS - Action Replay - Core - Animation";
-    private const string TitleAction = "RTS - Action Replay - Core - Title";
+    private const string ResolverAction = "RTS - Action Replay - Core - Resolver";
+    private const string PlayerOperationKey = "rts.actionreplay.operation.player";
     private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
     private const string CatalogAction = "RTS - Action Replay - Core - Catalog";
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
-    private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
-    private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
     private const string PlaybackProfileHandoffKey = "rts.actionreplay.handoff.playbackProfile";
-    private const string PlaybackTitleProfileHandoffKey = "rts.actionreplay.handoff.playbackTitleProfile";
     private const string PlaybackQueueEntryHandoffKey = "rts.actionreplay.handoff.playbackQueueEntryId";
     private const string PlayerPositionsHandoffKey = "rts.actionreplay.handoff.playerPositions";
 
@@ -88,10 +85,8 @@ public class CPHInline
         CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay resolved replayId={(string)replay["id"]}; title={(string)replay["title"]}; queueEntryId={queueEntryId ?? "<none>"}.");
         if (string.IsNullOrWhiteSpace(queueEntryId))
         {
-            CPH.SetGlobalVar(ReplayIdHandoffKey, (string)replay["id"] ?? "", false); CPH.SetGlobalVar(EntryPointHandoffKey, "catalog", false); CPH.UnsetGlobalVar(ResolvedProfileHandoffKey, false); CPH.SetArgument("replayTitleEntryPoint", "catalog");
-            CPH.LogInfo("RTS Action Replay TRACE: PlayReplay catalog path; resolving catalog animation and title profiles.");
-            if (!CPH.ExecuteMethod(AnimationAction, "ResolveEntryPointProfile")) { CPH.LogWarn("RTS Action Replay TRACE: PlayReplay failed - ResolveEntryPointProfile returned false."); return false; }
-            if (!CPH.ExecuteMethod(TitleAction, "ResolveEntryPointProfile")) { CPH.LogWarn("RTS Action Replay TRACE: PlayReplay failed - title ResolveEntryPointProfile returned false."); return false; }
+            CPH.SetGlobalVar(ReplayIdHandoffKey, (string)replay["id"] ?? "", false);
+            CPH.LogInfo("RTS Action Replay TRACE: PlayReplay selection path; handing replay to playlist for resolver configuration.");
             return CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay");
         }
 
@@ -108,29 +103,59 @@ public class CPHInline
         CPH.SetArgument("replayCommand", "load"); CPH.SetArgument("replayId", (string)replay["id"]); CPH.SetArgument("replayUrl", url); CPH.SetArgument("replayAutoplay", true); CPH.SetArgument("replayQueueEntryId", queueEntryId); CPH.SetArgument("replayUserId", userId ?? ""); CPH.SetArgument("replayUserName", userName ?? ""); CPH.SetArgument("replayDirector", creatorName);
         CPH.SetArgument("replayNumber", Array.IndexOf(list.ToArray(), replay) + 1); CPH.SetArgument("replayTitle", (string)replay["title"] ?? ""); CPH.SetArgument("replayPlayedCount", ((int?)replay["plays"] ?? 0) + 1); CPH.SetArgument("replaySource", source); CPH.SetArgument("replaySourceId", (string)replay["sourceId"] ?? "");
         if (string.Equals(source, "YouTube", StringComparison.OrdinalIgnoreCase)) { CPH.SetArgument("replayStartTime", (long?)replay["startTime"] ?? 0); CPH.SetArgument("replayDuration", (int?)replay["duration"] ?? 0); }
-        var profile = CPH.TryGetArg("replayAnimationProfileId", out string requestedProfile) && !string.IsNullOrWhiteSpace(requestedProfile) ? requestedProfile.Trim() : CPH.GetGlobalVar<string>(PlaybackProfileHandoffKey, false); if (string.IsNullOrWhiteSpace(profile)) profile = "default";
-        var titleProfile = CPH.TryGetArg("replayTitleProfileId", out string requestedTitleProfile) && !string.IsNullOrWhiteSpace(requestedTitleProfile) ? requestedTitleProfile.Trim() : CPH.GetGlobalVar<string>(PlaybackTitleProfileHandoffKey, false); if (string.IsNullOrWhiteSpace(titleProfile)) titleProfile = "default";
-        CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay dispatching load; replayId={(string)replay["id"]}; url={url}; animationProfile={profile}; titleProfile={titleProfile}; queueEntryId={queueEntryId}; source={source}.");
-        if (!ApplyPlayerSettings(profile)) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - animation profile '{profile}' could not be applied."); return false; }
-        if (!ApplyTitleSettings(titleProfile)) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - title profile '{titleProfile}' could not be applied."); return false; }
-        CPH.TriggerEvent(EventName, true); SendMessage("play"); CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay completed dispatch for replay {(string)replay["id"]}."); return true;
+        var profile = CPH.TryGetArg("replayAnimationProfileId", out string requestedProfile) && !string.IsNullOrWhiteSpace(requestedProfile)
+            ? requestedProfile.Trim() : CPH.GetGlobalVar<string>(PlaybackProfileHandoffKey, false);
+        if (string.IsNullOrWhiteSpace(profile)) profile = "default";
+        var designProfile = CPH.TryGetArg("designPreset", out string requestedDesign) && !string.IsNullOrWhiteSpace(requestedDesign) ? requestedDesign.Trim() : "broadcast";
+        var titleProfile = CPH.TryGetArg("titlePreset", out string requestedTitle) && !string.IsNullOrWhiteSpace(requestedTitle) ? requestedTitle.Trim() : "default";
+        var brandingProfile = CPH.TryGetArg("brandingPreset", out string requestedBranding) && !string.IsNullOrWhiteSpace(requestedBranding) ? requestedBranding.Trim() : "default";
+        var operation = new JObject {
+            ["replayCommand"] = "load",
+            ["replayId"] = (string)replay["id"],
+            ["replayUrl"] = url,
+            ["replayAutoplay"] = true,
+            ["replayQueueEntryId"] = queueEntryId ?? "",
+            ["replayUserId"] = userId ?? "",
+            ["replayUserName"] = userName ?? "",
+            ["replayDirector"] = creatorName,
+            ["replayNumber"] = Array.IndexOf(list.ToArray(), replay) + 1,
+            ["replayTitle"] = (string)replay["title"] ?? "",
+            ["replayPlayedCount"] = ((int?)replay["plays"] ?? 0) + 1,
+            ["replaySource"] = source,
+            ["replaySourceId"] = (string)replay["sourceId"] ?? "",
+            ["animationProfileId"] = profile,
+            ["designPresetId"] = designProfile,
+            ["titlePresetId"] = titleProfile,
+            ["brandingPresetId"] = brandingProfile
+        };
+        if (string.Equals(source, "YouTube", StringComparison.OrdinalIgnoreCase)) {
+            operation["replayStartTime"] = (long?)replay["startTime"] ?? 0;
+            operation["replayDuration"] = (int?)replay["duration"] ?? 0;
+        }
+        CPH.SetGlobalVar(PlayerOperationKey, operation.ToString(Newtonsoft.Json.Formatting.None), false);
+        CPH.LogInfo($"RTS Action Replay TRACE: PlayReplay dispatching resolved operation; replayId={(string)replay["id"]}; url={url}; animationProfile={profile}; designPreset={designProfile}; brandingPreset={brandingProfile}; queueEntryId={queueEntryId}; source={source}.");
+        var resolved = CPH.ExecuteMethod(ResolverAction, "ResolvePlayer");
+        if (resolved) SendMessage("play");
+        CPH.LogInfo($"RTS Action Replay: PlayReplay completed dispatch for replay {(string)replay["id"]}.");
+        return resolved;
     }
 
-    private bool TryParseUserSelection(string selector, out string platform, out string userName, out int index)
+    private bool TryParseUserSelection(string input, out string platform, out string userName, out int index)
     {
-        platform = ""; userName = ""; index = 0;
-        var parts = (selector ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        platform = null; userName = null; index = 0;
+        var parts = (input ?? "").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length != 2 || !int.TryParse(parts[1], out index) || index < 1) return false;
-        var target = parts[0].Trim(); if (string.IsNullOrWhiteSpace(target)) return false;
-        platform = Arg("userType"); userName = target;
-        var separator = target.IndexOf(':');
-        if (separator > 0)
-        {
-            var prefix = target.Substring(0, separator); var name = target.Substring(separator + 1).Trim();
-            if (!prefix.Equals("twitch", StringComparison.OrdinalIgnoreCase) && !prefix.Equals("kick", StringComparison.OrdinalIgnoreCase) && !prefix.Equals("youtube", StringComparison.OrdinalIgnoreCase)) return false;
-            platform = prefix; userName = name;
-        }
-        return !string.IsNullOrWhiteSpace(userName);
+        var target = parts[0]; var separator = target.IndexOf(':');
+        if (separator <= 0 || separator == target.Length - 1) return false;
+        platform = target.Substring(0, separator).Trim();
+        userName = target.Substring(separator + 1).Trim();
+        if (!string.Equals(platform, "Twitch", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(platform, "Kick", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(platform, "YouTube", StringComparison.OrdinalIgnoreCase)) return false;
+        if (string.IsNullOrWhiteSpace(userName)) return false;
+        platform = string.Equals(platform, "YouTube", StringComparison.OrdinalIgnoreCase) ? "YouTube" :
+            string.Equals(platform, "Kick", StringComparison.OrdinalIgnoreCase) ? "Kick" : "Twitch";
+        return true;
     }
 
     private string ResolveReplayUrl(JObject replay)
@@ -147,13 +172,16 @@ public class CPHInline
     private string ResolveKickUrl(JObject replay)
     {
         var mode = GetKickPlaybackMode();
+        var acquisition = (string)replay["acquisitionMethod"] ?? "<missing>";
+        CPH.LogInfo($"RTS Action Replay TRACE: Kick media resolution starting; replayId={(string)replay["id"]}; acquisition={acquisition}; sourceId={(string)replay["sourceId"] ?? "<missing>"}; sourceUrl={(string)replay["sourceUrl"] ?? "<missing>"}; mode={mode}.");
         if (ModeNeedsLocalCopy(mode))
         {
             var localPath = (string)replay["filePath"]; if (string.IsNullOrWhiteSpace(localPath)) localPath = (string)replay["file"];
             var folder = CPH.GetGlobalVar<string>(KickFolderKey, true);
-            if (!string.IsNullOrWhiteSpace(localPath)) { var fullPath = Path.IsPathRooted(localPath) ? localPath : Path.Combine(folder ?? "", localPath); if (File.Exists(fullPath)) return BuildKickHttpUrl(Path.GetFileName(fullPath)); }
+            if (!string.IsNullOrWhiteSpace(localPath)) { var fullPath = Path.IsPathRooted(localPath) ? localPath : Path.Combine(folder ?? "", localPath); if (File.Exists(fullPath)) { var localUrl = BuildKickHttpUrl(Path.GetFileName(fullPath)); CPH.LogInfo($"RTS Action Replay TRACE: Kick local media found; path={fullPath}; url={localUrl}."); return localUrl; } }
         }
         var mediaUrl = ResolveKickMediaUrl(replay);
+        CPH.LogInfo($"RTS Action Replay TRACE: Kick media resolver returned {(string.IsNullOrWhiteSpace(mediaUrl) ? "<null>" : mediaUrl)}; hls={IsHlsUrl(mediaUrl)}.");
         if (string.IsNullOrWhiteSpace(mediaUrl)) return null;
         if (!ModeNeedsLocalCopy(mode)) return mediaUrl;
         var downloaded = DownloadKickClip(replay, mediaUrl);
@@ -269,6 +297,4 @@ public class CPHInline
     private bool PathsEqual(string a, string b) => string.Equals(Path.GetFullPath(a ?? "").TrimEnd(Path.DirectorySeparatorChar), Path.GetFullPath(b ?? "").TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase);
     private string Sanitize(string value) { foreach (var c in Path.GetInvalidFileNameChars()) value = value.Replace(c, '_'); return value; }
     private string GetTwitchPlaybackMode() => CPH.GetGlobalVar<string>(TwitchModeKey, true) ?? "Twitch URL";
-    private bool ApplyPlayerSettings(string profile) { CPH.SetArgument("replayAnimationProfileId", profile); var applied = CPH.ExecuteMethod(AnimationAction, "ApplyProfile"); CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false) ?? ""); return applied; }
-    private bool ApplyTitleSettings(string profile) { CPH.SetArgument("replayTitleProfileId", profile); return CPH.ExecuteMethod(TitleAction, "ApplyProfile"); }
 }

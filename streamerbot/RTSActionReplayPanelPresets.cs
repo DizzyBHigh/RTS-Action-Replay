@@ -4,7 +4,6 @@ public class CPHInline
 {
     private const string PanelKey = "rts.actionreplay.config.panel";
     private const string Prefix = "rts.actionreplay.panel.";
-    private const string BroadcastPrefix = "rts.actionreplay.broadcast.";
 
     public bool Execute()
     {
@@ -42,26 +41,9 @@ public class CPHInline
 
     public bool Apply()
     {
-        CPH.TryGetArg("replayPanelPreset", out string resolvedPreset);
-        var preset = string.IsNullOrWhiteSpace(resolvedPreset) ? CPH.GetGlobalVar<string>(Prefix + "preset", true) : resolvedPreset;
-        CPH.SetArgument("replayPanelPreset", string.IsNullOrWhiteSpace(preset) ? "Broadcast" : preset);
-        CPH.SetArgument("replayPanelPrimaryColor", GetString("primaryColor", "#0384CBFF"));
-        CPH.SetArgument("replayPanelSecondaryColor", GetString("secondaryColor", "#101416FF"));
-        CPH.SetArgument("replayPanelTitleFont", GetString("titleFont", "Inter"));
-        CPH.SetArgument("replayPanelTitleSize", CPH.GetGlobalVar<int?>(Prefix + "titleSize", true) ?? 24);
-        CPH.SetArgument("replayPanelTitleColor", GetString("titleColor", "#FFFFFFFF"));
-        CPH.SetArgument("replayPanelListSize", CPH.GetGlobalVar<int?>(Prefix + "listSize", true) ?? 15);
-        CPH.SetArgument("replayPanelListColor", GetString("listColor", "#FFFFFFFF"));
-        CPH.SetArgument("replayBroadcastPrimaryColor", GetString(BroadcastPrefix + "primaryColor", "#0384CBFF"));
-        CPH.SetArgument("replayBroadcastSecondaryColor", GetString(BroadcastPrefix + "secondaryColor", "#FFD400FF"));
-        CPH.SetArgument("replayBroadcastChevronHeight", CPH.GetGlobalVar<int?>(BroadcastPrefix + "chevronHeight", true) ?? 42);
-        CPH.SetArgument("replayBroadcastRandomHeight", CPH.GetGlobalVar<bool?>(BroadcastPrefix + "randomHeight", true) ?? false);
-        CPH.SetArgument("replayBroadcastChevronWidth", CPH.GetGlobalVar<int?>(BroadcastPrefix + "chevronWidth", true) ?? 42);
-        CPH.SetArgument("replayBroadcastRandomWidth", CPH.GetGlobalVar<bool?>(BroadcastPrefix + "randomWidth", true) ?? false);
-        CPH.SetArgument("replayBroadcastChevronSpacing", CPH.GetGlobalVar<int?>(BroadcastPrefix + "chevronSpacing", true) ?? 0);
-        CPH.SetArgument("replayBroadcastRandomSpacing", CPH.GetGlobalVar<bool?>(BroadcastPrefix + "randomSpacing", true) ?? false);
-        CPH.SetArgument("replayBroadcastChevronSpeed", CPH.GetGlobalVar<int?>(BroadcastPrefix + "chevronSpeed", true) ?? 95);
-        return true;
+        var panelType = CPH.TryGetArg("panelType", out string requested) && !string.IsNullOrWhiteSpace(requested) ? requested.Trim() : "recent";
+        CPH.SetGlobalVar("rts.actionreplay.operation.panel", new JObject { ["panelType"] = panelType, ["triggerEvent"] = false }.ToString(Newtonsoft.Json.Formatting.None), false);
+        return CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolvePanel");
     }
 
     public void Preview()
@@ -78,6 +60,4 @@ public class CPHInline
         CPH.SetArgument("replayPanelHeight", (int?)panel["height"] ?? 700);
         CPH.TriggerEvent("RTS-Action Replay", true);
     }
-
-    private string GetString(string name, string fallback) => CPH.GetGlobalVar<string>(Prefix + name, true) ?? fallback;
 }

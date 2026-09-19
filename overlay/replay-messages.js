@@ -1,4 +1,21 @@
 const RTSReplayMessages = window.RTSReplay;
+let clapperRunner = null;
+
+const getClapperRunner = command => {
+  if (!clapperRunner) clapperRunner = RTSAnimationEngine.createRunner({
+    target: RTSReplayMessages.messageCard,
+    defaultPosition: { scale: 50, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, fov: 90 }
+  });
+  clapperRunner.configure(command?.replayClapperPositions);
+  return clapperRunner;
+};
+
+const runClapper = (command, sequence, complete, end = false) => {
+  const runner = getClapperRunner(command);
+  if (!Array.isArray(sequence) || !sequence.length) { complete?.(); return; }
+  if (end) runner.runEnd(sequence, complete);
+  else runner.run(sequence, complete);
+};
 
 function cssColor(value, fallback) {
   const text = String(value || '').trim();
@@ -28,7 +45,8 @@ RTSReplayMessages.applyMessageStyle = command => {
   style.setProperty('--accent-color', cssColor(command.replayMessageAccent, '#0384CB'));
   style.setProperty('--message-color', cssColor(command.replayMessageTextColor, '#0384CB'));
   style.setProperty('--message-font', `'${font.replace(/'/g, "\\'")}', Arial, sans-serif`);
-  RTSReplayClapper.applyPosition(command, command.replayClapperPosition || 'Centered');
+  const runner = getClapperRunner(command);
+  runner.apply(runner.resolve(command.replayClapperPosition || 'Centered'));
   loadGoogleFont(font);
 };
 
@@ -58,6 +76,50 @@ RTSReplayMessages.showMessage = command => {
   }
 
   clearTimeout(RTSReplayMessages.messageTimer);
-  RTSReplayClapperAnimation.show(command);
-  RTSReplayMessages.messageTimer = setTimeout(() => RTSReplayClapperAnimation.hide(command), RTSReplayMessages.config.messageDuration);
+  const profile = RTSAnimationEngine.readProfile(command.replayClapperAnimation);
+  const start = profile?.start;
+  RTSReplayMessages.messageCard.classList.remove('show');
+  void RTSReplayMessages.messageCard.offsetWidth;
+  RTSReplayMessages.messageCard.classList.add('show');
+  RTSReplayMessages.messageCard.setAttribute('aria-hidden', 'false');
+  if (Array.isArray(start) && start.length) {
+    runClapper(command, start, () => {
+      const stick = RTSReplayMessages.messageCard.querySelector('.clapstick');
+      if (stick) { stick.classList.remove('clap'); void stick.offsetWidth; stick.classList.add('clap'); }
+    });
+  } else {
+    const stick = RTSReplayMessages.messageCard.querySelector('.clapstick');
+    if (stick) { stick.classList.remove('clap'); void stick.offsetWidth; stick.classList.add('clap'); }
+  }
+  RTSReplayMessages.messageTimer = setTimeout(() => {
+    const profile = RTSAnimationEngine.readProfile(command.replayClapperAnimation);
+    const end = profile?.end;
+    if (Array.isArray(end) && end.length) {
+      runClapper(command, end, () => {
+        RTSReplayMessages.messageCard.classList.remove('show');
+        RTSReplayMessages.messageCard.setAttribute('aria-hidden', 'true');
+      }, true);
+    } else {
+      getClapperRunner(command).cancel();
+      RTSReplayMessages.messageCard.classList.remove('show');
+      RTSReplayMessages.messageCard.setAttribute('aria-hidden', 'true');
+    }
+  }, RTSReplayMessages.config.messageDuration);
+};
+
+
+RTSReplayMessages.hideMessage = command => {
+  clearTimeout(RTSReplayMessages.messageTimer);
+  const profile = RTSAnimationEngine.readProfile(command?.replayClapperAnimation);
+  const end = profile?.end;
+  if (Array.isArray(end) && end.length) {
+    runClapper(command || {}, end, () => {
+      RTSReplayMessages.messageCard.classList.remove('show');
+      RTSReplayMessages.messageCard.setAttribute('aria-hidden', 'true');
+    }, true);
+  } else {
+    getClapperRunner(command || {}).cancel();
+    RTSReplayMessages.messageCard.classList.remove('show');
+    RTSReplayMessages.messageCard.setAttribute('aria-hidden', 'true');
+  }
 };

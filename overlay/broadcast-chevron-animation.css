@@ -25,6 +25,7 @@
 }
 
 #player-title.title-broadcast .broadcast-chevron {
+  display: block;
   position: absolute;
   top: 50%;
   left: 0;
@@ -37,8 +38,4 @@
   color: var(--chevron-color, #0384CB);
   transform: translateY(-50%);
   opacity: 1;
-}
-
-@media(prefers-reduced-motion:reduce){
-  #player-title.title-broadcast .broadcast-chevron{display:none}
 }
