@@ -39,7 +39,7 @@ public class CPHInline
         ApplyObject(op); var config=Read(PanelKey); var type=(string)op["panelType"]??"recent"; var entry=Entry(config,type);
         var animation=Animation(config,"panel",(string)entry["animationProfile"]);
         ApplyPresentation((string)entry["designPreset"]??(string)entry["visualPreset"]??"broadcast",(string)entry["titlePreset"]??"default",(string)entry["brandingPreset"]??"default",animation,true);
-        CPH.TriggerEvent(EventName,true); CPH.UnsetGlobalVar(PanelOperationKey,false); return true;
+        if((bool?)op["triggerEvent"]!=false) CPH.TriggerEvent(EventName,true); CPH.UnsetGlobalVar(PanelOperationKey,false); return true;
     }
 
     JObject Entry(JObject config,string id)
