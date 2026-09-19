@@ -155,7 +155,8 @@ public class CPHInline
             !string.Equals(platform, "Kick", StringComparison.OrdinalIgnoreCase) &&
             !string.Equals(platform, "YouTube", StringComparison.OrdinalIgnoreCase)) return false;
         if (string.IsNullOrWhiteSpace(userName)) return false;
-        platform = NormalizePlatform(platform);
+        platform = string.Equals(platform, "YouTube", StringComparison.OrdinalIgnoreCase) ? "YouTube" :
+            string.Equals(platform, "Kick", StringComparison.OrdinalIgnoreCase) ? "Kick" : "Twitch";
         return true;
     }
 
