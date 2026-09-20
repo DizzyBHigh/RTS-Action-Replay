@@ -32,6 +32,20 @@ RTSInformationPanels.applySize = (panel, command) => {
   }
 };
 
+RTSInformationPanels.applyMessageSize = (panel, command) => {
+  if (!panel) return;
+  const width = Number(command?.replayMessageMinWidth);
+  const height = Number(command?.replayMessageMinHeight);
+  const radius = Number(command?.replayMessageCornerRadius);
+  panel.style.width = 'auto';
+  panel.style.height = 'auto';
+  if (Number.isFinite(width) && width > 0) panel.style.minWidth = `${width}px`;
+  if (Number.isFinite(height) && height > 0) panel.style.minHeight = `${height}px`;
+  if (Number.isFinite(radius) && radius >= 0) panel.style.borderRadius = `${radius}px`;
+  panel.style.maxWidth = 'calc(100vw - 30px)';
+  panel.style.maxHeight = 'none';
+};
+
 RTSInformationPanels.getViewportOffset = position => {
   const screen = document.getElementById('rts-dev-screen');
   if (!screen) return null;
