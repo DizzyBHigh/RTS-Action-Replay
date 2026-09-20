@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 
 public class CPHInline
 {
+    // Core Playlist action. Public methods are the Streamer.bot entry points documented in docs/Commands.md.
     private const string QueueKey = "rts.actionreplay.playlist";
     private const string PersistKey = "rts.actionreplay.playlistPersist";
     private const string PausedKey = "rts.actionreplay.playlistPaused";
@@ -20,6 +21,7 @@ public class CPHInline
 
     public bool Execute() => View();
 
+    // Queue a replay selected by another Action Replay action, resolving its presentation settings first.
     public bool EnqueueCurrentReplay()
     {
         CPH.LogInfo("RTS Action Replay TRACE: EnqueueCurrentReplay entered.");
@@ -44,6 +46,7 @@ public class CPHInline
         return true;
     }
 
+    // Display the current queue in chat and optionally on the overlay playlist panel.
     public bool View()
     {
         var queue = LoadQueue();
@@ -54,6 +57,7 @@ public class CPHInline
         return true;
     }
 
+    // Remove waiting items while preserving the currently active playlist item.
     public bool Clear()
     {
         var queue = LoadQueue(); var activeId = ActiveId(); var cleared = 0;
@@ -65,11 +69,13 @@ public class CPHInline
         SaveQueueAndClearOtherStore(queue); CPH.LogInfo($"RTS Action Replay: playlist Clear removed {cleared} waiting item(s); active={(string.IsNullOrWhiteSpace(activeId) ? "<none>" : activeId)}; remaining={queue.Count}."); SendPlaylistMessage(queue.Count == 0 ? "Playlist cleared." : "Playlist cleared; active replay retained."); return true;
     }
 
+    // Remove every playlist item and reset playlist pause/active state without stopping playback.
     public bool ClearAll()
     {
         var queue = LoadQueue(); var cleared = queue.Count; queue.Clear(); SaveQueueAndClearOtherStore(queue); CPH.SetGlobalVar(ActiveKey, "", false); CPH.SetGlobalVar(PausedKey, false, false); CPH.LogInfo($"RTS Action Replay: playlist ClearAll removed {cleared} item(s); active playback was not stopped; playlist pause state reset."); SendPlaylistMessage("Playlist completely cleared."); return true;
     }
 
+    // Remove a waiting playlist item by its one-based position.
     public bool Remove()
     {
         if (!CPH.TryGetArg("rawInput", out string input) || !int.TryParse(input, out var index)) return false;
@@ -77,8 +83,10 @@ public class CPHInline
         queue.RemoveAt(index - 1); SaveQueue(queue); return true;
     }
 
+    // Pause automatic progression; the currently playing replay continues.
     public bool Pause() { CPH.SetGlobalVar(PausedKey, true, false); return true; }
 
+    // Resume automatic progression and start the next queued replay when nothing is active.
     public bool Resume()
     {
         CPH.SetGlobalVar(PausedKey, false, false); var queue = LoadQueue();
@@ -86,6 +94,7 @@ public class CPHInline
         return PlayNext(queue);
     }
 
+    // Complete the active queue entry and advance to the next replay when appropriate.
     public bool PlaybackEnded()
     {
         CPH.LogInfo("RTS Action Replay TRACE: PlaybackEnded entered.");
