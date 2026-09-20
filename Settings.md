@@ -130,3 +130,36 @@ For example:
 creates a 45-second Twitch clip.
 
 The duration setting is only the default; it does not limit the length of every Twitch clip that has already been added to the catalog.
+## YouTube
+
+### YouTube Clips
+
+YouTube clips are created as timestamped clips from the current live broadcast. There is one setting for this section: the default clip duration.
+
+| Setting | What it does | Default |
+|---|---|---|
+| **Clip Duration** | Default length used by `!Create-clip` when no duration is supplied. | `30` seconds |
+
+### Clip Duration
+
+This is the default length used when `!Create-clip` is used without specifying a duration.
+
+The allowed range is 5 to 60 seconds. If a duration is included with the command, that value is used instead, within the same range.
+
+For example:
+
+`!Create-clip`
+
+uses the configured default.
+
+`!Create-clip 45`
+
+creates a 45-second clip.
+
+A title can also be supplied after the duration:
+
+`!Create-clip 45 Great moment`
+
+The clip is created from the current YouTube broadcast. Action Replay uses the recorded broadcast start time to work out the timestamp for the requested clip.
+
+If Action Replay cannot identify the current broadcast or its start time, the clip cannot be created.
