@@ -223,3 +223,80 @@ A title can be supplied after the duration:
 `!create-clip 45 Great moment`
 
 KickBot requests are limited to 5–240 seconds by the command parser. The locally configured **Kick Clip Playback** mode determines how the resulting clip is made available to Action Replay.
+
+## Player
+
+### Playback
+
+The Playback settings control the player itself and the default speed used when a replay is loaded.
+
+| Setting | What it does | Default |
+|---|---|---|
+| **Show Controls** | Shows the player status bar on the overlay. The bar is visual only and is not interactive. | Off |
+| **Show Progress Bar** | Shows the playback progress bar. It is visual only. | On |
+| **Default Playback Speed** | Speed used when a replay is loaded. `1.0` is normal speed. | `1.0` |
+| **Show Visibility** | Controls when the playback speed indicator is shown. | `Only when greater or less than 1` |
+
+### Show Controls
+
+When enabled, the player displays its status bar. The controls are for display only; they are not clickable controls for the viewer.
+
+### Show Progress Bar
+
+Controls the visibility of the non-interactive progress bar shown during playback.
+
+### Default Playback Speed
+
+Sets the speed used when a replay is loaded. The available range is 0.25 to 2.0, in 0.25 steps.
+
+Examples:
+
+- `0.5` — half speed
+- `1.0` — normal speed
+- `2.0` — double speed
+
+The setting is the starting playback speed. It does not prevent the video speed from being changed later with the video speed command.
+
+### Show Visibility
+
+Choose when the playback speed indicator is displayed:
+
+- **Always** — show the indicator at all times.
+- **Only when greater or less than 1** — show it when playback is slower or faster than normal speed.
+- **Never** — don't show the indicator.
+
+### Player Appearance
+
+These settings control the frame around the replay player.
+
+| Setting | What it does | Default |
+|---|---|---|
+| **Frame Colour Source** | Chooses the source of the player frame colour. | `Custom` |
+| **Frame Colour** | Custom frame colour used when Frame Colour Source is set to Custom. | `#0384CBFF` |
+| **Border Glow** | Adds a branded glow around the player border. | On |
+| **Border Width** | Width of the player border in pixels. | `4` |
+| **Corner Radius** | Rounds the player corners by the specified number of pixels. | `0` |
+
+### Frame Colour Source
+
+There are three choices:
+
+- **Custom** — use the colour selected in Frame Colour.
+- **Branding Primary** — use the active Branding Preset primary colour.
+- **Branding Secondary** — use the active Branding Preset secondary colour.
+
+### Frame Colour
+
+Sets the custom player frame colour. This is used when **Frame Colour Source** is set to **Custom**.
+
+### Border Glow
+
+Adds a glow effect around the player border using the active player frame styling.
+
+### Border Width
+
+Sets the player border width from 0 to 12 pixels.
+
+### Corner Radius
+
+Sets how rounded the player corners are, from 0 to 48 pixels. `0` leaves the corners square.
