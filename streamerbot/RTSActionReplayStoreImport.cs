@@ -13,33 +13,13 @@ public class CPHInline
     public bool AddReplay()
     {
         var input = Arg("rawInput").Trim();
-        if (string.IsNullOrWhiteSpace(input))
-        {
-            CPH.SendMessage("Please provide a replay filename.");
-            return false;
-        }
-
+        if (string.IsNullOrWhiteSpace(input)) { CPH.SendMessage("Please provide a replay filename."); return false; }
         var folder = ReplayFolder();
-        if (string.IsNullOrWhiteSpace(folder))
-        {
-            CPH.SendMessage("The Replay Folder is not configured.");
-            return false;
-        }
-
+        if (string.IsNullOrWhiteSpace(folder)) { CPH.SendMessage("The Replay Folder is not configured."); return false; }
         var fileName = Path.GetFileName(input);
-        if (!string.Equals(fileName, input, StringComparison.OrdinalIgnoreCase))
-        {
-            CPH.SendMessage("Please provide a filename from the configured Replay Folder.");
-            return false;
-        }
-
+        if (!string.Equals(fileName, input, StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage("Please provide a filename from the configured Replay Folder."); return false; }
         var path = Path.Combine(folder, fileName);
-        if (!TryAddFile(path, out var result))
-        {
-            CPH.SendMessage(result);
-            return false;
-        }
-
+        if (!TryAddFile(path, out var result)) { CPH.SendMessage(result); return false; }
         CPH.SendMessage(result);
         return true;
     }
@@ -47,17 +27,8 @@ public class CPHInline
     public bool ScanReplays()
     {
         var folder = ReplayFolder();
-        if (string.IsNullOrWhiteSpace(folder))
-        {
-            CPH.SendMessage("The Replay Folder is not configured.");
-            return false;
-        }
-
-        if (!Directory.Exists(folder))
-        {
-            CPH.SendMessage("The configured Replay Folder does not exist.");
-            return false;
-        }
+        if (string.IsNullOrWhiteSpace(folder)) { CPH.SendMessage("The Replay Folder is not configured."); return false; }
+        if (!Directory.Exists(folder)) { CPH.SendMessage("The configured Replay Folder does not exist."); return false; }
 
         var added = 0;
         var skipped = 0;
@@ -65,10 +36,8 @@ public class CPHInline
         {
             if (!IsReplayFile(path)) continue;
             if (IsCataloged(path)) { skipped++; continue; }
-
             if (TryAddFile(path, out _)) added++;
         }
-
         CPH.SendMessage($"Replay scan complete: {added} added, {skipped} already in the Catalog.");
         return true;
     }
@@ -76,32 +45,14 @@ public class CPHInline
     private bool TryAddFile(string path, out string result)
     {
         result = "";
-        if (!File.Exists(path) || !IsReplayFile(path))
-        {
-            result = "Replay file was not found or its file type is not enabled.";
-            return false;
-        }
+        if (!File.Exists(path) || !IsReplayFile(path)) { result = "Replay file was not found or its file type is not enabled."; return false; }
 
         var folder = ReplayFolder();
         var fullPath = Path.GetFullPath(path);
         var root = Path.GetFullPath(folder).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
-        if (!fullPath.StartsWith(root, StringComparison.OrdinalIgnoreCase))
-        {
-            result = "The replay must be inside the configured Replay Folder.";
-            return false;
-        }
-
-        if (!Stable(path))
-        {
-            result = "The replay file is still changing. Try again when it has finished saving.";
-            return false;
-        }
-
-        if (IsCataloged(path))
-        {
-            result = $"Replay is already in the Catalog: {Path.GetFileName(path)}";
-            return false;
-        }
+        if (!fullPath.StartsWith(root, StringComparison.OrdinalIgnoreCase)) { result = "The replay must be inside the configured Replay Folder."; return false; }
+        if (!Stable(path)) { result = "The replay file is still changing. Try again when it has finished saving."; return false; }
+        if (IsCataloged(path)) { result = $"Replay is already in the Catalog: {Path.GetFileName(path)}"; return false; }
 
         var data = Load();
         var catalog = GetCatalog(data);
@@ -112,23 +63,14 @@ public class CPHInline
         if (string.IsNullOrWhiteSpace(title)) title = Path.GetFileNameWithoutExtension(path);
 
         var id = captured.ToString("yyyyMMdd-HHmmssfff") + "-" + Guid.NewGuid().ToString("N").Substring(0, 6);
-        catalog.Insert(0, new JObject
-        {
-            ["id"] = id,
-            ["sourceType"] = "OBS",
-            ["sourceId"] = id,
-            ["file"] = Path.GetFileName(path),
-            ["filePath"] = fullPath,
-            ["title"] = title,
-            ["customTitle"] = false,
-            ["added"] = DateTime.Now.ToString("o"),
-            ["captured"] = captured.ToString("o"),
-            ["acquisitionMethod"] = "OBSReplayBufferImport",
+        catalog.Insert(0, new JObject {
+            ["id"] = id, ["sourceType"] = "OBS", ["sourceId"] = id,
+            ["file"] = Path.GetFileName(path), ["filePath"] = fullPath, ["title"] = title,
+            ["customTitle"] = false, ["added"] = DateTime.Now.ToString("o"),
+            ["captured"] = captured.ToString("o"), ["acquisitionMethod"] = "OBSReplayBufferImport",
             ["creator"] = new JObject { ["platform"] = "OBS", ["id"] = "", ["name"] = "Imported" },
-            ["plays"] = 0,
-            ["users"] = new JObject()
+            ["plays"] = 0, ["users"] = new JObject()
         });
-
         Save(data);
         result = $"Replay added to Catalog: {title}";
         CPH.LogInfo($"RTS Action Replay: imported {title} ({id})");
@@ -155,12 +97,7 @@ public class CPHInline
 
     private bool Stable(string path)
     {
-        try
-        {
-            var first = new FileInfo(path).Length;
-            System.Threading.Thread.Sleep(250);
-            return new FileInfo(path).Length == first;
-        }
+        try { var first = new FileInfo(path).Length; System.Threading.Thread.Sleep(250); return new FileInfo(path).Length == first; }
         catch { return false; }
     }
 
@@ -173,7 +110,7 @@ public class CPHInline
         catch { return new JObject(); }
     }
 
-    private void Save(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
+    private void Save(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None));
     private JArray GetCatalog(JObject data)
     {
         var catalog = data["catalog"] as JArray;
