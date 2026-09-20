@@ -1,29 +1,26 @@
 RTS - Action Replay
-RTS - Action Replay - Play History : Execute Method(RTS - Action Replay - Core - Catalog, PlayHistory) [Parameters: %rawInput% = history item number]
-RTS - Action Replay - Play Replay : Execute Method(RTS - Action Replay - Core - Playback, PlayReplay) [Parameters: %rawInput% = replay number, custom title, or platform:user number]
-RTS - Action Replay - Save Replay : Execute Method(RTS - Action Replay - Core - Playback, SaveReplay) [Parameters: %userId%, %userName% = requester context]
+RTS - Action Replay - Play History Item : Execute Method(RTS - Action Replay - Core - Catalog, PlayHistory) Commands: !play-history [Parameters: %rawInput% = history item number]
+RTS - Action Replay - Play Replay : Execute Method(RTS - Action Replay - Core - Playback, PlayReplay) Commands: !play-clip, !playclip, !play-replay, !playreplay [Parameters: %rawInput% = replay number, custom title, or platform:user number]
+RTS - Action Replay - Save Replay : Execute Method(RTS - Action Replay - Core - Playback, SaveReplay) Commands: !savereplay, !save-replay !createreplay, !create-replay, !save-clip, !saveclip, !clip-local, !cliplocal [Parameters: %userId%, %userName% = requester context]
 
 RTS - Action Replay - Catalog
-RTS - Action Replay - Catalog - First Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogFirst)
-RTS - Action Replay - Catalog - Last Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogLast)
-RTS - Action Replay - Catalog - List Recent : Execute Method(RTS - Action Replay - Core - Catalog, ListRecent) [Parameters: %rawInput% = optional --amount N]
-RTS - Action Replay - Catalog - Next Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogNext)
-RTS - Action Replay - Catalog - Playback History : Execute Method(RTS - Action Replay - Core - Catalog, ListLastPlayed) [Parameters: %rawInput% = optional --amount N]
-RTS - Action Replay - Catalog - Prev Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogPrevious)
-RTS - Action Replay - Catalog - Rate Replay : Execute Method(RTS - Action Replay - Core - Catalog, RateReplay) [Parameters: %rawInput% = rating 1-5; %userId% = rater identity]
-RTS - Action Replay - Catalog - Search : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalog) [Parameters: %rawInput% = search text and optional --amount N]
-RTS - Action Replay - Catalog - Search By Creator : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalogCreator) [Parameters: %rawInput% = creator and optional --amount N]
-RTS - Action Replay - Catalog - Search By Date : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalogDate) [Parameters: %rawInput% = date period and optional --amount N]
-RTS - Action Replay - Catalog - Search By Views : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalogMostViews) [Parameters: %rawInput% = optional --amount N]
-RTS - Action Replay - Catalog - Search Top Rated : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalogTopRated) [Parameters: %rawInput% = optional rating 0-5 and/or --amount N]
-RTS - Action Replay - Catalog - Top Creators: Execute Method(RTS - Action Replay - Core - Catalog, ListLeaderboard) [Parameters: %rawInput% = optional period and/or --amount N]
-RTS - Action Replay - Catalog - Search Panel Clear : Execute Method(RTS - Action Replay - Core - Search Queue, Clear)
+RTS - Action Replay - Catalog - First Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogFirst) Commands: !search-first
+RTS - Action Replay - Catalog - Last Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogLast) Commands: !search-last
+RTS - Action Replay - Catalog - List Last Played : Execute Method(RTS - Action Replay - Core - Catalog, ListLastPlayed) !last-played, !recently-played [Parameters: %rawInput% = optional --amount N]
+RTS - Action Replay - Catalog - List Recent : Execute Method(RTS - Action Replay - Core - Catalog, ListRecent) Commands: !search-recent [Parameters: %rawInput% = optional --amount N]
+RTS - Action Replay - Catalog - Next Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogNext) Commands: !search-next
+RTS - Action Replay - Catalog - Prev Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogPrevious) Commands: !search-prev
+RTS - Action Replay - Catalog - Rate Replay : Execute Method(RTS - Action Replay - Core - Catalog, RateReplay) Commands: !rate-clip, !rate-replay, !rate-video [Parameters: %rawInput% = rating 1-5; %userId% = rater identity]
+RTS - Action Replay - Catalog - Search : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalog) Commands: !search [Parameters: %rawInput% = search text and optional --amount N]
+RTS - Action Replay - Catalog - Search By Creator : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalogCreator) Commands: !search-creator, !creator-search [Parameters: %rawInput% = creator and optional --amount N]
+RTS - Action Replay - Catalog - Search By Date : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalogDate) Commands: !search-date, !date-search [Parameters: %rawInput% = date period and optional --amount N]
+RTS - Action Replay - Catalog - Search By Views : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalogMostViews) Commands: !search-views, !most-views [Parameters: %rawInput% = optional --amount N]
+RTS - Action Replay - Catalog - Search Top Rated : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalogTopRated) Commands: !search-rating [Parameters: %rawInput% = optional rating 0-5 and/or --amount N]
+RTS - Action Replay - Catalog - Top Creators: Execute Method(RTS - Action Replay - Core - Catalog, ListLeaderboard) Commands: !creator-leaderboard, !top-clippers, !top-creators [Parameters: %rawInput% = optional period and/or --amount N]
+RTS - Action Replay - Catalog - Search Panel Clear : Execute Method(RTS - Action Replay - Core - Search Queue, Clear)  
 RTS - Action Replay - Catalog - Search Panel Ended : Execute Method(RTS - Action Replay - Core - Search Queue, SearchPanelEnded)
 
 RTS - Action Replay - Core
-RTS - Action Replay - AddReplay: Execute Method (RTS - Action Replay - Core - Store, AddReplay) {}if (%replay% Equals "True") True Result (2): Execute Method(RTS - Action Replay - Core - Resolver, ResolveEntryPointProfile), Execute Method(RTS - Action Replay - Core - Playlist, EnqueueCurrentReplay) False Result(0): None
-
-
 RTS - Action Replay - Core - Catalog : Execute Code (RTS - Action Replay - Core - Catalog) - streamerbot/RTSActionReplayCatalog.cs
 RTS - Action Replay - Core - Playback : Execute Code (RTS - Action Replay - Core - Playback) - streamerbot/RTSActionReplayPlayback.cs
 RTS - Action Replay - Core - Playlist : Execute Code (RTS - Action Replay - Core - Playlist) - streamerbot/RTSActionReplayPlaylist.cs
@@ -37,37 +34,38 @@ RTS - Action Replay - Init Store : Execute Method (RTS - Action Replay - Core - 
 RTS - Action Replay - Core - Platforms : Execute Code (RTS - Action Replay - Core - Platforms) - streamerbot/RTSActionReplayPlatforms.cs
 
 RTS - Action Replay Kick
-RTS - Action Replay - Capture KickBot Clip : Execute Method (RTS - Action Replay - Core - Platforms, CaptureKickBotClip) [Parameters: %text%/%message%/%rawInput% = KickBot response containing clip URL] - 
-RTS - Action Replay - Capture Native Kick Clip : Execute Method (RTS - Action Replay - Core - Platforms, CaptureKickClip) [Parameters: %text%/%message%/%rawInput% = Kick clip URL; %userId%/%userName% = creator context]
-RTS - Action Replay - Create Kick Clip : Execute Method (RTS - Action Replay - Core - Platforms, RequestKickBotClip) [Parameters: %text%/%message%/%rawInput% = !create-clip [5-60] [title]]
+RTS - Action Replay - Capture KickBot Clip : Execute Method (RTS - Action Replay - Core - Platforms, CaptureKickBotClip)
+RTS - Action Replay - Capture Native Kick Clip : Execute Method (RTS - Action Replay - Core - Platforms, CaptureKickClip)
+RTS - Action Replay - Create Kick Clip : Execute Method (RTS - Action Replay - Core - Platforms, RequestKickBotClip) Commands: (kick chat only) !create-clip, !createclip [Parameters: %text%/%message%/%rawInput% = !create-clip [5-60] [title]]
 
 RTS - Action Replay - Playlist : 
-RTS - Action Replay - List Playlist : Execute Method (RTS - Action Replay - Core - Playlist, View)
-RTS - Action Replay - Playlist - Clear : Execute Method (RTS - Action Replay - Core - Playlist, Clear)
-RTS - Action Replay - Playlist - Clear All : Execute Method (RTS - Action Replay - Core - Playlist, ClearAll) 
-RTS - Action Replay - Playlist - Pause : Execute Method (RTS - Action Replay - Core - Playlist, Pause) 
+RTS - Action Replay - List Playlist : Execute Method (RTS - Action Replay - Core - Playlist, View) Commands: !playlist [Parameters: none]
+RTS - Action Replay - Playlist - Clear : Execute Method (RTS - Action Replay - Core - Playlist, Clear) Commands: !playlist-clear, !playlist-clear
+RTS - Action Replay - Playlist - Clear All : Execute Method (RTS - Action Replay - Core - Playlist, ClearAll) Commands: !playlist-clearall, !playlistclearall
+RTS - Action Replay - Playlist - Pause : Execute Method (RTS - Action Replay - Core - Playlist, Pause) Commands: !playlist-pause, !playlistpause
 RTS - Action Replay - Playlist - Playback Ended : Execute Method (RTS - Action Replay - Core - Playlist, PlaybackEnded) 
-RTS - Action Replay - Playlist - Remove : Execute Method (RTS - Action Replay - Core - Playlist, Remove) [Parameters: %rawInput% = playlist item number] 
-RTS - Action Replay - Playlist - Resume : Execute Method (RTS - Action Replay - Core - Playlist, Resume) 
+RTS - Action Replay - Playlist - Remove : Execute Method (RTS - Action Replay - Core - Playlist, Remove) Commands: !playlist-remove, !playlistremove [Parameters: %rawInput% = playlist item number]
+RTS - Action Replay - Playlist - Resume : Execute Method (RTS - Action Replay - Core - Playlist, Resume) Commands: !playlist-resume, !playlistresume
 
 RTS - Action Replay - Store
-RTS - Action Replay - Store - Name Replay : Execute Method (RTS - Action Replay - Core - Store, NameReplay) [Parameters: %input0% = replay number; %rawInput% = replay title]
-
+RTS - Action Replay - Store - Name Replay : Execute Method (RTS - Action Replay - Core - Store, NameReplay) Commands: !name-clip, !nameclip, !renameclip, !rename-clip [Parameters: %input0% = replay number; %rawInput% = replay title]
+RTS - Action Replay - Store - Show Creator Leaderboard : Execute Method (RTS - Action Replay - Core - Store, CreatorLeaderboard) Commands: !creator-leaderboard, !top-creators, !top-clippers
+RTS - Action Replay - Store - Show Playback Leaderboard : Execute Method (RTS - Action Replay - Core - Store, PlaybackLeaderboard) Commands: !clip-leaderboard, !clipleaderboard
 
 RTS - Action Replay - Twitch
-RTS - Action Replay - Create Twitch Clip : Execute Method (RTS - Action Replay - Core - Platforms, CreateTwitchClip) [Parameters: %rawInput% = optional 5-60 second duration and quoted title]
-RTS - Action Replay - Twitch Sync : Execute Method (RTS - Action Replay - Core - Platforms, SyncTwitchClips) [Parameters: none]
+RTS - Action Replay - Create Twitch Clip : Execute Method (RTS - Action Replay - Core - Platforms, CreateTwitchClip) Commands: (twitch chat only) !twitchclip, !create-clip, !createclip [Parameters: %rawInput% = optional 5-60 second duration and quoted title]
+RTS - Action Replay - Twitch Sync : Execute Method (RTS - Action Replay - Core - Platforms, SyncTwitchClips)
 
 RTS - Action Replay - Video
-RTS - Action Replay - Video - Hide Player : Execute Method (RTS - Action Replay - Core - Video Controls, HidePlayer)
-RTS - Action Replay - Video - Pause : Execute Method (RTS - Action Replay - Core - Video Controls, PauseVideo)
-RTS - Action Replay - Video - Play : Execute Method (RTS - Action Replay - Core - Video Controls, PlayVideo) 
-RTS - Action Replay - Video - Screen Position : Execute Method (RTS - Action Replay - Core - Playback, SetPlayerPosition) [Parameters: %rawInput% = position name [duration ms]]
-RTS - Action Replay - Video - Set Speed : Execute Method (RTS - Action Replay - Core - Video Controls, SetVideoSpeed) [Parameters: %rawInput% = playback speed 0.25-4.0] 
-RTS - Action Replay - Video - Show Player : Execute Method (RTS - Action Replay - Core - Video Controls, ShowPlayer)
+RTS - Action Replay - Video - Hide Player : Execute Method (RTS - Action Replay - Core - Video Controls, HidePlayer) Commands: !player-hide, !playerhide, !hide-player, !hideplayer
+RTS - Action Replay - Video - Pause : Execute Method (RTS - Action Replay - Core - Video Controls, PauseVideo) Commands: !video-pause, !videopause, !player-pause, !playerpause
+RTS - Action Replay - Video - Play : Execute Method (RTS - Action Replay - Core - Video Controls, PlayVideo) Commands: !video-play, !videoplay, !player-play, !playerplay
+RTS - Action Replay - Video - Screen Position : Execute Method (RTS - Action Replay - Core - Playback, SetPlayerPosition) Commands: !player-pos, !player-position [Parameters: %rawInput% = position name [duration ms]]
+RTS - Action Replay - Video - Set Speed : Execute Method (RTS - Action Replay - Core - Video Controls, SetVideoSpeed) Commands: !set-speed, !setspeed, !player-speed, !playerspeed, !clip-speed, !clipspeed [Parameters: %rawInput% = playback speed 0.25-4.0]
+RTS - Action Replay - Video - Show Player : Execute Method (RTS - Action Replay - Core - Video Controls, ShowPlayer) Commands: !show-player, !showplayer, !playerhide, !player-hide
 
 RTS - Action Replay - YouTube : 
-RTS - Action Replay - Create YouTube Clip : Execute Method (RTS - Action Replay - Core - Platforms, CreateYouTubeClip)
+RTS - Action Replay - Create YouTube Clip : Execute Method (RTS - Action Replay - Core - Platforms, CreateYouTubeClip) Commands: (Youtube chat only) !create-clip, !createclip [Parameters: %rawInput% = optional 5-60 second duration and title]
 RTS - Action Replay - YouTube Broadcast Started : Execute Method (RTS - Action Replay - Core - Platforms, BroadcastStarted)
 
 
