@@ -88,6 +88,8 @@
       replayMessageMinWidth: Number(globals.messageMinWidth) || Number(message.minWidth) || 500,
       replayMessageMinHeight: Number(globals.messageMinHeight) || Number(message.minHeight) || 120,
       replayMessageCornerRadius: Number(globals.messageCornerRadius) || Number(message.cornerRadius) || 0,
+      replayMessageDuration: Number(globals.messageDuration) || 5000,
+      replayClapperDuration: Number(globals.clapperDuration) || 5000,
       replayLogoUrl: globals.brandLogoUrl || command.replayBrandLogoUrl || '',
       replayMessageBoardColor: messageBrand?.textColor || '#FFFFFFFF',
       replayMessageTextColor: messageBrand?.titleColor || '#FFFFFFFF',
