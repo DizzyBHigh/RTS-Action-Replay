@@ -39,6 +39,31 @@ public class CPHInline
         return true;
     }
 
+    public bool ResolveClapperboardBranding()
+    {
+        var clapper = Read(ClapperKey);
+        var entry = clapper["entryPoint"] as JObject ?? new JObject();
+        var brand = (string)entry["brandingPreset"] ?? "default";
+        var useSource = CPH.GetGlobalVar<bool?>("rts.actionreplay.clapper.useSourcePlatformBranding", true) ?? false;
+        if (useSource)
+        {
+            CPH.TryGetArg("replaySource", out string source);
+            var sourceBrand = PlatformBranding(source ?? "");
+            if (sourceBrand != null) brand = (string)sourceBrand["id"] ?? brand;
+        }
+        var presets = Read(PresetsKey);
+        var branding = Find(presets["branding"] as JArray, brand) ?? Find(presets["branding"] as JArray, "default");
+        if (branding == null) return false;
+        CPH.SetArgument("replayMessageBoardColor", (string)branding["textColor"] ?? "#FFFFFFFF");
+        CPH.SetArgument("replayMessageTextColor", (string)branding["titleColor"] ?? "#FFFFFFFF");
+        CPH.SetArgument("replayMessageStripeLight", (string)branding["primaryColor"] ?? "#0384CBFF");
+        CPH.SetArgument("replayMessageStripeDark", (string)branding["secondaryColor"] ?? "#101416FF");
+        CPH.SetArgument("replayMessageAccent", (string)branding["shadowColor"] ?? "#000000FF");
+        CPH.SetArgument("replayMessageFont", (string)branding["font"] ?? "Inter");
+        CPH.SetArgument("replayBrandingPresetId", (string)branding["id"] ?? "default");
+        return true;
+    }
+
     public bool ResolvePlayerConfiguration()
     {
         var config=Read(PlayerKey); var entry=Entry(config,"play");
