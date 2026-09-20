@@ -167,7 +167,7 @@ const loadYouTubePlayer = async command => {
   const create = () => {
     youtubePlayer = new YT.Player(host, {
       width: '100%', height: '100%', videoId,
-      playerVars: { autoplay: 0, controls: command.replayShowControls !== false ? 1 : 0, playsinline: 1, rel: 0 },
+      playerVars: { autoplay: 0, controls: 0, playsinline: 1, rel: 0 },
       events: {
         onReady: event => {
           if (token !== youtubeReplayToken) return;
@@ -352,7 +352,7 @@ RTSReplayVideo.handleReplayCommand = command => {
   if (command.replayCommand === 'load') RTSReplayVideo.loadReplay(command);
   if (command.replayCommand === 'title-test') RTSReplayVideo.testTitle(command);
   if (command.replayCommand === 'play') RTSReplayVideo.playReplay(activeCommand);
-  if (command.replayCommand === 'pause') { RTSReplayVideo.expectedPlaying = false; RTSReplayWatchdog?.stop?.(); activeCommand.replaySource?.toLowerCase() === 'youtube' ? youtubePlayer?.pauseVideo?.() : RTSReplayVideo.video.pause(); }
+  if (command.replayCommand === 'pause') RTSReplayControls.togglePlayback(activeCommand);
   if (command.replayCommand === 'speed') {
     const speed = Math.max(0.25, Math.min(4, Number(command.replayPlaybackSpeed ?? activeCommand.replayPlaybackSpeed) || 1));
     if (activeCommand.replaySource?.toLowerCase() === 'youtube') youtubePlayer?.setPlaybackRate?.(speed); else RTSReplayVideo.video.playbackRate = speed;
@@ -369,3 +369,19 @@ RTSReplayVideo.video.addEventListener('ended', () => {
   if (command?.replaySource?.toLowerCase() === 'youtube') return;
   if (command) { RTSReplayVideo.notifyPlaybackEnded(command); RTSReplayWatchdog?.stop?.(); }
 });
+
+RTSReplayVideo.youtubeState = () => youtubePlayer?.getPlayerState?.();
+window.RTSReplayYouTubeState = () => {
+  const state = RTSReplayVideo.youtubeState?.();
+  if (state === window.YT?.PlayerState?.PLAYING) return 'playing';
+  if (state === window.YT?.PlayerState?.BUFFERING) return 'buffering';
+  return 'paused';
+};
+window.RTSReplayYouTubePlaying = () => window.RTSReplayYouTubeState?.() === 'playing';
+window.RTSReplayYouTubePause = () => youtubePlayer?.pauseVideo?.();
+window.RTSReplayYouTubeSeek = seconds => youtubePlayer?.seekTo?.(Number(seconds) || 0, true);
+window.RTSReplayYouTubeCurrent = () => {
+  const command = RTSReplayVideo.currentCommand;
+  const start = Number(command?.replayStartTime || 0);
+  return Math.max(0, Number(youtubePlayer?.getCurrentTime?.() || 0) - start);
+};
