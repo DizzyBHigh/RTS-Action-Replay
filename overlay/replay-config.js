@@ -17,6 +17,7 @@ RTSReplay.video = document.getElementById('video');
 RTSReplay.controls = document.getElementById('player-controls');
 RTSReplay.state = document.getElementById('player-state');
 RTSReplay.progress = document.getElementById('player-progress');
+RTSReplay.playPause = document.getElementById('player-play-pause');
 RTSReplay.progressBar = document.getElementById('player-progress-bar');
 RTSReplay.current = document.getElementById('player-current');
 RTSReplay.duration = document.getElementById('player-duration');
