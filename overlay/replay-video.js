@@ -349,6 +349,7 @@ RTSReplayVideo.hideReplay = () => {
 RTSReplayVideo.handleReplayCommand = command => {
   const activeCommand = { ...(RTSReplayVideo.currentCommand || {}), ...(command || {}) };
   if (command.replayCommand === 'message') RTSReplayVideo.showMessage(activeCommand);
+  if (command.replayCommand === 'clapperboard') RTSReplayVideo.showClapperboard(activeCommand);
   if (command.replayCommand === 'load') RTSReplayVideo.loadReplay(command);
   if (command.replayCommand === 'title-test') RTSReplayVideo.testTitle(command);
   if (command.replayCommand === 'play') RTSReplayVideo.playReplay(activeCommand);
