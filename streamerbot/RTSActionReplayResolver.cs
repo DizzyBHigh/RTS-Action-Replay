@@ -4,7 +4,7 @@ using Newtonsoft.Json.Linq;
 
 public class CPHInline
 {
-    const string PlayerKey="rts.actionreplay.config.player", PanelKey="rts.actionreplay.config.panel", PresetsKey="rts.actionreplay.config.presets", AnimationKey="rts.actionreplay.config.animation";
+    const string PlayerKey="rts.actionreplay.config.player", PanelKey="rts.actionreplay.config.panel", MessageKey="rts.actionreplay.config.message", PresetsKey="rts.actionreplay.config.presets", AnimationKey="rts.actionreplay.config.animation";
     const string PlayerOperationKey="rts.actionreplay.operation.player", PanelOperationKey="rts.actionreplay.operation.panel", EventName="RTS-Action Replay";
 
     private const string ClapperKey = "rts.actionreplay.config.clapper";
@@ -102,13 +102,53 @@ public class CPHInline
         var entries=config["entryPoints"] as JObject??new JObject(); return entries[id] as JObject??entries["recent"] as JObject??new JObject();
     }
 
+    public bool ResolveMessagePresentation()
+    {
+        var message = ReadConfig(MessageKey, CreateMessageDefaults());
+        var entry = message["entryPoint"] as JObject ?? new JObject();
+        var design = (string)entry["designPreset"] ?? "broadcast";
+        var brand = (string)entry["brandingPreset"] ?? "default";
+        var animation = Animation(message, "message", (string)entry["animationProfile"] ?? "default");
+        ApplyMessagePresentation(design, brand, animation);
+        return true;
+    }
+
+    void ApplyMessagePresentation(string designId, string brandId, JObject animation)
+    {
+        var presets=Read(PresetsKey);
+        var d=Find(presets["visual"] as JArray,designId)??Find(presets["visual"] as JArray,"broadcast");
+        var b=Find(presets["branding"] as JArray,brandId)??Find(presets["branding"] as JArray,"default");
+        if(d==null||b==null)return;
+        var design=(string)d["design"]??(string)d["id"]??"broadcast";
+        var positions=((JObject)animation["positions"]??new JObject()).ToString(Newtonsoft.Json.Formatting.None);
+        CPH.SetArgument("replayMessagePositions",positions);
+        CPH.SetArgument("replayMessageAnimation",animation.ToString(Newtonsoft.Json.Formatting.None));
+        CPH.SetArgument("replayMessageMinWidth",CPH.GetGlobalVar<int?>("rts.actionreplay.message.minWidth",true)??500);
+        CPH.SetArgument("replayMessageMinHeight",CPH.GetGlobalVar<int?>("rts.actionreplay.message.minHeight",true)??120);
+        CPH.SetArgument("replayMessageCornerRadius",CPH.GetGlobalVar<int?>("rts.actionreplay.message.cornerRadius",true)??0);
+        CPH.SetArgument("replayPanelPreset",design);
+        CPH.SetArgument("replayPanelPrimaryColor",PanelPrimaryColor(d,b));
+        CPH.SetArgument("replayPanelSecondaryColor",PanelSecondaryColor(d,b));
+        CPH.SetArgument("replayPanelTitleFont",(string)b["font"]??"Inter");
+        CPH.SetArgument("replayPanelTitleSize",(int?)b["fontSize"]??34);
+        CPH.SetArgument("replayPanelTitleColor",(string)b["textColor"]??"#FFFFFFFF");
+        CPH.SetArgument("replayPanelListColor",(string)b["textColor"]??"#FFFFFFFF");
+        CPH.SetArgument("replayPanelListShadowColor",(string)b["shadowColor"]??"#000000FF");
+        CPH.SetArgument("replayPanelBackgroundColor",PanelBackgroundColor(d,b));
+        Props("replayBroadcast",Broadcast(d,b));
+        Props("replayCut",Cut(d,b));
+        CPH.SetArgument("replayDesignPresetId",(string)d["id"]??"broadcast");
+        CPH.SetArgument("replayBrandingPresetId",(string)b["id"]??"default");
+        return;
+    }
+
     JObject Animation(JObject config,string target,string profileId)
     {
         profileId=string.IsNullOrWhiteSpace(profileId)?"default":profileId;
         var store=Read(AnimationKey); var item=(store[target] as JObject)?[profileId] as JObject??new JObject();
         var positions=((Read(PresetsKey)["positions"] as JObject)?[target] as JObject)??new JObject();
-        var start=StoredSequence(item["startSequence"] as JArray,positions,target=="panel"?"Centered":"Full Screen");
-        var end=StoredSequence(item["endSequence"] as JArray,positions,target=="panel"?"Centered":"Full Screen");
+        var start=StoredSequence(item["startSequence"] as JArray,positions,target=="panel"||target=="message"?"Centered":"Full Screen");
+        var end=StoredSequence(item["endSequence"] as JArray,positions,target=="panel"||target=="message"?"Centered":"Full Screen");
         return new JObject{["id"]=profileId,["name"]=profileId,["start"]=start.Count>0?start:DefaultSequence(target),["end"]=end.Count>0?end:DefaultSequence(target),["positions"]=positions};
     }
 
@@ -117,7 +157,7 @@ public class CPHInline
         var result=new JArray(); foreach(var token in source??new JArray()){var row=token as JObject??new JObject();var name=(string)row["position"]??fallback;var p=positions[name] as JObject;result.Add(new JObject{["position"]=(string)p?["tag"]??name,["duration"]=(int?)row["duration"]??0,["delay"]=(int?)row["delay"]??0,["easing"]=(string)row["easing"]??"ease-in-out"});} return result;
     }
 
-    JArray DefaultSequence(string target)=>new JArray(new JObject{["position"]=target=="panel"?"centered":"full-screen",["duration"]=0,["delay"]=0,["easing"]="ease-in-out"});
+    JArray DefaultSequence(string target)=>new JArray(new JObject{["position"]=target=="panel"||target=="message"?"centered":"full-screen",["duration"]=0,["delay"]=0,["easing"]="ease-in-out"});
 
     void ApplyPresentation(string designId,string titleId,string brandId,JObject animation,bool panel)
     {
@@ -161,7 +201,71 @@ public class CPHInline
     {
         EnsurePlayerProfiles();
         EnsurePanelProfiles();
+        EnsureMessageProfiles();
         EnsureClapperProfiles();
+        return true;
+    }
+
+    public bool EnsureMessageProfiles()
+    {
+        var message = ReadConfig(MessageKey, CreateMessageDefaults());
+        var profiles = NormalizeProfiles(message["animationProfiles"] as JArray);
+        EnsureSequenceStore("message", profiles);
+        var animation = message["animation"] as JObject ?? new JObject();
+        animation["selectedProfile"] = ResolveProfileId(profiles, (string)animation["selectedProfile"]) ?? "default";
+        message["animationProfiles"] = profiles;
+        message["animation"] = animation;
+        if (!(message["entryPoint"] is JObject)) message["entryPoint"] = CreateMessageEntryPoint();
+        SaveConfig(MessageKey, message);
+        return true;
+    }
+
+    public bool AddMessageProfile()
+    {
+        var message = ReadConfig(MessageKey, CreateMessageDefaults());
+        var profiles = NormalizeProfiles(message["animationProfiles"] as JArray);
+        var name = CPH.TryGetArg("messageProfileName", out string requested) && !string.IsNullOrWhiteSpace(requested) ? requested.Trim() : "New Message Profile";
+        var id = Guid.NewGuid().ToString("N");
+        profiles.Add(CreateMessageProfile(id, name));
+        message["animationProfiles"] = profiles;
+        SaveConfig(MessageKey, message);
+        EnsureSequenceStore("message", profiles);
+        return true;
+    }
+
+    public bool RemoveMessageProfile()
+    {
+        if (!CPH.TryGetArg("messageProfileId", out string id) || string.IsNullOrWhiteSpace(id) || id.Trim() == "default") return false;
+        id=id.Trim();
+        var message=ReadConfig(MessageKey,CreateMessageDefaults());
+        var profiles=NormalizeProfiles(message["animationProfiles"] as JArray);
+        for(var i=profiles.Count-1;i>=0;i--) if(string.Equals((string)profiles[i]["id"],id,StringComparison.Ordinal)) profiles.RemoveAt(i);
+        var animation=message["animation"] as JObject??new JObject();
+        animation["selectedProfile"]=ResolveProfileId(profiles,(string)animation["selectedProfile"])??"default";
+        message["animationProfiles"]=profiles;
+        message["animation"]=animation;
+        SaveConfig(MessageKey,message);
+        RemoveProfileSequences("message",id);
+        return true;
+    }
+
+    public bool ResolveMessageAnimation()
+    {
+        var message=ReadConfig(MessageKey,CreateMessageDefaults());
+        var profiles=NormalizeProfiles(message["animationProfiles"] as JArray);
+        var animation=message["animation"] as JObject??new JObject();
+        var selected=ResolveProfileId(profiles,(string)animation["selectedProfile"])??"default";
+        var store=ReadConfig(AnimationKey,new JObject());
+        var target=store["message"] as JObject;
+        var sequence=target?[selected] as JObject??new JObject();
+        var start=sequence["startSequence"] as JArray??DefaultPanelStart();
+        var end=sequence["endSequence"] as JArray??DefaultPanelEnd();
+        CPH.SetArgument("replayMessageAnimation",new JObject{
+            ["id"]=selected,
+            ["name"]=(string)profiles.OfType<JObject>().FirstOrDefault(x=>string.Equals((string)x["id"],selected,StringComparison.Ordinal))?["name"]??"Default",
+            ["start"]=start,
+            ["end"]=end
+        }.ToString(Newtonsoft.Json.Formatting.None));
         return true;
     }
 
@@ -392,10 +496,13 @@ public class CPHInline
 
     private JObject CreateProfile(string id, string name) => new JObject { ["id"] = id, ["name"] = name };
     private JObject CreatePanelProfile(string id, string name) => new JObject { ["id"] = id, ["name"] = name };
+    private JObject CreateMessageProfile(string id, string name) => new JObject { ["id"] = id, ["name"] = name };
     private JObject CreateClapperProfile(string id, string name) => new JObject { ["id"] = id, ["name"] = name };
 
     private JObject CreatePlayerDefaults() => new JObject { ["positions"] = new JObject(), ["animationProfiles"] = new JArray(CreateProfile("default", "Default")), ["animation"] = new JObject { ["selectedProfile"] = "default", ["entryPoints"] = new JObject { ["obs"] = "default", ["twitch"] = "default", ["youtube"] = "default", ["kick"] = "default", ["recent"] = "default", ["catalog"] = "default", ["playlist"] = "default" } }, ["entryPoints"] = new JObject { ["obs"] = new JObject { ["animationProfile"] = "default", ["designPreset"] = "broadcast", ["titlePreset"] = "default", ["brandingPreset"] = "default" }, ["twitch"] = new JObject { ["animationProfile"] = "default", ["designPreset"] = "broadcast", ["titlePreset"] = "default", ["brandingPreset"] = "default" }, ["youtube"] = new JObject { ["animationProfile"] = "default", ["designPreset"] = "broadcast", ["titlePreset"] = "default", ["brandingPreset"] = "default" }, ["kick"] = new JObject { ["animationProfile"] = "default", ["designPreset"] = "broadcast", ["titlePreset"] = "default", ["brandingPreset"] = "default" }, ["play"] = new JObject { ["animationProfile"] = "default", ["designPreset"] = "broadcast", ["titlePreset"] = "default", ["brandingPreset"] = "default", ["useSourcePlatformBranding"] = false } } };
     private JObject CreatePanelDefaults() => new JObject { ["width"] = 500, ["height"] = 700, ["positions"] = new JObject(), ["animationProfiles"] = new JArray(CreatePanelProfile("default", "Default")), ["animation"] = new JObject { ["entryPoints"] = new JObject { ["recent"] = "default", ["playlist"] = "default", ["creatorLeaderboard"] = "default" } }, ["entryPoints"] = new JObject { ["recent"] = new JObject { ["animationProfile"] = "default", ["designPreset"] = "broadcast", ["titlePreset"] = "default", ["brandingPreset"] = "default" }, ["playlist"] = new JObject { ["animationProfile"] = "default", ["designPreset"] = "broadcast", ["titlePreset"] = "default", ["brandingPreset"] = "default" }, ["creatorLeaderboard"] = new JObject { ["animationProfile"] = "default", ["designPreset"] = "broadcast", ["titlePreset"] = "default", ["brandingPreset"] = "default" } } };
+    private JObject CreateMessageDefaults() => new JObject { ["minWidth"] = 500, ["minHeight"] = 120, ["cornerRadius"] = 0, ["positions"] = new JObject(), ["animationProfiles"] = new JArray(CreateMessageProfile("default", "Default")), ["animation"] = new JObject { ["selectedProfile"] = "default" }, ["entryPoint"] = CreateMessageEntryPoint() };
+    private JObject CreateMessageEntryPoint() => new JObject { ["animationProfile"] = "default", ["designPreset"] = "broadcast", ["brandingPreset"] = "default" };
     private JObject CreateClapperDefaults() => new JObject { ["animationProfiles"] = new JArray(CreateClapperProfile("default", "Default")), ["animation"] = new JObject { ["selectedProfile"] = "default" }, ["entryPoint"] = new JObject { ["animationProfile"] = "default", ["brandingPreset"] = "default" } };
 
     private JObject GetProfileSequences(string target, string id)
@@ -438,12 +545,12 @@ public class CPHInline
 
     private JArray ProfileDefaultSequence(string target)
     {
-        return target == "player" ? DefaultPlayerStart() : target == "panel" ? DefaultPanelStart() : DefaultClapperStart();
+        return target == "player" ? DefaultPlayerStart() : target == "panel" || target == "message" ? DefaultPanelStart() : DefaultClapperStart();
     }
 
     private JArray ProfileDefaultEndSequence(string target)
     {
-        return target == "player" ? DefaultPlayerEnd() : target == "panel" ? DefaultPanelEnd() : DefaultClapperEnd();
+        return target == "player" ? DefaultPlayerEnd() : target == "panel" || target == "message" ? DefaultPanelEnd() : DefaultClapperEnd();
     }
 
     private JArray DefaultPlayerStart() => new JArray(new JObject { ["position"] = "Full Screen", ["duration"] = 0, ["delay"] = 0, ["easing"] = "ease-in-out" });
