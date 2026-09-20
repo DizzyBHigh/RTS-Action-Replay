@@ -129,5 +129,7 @@ The full settings reference lives in [`Settings.md`](Settings.md). It follows th
   - [Twitch Clip Folder](Settings.md#twitch-clip-folder)
   - [Twitch HTTP Mapping](Settings.md#twitch-http-mapping)
   - [Clip Duration](Settings.md#clip-duration)
+- [YouTube → YouTube Clips](Settings.md#youtube--youtube-clips)
+  - [Clip Duration](Settings.md#youtube-clip-duration)
 
 More settings sections will be added to the reference as they are documented.
