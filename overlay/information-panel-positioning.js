@@ -22,8 +22,10 @@ RTSInformationPanels.applySize = (panel, command) => {
   if (!panel) return;
   const width = Number(command?.replayPanelWidth);
   const height = Number(command?.replayPanelHeight);
+  const radius = Number(command?.replayPanelCornerRadius);
   if (Number.isFinite(width) && width > 0) panel.style.width = `${width}px`;
   if (Number.isFinite(height) && height > 0) panel.style.height = `${height}px`;
+  if (Number.isFinite(radius) && radius >= 0) panel.style.borderRadius = `${radius}px`;
   if ((Number.isFinite(width) && width > 0) || (Number.isFinite(height) && height > 0)) {
     panel.style.maxWidth = 'none';
     panel.style.maxHeight = 'none';
