@@ -115,21 +115,11 @@ The browser player has no user controls. Its status bar is visual-only; playback
 `streamerbot/StreamerBot.csproj` follows the current Streamer.bot external-editor setup. Set `StreamerBotPath` to the local Streamer.bot installation before building in VS Code.
 
 
-## Settings documentation
+## Documentation
 
-The full settings reference lives in [`Settings.md`](Settings.md). It follows the same order as the Action Replay settings window.
+The user-facing documentation lives in `docs/`.
 
-- [General → Replay Source](Settings.md#general--replay-source)
-  - [Replay Folder](Settings.md#replay-folder)
-  - [Replay File Types](Settings.md#replay-file-types)
-  - [HTTP Mapping](Settings.md#http-mapping)
-  - [HTTP Port](Settings.md#http-port)
-- [Twitch → Twitch Clips](Settings.md#twitch--twitch-clips)
-  - [Twitch Clip Playback](Settings.md#twitch-clip-playback)
-  - [Twitch Clip Folder](Settings.md#twitch-clip-folder)
-  - [Twitch HTTP Mapping](Settings.md#twitch-http-mapping)
-  - [Clip Duration](Settings.md#clip-duration)
-- [YouTube → YouTube Clips](Settings.md#youtube--youtube-clips)
-  - [Clip Duration](Settings.md#youtube-clip-duration)
+- [Commands](docs/Commands.md) — chat commands, aliases, parameters and command behaviour.
+- [Settings](docs/Settings.md) — the full settings reference, following the order of the Action Replay settings window.
 
-More settings sections will be added to the reference as they are documented.
+The command reference follows the Streamer.bot action groups. Internal Core actions are kept in an appendix rather than mixed into the normal chat command reference.
