@@ -578,6 +578,7 @@ public class CPHInline
         positions["player"]=EnsurePositionSet(positions["player"] as JObject,"Full Screen","full-screen",100);
         positions["panel"]=EnsurePositionSet(positions["panel"] as JObject,"Centered","centered",100);
         positions["clapperboard"]=EnsurePositionSet(positions["clapperboard"] as JObject,"Centered","centered",50);
+        positions["message"]=EnsurePositionSet(positions["message"] as JObject,"Centered","centered",100);
         presets["positions"]=positions;
         SavePositionStore(PresetsKey,presets);
         return true;
