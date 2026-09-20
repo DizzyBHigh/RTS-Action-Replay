@@ -1,0 +1,46 @@
+#message-card {
+  box-sizing: border-box;
+  width: auto;
+  height: auto;
+  max-width: calc(100vw - 30px);
+  max-height: none;
+  overflow: hidden;
+}
+
+#message-card .rts-message-header {
+  min-height: 100%;
+  box-sizing: border-box;
+  padding: 22px 28px 24px;
+}
+
+#message-card .rts-message-header strong {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  text-wrap: pretty;
+  font-size: var(--panel-title-size);
+  line-height: 1.15;
+  text-align: center;
+}
+
+#message-card .rts-panel-kicker {
+  font-size: 13px;
+  letter-spacing: .16em;
+}
+
+@media(max-width:700px) {
+  #message-card .rts-message-header {
+    padding: 17px 18px 19px;
+  }
+
+  #message-card .rts-panel-kicker {
+    font-size: 11px;
+  }
+
+  #message-card .rts-message-header strong {
+    font-size: 20px;
+  }
+}
