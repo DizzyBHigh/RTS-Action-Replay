@@ -109,7 +109,7 @@ RTSReplayMessages.showClapperboard = command => {
       card.classList.remove('show');
       card.setAttribute('aria-hidden', 'true');
     }
-  }, RTSReplayMessages.config.messageDuration);
+  }, Number(command?.replayClapperDuration) || RTSReplayMessages.config.messageDuration);
 };
 
 window.RTSReplayMessages = RTSReplayMessages;
