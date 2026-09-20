@@ -370,13 +370,13 @@ Show the creator leaderboard.
 
 `!top-creators week --amount 10`
 
-The optional period can be used to narrow the leaderboard. Supported period forms include `today`, `week`, `month`, `year`, `all`, and month/year values understood by the Catalog date parser.
+An optional time period can be used to narrow the leaderboard. Supported period forms include `today`, `week`, `month`, `year`, `all`, and month/year values understood by the Catalog date parser.
 
 ---
 
 ## RTS - Action Replay - Playlist
 
-The Playlist is the live queue. It is separate from the Catalog and Recent Clips.
+The Playlist is the live queue. It lists the clips that have been requested to be played. It is separate from the Catalog and Recent Clips.
 
 ### List Playlist
 
@@ -392,7 +392,7 @@ Show the current Playlist.
 
 The list shows the queue in order, including the requester where available.
 
-If the Playlist is empty, it says so. No mysterious blank response. We have standards.
+If the Playlist is empty, it says so.
 
 ### Playlist - Clear
 
@@ -505,24 +505,29 @@ Show the playback leaderboard.
 
 This reports playback activity rather than creator totals.
 
-
-
 ---
 
 ## RTS - Action Replay - Video
 
 These commands control the player currently shown by the RTS overlay.
 
+### Show Player
+
+Show the player.
+
+**Commands**
+
+`!show-player`  
+`!showplayer`  
+
 ### Hide Player
 
 Hide the player.
 
 **Commands**
-
-`!player-hide`  
+ 
 `!playerhide`  
-`!hide-player`  
-`!hideplayer`
+`!player-hide`
 
 Hiding the player does not delete or reset the replay. It sends the hide operation to the overlay.
 
@@ -595,21 +600,6 @@ Change the current playback speed.
 The command accepts a playback speed from **0.25 to 4.0**. Values outside that range are clamped.
 
 The setting called Default Playback Speed controls the speed when a replay is loaded. This command changes the speed of the current playback.
-
-### Show Player
-
-Show the player again.
-
-**Commands**
-
-`!show-player`  
-`!showplayer`  
-`!playerhide`  
-`!player-hide`
-
-The last two aliases are also attached to Hide Player in the current Streamer.bot mapping. That is an alias collision in the action configuration rather than something this documentation is going to quietly pretend doesn't exist.
-
-
 
 ---
 
