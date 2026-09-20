@@ -368,8 +368,9 @@ The basic flow is:
 2. **Animation Profiles** define how an element moves between those positions.
 3. **Branding Presets** define colours, fonts and identity.
 4. **Design Presets** define the visual treatment used by panels.
-5. **Clapperboard Settings** define the appearance of message clapperboards.
-6. **Behaviour** selects which of those pieces are used for a particular entry point.
+5. **Clapperboard Settings** define the optional new-clip clapperboard presentation.
+6. **Message Behaviour** defines the reusable panel-based message presentation.
+7. **Behaviour** selects which of those pieces are used for a particular entry point.
 
 This means you can change a Branding Preset or Animation Profile once and have every entry point using it pick up the change.
 
@@ -453,20 +454,18 @@ Design Presets are selected by the Behaviour settings, so different entry points
 
 ## Clapperboard Settings
 
-Clapperboard Settings control the appearance of message clapperboards. They are the visual styling for the message element itself, rather than the animation that moves it.
+Clapperboard Settings control the optional clapperboard shown when a new Twitch, Kick or YouTube clip is created.
 
 The settings are:
 
 | Setting | Purpose |
 |---|---|
-| **Board Color** | Base colour of the clapperboard. |
-| **Text Color** | Colour of the message text. |
-| **Stripe Light** | Light stripe colour on the clapperstick. |
-| **Stripe Dark** | Dark stripe colour on the clapperstick. |
-| **Accent Color** | Accent colour used by the clapperboard. |
-| **Font** | Google Font used for clapperboard text. |
+| **Show Clapperboard on New Clips** | Show the clapperboard automatically for newly created platform clips. |
+| **Use Source Platform Branding** | Use the Branding Preset associated with the clip's source platform when available. |
+| **Animation Profile** | Animation profile used by the clapperboard. |
+| **Branding Preset** | Branding used by the clapperboard when source-platform branding is disabled or unavailable. |
 
-The clapperboard has its own **Message Animation** profiles and a Message Behaviour entry point. This keeps appearance, positioning and movement separate.
+The clapperboard remains a separate presentation from normal Message Outputs.
 
 ## Title Presets
 
@@ -521,7 +520,7 @@ Action Replay maintains three position sets:
 
 - **Player Positions** — positions for the replay video.
 - **Panel Positions** — positions for search, recent, playlist and leaderboard panels.
-- **Message Positions** — positions for clapperboard messages.
+- **Message Positions** — positions for panel-based messages.
 
 Each position contains the transform information used by the overlay, including:
 
@@ -668,16 +667,18 @@ For example, the Playlist panel can use a different animation profile or design 
 
 ### Message Behaviour
 
-Message Behaviour controls the presentation of messages shown through the clapperboard system.
+Message Behaviour controls the presentation of overlay messages. Messages use the same heading-area design as information panels rather than the Clapperboard presentation.
 
 Messages use:
 
-- a **Message Animation** profile
 - a **Branding Preset**
+- a **Design Preset**
+- a **Message Animation** profile
+- a **Minimum Width**
+- a **Minimum Height**
+- a **Corner Radius**
 
-The separate **Clapperboard Settings** control the board's visual properties.
-
-This separation means the same clapperboard appearance can be reused with different animation profiles, or the same animation profile can be reused with different branding.
+The message uses the panel heading as its visual base. Its width and height are minimum dimensions: normal messages use the minimum size, while longer text wraps and grows the message vertically to fit the content.
 
 ### Putting it together
 
