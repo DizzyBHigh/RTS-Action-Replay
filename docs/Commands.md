@@ -556,16 +556,18 @@ Move the player to a saved position.
 
 **Commands**
 
-`!player-pos <position name> [<duration ms>]`  
-`!player-position <position name> [<duration ms>]`
+`!player-pos <position tag> [<duration ms>]`  
+`!player-position <position tag> [<duration ms>]`
 
 **Examples**
 
-`!player-pos Full Screen`
+`!player-pos full-screen`
 
-`!player-position Mini Player 750`
+`!player-position mini-player 750`
 
-The position name is the saved Player Position.
+Use the **saved Player Position tag**, not the display name. Position names can contain spaces, but the chat command reads the first whitespace-delimited value as the position, so a multi-word display name cannot be passed reliably.
+
+For example, the saved position **Full Screen** uses the tag `full-screen`.
 
 The optional duration is the movement time in milliseconds. If omitted, the normal transition duration is used.
 
