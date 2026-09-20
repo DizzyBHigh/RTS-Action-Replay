@@ -474,10 +474,6 @@ If no duration is supplied, the configured Twitch Clip Duration is used.
 
 The allowed duration is 5–60 seconds. A title can be supplied after the optional duration.
 
-### Twitch Sync
-
-There is currently no chat command attached to this action, so it is not part of the user command reference.
-
 ---
 
 ## RTS - Action Replay - Video
@@ -623,14 +619,6 @@ Handles Catalog searches, filtering, paging, ratings, playback history and leade
 
 The user-facing Catalog commands call methods in this action rather than accessing the Catalog directly.
 
-### Core — Platforms
-
-**Action:** `RTS - Action Replay - Core - Platforms`
-
-Handles platform-specific clip creation and capture for Twitch, Kick and YouTube.
-
-This includes the platform-specific plumbing needed after a chat command has requested a clip.
-
 ### Core — Playback
 
 **Action:** `RTS - Action Replay - Core - Playback`
@@ -710,6 +698,14 @@ It is startup plumbing, not a chat command.
 The platform code is exposed as its own Streamer.bot Execute Code action and is used by the Twitch, Kick and YouTube actions.
 
 ---
+
+### Core — Platforms
+
+**Action:** `RTS - Action Replay - Core - Platforms`
+
+Handles platform-specific clip creation and capture for Twitch, Kick and YouTube.
+
+This is the platform plumbing used by the Twitch, Kick and YouTube actions.
 
 ## A note about commands and aliases
 
