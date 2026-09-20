@@ -8,7 +8,6 @@ public class CPHInline
     const string PlayerOperationKey="rts.actionreplay.operation.player", PanelOperationKey="rts.actionreplay.operation.panel", EventName="RTS-Action Replay";
 
     private const string ClapperKey = "rts.actionreplay.config.clapper";
-    private const string ClapperPositionsKey = "rts.actionreplay.clapper.positions";
     private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
     private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
     private const string PlayerPositionsHandoffKey = "rts.actionreplay.handoff.playerPositions";
@@ -332,18 +331,6 @@ public class CPHInline
         CPH.SetGlobalVar(ResolvedProfileHandoffKey, profile, false);
         CPH.SetArgument("replayAnimationProfileId", profile);
         return true;
-    }
-
-    private JObject ReadClapperPositions()
-    {
-        var raw = CPH.GetGlobalVar<string>(ClapperPositionsKey, true);
-        try
-        {
-            var positions = string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw);
-            if (!positions.ContainsKey("Centered")) positions["Centered"] = new JObject { ["name"] = "Centered", ["tag"] = "centered", ["scale"] = 50, ["scaleX"] = 50, ["scaleY"] = 50, ["x"] = 0, ["y"] = 0, ["z"] = 0, ["rotateX"] = 0, ["rotateY"] = 0, ["rotateZ"] = 0, ["fov"] = 90 };
-            return positions;
-        }
-        catch { return new JObject { ["Centered"] = new JObject { ["name"] = "Centered", ["tag"] = "centered", ["scale"] = 50, ["scaleX"] = 50, ["scaleY"] = 50, ["x"] = 0, ["y"] = 0, ["z"] = 0, ["rotateX"] = 0, ["rotateY"] = 0, ["rotateZ"] = 0, ["fov"] = 90 } }; }
     }
 
     private void NormalizePositionConfig(JObject config, bool panel)
