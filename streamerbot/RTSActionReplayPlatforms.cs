@@ -77,7 +77,7 @@ public bool CreateTwitchClip()
 
         var item = AddTwitchClip(published, true); if (item == null) return false;
         CPH.SetArgument("twitchClipId", published.Id); CPH.SetArgument("twitchClipUrl", published.Url ?? ""); CPH.SetArgument("twitchClipTitle", (string)item["title"] ?? ""); CPH.SetArgument("replayId", (string)item["id"] ?? ""); CPH.SetArgument("replayTitle", (string)item["title"] ?? ""); CPH.SetArgument("replaySource", "Twitch");
-        return BroadcastReplay(item);
+        return BroadcastReplay(item, true);
     }
 
 public bool SyncTwitchClips()
@@ -125,13 +125,15 @@ private void EnsureLocalCopyIfConfigured(JObject data, JObject item, string clip
         item["file"] = Path.GetFileName(path); item["filePath"] = path; Save(data);
     }
 
-private bool BroadcastReplay(JObject item)
+private bool BroadcastReplay(JObject item, bool showClapperboard)
     {
         CPH.SetGlobalVar(ReplayIdHandoffKey, (string)item["id"] ?? "", false);
         var sourceType = ((string)item["sourceType"] ?? "").ToLowerInvariant();
         var entryPoint = sourceType == "youtube" ? "youtube" : sourceType == "kick" ? "kick" : "twitch";
         CPH.SetGlobalVar(EntryPointHandoffKey, entryPoint, false);
         CPH.UnsetGlobalVar(ResolvedProfileHandoffKey, false);
+        CPH.SetGlobalVar("rts.actionreplay.handoff.showClapperboard", showClapperboard && (CPH.GetGlobalVar<bool?>("rts.actionreplay.clapper.showOnNewClip", true) ?? true), false);
+        CPH.SetArgument("replaySource", (string)item["sourceType"] ?? "");
         if (!CPH.ExecuteMethod(ResolverAction, "ResolveEntryPointProfile")) return false;
         return CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay");
     }
@@ -249,7 +251,7 @@ public bool CreateYouTubeClip()
         var catalog = (JArray)(data["catalog"] ?? new JArray());
         var id = "youtube-" + videoId + "-" + startTime + "-" + duration;
         var existing = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], id, StringComparison.OrdinalIgnoreCase));
-        if (existing != null) return BroadcastReplay(existing);
+        if (existing != null) return BroadcastReplay(existing, false);
         var creatorPlatform = NormalizePlatform(Arg("userType"));
         var now = DateTime.Now;
         var item = new JObject
@@ -264,7 +266,7 @@ public bool CreateYouTubeClip()
         };
         catalog.Insert(0, item); data["catalog"] = catalog;  Save(data);
         CPH.LogInfo($"RTS Action Replay: added YouTube timestamp replay {id} ({startTime}s + {duration}s) title='{title}'.");
-        return BroadcastReplay(item);
+        return BroadcastReplay(item, true);
     }
 
 private bool TryGetStartTime(string videoId, out long startTime)
@@ -327,7 +329,7 @@ public bool CaptureKickBotClip()
         var kickBotId = ExtractKickBotId(kickBotUrl); var title = (string)pending["title"] ?? "Kick Clip";
         var duration = (int?)pending["duration"] ?? 30; var creatorId = (string)pending["creatorId"] ?? ""; var creatorName = (string)pending["creatorName"] ?? "";
         var existing = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["sourceType"], "Kick", StringComparison.OrdinalIgnoreCase) && string.Equals((string)x["sourceUrl"], kickBotUrl, StringComparison.OrdinalIgnoreCase));
-        if (existing != null) { existing["title"] = title; existing["customTitle"] = title != "Kick Clip"; existing["duration"] = duration; ClearPending(); Save(data); return BroadcastReplay(existing); }
+        if (existing != null) { existing["title"] = title; existing["customTitle"] = title != "Kick Clip"; existing["duration"] = duration; ClearPending(); Save(data); return BroadcastReplay(existing, false); }
         if (string.IsNullOrWhiteSpace(creatorId)) CPH.TryGetArg("userId", out creatorId);
         if (string.IsNullOrWhiteSpace(creatorName)) CPH.TryGetArg("userName", out creatorName);
         var creator = new JObject { ["platform"] = "Kick", ["id"] = creatorId ?? "", ["name"] = creatorName ?? "" };
@@ -337,7 +339,7 @@ public bool CaptureKickBotClip()
             ["title"] = title, ["customTitle"] = title != "Kick Clip", ["duration"] = duration, ["added"] = DateTime.Now.ToString("o"), ["captured"] = DateTime.Now.ToString("o"),
             ["acquisitionMethod"] = "KickBot", ["creator"] = creator, ["plays"] = 0, ["users"] = new JObject()
         };
-        catalog.Insert(0, item); data["catalog"] = catalog;  ClearPending(); Save(data); return BroadcastReplay(item);
+        catalog.Insert(0, item); data["catalog"] = catalog;  ClearPending(); Save(data); return BroadcastReplay(item, true);
     }
 
 public bool CaptureKickClip()
@@ -352,7 +354,7 @@ public bool CaptureKickClip()
 
         var data = Load(); var catalog = (JArray)data["catalog"] ?? new JArray();
         var existing = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["sourceType"], "Kick", StringComparison.OrdinalIgnoreCase) && string.Equals((string)x["sourceId"], clipId, StringComparison.OrdinalIgnoreCase));
-        if (existing != null) return BroadcastReplay(existing);
+        if (existing != null) return BroadcastReplay(existing, false);
 
         var title = "Kick Clip"; var duration = 0; var creatorId = Arg("userId"); var creatorName = Arg("userName");
         var metadata = GetNativeKickClipMetadata(clipId);
@@ -371,7 +373,7 @@ public bool CaptureKickClip()
         };
         catalog.Insert(0, item); data["catalog"] = catalog;  Save(data);
         CPH.LogInfo($"RTS Action Replay: native Kick clip captured; clipId={clipId}; title={title}; duration={duration}.");
-        return BroadcastReplay(item);
+        return BroadcastReplay(item, true);
     }
 
 private JObject GetNativeKickClipMetadata(string clipId)
