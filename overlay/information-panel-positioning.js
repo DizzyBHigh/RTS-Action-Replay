@@ -63,7 +63,7 @@ RTSInformationPanels.applyPosition = (panel, command, name) => {
 
 RTSInformationPanels.show = (panel, command, name) => {
   if (!panel) return;
-  RTSInformationPanels.applySize(panel, command);
+  if (command?.replayInformationPanelType === 'message') RTSInformationPanels.applyMessageSize(panel, command); else RTSInformationPanels.applySize(panel, command);
   if (window.RTSInformationPanelAnimation) {
     RTSInformationPanelAnimation.show(panel, command, name);
     return;
