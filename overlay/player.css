@@ -14,6 +14,7 @@
   visibility: hidden;
   pointer-events: none;
   --frame-color: #0384CB;
+  --control-color: #0384CB;
   --border-primary: #0384CB;
   --border-secondary: #101416;
   --border-width: 4px;
@@ -66,6 +67,28 @@
   border-top: 2px solid var(--frame-color);
   font: 600 13px system-ui, sans-serif;
   color: #fff;
+  pointer-events: auto;
+}
+
+#player-play-pause {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  padding: 0;
+  border: 1px solid var(--control-color);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--control-color);
+  font: 700 14px system-ui, sans-serif;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#player-play-pause:hover,
+#player-play-pause:focus-visible {
+  background: var(--control-color);
+  color: #fff;
+  outline: none;
 }
 
 #player-current,
@@ -76,9 +99,10 @@
 
 #player-current { text-align: left; }
 #player-duration { text-align: right; }
-#player-progress { flex: 1; height: 4px; border-radius: 2px; overflow: hidden; background: rgba(255,255,255,.2); }
-#player-progress-bar { width: 0; height: 100%; background: var(--frame-color); transform-origin: left center; }
-#player-speed { min-width: 42px; text-align: right; color: var(--frame-color); }
+#player-progress { flex: 1; height: 6px; border-radius: 3px; overflow: hidden; background: rgba(255,255,255,.2); cursor: pointer; touch-action: none; }
+#player-progress:focus-visible { outline: 1px solid var(--control-color); outline-offset: 3px; }
+#player-progress-bar { width: 0; height: 100%; background: var(--control-color); transform-origin: left center; }
+#player-speed { min-width: 42px; text-align: right; color: var(--control-color); }
 #replay-player.controls-hidden #player-controls { display: none; }
 #replay-player.progress-hidden #player-progress { display: none; }
 

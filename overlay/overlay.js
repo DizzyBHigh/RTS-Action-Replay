@@ -60,7 +60,11 @@ RTSReplayOverlay.handleEvent = message => {
       brandingFallback: args.replayBrandFallbackText || '<missing>',
       brandingLabel: args.replayBrandLabel || '<missing>',
       brandingFallbackColor: args.replayBrandFallbackTextColor || '<missing>',
-      brandingLabelColor: args.replayBrandLabelColor || '<missing>'
+      brandingLabelColor: args.replayBrandLabelColor || '<missing>',
+      frameColor: args.replayFrameColor || '<missing>',
+      controlColor: args.replayControlColor || '<missing>',
+      brandingPrimaryColor: args.replayBrandPrimaryColor || '<missing>',
+      brandingSecondaryColor: args.replayTitleSecondaryColor || '<missing>'
     });
   }
   if (args.replayCommand === 'config-test') {
