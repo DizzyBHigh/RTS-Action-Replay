@@ -63,7 +63,7 @@ public class CPHInline
         var skipped = 0;
         foreach (var path in Directory.EnumerateFiles(folder))
         {
-            if (!IsReplayFile(path) || !Stable(path)) continue;
+            if (!IsReplayFile(path)) continue;
             if (IsCataloged(path)) { skipped++; continue; }
 
             if (TryAddFile(path, out _)) added++;
@@ -107,6 +107,7 @@ public class CPHInline
         var catalog = GetCatalog(data);
         var info = new FileInfo(path);
         var captured = info.LastWriteTime;
+        CPH.SetArgument("replayName", Path.GetFileNameWithoutExtension(path));
         var title = CPH.Parse(CPH.GetGlobalVar<string>(TitleKey, true) ?? "%replayName%");
         if (string.IsNullOrWhiteSpace(title)) title = Path.GetFileNameWithoutExtension(path);
 
