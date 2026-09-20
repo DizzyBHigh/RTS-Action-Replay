@@ -15,16 +15,13 @@ public class CPHInline
     private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
     private const string PlayerKey = "rts.actionreplay.config.player";
     private const string PanelKey = "rts.actionreplay.config.panel";
-    private const string ClapperPositionsKey = "rts.actionreplay.clapper.positions";
     private const string ConfigurationSnapshotKey = "rts.actionreplay.handoff.configurationSnapshot";
-    private const int ClapperboardPreviewWidth = 680;
-    private const int ClapperboardPreviewHeight = 372;
 
     public bool Execute() => Initialize();
     public bool Initialize() { var data = Load(); if (data.Count == 0) { data = CreateDataDefaults(); Save(data); } else { if (!(data["catalog"] is JArray)) data["catalog"] = new JArray(); if (!(data["playHistory"] is JArray)) data["playHistory"] = new JArray(); data["version"] = "1.0"; Save(data); } return true; }
     public bool EnsureData() => Initialize();
     private JObject CreateDataDefaults() => new JObject { ["version"] = "1.0", ["catalog"] = new JArray(), ["playHistory"] = new JArray() };
-    public bool Ensure() { EnsurePlayer(); EnsureObject(PanelKey, CreatePanelDefaults()); return true; }
+    public bool Ensure() { EnsurePlayer(); EnsureObject(PanelKey, CreatePanelDefaults()); EnsureObject(MessageKey, CreateMessageDefaults()); return true; }
     public bool GetPlayer() { EnsurePlayer(); CPH.SetArgument("replayPlayerConfig", Read(PlayerKey).ToString(Newtonsoft.Json.Formatting.None)); return true; }
     public bool GetPlayerPositions() { EnsurePlayer(); var player = Read(PlayerKey); CPH.SetArgument("replayPositions", ((JObject)player["positions"] ?? new JObject()).ToString(Newtonsoft.Json.Formatting.None)); return true; }
     public bool SavePlayerPositions() { EnsurePlayer(); string positionsJson; if (!CPH.TryGetArg("replayPositions", out positionsJson) || string.IsNullOrWhiteSpace(positionsJson)) return false; try { var positions = JObject.Parse(positionsJson); var player = Read(PlayerKey); player["positions"] = positions; SaveConfig(PlayerKey, player); return true; } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: player position JSON save failed: " + ex.Message); return false; } }
@@ -33,7 +30,8 @@ public class CPHInline
     public bool GetPanel() { EnsureObject(PanelKey, CreatePanelDefaults()); CPH.SetArgument("replayPanelConfig", Read(PanelKey).ToString(Newtonsoft.Json.Formatting.None)); return true; }
     private void EnsurePlayer() { var current = Read(PlayerKey); if (current.Count > 0) return; SaveConfig(PlayerKey, CreatePlayerDefaults()); }
     private JObject CreatePlayerDefaults() => new JObject { ["positions"] = new JObject(), ["animationProfiles"] = new JArray { new JObject { ["id"] = "default", ["name"] = "Default" } }, ["animation"] = new JObject { ["selectedProfile"] = "default", ["entryPoints"] = new JObject { ["obs"] = "default", ["twitch"] = "default", ["youtube"] = "default", ["kick"] = "default", ["recent"] = "default", ["catalog"] = "default", ["playlist"] = "default" } }, ["entryPoints"] = CreatePlayerEntryPoints() };
-    private JObject CreatePanelDefaults() => new JObject { ["width"] = 500, ["height"] = 700, ["positions"] = new JObject(), ["animationProfiles"] = new JArray { new JObject { ["id"] = "default", ["name"] = "Default" } }, ["animation"] = new JObject { ["entryPoints"] = new JObject { ["recent"] = "default", ["playlist"] = "default", ["creatorLeaderboard"] = "default" } }, ["entryPoints"] = CreatePanelEntryPoints() };
+    private JObject CreatePanelDefaults() => new JObject { ["width"] = 500, ["height"] = 700, ["cornerRadius"] = 0, ["positions"] = new JObject(), ["animationProfiles"] = new JArray { new JObject { ["id"] = "default", ["name"] = "Default" } }, ["animation"] = new JObject { ["entryPoints"] = new JObject { ["recent"] = "default", ["playlist"] = "default", ["creatorLeaderboard"] = "default" } }, ["entryPoints"] = CreatePanelEntryPoints() };
+    private JObject CreateMessageDefaults() => new JObject { ["minWidth"] = 500, ["minHeight"] = 120, ["cornerRadius"] = 0, ["positions"] = new JObject(), ["animationProfiles"] = new JArray { new JObject { ["id"] = "default", ["name"] = "Default" } }, ["animation"] = new JObject { ["selectedProfile"] = "default" }, ["entryPoint"] = CreateMessageEntryPoint() };
     private JObject CreateClapperDefaults() => new JObject { ["animationProfiles"] = new JArray { new JObject { ["id"] = "default", ["name"] = "Default" } }, ["animation"] = new JObject { ["selectedProfile"] = "default" }, ["entryPoint"] = CreateClapperEntryPoint() };
     private JObject Read(string key) { var raw = CPH.GetGlobalVar<string>(key, true); if (string.IsNullOrWhiteSpace(raw)) return new JObject(); try { return JObject.Parse(raw); } catch { return new JObject(); } }
     private void EnsureObject(string key, JObject defaults) { var current = Read(key); if (current.Count == 0) SaveConfig(key, defaults); }
@@ -43,12 +41,120 @@ public class CPHInline
     {
         if (!(CPH.GetGlobalVar<bool?>("rts.actionreplay.autoAdd", true) ?? true)) return true; string path; if (!CPH.TryGetArg("fullPath", out path) || string.IsNullOrWhiteSpace(path) || !File.Exists(path) || !IsReplayFile(path)) return false; var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true); if (!string.IsNullOrWhiteSpace(folder) && !Path.GetFullPath(path).StartsWith(Path.GetFullPath(folder).TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase)) return false; if (Path.GetExtension(path).Equals(".tmp", StringComparison.OrdinalIgnoreCase) || !Stable(path)) return false; var data = Load(); var catalog = GetCatalog(data); var file = Path.GetFileName(path); if (catalog.OfType<JObject>().Any(x => string.Equals((string)x["file"], file, StringComparison.OrdinalIgnoreCase) && string.Equals((string)x["sourceType"] ?? "OBS", "OBS", StringComparison.OrdinalIgnoreCase))) return true; var now = DateTime.Now; var id = now.ToString("yyyyMMdd-HHmmssfff") + "-" + Guid.NewGuid().ToString("N").Substring(0, 6); var creatorId = Get("userId"); var creatorName = Get("userName"); var creatorPlatform = NormalizePlatform(Get("userType")); ApplyPendingCreator(ref creatorPlatform, ref creatorId, ref creatorName); CPH.SetArgument("replayId", id); CPH.SetArgument("replayFile", file); CPH.SetArgument("replayPath", path); CPH.SetArgument("replayName", Path.GetFileNameWithoutExtension(path)); CPH.SetArgument("replayNumber", 1); CPH.SetArgument("replayDate", now.ToString("yyyy-MM-dd")); CPH.SetArgument("replayTime", now.ToString("HH:mm:ss")); CPH.SetArgument("replayPlays", 0); CPH.SetArgument("replayUser", creatorName); CPH.SetArgument("replayUserId", creatorId); CPH.SetArgument("replayPlatform", creatorPlatform); CPH.SetArgument("replayUserPlays", 0); CPH.SetArgument("replayTitle", ""); var title = CPH.Parse(CPH.GetGlobalVar<string>(TitleKey, true) ?? "%replayName%"); if (string.IsNullOrWhiteSpace(title)) title = Path.GetFileNameWithoutExtension(path); var replay = new JObject { ["id"] = id, ["sourceType"] = "OBS", ["sourceId"] = id, ["file"] = file, ["filePath"] = path, ["title"] = title, ["customTitle"] = false, ["added"] = now.ToString("o"), ["captured"] = now.ToString("o"), ["acquisitionMethod"] = "OBSReplayBuffer", ["creator"] = new JObject { ["platform"] = creatorPlatform, ["id"] = creatorId, ["name"] = creatorName }, ["plays"] = 0, ["users"] = new JObject() }; catalog.Insert(0, replay); Save(data); CPH.LogInfo($"RTS Action Replay: added {title} ({id})"); CPH.SetArgument("replayTitle", title); CPH.SetArgument("animationEntryPoint", "obs"); CPH.SetArgument("replayAutoPlay", CPH.GetGlobalVar<bool?>("rts.actionreplay.autoPlay", true) ?? false); SendStoreMessage("save"); return true;
     }
+    public bool AddExistingReplay()
+    {
+        var input = Get("rawInput").Trim();
+        if (string.IsNullOrWhiteSpace(input)) { CPH.SendMessage("Please provide a replay filename."); return false; }
+
+        var file = input;
+        var title = "";
+        if (file.StartsWith("\"") && file.Length > 1)
+        {
+            var endQuote = file.IndexOf("\"", 1);
+            if (endQuote < 0) { CPH.SendMessage("Please close the quoted replay filename."); return false; }
+            title = file.Substring(endQuote + 1).Trim();
+            file = file.Substring(1, endQuote - 1);
+        }
+        else
+        {
+            var parts = file.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
+            file = parts[0];
+            if (parts.Length > 1) title = parts[1].Trim();
+        }
+
+        if (string.IsNullOrWhiteSpace(file)) { CPH.SendMessage("Please provide a replay filename."); return false; }
+        var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true) ?? "";
+        if (string.IsNullOrWhiteSpace(folder)) { CPH.SendMessage("The Replay Folder is not configured."); return false; }
+        var fileName = Path.GetFileName(file);
+        if (!string.Equals(fileName, file, StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage("Please provide a filename from the configured Replay Folder."); return false; }
+
+        var path = Path.Combine(folder, fileName);
+        if (!TryAddExistingFile(path, title, out var result)) { CPH.SendMessage(result); return false; }
+        CPH.SendMessage(result);
+        return true;
+    }
+
+    public bool ScanReplays()
+    {
+        var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true) ?? "";
+        if (string.IsNullOrWhiteSpace(folder)) { CPH.SendMessage("The Replay Folder is not configured."); return false; }
+        if (!Directory.Exists(folder)) { CPH.SendMessage("The configured Replay Folder does not exist."); return false; }
+
+        var added = 0;
+        var skipped = 0;
+        foreach (var path in Directory.EnumerateFiles(folder))
+        {
+            if (!IsReplayFile(path)) continue;
+            if (IsCataloged(path)) { skipped++; continue; }
+            if (TryAddExistingFile(path, "", out _)) added++;
+        }
+        CPH.SendMessage($"Replay scan complete: {added} added, {skipped} already in the Catalog.");
+        return true;
+    }
+
+    private bool TryAddExistingFile(string path, string customTitle, out string result)
+    {
+        result = "";
+        if (!File.Exists(path) || !IsReplayFile(path)) { result = "Replay file was not found or its file type is not enabled."; return false; }
+
+        var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true) ?? "";
+        var fullPath = Path.GetFullPath(path);
+        var root = Path.GetFullPath(folder).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        if (!fullPath.StartsWith(root, StringComparison.OrdinalIgnoreCase)) { result = "The replay must be inside the configured Replay Folder."; return false; }
+        if (!Stable(path)) { result = "The replay file is still changing. Try again when it has finished saving."; return false; }
+        if (IsCataloged(path)) { result = $"Replay is already in the Catalog: {Path.GetFileName(path)}"; return false; }
+
+        var data = Load();
+        var catalog = GetCatalog(data);
+        var info = new FileInfo(path);
+        var captured = info.LastWriteTime;
+        CPH.SetArgument("replayName", Path.GetFileNameWithoutExtension(path));
+        var title = string.IsNullOrWhiteSpace(customTitle) ? CPH.Parse(CPH.GetGlobalVar<string>(TitleKey, true) ?? "%replayName%") : customTitle;
+        if (string.IsNullOrWhiteSpace(title)) title = Path.GetFileNameWithoutExtension(path);
+
+        var id = captured.ToString("yyyyMMdd-HHmmssfff") + "-" + Guid.NewGuid().ToString("N").Substring(0, 6);
+        catalog.Insert(0, new JObject {
+            ["id"] = id, ["sourceType"] = "OBS", ["sourceId"] = id,
+            ["file"] = Path.GetFileName(path), ["filePath"] = fullPath, ["title"] = title,
+            ["customTitle"] = !string.IsNullOrWhiteSpace(customTitle), ["added"] = DateTime.Now.ToString("o"),
+            ["captured"] = captured.ToString("o"), ["acquisitionMethod"] = "OBSReplayBufferImport",
+            ["creator"] = new JObject { ["platform"] = "OBS", ["id"] = "", ["name"] = "Imported" },
+            ["plays"] = 0, ["users"] = new JObject()
+        });
+        Save(data);
+        result = $"Replay added to Catalog: {title}";
+        CPH.LogInfo($"RTS Action Replay: imported {title} ({id})");
+        return true;
+    }
+
+    private bool IsCataloged(string path)
+    {
+        var file = Path.GetFileName(path);
+        return GetCatalog(Load()).OfType<JObject>().Any(x =>
+            string.Equals((string)x["file"], file, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals((string)x["sourceType"] ?? "OBS", "OBS", StringComparison.OrdinalIgnoreCase));
+    }
+
     public bool NameReplay() { string indexInput; string rawInput; if (!CPH.TryGetArg("input0", out indexInput) || !CPH.TryGetArg("rawInput", out rawInput)) return false; if (!int.TryParse(indexInput, out var index)) { CPH.SendMessage("Please provide a valid replay number."); return false; } var title = (rawInput ?? "").Trim(); if (title.StartsWith(indexInput + " ", StringComparison.OrdinalIgnoreCase)) title = title.Substring(indexInput.Length).Trim(); if (title.Length == 0) { CPH.SendMessage("Please provide a replay title."); return false; } var data = Load(); var list = GetCatalog(data); if (index < 1 || index > list.Count) { CPH.SendMessage($"Replay #{index} does not exist."); return false; } var target = (JObject)list[index - 1]; for (var i = 0; i < list.Count; i++) { var other = (JObject)list[i]; if (ReferenceEquals(other, target) || !((bool?)other["customTitle"] ?? false)) continue; if (string.Equals((string)other["title"], title, StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage("That title already exists."); return false; } } target["title"] = title; target["customTitle"] = true; Save(data); CPH.SetArgument("replayNumber", index); CPH.SetArgument("replayTitle", title); SendStoreMessage("name"); return true; }
     public bool ListPlaylist() { var list = GetCatalog(Load()); var message = list.Count == 0 ? "The replay playlist is empty." : string.Join(" | ", list.OfType<JObject>().Select((x, i) => "#" + (i + 1) + " " + (string)x["title"])); CPH.SetArgument("replayPlaylist", message); SendStoreMessage("playlist"); return true; }
     private void SendStoreMessage(string type) { var key = "rts.actionreplay.message." + type; var text = CPH.GetGlobalVar<string>(key + ".text", true); if (string.IsNullOrWhiteSpace(text)) return; text = CPH.Parse(text); if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) CPH.SendMessage(text); if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false) { CPH.SetArgument("replayCommand", "message"); CPH.SetArgument("replayMessage", text); SetMessageStyleArguments(); CPH.TriggerEvent("RTS-Action Replay", true); } }
-    private void SetMessageStyleArguments() { CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? ""); CPH.SetArgument("replayMessageBoardColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.boardColor", true) ?? "#101416"); CPH.SetArgument("replayMessageStripeLight", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeLight", true) ?? "#EEEEEE"); CPH.SetArgument("replayMessageStripeDark", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeDark", true) ?? "#111111"); CPH.SetArgument("replayMessageAccent", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.accent", true) ?? "#0384CB"); CPH.SetArgument("replayMessageTextColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.textColor", true) ?? "#0384CB"); CPH.SetArgument("replayMessageFont", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.font", true) ?? "Arial, sans-serif"); CPH.SetArgument("replayClapperPosition", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.position", true) ?? "Centered"); CPH.SetArgument("replayClapperPositions", CPH.GetGlobalVar<string>(ClapperPositionsKey, true) ?? "{\"Centered\":{\"name\":\"Centered\",\"tag\":\"centered\",\"scale\":50,\"scaleX\":50,\"scaleY\":50,\"x\":0,\"y\":0,\"z\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0,\"fov\":90}}"); CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveClapperAnimation"); CPH.SetArgument("replayClapperWidth", ClapperboardPreviewWidth); CPH.SetArgument("replayClapperHeight", ClapperboardPreviewHeight); CPH.SetArgument("replayMessageDuration", GetSettingInt("rts.actionreplay.clapper.duration", 5000)); }
+    public bool ShowClapperboard()
+    {
+        var title = CPH.GetGlobalVar<string>("rts.actionreplay.newReplayTitle", true) ?? "";
+        if (CPH.TryGetArg("replayTitle", out string replayTitle) && !string.IsNullOrWhiteSpace(replayTitle)) title = replayTitle;
+        CPH.SetArgument("replayCommand", "clapperboard");
+        CPH.SetArgument("replayMessage", title);
+        CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
+        CPH.SetArgument("replayClapperPosition", "Centered");
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "GetClapperboardPositions");
+        CPH.SetArgument("replayClapperPositions", CPH.GetGlobalVar<string>("rts.actionreplay.handoff.clapperPositions", false) ?? "{}");
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveClapperboardBranding");
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveClapperAnimation");
+        CPH.TriggerEvent("RTS-Action Replay", true);
+        return true;
+    }
 
-    private int GetSettingInt(string key, int fallback) { try { object value = CPH.GetGlobalVar<object>(key, true); return value == null ? fallback : Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture); } catch { return fallback; } }
+    private void SetMessageStyleArguments() { CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveMessagePresentation"); }
     private bool IsReplayFile(string path) { var extension = Path.GetExtension(path); if (string.IsNullOrWhiteSpace(extension)) return false; var configured = CPH.GetGlobalVar<string>(FileTypesKey, true) ?? ".mp4, .mkv"; foreach (var raw in configured.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)) { var type = raw.Trim(); if (!type.StartsWith(".")) type = "." + type; if (extension.Equals(type, StringComparison.OrdinalIgnoreCase)) return true; } return false; }
     private bool Stable(string path) { try { var a = new FileInfo(path).Length; System.Threading.Thread.Sleep(250); return new FileInfo(path).Length == a; } catch { return false; } }
     private string Get(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
@@ -64,6 +170,7 @@ public class CPHInline
     // Consolidated preset/config persistence from RTSActionReplayPresetStore.
     private JObject Read(string key, JObject fallback) { var raw = CPH.GetGlobalVar<string>(key, true); try { return string.IsNullOrWhiteSpace(raw) ? fallback : JObject.Parse(raw); } catch { return fallback; } }
 
+    const string MessageKey = "rts.actionreplay.config.message";
     const string ClapperKey = "rts.actionreplay.config.clapper";
 
     const string PresetsKey = "rts.actionreplay.config.presets";
@@ -82,9 +189,9 @@ public class CPHInline
             ["player"] = Read(PlayerKey, CreatePlayerDefaults()),
             ["panel"] = Read(PanelKey, CreatePanelDefaults()),
             ["clapperboard"] = Read(ClapperKey, CreateClapperDefaults()),
+            ["message"] = Read(MessageKey, CreateMessageDefaults()),
             ["presets"] = Read(PresetsKey, Defaults()),
             ["animation"] = Read("rts.actionreplay.config.animation", new JObject()),
-            ["clapperPositions"] = ReadStringObject(ClapperPositionsKey),
             ["globals"] = new JObject()
         };
 
@@ -99,6 +206,8 @@ public class CPHInline
         AddSnapshotGlobal(globals, "maxHistory", "rts.actionreplay.maxHistory");
         AddSnapshotGlobal(globals, "autoAdd", "rts.actionreplay.autoAdd");
         AddSnapshotGlobal(globals, "autoPlay", "rts.actionreplay.autoPlay");
+        AddSnapshotGlobal(globals, "clapperShowOnNewClip", "rts.actionreplay.clapper.showOnNewClip");
+        AddSnapshotGlobal(globals, "clapperUseSourcePlatformBranding", "rts.actionreplay.clapper.useSourcePlatformBranding");
         AddSnapshotGlobal(globals, "playlistPersist", "rts.actionreplay.playlistPersist");
         AddSnapshotGlobal(globals, "twitchPlaybackMode", "rts.actionreplay.twitch.playbackMode");
         AddSnapshotGlobal(globals, "twitchFolder", "rts.actionreplay.twitch.folder");
@@ -119,15 +228,15 @@ public class CPHInline
         AddSnapshotGlobal(globals, "borderGlow", "rts.actionreplay.borderGlow");
         AddSnapshotGlobal(globals, "borderWidth", "rts.actionreplay.borderWidth");
         AddSnapshotGlobal(globals, "cornerRadius", "rts.actionreplay.cornerRadius");
-        AddSnapshotGlobal(globals, "brandLogoUrl", "rts.actionreplay.brandLogoUrl");
-        AddSnapshotGlobal(globals, "clapperPosition", "rts.actionreplay.clapper.position");
+        AddSnapshotGlobal(globals, "panelWidth", "rts.actionreplay.panel.width");
+        AddSnapshotGlobal(globals, "panelHeight", "rts.actionreplay.panel.height");
+        AddSnapshotGlobal(globals, "panelCornerRadius", "rts.actionreplay.panel.cornerRadius");
+        AddSnapshotGlobal(globals, "messageMinWidth", "rts.actionreplay.message.minWidth");
+        AddSnapshotGlobal(globals, "messageMinHeight", "rts.actionreplay.message.minHeight");
+        AddSnapshotGlobal(globals, "messageCornerRadius", "rts.actionreplay.message.cornerRadius");
+        AddSnapshotGlobal(globals, "messageDuration", "rts.actionreplay.message.duration");
         AddSnapshotGlobal(globals, "clapperDuration", "rts.actionreplay.clapper.duration");
-        AddSnapshotGlobal(globals, "clapperBoardColor", "rts.actionreplay.clapper.boardColor");
-        AddSnapshotGlobal(globals, "clapperTextColor", "rts.actionreplay.clapper.textColor");
-        AddSnapshotGlobal(globals, "clapperStripeLight", "rts.actionreplay.clapper.stripeLight");
-        AddSnapshotGlobal(globals, "clapperStripeDark", "rts.actionreplay.clapper.stripeDark");
-        AddSnapshotGlobal(globals, "clapperAccent", "rts.actionreplay.clapper.accent");
-        AddSnapshotGlobal(globals, "clapperFont", "rts.actionreplay.clapper.font");
+        AddSnapshotGlobal(globals, "brandLogoUrl", "rts.actionreplay.brandLogoUrl");
 
         foreach (var prefix in new[] { "save", "name", "play", "recent", "playlist" })
         {
@@ -160,11 +269,12 @@ public class CPHInline
         else target[name] = raw;
     }
 
-    public bool EnsureEntryPoints() { EnsureDefaults(); var player = Read(PlayerKey, CreatePlayerDefaults()); var panel = Read(PanelKey, CreatePanelDefaults()); var clapper = Read(ClapperKey, CreateClapperDefaults()); if (!(player["entryPoints"] is JObject)) player["entryPoints"] = CreatePlayerEntryPoints(); if (!(panel["entryPoints"] is JObject)) panel["entryPoints"] = CreatePanelEntryPoints(); if (!(clapper["entryPoint"] is JObject)) clapper["entryPoint"] = CreateClapperEntryPoint(); Save(PlayerKey, player); Save(PanelKey, panel); Save(ClapperKey, clapper); return true; }
+    public bool EnsureEntryPoints() { EnsureDefaults(); var player = Read(PlayerKey, CreatePlayerDefaults()); var panel = Read(PanelKey, CreatePanelDefaults()); var clapper = Read(ClapperKey, CreateClapperDefaults()); if (!(player["entryPoints"] is JObject)) player["entryPoints"] = CreatePlayerEntryPoints(); if (!(panel["entryPoints"] is JObject)) panel["entryPoints"] = CreatePanelEntryPoints(); if (!(clapper["entryPoint"] is JObject)) clapper["entryPoint"] = CreateClapperEntryPoint(); var message = Read(MessageKey, CreateMessageDefaults()); if (!(message["entryPoint"] is JObject)) message["entryPoint"] = CreateMessageEntryPoint(); Save(PlayerKey, player); Save(PanelKey, panel); Save(ClapperKey, clapper); Save(MessageKey, message); return true; }
 
     private JObject CreatePlayerEntryPoints() { return new JObject { ["obs"] = CreateEntryPoint(), ["twitch"] = CreateEntryPoint(), ["youtube"] = CreateEntryPoint(), ["kick"] = CreateEntryPoint(), ["play"] = new JObject { ["animationProfile"] = "default", ["designPreset"] = "broadcast", ["titlePreset"] = "default", ["brandingPreset"] = "default", ["useSourcePlatformBranding"] = false } }; }
     private JObject CreatePanelEntryPoints() { return new JObject { ["recent"] = CreateEntryPoint(), ["playlist"] = CreateEntryPoint(), ["creatorLeaderboard"] = CreateEntryPoint() }; }
     private JObject CreateEntryPoint() { return new JObject { ["animationProfile"] = "default", ["designPreset"] = "broadcast", ["titlePreset"] = "default", ["brandingPreset"] = "default" }; }
+    private JObject CreateMessageEntryPoint() { return new JObject { ["animationProfile"] = "default", ["designPreset"] = "broadcast", ["brandingPreset"] = "default" }; }
     private JObject CreateClapperEntryPoint() { return new JObject { ["animationProfile"] = "default", ["brandingPreset"] = "default" }; }
 
     public JArray Branding() => Read(PresetsKey, Defaults())["branding"] as JArray ?? new JArray();
@@ -188,7 +298,7 @@ public class CPHInline
 
 
 
-    JObject Defaults() { return new JObject { { "branding", new JArray( new JObject { { "id", "default" }, { "name", "Default" }, { "platform", "" }, { "primaryColor", "#0384CBFF" }, { "secondaryColor", "#101416FF" }, { "titleColor", "#FFFFFFFF" }, { "titlePrefixSuffixColor", "#0384CBFF" }, { "textColor", "#FFFFFFFF" }, { "shadowColor", "#000000FF" }, { "font", "Inter" }, { "fontSize", 34 }, { "logo", "" }, { "fallbackText", "RTS" }, { "brandLabel", "ACTION REPLAY" } }, new JObject { { "id", "rts" }, { "name", "RTS" }, { "platform", "" }, { "primaryColor", "#0384CBFF" }, { "secondaryColor", "#FFD400FF" }, { "titleColor", "#FFD400FF" }, { "titlePrefixSuffixColor", "#0384CBFF" }, { "textColor", "#FFFFFFFF" }, { "shadowColor", "#000000FF" }, { "font", "Inter" }, { "fontSize", 34 }, { "logo", "" }, { "fallbackText", "RTS" }, { "brandLabel", "ACTION REPLAY" } }, new JObject { { "id", "twitch" }, { "name", "Twitch" }, { "platform", "Twitch" }, { "primaryColor", "#9146FFFF" }, { "secondaryColor", "#FFFFFFFF" }, { "titleColor", "#FFFFFFFF" }, { "titlePrefixSuffixColor", "#FFFFFFFF" }, { "textColor", "#FFFFFFFF" }, { "shadowColor", "#000000FF" }, { "font", "Inter" }, { "fontSize", 34 }, { "logo", "https://www.freepnglogos.com/uploads/twitch-logo-vector-png-2.png" }, { "fallbackText", "Twitch" }, { "brandLabel", "" } }, new JObject { { "id", "youtube" }, { "name", "YouTube" }, { "platform", "YouTube" }, { "primaryColor", "#D4101DFF" }, { "secondaryColor", "#FFFFFFFF" }, { "titleColor", "#FFFFFFFF" }, { "titlePrefixSuffixColor", "#FFFFFFFF" }, { "textColor", "#FFFFFFFF" }, { "shadowColor", "#FFFFFFFF" }, { "font", "Oswald" }, { "fontSize", 34 }, { "logo", "https://www.freepnglogos.com/uploads/youtube-logo-png/youtube-transparent-youtube-icon-29.png" }, { "fallbackText", "YouTube" }, { "brandLabel", "" } }, new JObject { { "id", "kick" }, { "name", "Kick" }, { "platform", "Kick" }, { "primaryColor", "#53FC18FF" }, { "secondaryColor", "#FFFFFFFF" }, { "titleColor", "#FFFFFFFF" }, { "titlePrefixSuffixColor", "#FFFFFFFF" }, { "textColor", "#000000FF" }, { "shadowColor", "#000000FF" }, { "font", "Inter" }, { "fontSize", 34 }, { "logo", "https://static.kick.com/kick-logo.svg" }, { "fallbackText", "Kick" }, { "brandLabel", "" } } )}, { "visual", new JArray( new JObject { { "id", "broadcast" }, { "name", "Broadcast" }, { "backgroundSource", "RTS Dark Blue" }, { "backgroundColor", "#101416FF" }, { "chevronHeight", 42 }, { "randomHeight", false }, { "chevronWidth", 42 }, { "randomWidth", false }, { "chevronSpacing", 0 }, { "randomSpacing", false }, { "chevronSpeed", 95 }, { "showTitle", true }, { "design", "broadcast" }, }, new JObject { { "id", "cinematic" }, { "name", "Cinematic" }, { "fixed", true }, { "design", "cinematic" }, }, new JObject { { "id", "cut" }, { "name", "Cut" }, { "backgroundSource", "RTS Dark Blue" }, { "backgroundColor", "#101416FF" }, { "blockWidth", 170 }, { "randomWidth", true }, { "barHeight", 5 }, { "showTitle", true }, { "design", "cut" }, }, new JObject { { "id", "minimal" }, { "name", "Minimal" }, { "fixed", true }, { "design", "minimal" }, } )} }; }
+    JObject Defaults() { return new JObject { { "branding", new JArray( new JObject { { "id", "default" }, { "name", "Default" }, { "platform", "" }, { "primaryColor", "#0384CBFF" }, { "secondaryColor", "#101416FF" }, { "titleColor", "#FFFFFFFF" }, { "titlePrefixSuffixColor", "#0384CBFF" }, { "textColor", "#FFFFFFFF" }, { "shadowColor", "#000000FF" }, { "font", "Inter" }, { "fontSize", 34 }, { "logo", "" }, { "fallbackText", "RTS" }, { "brandLabel", "ACTION REPLAY" } }, new JObject { { "id", "rts" }, { "name", "RTS" }, { "platform", "" }, { "primaryColor", "#0384CBFF" }, { "secondaryColor", "#FFD400FF" }, { "titleColor", "#FFD400FF" }, { "titlePrefixSuffixColor", "#0384CBFF" }, { "textColor", "#FFFFFFFF" }, { "shadowColor", "#000000FF" }, { "font", "Inter" }, { "fontSize", 34 }, { "logo", "" }, { "fallbackText", "RTS" }, { "brandLabel", "ACTION REPLAY" } }, new JObject { { "id", "twitch" }, { "name", "Twitch" }, { "platform", "Twitch" }, { "primaryColor", "#9146FFFF" }, { "secondaryColor", "#FFFFFFFF" }, { "titleColor", "#FFFFFFFF" }, { "titlePrefixSuffixColor", "#FFFFFFFF" }, { "textColor", "#FFFFFFFF" }, { "shadowColor", "#000000FF" }, { "font", "Inter" }, { "fontSize", 34 }, { "logo", "https://www.freepnglogos.com/uploads/twitch-logo-vector-png-2.png" }, { "fallbackText", "Twitch" }, { "brandLabel", "" } }, new JObject { { "id", "youtube" }, { "name", "YouTube" }, { "platform", "YouTube" }, { "primaryColor", "#D4101DFF" }, { "secondaryColor", "#FFFFFFFF" }, { "titleColor", "#FFFFFFFF" }, { "titlePrefixSuffixColor", "#FFFFFFFF" }, { "textColor", "#FFFFFFFF" }, { "shadowColor", "#FFFFFFFF" }, { "font", "Oswald" }, { "fontSize", 34 }, { "logo", "https://www.freepnglogos.com/uploads/youtube-logo-png/youtube-transparent-youtube-icon-29.png" }, { "fallbackText", "YouTube" }, { "brandLabel", "" } }, new JObject { { "id", "kick" }, { "name", "Kick" }, { "platform", "Kick" }, { "primaryColor", "#53FC18FF" }, { "secondaryColor", "#FFFFFFFF" }, { "titleColor", "#FFFFFFFF" }, { "titlePrefixSuffixColor", "#FFFFFFFF" }, { "textColor", "#000000FF" }, { "shadowColor", "#000000FF" }, { "font", "Inter" }, { "fontSize", 34 }, { "logo", "https://static.kick.com/kick-logo.svg" }, { "fallbackText", "Kick" }, { "brandLabel", "" } } )}, { "visual", new JArray( new JObject { { "id", "broadcast" }, { "name", "Broadcast" }, { "backgroundSource", "RTS Dark Blue" }, { "backgroundColor", "#101416FF" }, { "chevronHeight", 42 }, { "randomHeight", false }, { "chevronWidth", 42 }, { "randomWidth", false }, { "chevronSpacing", 0 }, { "randomSpacing", false }, { "chevronSpeed", 95 }, { "design", "broadcast" }, }, new JObject { { "id", "cinematic" }, { "name", "Cinematic" }, { "fixed", true }, { "design", "cinematic" }, }, new JObject { { "id", "cut" }, { "name", "Cut" }, { "backgroundSource", "RTS Dark Blue" }, { "backgroundColor", "#101416FF" }, { "blockWidth", 170 }, { "randomWidth", true }, { "barHeight", 5 }, { "design", "cut" }, }, new JObject { { "id", "minimal" }, { "name", "Minimal" }, { "fixed", true }, { "design", "minimal" }, } )} }; }
 
     JArray TitleDefaults() { var d = new JObject { { "id", "default" }, { "name", "Default" }, { "decorationPosition", "Prefix" }, { "decoration", "Action Replay -" }, { "position", "Bottom" }, { "animation", "Left to right" }, { "delay", 2000 }, { "duration", 10000 }, { "animationDuration", 1000 } }; return new JArray(d); }
 
@@ -197,5 +307,5 @@ public class CPHInline
 
     void EnsureVisuals(JObject p) { var a = p["visual"] as JArray ?? new JArray(); var d = Defaults()["visual"] as JArray; foreach (var id in new[] { "broadcast", "cinematic", "cut", "minimal" }) { var x = Find(a, id); var def = Find(d, id); if (x == null) { a.Add(def.DeepClone()); continue; } if (x["design"] == null) x["design"] = (string)def["design"]; if (x["name"] == null) x["name"] = (string)def["name"]; foreach (var f in new[] { "chevronHeight", "randomHeight", "chevronWidth", "randomWidth", "chevronSpacing", "randomSpacing", "chevronSpeed", "blockWidth", "barHeight", "backgroundColor" }) if (x[f] == null && def[f] != null) x[f] = def[f]; if (id == "cut" && x["backgroundSource"] == null) x["backgroundSource"] = x["backgroundColor"] != null ? "Custom" : "RTS Dark Blue"; if (id == "broadcast" && x["backgroundSource"] == null) x["backgroundSource"] = "RTS Dark Blue"; } p["visual"] = a; }
 
-    void EnsureTitlePresets(JObject p) { var a = p["title"] as JArray ?? new JArray(); if (a.Count == 0) a = TitleDefaults(); foreach (var x in a) { if (x["name"] == null) x["name"] = (string)x["id"] ?? "Title Preset"; if (x["decorationPosition"] == null) x["decorationPosition"] = "Prefix"; if (x["position"] == null) x["position"] = "Bottom"; if (x["animation"] == null) x["animation"] = "Left to right"; if (x["delay"] == null) x["delay"] = 2000; if (x["duration"] == null) x["duration"] = 10000; if (x["animationDuration"] == null) x["animationDuration"] = 1000; } p["title"] = a; }
+    void EnsureTitlePresets(JObject p) { var a = p["title"] as JArray ?? new JArray(); if (a.Count == 0) a = TitleDefaults(); foreach (var x in a) { ((JObject)x).Remove("showTitle"); if (x["name"] == null) x["name"] = (string)x["id"] ?? "Title Preset"; if (x["decorationPosition"] == null) x["decorationPosition"] = "Prefix"; if (x["position"] == null) x["position"] = "Bottom"; if (x["animation"] == null) x["animation"] = "Left to right"; if (x["delay"] == null) x["delay"] = 2000; if (x["duration"] == null) x["duration"] = 10000; if (x["animationDuration"] == null) x["animationDuration"] = 1000; } p["title"] = a; }
 }
