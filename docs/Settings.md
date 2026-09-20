@@ -366,8 +366,8 @@ Sets the temporary title shown when a newly saved replay is automatically played
 | Setting | What it does | Default |
 |---|---|---|
 | **Maximum Recent Clips** | Maximum number of entries retained in the Recent Clips and Last Played lists. Older entries remain in the Catalog. | `20` |
-| **Auto-add Saved Replays** | Automatically adds newly saved OBS replays to the Catalog and Recent Clips list. | On |
-| **Auto-play Newest Replay** | Automatically loads and plays a newly saved OBS replay. | Off |
+| **Auto-add Saved Replays (OBS Capture)** | Automatically adds newly saved OBS replays to the Catalog and Recent Clips list. | On |
+| **Auto-play OBS Captures** | Automatically loads and plays a newly saved OBS replay. | Off |
 
 ### Maximum Recent Clips
 
