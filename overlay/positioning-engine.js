@@ -1,5 +1,5 @@
 const RTSPositioningEngine = {
-  version: '20260919-5',
+  version: '20260920-1',
   diagnostics: new WeakMap(),
   referenceWidth: 1920,
   referenceHeight: 1080,
@@ -33,6 +33,14 @@ const RTSPositioningEngine = {
 
   apply(element, position) {
     if (!element) return null;
+    const canvas = element.offsetParent || document.getElementById('rts-overlay') || document.body;
+    const canvasWidth = Math.max(1, canvas.clientWidth || this.referenceWidth);
+    const canvasHeight = Math.max(1, canvas.clientHeight || this.referenceHeight);
+    const width = Math.max(0, element.offsetWidth || 0);
+    const height = Math.max(0, element.offsetHeight || 0);
+    element.style.left = `${(canvasWidth - width) / 2}px`;
+    element.style.top = `${(canvasHeight - height) / 2}px`;
+
     const transform = this.transformFor(element, position);
     element.style.transform = transform;
 
@@ -43,10 +51,9 @@ const RTSPositioningEngine = {
         const signature = [name, position?.x, position?.y, position?.z, position?.scaleX, position?.scaleY, position?.fov].join('|');
         if (this.diagnostics.get(element) !== signature) {
           this.diagnostics.set(element, signature);
-          const stage = document.getElementById('replay-player-stage');
           const screen = document.getElementById('rts-dev-screen');
           const rect = element.getBoundingClientRect();
-          const stageRect = stage?.getBoundingClientRect();
+          const canvasRect = canvas.getBoundingClientRect();
           const screenRect = screen?.getBoundingClientRect();
           window.RTSDevToolbar?.log?.('Position geometry diagnostic', {
             name,
@@ -59,10 +66,10 @@ const RTSPositioningEngine = {
               x: rect.left + rect.width / 2,
               y: rect.top + rect.height / 2
             },
-            stageCenter: stageRect ? {
-              x: stageRect.left + stageRect.width / 2,
-              y: stageRect.top + stageRect.height / 2
-            } : null,
+            canvasCenter: {
+              x: canvasRect.left + canvasRect.width / 2,
+              y: canvasRect.top + canvasRect.height / 2
+            },
             screenCenter: screenRect ? {
               x: screenRect.left + screenRect.width / 2,
               y: screenRect.top + screenRect.height / 2
@@ -71,9 +78,15 @@ const RTSPositioningEngine = {
               width: getComputedStyle(element).width,
               height: getComputedStyle(element).height,
               transformOrigin: getComputedStyle(element).transformOrigin,
-              stageTransform: stage ? getComputedStyle(stage).transform : null,
-              stagePerspective: stage ? getComputedStyle(stage).perspective : null,
-              stagePerspectiveOrigin: stage ? getComputedStyle(stage).perspectiveOrigin : null
+              canvasTransform: getComputedStyle(canvas).transform,
+              canvasWidth,
+              canvasHeight,
+              anchor: {
+                left: element.offsetLeft,
+                top: element.offsetTop,
+                width,
+                height
+              }
             }
           });
         }
