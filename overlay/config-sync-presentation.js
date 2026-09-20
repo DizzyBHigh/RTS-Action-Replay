@@ -12,6 +12,13 @@
     const d = visual(config, entry?.designPreset || entry?.visualPreset || 'broadcast');
     const t = title(config, entry?.titlePreset || 'default');
     const b = branding(config, entry?.brandingPreset || 'default');
+    const globals = config?.globals || {};
+    const controlSource = String(globals.controlColorSource || 'Branding Primary');
+    const controlColor = controlSource.toLowerCase() === 'custom'
+      ? (globals.controlColor || '#0384CBFF')
+      : controlSource.toLowerCase() === 'branding secondary'
+        ? (b.secondaryColor || '#101416FF')
+        : (b.primaryColor || '#0384CBFF');
 
     Object.assign(command, {
       replayPanelPreset: d.design || d.id || 'broadcast',
@@ -37,6 +44,7 @@
       replayTitleShadowColor: b.shadowColor || '#000000FF',
       replayTitlePrimaryColor: b.primaryColor || '#0384CBFF',
       replayTitleSecondaryColor: b.secondaryColor || '#101416FF',
+      replayControlColor: controlColor,
       replayBrandLogoUrl: b.logo || '',
       replayBrandFallbackText: b.fallbackText || 'RTS',
       replayBrandLabel: b.brandLabel || 'ACTION REPLAY',
