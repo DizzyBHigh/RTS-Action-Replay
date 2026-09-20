@@ -232,6 +232,8 @@ public class CPHInline
         AddSnapshotGlobal(globals, "messageMinWidth", "rts.actionreplay.message.minWidth");
         AddSnapshotGlobal(globals, "messageMinHeight", "rts.actionreplay.message.minHeight");
         AddSnapshotGlobal(globals, "messageCornerRadius", "rts.actionreplay.message.cornerRadius");
+        AddSnapshotGlobal(globals, "messageDuration", "rts.actionreplay.message.duration");
+        AddSnapshotGlobal(globals, "clapperDuration", "rts.actionreplay.clapper.duration");
         AddSnapshotGlobal(globals, "brandLogoUrl", "rts.actionreplay.brandLogoUrl");
 
         foreach (var prefix in new[] { "save", "name", "play", "recent", "playlist" })
