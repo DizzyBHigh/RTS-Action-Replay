@@ -62,7 +62,7 @@ RTS - Action Replay - Video - Pause : Execute Method (RTS - Action Replay - Core
 RTS - Action Replay - Video - Play : Execute Method (RTS - Action Replay - Core - Video Controls, PlayVideo) Commands: !video-play, !videoplay, !player-play, !playerplay
 RTS - Action Replay - Video - Screen Position : Execute Method (RTS - Action Replay - Core - Playback, SetPlayerPosition) Commands: !player-pos, !player-position [Parameters: <position name> [<duration ms>]]
 RTS - Action Replay - Video - Set Speed : Execute Method (RTS - Action Replay - Core - Video Controls, SetVideoSpeed) Commands: !set-speed, !setspeed, !player-speed, !playerspeed, !clip-speed, !clipspeed [Parameters: <playback speed> 0.25-4.0]
-RTS - Action Replay - Video - Show Player : Execute Method (RTS - Action Replay - Core - Video Controls, ShowPlayer) Commands: !show-player, !showplayer, !playerhide, !player-hide
+RTS - Action Replay - Video - Show Player : Execute Method (RTS - Action Replay - Core - Video Controls, ShowPlayer) Commands: !show-player, !showplayer, !playershow, !player-show
 
 RTS - Action Replay - YouTube : 
 RTS - Action Replay - Create YouTube Clip : Execute Method (RTS - Action Replay - Core - Platforms, CreateYouTubeClip) Commands: (Youtube chat only) !create-clip, !createclip [Parameters: %rawInput% = optional 5-60 second duration and title]
