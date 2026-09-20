@@ -60,6 +60,7 @@ public class CPHInline
         CPH.SetArgument("replayMessageAccent", (string)branding["shadowColor"] ?? "#000000FF");
         CPH.SetArgument("replayMessageFont", (string)branding["font"] ?? "Inter");
         CPH.SetArgument("replayBrandingPresetId", (string)branding["id"] ?? "default");
+        CPH.SetArgument("replayClapperDuration", CPH.GetGlobalVar<int?>("rts.actionreplay.clapper.duration", true) ?? 5000);
         return true;
     }
 
