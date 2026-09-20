@@ -19,8 +19,8 @@ RTS - Action Replay - Catalog - Search Top Rated : Execute Method(RTS - Action R
 RTS - Action Replay - Catalog - Top Creators: Execute Method(RTS - Action Replay - Core - Catalog, ListLeaderboard) Commands: !creator-leaderboard, !top-clippers, !top-creators [Parameters: optional <period> and/or --amount <N>]
 RTS - Action Replay - Catalog - Search Panel Clear : Execute Method(RTS - Action Replay - Core - Search Queue, Clear)  
 RTS - Action Replay - Catalog - Search Panel Ended : Execute Method(RTS - Action Replay - Core - Search Queue, SearchPanelEnded)
-RTS - Action Replay - Catalog - Add Replay : Execute Method(RTS - Action Replay - Core - Store, AddExistingReplay)
-RTS - Action Replay - Catalog - Scan Replays : Execute Method(RTS - Action Replay - Core - Store, ScanReplays)
+RTS - Action Replay - Catalog - Add Existing Replay: Execute Method(RTS - Action Replay - Core - Store, AddExistingReplay) Commands: !add-existing-replay <filename>
+RTS - Action Replay - Catalog - Scan Replay Folder : Execute Method(RTS - Action Replay - Core - Store, ScanReplays) Commands: !scan-replay-folder !scanreplayfolder
 
 RTS - Action Replay - Core
 RTS - Action Replay - Core - Catalog : Execute Code (RTS - Action Replay - Core - Catalog) - streamerbot/RTSActionReplayCatalog.cs
