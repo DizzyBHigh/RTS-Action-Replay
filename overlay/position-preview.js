@@ -1,6 +1,7 @@
 const RTSPositionPreview = window.RTSReplay;
 let panelPreviewRunner = null;
 let clapperPreviewRunner = null;
+let messagePreviewRunner = null;
 
 RTSPositionPreview.previewVideoPosition = command => {
   const player = RTSPositionPreview.player;
@@ -67,16 +68,34 @@ RTSPositionPreview.previewPanelPosition = command => {
 };
 
 RTSPositionPreview.previewClapperPosition = command => {
-  const card = RTSPositionPreview.messageCard;
+  const card = RTSPositionPreview.clapperCard;
   if (!card) return;
   RTSPositionPreview.currentCommand = { ...(RTSPositionPreview.currentCommand || {}), ...command };
-  RTSReplayMessages.applyMessageStyle(command);
-  RTSPositionPreview.messageText.textContent = command.replayMessage || 'CLAPPERBOARD PREVIEW';
+  card.style.setProperty('--board-color', command.replayMessageBoardColor || '#101416');
+  card.style.setProperty('--stripe-light', command.replayMessageStripeLight || '#EEEEEE');
+  card.style.setProperty('--stripe-dark', command.replayMessageStripeDark || '#111111');
+  card.style.setProperty('--accent-color', command.replayMessageAccent || '#0384CB');
+  card.style.setProperty('--message-color', command.replayMessageTextColor || '#0384CB');
+  RTSPositionPreview.clapperMessageText.textContent = command.replayMessage || 'CLAPPERBOARD PREVIEW';
   card.classList.add('position-preview', 'show');
   card.setAttribute('aria-hidden', 'false');
   const positionName = command.replayClapperPosition || 'Centered';
   if (!clapperPreviewRunner) clapperPreviewRunner = RTSAnimationEngine.createRunner({ target: card, defaultPosition: { scale: 50, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, fov: 90 } });
   clapperPreviewRunner.configure(command.replayClapperPositions); clapperPreviewRunner.apply(clapperPreviewRunner.resolve(positionName));
+};
+
+RTSPositionPreview.previewMessagePosition = command => {
+  const card = RTSPositionPreview.messageCard;
+  if (!card) return;
+  RTSPositionPreview.currentCommand = { ...(RTSPositionPreview.currentCommand || {}), ...command };
+  RTSInformationPanelPresets?.apply?.(card, command);
+  RTSInformationPanels.applyMessageSize(card, command);
+  card.classList.add('position-preview', 'show');
+  card.setAttribute('aria-hidden', 'false');
+  const positionName = command.replayMessagePosition || 'Centered';
+  if (!messagePreviewRunner) messagePreviewRunner = RTSAnimationEngine.createRunner({ target: card });
+  messagePreviewRunner.configure(command.replayMessagePositions);
+  messagePreviewRunner.apply(messagePreviewRunner.resolve(positionName));
 };
 
 RTSPositionPreview.hidePositionPreview = () => {
@@ -85,8 +104,10 @@ RTSPositionPreview.hidePositionPreview = () => {
   if (RTSPositionPreview.panelAnimationFrame) { cancelAnimationFrame(RTSPositionPreview.panelAnimationFrame); RTSPositionPreview.panelAnimationFrame = null; }
   const panel = RTSPositionPreview.recentList;
   if (panel) { window.RTSInformationPanelAnimation?.cancel?.(); panel.classList.remove('position-preview'); panel.style.removeProperty('--preview-panel-width'); panel.style.removeProperty('--preview-panel-height'); panel.classList.remove('show'); panel.setAttribute('aria-hidden', 'true'); }
-  const clapper = RTSPositionPreview.messageCard;
-  if (clapper) { clapper.classList.remove('position-preview'); clapper.classList.remove('show'); clapper.setAttribute('aria-hidden', 'true'); }
+  const clapper = RTSPositionPreview.clapperCard;
+  if (clapper) { clapperPreviewRunner?.cancel(); clapper.classList.remove('position-preview'); clapper.classList.remove('show'); clapper.setAttribute('aria-hidden', 'true'); }
+  const message = RTSPositionPreview.messageCard;
+  if (message) { messagePreviewRunner?.cancel(); message.classList.remove('position-preview'); message.classList.remove('show'); message.setAttribute('aria-hidden', 'true'); }
 };
 
 const originalHandleReplayCommand = RTSPositionPreview.handleReplayCommand;
@@ -94,6 +115,7 @@ RTSPositionPreview.handleReplayCommand = command => {
   if (command?.replayCommand === 'position-preview') { RTSPositionPreview.previewVideoPosition(command); return; }
   if (command?.replayCommand === 'panel-position-preview') { RTSPositionPreview.previewPanelPosition(command); return; }
   if (command?.replayCommand === 'clapper-position-preview') { RTSPositionPreview.previewClapperPosition(command); return; }
-  if (command?.replayCommand === 'position-preview-hide' || command?.replayCommand === 'panel-position-preview-hide' || command?.replayCommand === 'clapper-position-preview-hide') { RTSPositionPreview.hidePositionPreview(); return; }
+  if (command?.replayCommand === 'message-position-preview') { RTSPositionPreview.previewMessagePosition(command); return; }
+  if (command?.replayCommand === 'position-preview-hide' || command?.replayCommand === 'panel-position-preview-hide' || command?.replayCommand === 'clapper-position-preview-hide' || command?.replayCommand === 'message-position-preview-hide') { RTSPositionPreview.hidePositionPreview(); return; }
   originalHandleReplayCommand(command);
 };
