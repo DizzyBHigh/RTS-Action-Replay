@@ -43,6 +43,81 @@ public class CPHInline
     {
         if (!(CPH.GetGlobalVar<bool?>("rts.actionreplay.autoAdd", true) ?? true)) return true; string path; if (!CPH.TryGetArg("fullPath", out path) || string.IsNullOrWhiteSpace(path) || !File.Exists(path) || !IsReplayFile(path)) return false; var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true); if (!string.IsNullOrWhiteSpace(folder) && !Path.GetFullPath(path).StartsWith(Path.GetFullPath(folder).TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase)) return false; if (Path.GetExtension(path).Equals(".tmp", StringComparison.OrdinalIgnoreCase) || !Stable(path)) return false; var data = Load(); var catalog = GetCatalog(data); var file = Path.GetFileName(path); if (catalog.OfType<JObject>().Any(x => string.Equals((string)x["file"], file, StringComparison.OrdinalIgnoreCase) && string.Equals((string)x["sourceType"] ?? "OBS", "OBS", StringComparison.OrdinalIgnoreCase))) return true; var now = DateTime.Now; var id = now.ToString("yyyyMMdd-HHmmssfff") + "-" + Guid.NewGuid().ToString("N").Substring(0, 6); var creatorId = Get("userId"); var creatorName = Get("userName"); var creatorPlatform = NormalizePlatform(Get("userType")); ApplyPendingCreator(ref creatorPlatform, ref creatorId, ref creatorName); CPH.SetArgument("replayId", id); CPH.SetArgument("replayFile", file); CPH.SetArgument("replayPath", path); CPH.SetArgument("replayName", Path.GetFileNameWithoutExtension(path)); CPH.SetArgument("replayNumber", 1); CPH.SetArgument("replayDate", now.ToString("yyyy-MM-dd")); CPH.SetArgument("replayTime", now.ToString("HH:mm:ss")); CPH.SetArgument("replayPlays", 0); CPH.SetArgument("replayUser", creatorName); CPH.SetArgument("replayUserId", creatorId); CPH.SetArgument("replayPlatform", creatorPlatform); CPH.SetArgument("replayUserPlays", 0); CPH.SetArgument("replayTitle", ""); var title = CPH.Parse(CPH.GetGlobalVar<string>(TitleKey, true) ?? "%replayName%"); if (string.IsNullOrWhiteSpace(title)) title = Path.GetFileNameWithoutExtension(path); var replay = new JObject { ["id"] = id, ["sourceType"] = "OBS", ["sourceId"] = id, ["file"] = file, ["filePath"] = path, ["title"] = title, ["customTitle"] = false, ["added"] = now.ToString("o"), ["captured"] = now.ToString("o"), ["acquisitionMethod"] = "OBSReplayBuffer", ["creator"] = new JObject { ["platform"] = creatorPlatform, ["id"] = creatorId, ["name"] = creatorName }, ["plays"] = 0, ["users"] = new JObject() }; catalog.Insert(0, replay); Save(data); CPH.LogInfo($"RTS Action Replay: added {title} ({id})"); CPH.SetArgument("replayTitle", title); CPH.SetArgument("animationEntryPoint", "obs"); CPH.SetArgument("replayAutoPlay", CPH.GetGlobalVar<bool?>("rts.actionreplay.autoPlay", true) ?? false); SendStoreMessage("save"); return true;
     }
+    public bool AddExistingReplay()
+    {
+        var input = Get("rawInput").Trim();
+        if (string.IsNullOrWhiteSpace(input)) { CPH.SendMessage("Please provide a replay filename."); return false; }
+        var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true) ?? "";
+        if (string.IsNullOrWhiteSpace(folder)) { CPH.SendMessage("The Replay Folder is not configured."); return false; }
+        var file = Path.GetFileName(input);
+        if (!string.Equals(file, input, StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage("Please provide a filename from the configured Replay Folder."); return false; }
+        var path = Path.Combine(folder, file);
+        if (!TryAddExistingFile(path, out var result)) { CPH.SendMessage(result); return false; }
+        CPH.SendMessage(result);
+        return true;
+    }
+
+    public bool ScanReplays()
+    {
+        var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true) ?? "";
+        if (string.IsNullOrWhiteSpace(folder)) { CPH.SendMessage("The Replay Folder is not configured."); return false; }
+        if (!Directory.Exists(folder)) { CPH.SendMessage("The configured Replay Folder does not exist."); return false; }
+
+        var added = 0;
+        var skipped = 0;
+        foreach (var path in Directory.EnumerateFiles(folder))
+        {
+            if (!IsReplayFile(path)) continue;
+            if (IsCataloged(path)) { skipped++; continue; }
+            if (TryAddExistingFile(path, out _)) added++;
+        }
+        CPH.SendMessage($"Replay scan complete: {added} added, {skipped} already in the Catalog.");
+        return true;
+    }
+
+    private bool TryAddExistingFile(string path, out string result)
+    {
+        result = "";
+        if (!File.Exists(path) || !IsReplayFile(path)) { result = "Replay file was not found or its file type is not enabled."; return false; }
+
+        var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true) ?? "";
+        var fullPath = Path.GetFullPath(path);
+        var root = Path.GetFullPath(folder).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        if (!fullPath.StartsWith(root, StringComparison.OrdinalIgnoreCase)) { result = "The replay must be inside the configured Replay Folder."; return false; }
+        if (!Stable(path)) { result = "The replay file is still changing. Try again when it has finished saving."; return false; }
+        if (IsCataloged(path)) { result = $"Replay is already in the Catalog: {Path.GetFileName(path)}"; return false; }
+
+        var data = Load();
+        var catalog = GetCatalog(data);
+        var info = new FileInfo(path);
+        var captured = info.LastWriteTime;
+        CPH.SetArgument("replayName", Path.GetFileNameWithoutExtension(path));
+        var title = CPH.Parse(CPH.GetGlobalVar<string>(TitleKey, true) ?? "%replayName%");
+        if (string.IsNullOrWhiteSpace(title)) title = Path.GetFileNameWithoutExtension(path);
+
+        var id = captured.ToString("yyyyMMdd-HHmmssfff") + "-" + Guid.NewGuid().ToString("N").Substring(0, 6);
+        catalog.Insert(0, new JObject {
+            ["id"] = id, ["sourceType"] = "OBS", ["sourceId"] = id,
+            ["file"] = Path.GetFileName(path), ["filePath"] = fullPath, ["title"] = title,
+            ["customTitle"] = false, ["added"] = DateTime.Now.ToString("o"),
+            ["captured"] = captured.ToString("o"), ["acquisitionMethod"] = "OBSReplayBufferImport",
+            ["creator"] = new JObject { ["platform"] = "OBS", ["id"] = "", ["name"] = "Imported" },
+            ["plays"] = 0, ["users"] = new JObject()
+        });
+        Save(data);
+        result = $"Replay added to Catalog: {title}";
+        CPH.LogInfo($"RTS Action Replay: imported {title} ({id})");
+        return true;
+    }
+
+    private bool IsCataloged(string path)
+    {
+        var file = Path.GetFileName(path);
+        return GetCatalog(Load()).OfType<JObject>().Any(x =>
+            string.Equals((string)x["file"], file, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals((string)x["sourceType"] ?? "OBS", "OBS", StringComparison.OrdinalIgnoreCase));
+    }
+
     public bool NameReplay() { string indexInput; string rawInput; if (!CPH.TryGetArg("input0", out indexInput) || !CPH.TryGetArg("rawInput", out rawInput)) return false; if (!int.TryParse(indexInput, out var index)) { CPH.SendMessage("Please provide a valid replay number."); return false; } var title = (rawInput ?? "").Trim(); if (title.StartsWith(indexInput + " ", StringComparison.OrdinalIgnoreCase)) title = title.Substring(indexInput.Length).Trim(); if (title.Length == 0) { CPH.SendMessage("Please provide a replay title."); return false; } var data = Load(); var list = GetCatalog(data); if (index < 1 || index > list.Count) { CPH.SendMessage($"Replay #{index} does not exist."); return false; } var target = (JObject)list[index - 1]; for (var i = 0; i < list.Count; i++) { var other = (JObject)list[i]; if (ReferenceEquals(other, target) || !((bool?)other["customTitle"] ?? false)) continue; if (string.Equals((string)other["title"], title, StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage("That title already exists."); return false; } } target["title"] = title; target["customTitle"] = true; Save(data); CPH.SetArgument("replayNumber", index); CPH.SetArgument("replayTitle", title); SendStoreMessage("name"); return true; }
     public bool ListPlaylist() { var list = GetCatalog(Load()); var message = list.Count == 0 ? "The replay playlist is empty." : string.Join(" | ", list.OfType<JObject>().Select((x, i) => "#" + (i + 1) + " " + (string)x["title"])); CPH.SetArgument("replayPlaylist", message); SendStoreMessage("playlist"); return true; }
     private void SendStoreMessage(string type) { var key = "rts.actionreplay.message." + type; var text = CPH.GetGlobalVar<string>(key + ".text", true); if (string.IsNullOrWhiteSpace(text)) return; text = CPH.Parse(text); if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) CPH.SendMessage(text); if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false) { CPH.SetArgument("replayCommand", "message"); CPH.SetArgument("replayMessage", text); SetMessageStyleArguments(); CPH.TriggerEvent("RTS-Action Replay", true); } }
