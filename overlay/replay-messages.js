@@ -42,7 +42,7 @@ RTSReplayMessages.showMessage = command => {
   );
   RTSReplayMessages.messageTimer = setTimeout(
     () => RTSReplayMessages.hideMessage(command),
-    RTSReplayMessages.config.messageDuration
+    Number(command?.replayMessageDuration) || RTSReplayMessages.config.messageDuration
   );
 };
 
