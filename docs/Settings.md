@@ -340,6 +340,10 @@ Sets how rounded the player corners are, from 0 to 48 pixels. `0` leaves the cor
 
 ## Playlist
 
+The Playlist is the live playback queue. It can contain clips from any supported source, including OBS captures, Twitch clips, YouTube clips and Kick clips.
+
+Twitch, YouTube and Kick **Create Clip** commands automatically add the resulting clip to the Playlist and queue it for playback. The OBS capture settings below control only what happens when a new OBS Replay Buffer capture is saved.
+
 ### Replay Defaults
 
 These settings control the default titles used when replays are created or automatically played.
@@ -371,7 +375,7 @@ Controls how many entries are retained in the **Recent Clips** and **Last Played
 
 Older entries are removed from those lists but remain in the Catalog.
 
-### Auto-add Saved Replays
+### Auto-add Saved Replays (OBS Capture)
 
 When enabled, newly saved OBS replays are automatically added to the Catalog and Recent Clips list.
 
@@ -380,11 +384,13 @@ When disabled, newly saved OBS replays are not added automatically. Existing rep
 - **Add Replay** adds one replay file from the configured Replay Folder.
 - **Scan Replays** scans the configured Replay Folder and adds replay files that are not already in the Catalog.
 
-### Auto-play Newest Replay
+### Auto-play OBS Captures
 
 When enabled, a newly saved OBS replay is automatically loaded and played.
 
 ### Live Playlist
+
+The Playlist is source-agnostic. Items can originate from OBS captures, Twitch clips, YouTube clips or Kick clips. Platform Create Clip commands automatically add their resulting clips to the queue for playback.
 
 | Setting | What it does | Default |
 |---|---|---|
