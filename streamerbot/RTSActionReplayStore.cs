@@ -211,6 +211,7 @@ public class CPHInline
         AddSnapshotGlobal(globals, "maxHistory", "rts.actionreplay.maxHistory");
         AddSnapshotGlobal(globals, "autoAdd", "rts.actionreplay.autoAdd");
         AddSnapshotGlobal(globals, "autoPlay", "rts.actionreplay.autoPlay");
+        AddSnapshotGlobal(globals, "clapperUseSourcePlatformBranding", "rts.actionreplay.clapper.useSourcePlatformBranding");
         AddSnapshotGlobal(globals, "playlistPersist", "rts.actionreplay.playlistPersist");
         AddSnapshotGlobal(globals, "twitchPlaybackMode", "rts.actionreplay.twitch.playbackMode");
         AddSnapshotGlobal(globals, "twitchFolder", "rts.actionreplay.twitch.folder");
