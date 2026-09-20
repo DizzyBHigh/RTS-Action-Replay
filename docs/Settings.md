@@ -300,3 +300,273 @@ Sets the player border width from 0 to 12 pixels.
 ### Corner Radius
 
 Sets how rounded the player corners are, from 0 to 48 pixels. `0` leaves the corners square.
+
+
+## How the visual system fits together
+
+The visual settings are split into reusable pieces rather than being configured separately for every command.
+
+The basic flow is:
+
+1. **Positions** define where an element can be placed.
+2. **Animation Profiles** define how an element moves between those positions.
+3. **Branding Presets** define colours, fonts and identity.
+4. **Design Presets** define the visual treatment used by panels.
+5. **Clapperboard Settings** define the appearance of message clapperboards.
+6. **Behaviour** selects which of those pieces are used for a particular entry point.
+
+This means you can change a Branding Preset or Animation Profile once and have every entry point using it pick up the change.
+
+## Branding Presets
+
+Branding Presets are reusable visual identities. They provide the colours, font and logo information used by the player, panels and messages.
+
+A Branding Preset can contain:
+
+| Setting | Purpose |
+|---|---|
+| **Preset Name** | Name shown in the settings UI and in selection lists. |
+| **Source Platform** | Optional Twitch, Kick or YouTube association used for automatic source branding. |
+| **Primary Colour** | Main branding colour. |
+| **Secondary Colour** | Secondary branding colour. |
+| **Player Title Colour** | Colour used for the replay title. |
+| **Player Prefix / Suffix Colour** | Colour used by the title decoration. |
+| **Panel List Text Colour** | Main text colour used in panels. |
+| **Panel List Shadow Colour** | Shadow colour used by panel list text. |
+| **Font** | Google Font used by branded text. |
+| **Font Size** | Default branded text size. |
+| **Logo URL** | HTTPS URL of the logo to display. |
+| **Fallback Text** | Text used when no logo is available. |
+| **Brand Label** | Label displayed beside the logo or fallback text. |
+
+Branding is selected by the Behaviour settings. A single preset can therefore be shared by multiple player, panel or message entry points.
+
+### Source platform branding
+
+A Branding Preset can optionally be associated with **Twitch**, **Kick** or **YouTube**.
+
+Player Behaviour also has **Use Source Platform Branding**. When this is enabled, Action Replay checks the replay's source platform and uses the matching Branding Preset when one exists. If there is no matching preset, the configured Play — Replay Branding Preset is used.
+
+This lets the same playback entry point automatically use different branding for different clip sources.
+
+## Design Presets
+
+Design Presets control the visual treatment of panels. They are separate from Branding Presets:
+
+- **Branding** answers "who does this look like?"
+- **Design** answers "how is this panel presented?"
+
+The built-in designs are:
+
+- **Broadcast**
+- **Cut**
+- **Cinematic**
+- **Minimal**
+
+The current settings UI exposes detailed controls for Broadcast and Cut. Cinematic and Minimal are available as design presets but do not currently expose additional settings in this window.
+
+### Broadcast
+
+Broadcast provides the moving chevron-style panel treatment.
+
+Its settings control:
+
+- Background Source
+- Background Colour
+- Chevron Height
+- Chevron Width
+- Chevron Spacing
+- Chevron Speed
+- Randomisation of height, width and spacing
+
+The Background Source can use the RTS dark blue, the active Branding Preset secondary colour, or a custom colour.
+
+### Cut
+
+Cut provides the block/bar panel treatment.
+
+Its settings control:
+
+- Background Source
+- Background Colour
+- Block Width
+- Randomised Block Width
+- Bar Height
+
+Design Presets are selected by the Behaviour settings, so different entry points can use different panel treatments without changing the underlying panel implementation.
+
+## Clapperboard Settings
+
+Clapperboard Settings control the appearance of message clapperboards. They are the visual styling for the message element itself, rather than the animation that moves it.
+
+The settings are:
+
+| Setting | Purpose |
+|---|---|
+| **Board Color** | Base colour of the clapperboard. |
+| **Text Color** | Colour of the message text. |
+| **Stripe Light** | Light stripe colour on the clapperstick. |
+| **Stripe Dark** | Dark stripe colour on the clapperstick. |
+| **Accent Color** | Accent colour used by the clapperboard. |
+| **Font** | Google Font used for clapperboard text. |
+
+The clapperboard has its own **Message Animation** profiles and a Message Behaviour entry point. This keeps appearance, positioning and movement separate.
+
+## Positions
+
+Positions are reusable 3D transforms. They describe where an element should appear rather than how it gets there.
+
+Action Replay maintains three position sets:
+
+- **Player Positions** — positions for the replay video.
+- **Panel Positions** — positions for search, recent, playlist and leaderboard panels.
+- **Message Positions** — positions for clapperboard messages.
+
+Each position contains the transform information used by the overlay, including:
+
+- Scale
+- X / Y / Z position
+- X / Y / Z rotation
+- Field of View
+
+Positions have both a display **name** and a runtime **tag**. The tag is the compact identifier used by runtime animation data and commands.
+
+The settings window includes a preview for each position type, so a saved position can be checked without having to start a normal playback operation.
+
+### Positions and animations
+
+Animation Profiles reference saved positions rather than storing their own copies of the 3D transform.
+
+That means changing a saved position also changes every animation profile that uses that position.
+
+For example:
+
+**Full Screen → Mini Player**
+
+is an animation sequence made from two saved Player Positions. If the Mini Player position is later adjusted, the animation uses the updated position automatically.
+
+## Animation Profiles
+
+Animation Profiles define movement sequences for the Player, Panels and Messages.
+
+There are three profile types:
+
+- **Player Animation**
+- **Panel Animation**
+- **Message Animation**
+
+Each profile has a **Start Sequence** and an **End Sequence**.
+
+A sequence is a list of steps. Each step selects:
+
+- **Position** — the saved position used for that step.
+- **Duration** — how long the movement to that position takes, in milliseconds.
+- **Easing** — the timing curve used for the movement.
+- **Delay** — how long to wait before the next animation step starts.
+
+Available easing options are:
+
+- `linear`
+- `ease`
+- `ease-in`
+- `ease-out`
+- `ease-in-out`
+
+### Start and End sequences
+
+The **Start Sequence** controls how the element appears.
+
+The **End Sequence** controls how it leaves.
+
+A sequence can contain more than one position, which allows multi-step movements rather than a simple move from A to B.
+
+For example, a sequence can move:
+
+**Full Screen → Mini Player**
+
+using multiple saved positions, each with its own duration and easing.
+
+The Default profile is permanent and can be edited. Additional profiles can be created and removed.
+
+### Animation storage
+
+Animation profiles store position references rather than duplicating position data. When Action Replay sends an animation to the overlay, the saved position names are resolved to their position tags.
+
+This keeps positions reusable and prevents the animation data from becoming a second, conflicting copy of the position configuration.
+
+## Behaviour
+
+Behaviour settings are the point where the reusable visual pieces are assembled.
+
+An entry point selects:
+
+- **Branding Preset**
+- **Design Preset**
+- **Title Preset**
+- **Animation Profile**
+
+The result is a complete presentation configuration for that particular operation.
+
+### Player Behaviour
+
+Player Behaviour controls the presentation used when the player is created or a replay is played.
+
+The current entry points are:
+
+- **Create — OBS**
+- **Create — Twitch**
+- **Create — YouTube**
+- **Create — Kick**
+- **Play — Replay**
+
+Each entry point can select its own Branding, Design, Title and Animation settings.
+
+The **Play — Replay** entry point can also use source-platform branding as described under Branding Presets.
+
+### Panel Behaviour
+
+Panel Behaviour controls the presentation used by overlay panels.
+
+The current entry points are:
+
+- **Recent / Search**
+- **Playlist**
+- **Leaderboards**
+
+Each panel entry point selects its own Branding, Design, Title and Animation settings.
+
+For example, the Playlist panel can use a different animation profile or design from the Recent/Search panel without changing how either panel works internally.
+
+### Message Behaviour
+
+Message Behaviour controls the presentation of messages shown through the clapperboard system.
+
+Messages use:
+
+- a **Message Animation** profile
+- a **Branding Preset**
+
+The separate **Clapperboard Settings** control the board's visual properties.
+
+This separation means the same clapperboard appearance can be reused with different animation profiles, or the same animation profile can be reused with different branding.
+
+### Putting it together
+
+A typical replay presentation therefore looks roughly like this:
+
+**Entry Point**
+→ selects **Branding + Design + Title + Animation**
+
+**Animation**
+→ uses **saved Positions**
+
+**Branding**
+→ supplies colours, font and identity
+
+**Design**
+→ supplies the panel's visual treatment
+
+**Clapperboard**
+→ supplies message-specific appearance
+
+The settings are deliberately separated this way so that presentation changes can be made once and reused across multiple operations.
