@@ -454,7 +454,7 @@ Design Presets are selected by the Behaviour settings, so different entry points
 
 ## Clapperboard Behaviour
 
-Clapperboard Settings control the optional clapperboard shown when a new Twitch, Kick or YouTube clip is created.
+Clapperboard Behaviour control the optional clapperboard shown when a new Twitch, Kick or YouTube clip is created.
 
 The settings are:
 
