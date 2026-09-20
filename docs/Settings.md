@@ -375,6 +375,11 @@ Older entries are removed from those lists but remain in the Catalog.
 
 When enabled, newly saved OBS replays are automatically added to the Catalog and Recent Clips list.
 
+When disabled, newly saved OBS replays are not added automatically. Existing replay files can still be registered manually:
+
+- **Add Replay** adds one replay file from the configured Replay Folder.
+- **Scan Replays** scans the configured Replay Folder and adds replay files that are not already in the Catalog.
+
 ### Auto-play Newest Replay
 
 When enabled, a newly saved OBS replay is automatically loaded and played.
