@@ -19,6 +19,8 @@ RTS - Action Replay - Catalog - Search Top Rated : Execute Method(RTS - Action R
 RTS - Action Replay - Catalog - Top Creators: Execute Method(RTS - Action Replay - Core - Catalog, ListLeaderboard) Commands: !creator-leaderboard, !top-clippers, !top-creators [Parameters: optional <period> and/or --amount <N>]
 RTS - Action Replay - Catalog - Search Panel Clear : Execute Method(RTS - Action Replay - Core - Search Queue, Clear)  
 RTS - Action Replay - Catalog - Search Panel Ended : Execute Method(RTS - Action Replay - Core - Search Queue, SearchPanelEnded)
+RTS - Action Replay - Catalog - Add Replay : Execute Method(RTS - Action Replay - Core - Store Import, AddReplay)
+RTS - Action Replay - Catalog - Scan Replays : Execute Method(RTS - Action Replay - Core - Store Import, ScanReplays)
 
 RTS - Action Replay - Core
 RTS - Action Replay - Core - Catalog : Execute Code (RTS - Action Replay - Core - Catalog) - streamerbot/RTSActionReplayCatalog.cs
@@ -28,6 +30,7 @@ RTS - Action Replay - Core - Settings  : Execute Code (RTS - Action Replay - Cor
 RTS - Action Replay - Core - Resolver : Execute Code (RTS - Action Replay - Core - Resolver) - streamerbot/RTSActionReplayResolver.cs
 RTS - Action Replay - Core - Search Queue: Execute Code (RTS - Action Replay - Core - Search Queue) - streamerbot/RTSActionReplaySearchQueue.cs
 RTS - Action Replay - Core - Store : Execute Code (RTS - Action Replay - Core - Store) - streamerbot/RTSActionReplayStore.cs
+RTS - Action Replay - Core - Store Import : Execute Code (RTS - Action Replay - Core - Store Import) - streamerbot/RTSActionReplayStoreImport.cs
 RTS - Action Replay - Core - Video Controls : Execute Code (RTS - Action Replay - Core - Video Controls) - streamerbot/RTSActionReplayVideoControl.cs
 RTS - Action Replay - Core - Event Trigger : CUSTOM TRIGGER (RTS-Action Replay)
 RTS - Action Replay - Init Store : Execute Method (RTS - Action Replay - Core - Store, Initialize)
