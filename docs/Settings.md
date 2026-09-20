@@ -375,14 +375,14 @@ This means you can change a Branding Preset or Animation Profile once and have e
 
 ## Branding Presets
 
-Branding Presets are reusable visual identities. They provide the colours, font and logo information used by the player, panels and messages.
+Branding Presets are reusable visual identities. They provide the colours, font and logo information used by the player and panels.
 
 A Branding Preset can contain:
 
 | Setting | Purpose |
 |---|---|
 | **Preset Name** | Name shown in the settings UI and in selection lists. |
-| **Source Platform** | Optional Twitch, Kick or YouTube association used for automatic source branding. |
+| **Source Platform** | Optional Twitch, Kick or YouTube association used for automatic source branding when Play — Replay uses source-platform branding. |
 | **Primary Colour** | Main branding colour. |
 | **Secondary Colour** | Secondary branding colour. |
 | **Player Title Colour** | Colour used for the replay title. |
@@ -392,10 +392,10 @@ A Branding Preset can contain:
 | **Font** | Google Font used by branded text. |
 | **Font Size** | Default branded text size. |
 | **Logo URL** | HTTPS URL of the logo to display. |
-| **Fallback Text** | Text used when no logo is available. |
+| **Fallback Text** | Text shown when no logo is available or the logo fails to load. |
 | **Brand Label** | Label displayed beside the logo or fallback text. |
 
-Branding is selected by the Behaviour settings. A single preset can therefore be shared by multiple player, panel or message entry points.
+Branding is selected by the Behaviour settings. A single preset can therefore be shared by multiple player or panel entry points.
 
 ### Source platform branding
 
