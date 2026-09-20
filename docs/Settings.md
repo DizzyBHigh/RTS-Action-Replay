@@ -375,25 +375,25 @@ This means you can change a Branding Preset or Animation Profile once and have e
 
 ## Branding Presets
 
-Branding Presets are reusable visual identities. They provide the colours, font and logo information used by the player and panels.
+Branding Presets are reusable visual identities. They provide the colours, font and identity used by the player and panels.
 
 A Branding Preset can contain:
 
 | Setting | Purpose |
 |---|---|
 | **Preset Name** | Name shown in the settings UI and in selection lists. |
-| **Source Platform** | Optional Twitch, Kick or YouTube association used for automatic source branding when Play — Replay uses source-platform branding. |
-| **Primary Colour** | Main branding colour. |
-| **Secondary Colour** | Secondary branding colour. |
-| **Player Title Colour** | Colour used for the replay title. |
-| **Player Prefix / Suffix Colour** | Colour used by the title decoration. |
-| **Panel List Text Colour** | Main text colour used in panels. |
-| **Panel List Shadow Colour** | Shadow colour used by panel list text. |
-| **Font** | Google Font used by branded text. |
-| **Font Size** | Default branded text size. |
-| **Logo URL** | HTTPS URL of the logo to display. |
-| **Fallback Text** | Text shown when no logo is available or the logo fails to load. |
-| **Brand Label** | Label displayed beside the logo or fallback text. |
+| **Source Platform** | Optional Twitch, Kick or YouTube association. When Use Source Platform Branding is enabled for Play — Replay, this preset is automatically selected for replays from the matching platform. |
+| **Primary Colour** | Primary branding colour used by player, panel and design elements. |
+| **Secondary Colour** | Secondary branding colour used by player, panel and design elements. |
+| **Player Title Colour** | Colour used for the replay title text displayed by the player. |
+| **Player Prefix / Suffix Colour** | Colour used for the decorative prefix or suffix text displayed with the replay title. |
+| **Panel Text Colour** | Colour used for panel titles and list text. |
+| **Panel List Shadow Colour** | Shadow colour used for panel list text. |
+| **Font** | Google Font used by the player title, panel title and branding. |
+| **Font Size** | Font size used for player and panel titles, in pixels. |
+| **Logo URL** | HTTPS URL of the branding logo displayed by the player. If the logo cannot be loaded, Fallback Text is used instead. |
+| **Fallback Text** | Text displayed by the player when no branding logo is available. |
+| **Brand Label** | Label displayed beside the branding logo or fallback text. |
 
 Branding is selected by the Behaviour settings. A single preset can therefore be shared by multiple player or panel entry points.
 
