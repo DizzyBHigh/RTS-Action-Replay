@@ -45,7 +45,7 @@ RTSInformationPanelAnimation.show = (panel, command, name) => {
   panelCommand = command || {};
   activePanel = panel;
   const profile = RTSInformationPanelAnimation.profile(command);
-  RTSInformationPanels.applySize(panel, command);
+  if (command?.replayInformationPanelType === 'message') RTSInformationPanels.applyMessageSize(panel, command); else RTSInformationPanels.applySize(panel, command);
   panel.classList.add('show');
   panel.setAttribute('aria-hidden', 'false');
   if (Array.isArray(profile?.start) && profile.start.length) {
