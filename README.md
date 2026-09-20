@@ -73,9 +73,7 @@ The first Start Sequence step establishes the initial position. Later steps tran
 
 ## Streamer.bot code modules
 
-`RTSActionReplayStore.cs` is the shared Execute C# Code module for normal replay-store operations. Give the Execute C# Code sub-action the name `RTS Action Replay Store` and expose its public methods through Execute C# Method sub-actions.
-
-`RTSActionReplayStoreImport.cs` is the manual replay import module. Give it the name `RTS Action Replay - Core - Store Import` and expose `AddReplay` and `ScanReplays` through Execute C# Method sub-actions.
+`RTSActionReplayStore.cs` is the shared Execute C# Code module for replay-store operations. Give the Execute C# Code sub-action the name `RTS - Action Replay - Core - Store` and expose its public methods through Execute C# Method sub-actions, including `AddExistingReplay` and `ScanReplays` for manual replay registration.
 
 `RTSActionReplayPlayback.cs` is the playback module. Give it the name `RTS Action Replay Playback`.
 
