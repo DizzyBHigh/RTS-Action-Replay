@@ -4,6 +4,12 @@ This is the reference for the settings in RTS Action Replay. It follows the same
 
 ## General
 
+### Settings Theme
+
+Controls the RtsUI theme used by the Action Replay settings window. The default is **Dark**.
+
+This changes the appearance of the settings UI only; it does not change the Action Replay overlay.
+
 ### Replay Source
 
 The Replay Source settings tell Action Replay where OBS saves its replays and how the overlay can access those files.
@@ -228,22 +234,31 @@ KickBot requests are limited to 5–240 seconds by the command parser. The local
 
 ### Playback
 
-The Playback settings control the player itself and the default speed used when a replay is loaded.
+The Playback settings control the player itself, including the viewer controls, progress bar and default playback speed.
 
 | Setting | What it does | Default |
 |---|---|---|
-| **Show Controls** | Shows the player status bar on the overlay. The bar is visual only and is not interactive. | Off |
-| **Show Progress Bar** | Shows the playback progress bar. It is visual only. | On |
+| **Show Controls** | Shows the interactive Play/Pause control and playback progress bar. | Off |
+| **Show Progress Bar** | Shows the interactive playback progress bar. It can be clicked or dragged to seek. | On |
 | **Default Playback Speed** | Speed used when a replay is loaded. `1.0` is normal speed. | `1.0` |
 | **Show Visibility** | Controls when the playback speed indicator is shown. | `Only when greater or less than 1` |
 
 ### Show Controls
 
-When enabled, the player displays its status bar. The controls are for display only; they are not clickable controls for the viewer.
+When enabled, the player displays its custom **Play/Pause** control and playback progress bar.
+
+The Play/Pause control is interactive:
+
+- **Play** explicitly starts playback.
+- **Pause** toggles the current playback state to paused.
+
+The custom controls are used for all supported replay sources, including YouTube clips.
 
 ### Show Progress Bar
 
-Controls the visibility of the non-interactive progress bar shown during playback.
+Controls the visibility of the interactive playback progress bar. The bar can be clicked to seek to a position or dragged to scrub through playback.
+
+The progress bar follows the configured **Control Colour** rather than the player frame colour.
 
 ### Default Playback Speed
 
@@ -263,16 +278,18 @@ Choose when the playback speed indicator is displayed:
 
 - **Always** — show the indicator at all times.
 - **Only when greater or less than 1** — show it when playback is slower or faster than normal speed.
-- **Never** — don't show the indicator.
+- **Never** — don't show it.
 
 ### Player Appearance
 
-These settings control the frame around the replay player.
+These settings control the frame, controls and border styling around the replay player.
 
 | Setting | What it does | Default |
 |---|---|---|
 | **Frame Colour Source** | Chooses the source of the player frame colour. | `Custom` |
 | **Frame Colour** | Custom frame colour used when Frame Colour Source is set to Custom. | `#0384CBFF` |
+| **Control Colour Source** | Chooses the source of the Play/Pause control and progress bar colour. | `Branding Primary` |
+| **Control Colour** | Custom control colour used when Control Colour Source is set to Custom. | `#0384CBFF` |
 | **Border Glow** | Adds a branded glow around the player border. | On |
 | **Border Width** | Width of the player border in pixels. | `4` |
 | **Corner Radius** | Rounds the player corners by the specified number of pixels. | `0` |
@@ -289,6 +306,20 @@ There are three choices:
 
 Sets the custom player frame colour. This is used when **Frame Colour Source** is set to **Custom**.
 
+### Control Colour Source
+
+There are three choices:
+
+- **Custom** — use the colour selected in Control Colour.
+- **Branding Primary** — use the active Branding Preset primary colour.
+- **Branding Secondary** — use the active Branding Preset secondary colour.
+
+The default is **Branding Primary**.
+
+### Control Colour
+
+Sets the custom colour used by the Play/Pause control and playback progress bar. It is used when **Control Colour Source** is set to **Custom**.
+
 ### Border Glow
 
 Adds a glow effect around the player border using the active player frame styling.
@@ -301,6 +332,54 @@ Sets the player border width from 0 to 12 pixels.
 
 Sets how rounded the player corners are, from 0 to 48 pixels. `0` leaves the corners square.
 
+## Playlist
+
+### Replay Defaults
+
+These settings control the default titles used when replays are created or automatically played.
+
+| Setting | What it does | Default |
+|---|---|---|
+| **Replay Title Template** | Template used to generate the title of newly saved replays. Streamer.bot variables can be used. | `%replayName%` |
+| **New Replay Display Title** | Temporary title displayed when a newly saved replay is automatically played. This does not rename the Catalog item. | `New Replay` |
+
+### Replay Title Template
+
+Defines the title template used when a new replay is saved. Streamer.bot variables can be included in the template.
+
+### New Replay Display Title
+
+Sets the temporary title shown when a newly saved replay is automatically played. Changing this value does **not** rename the corresponding Catalog item.
+
+### Recent Clips
+
+| Setting | What it does | Default |
+|---|---|---|
+| **Maximum Recent Clips** | Maximum number of entries retained in the Recent Clips and Last Played lists. Older entries remain in the Catalog. | `20` |
+| **Auto-add Saved Replays** | Automatically adds newly saved OBS replays to the Catalog and Recent Clips list. | On |
+| **Auto-play Newest Replay** | Automatically loads and plays a newly saved OBS replay. | Off |
+
+### Maximum Recent Clips
+
+Controls how many entries are retained in the **Recent Clips** and **Last Played** lists. The range is 1 to 100.
+
+Older entries are removed from those lists but remain in the Catalog.
+
+### Auto-add Saved Replays
+
+When enabled, newly saved OBS replays are automatically added to the Catalog and Recent Clips list.
+
+### Auto-play Newest Replay
+
+When enabled, a newly saved OBS replay is automatically loaded and played.
+
+### Live Playlist
+
+| Setting | What it does | Default |
+|---|---|---|
+| **Persist Playlist Across Restarts** | Keeps the current Playlist when Streamer.bot restarts. | Off |
+
+When disabled, the queue is cleared when Streamer.bot restarts.
 
 ## How the visual system fits together
 
@@ -412,6 +491,51 @@ The settings are:
 
 The clapperboard has its own **Message Animation** profiles and a Message Behaviour entry point. This keeps appearance, positioning and movement separate.
 
+## Title Presets
+
+Title Presets define reusable Title Behaviour for player presentations.
+
+| Setting | Purpose |
+|---|---|
+| **Preset Name** | Display name for the preset. |
+| **Decoration Position** | Places the title decoration before or after the title. |
+| **Title Position** | Places the replay title at the top or bottom of the video. |
+| **Decoration** | Text added before or after the replay title. |
+| **Animation** | Animation used when the title enters and leaves the player. |
+| **Show Delay** | Delay before the title is shown, in milliseconds. |
+| **Display Duration** | How long the title remains displayed, in milliseconds. |
+| **Animation Duration** | Duration of the title entrance/exit animation, in milliseconds. |
+
+### Decoration Position
+
+Choose **Prefix** or **Suffix** to place the decoration before or after the replay title.
+
+### Title Position
+
+Choose **Top** or **Bottom** to place the replay title within the player.
+
+### Decoration
+
+Sets the text added before or after the replay title.
+
+### Animation
+
+Choose the title animation:
+
+- **Left to right**
+- **Right to left**
+- **Slide up/down**
+
+### Timing
+
+**Show Delay** ranges from 0 to 60,000 milliseconds.
+
+**Display Duration** ranges from 0 to 120,000 milliseconds.
+
+**Animation Duration** ranges from 0 to 10,000 milliseconds.
+
+The **Default** Title Preset is permanent. Additional Title Presets can be created and removed.
+
 ## Positions
 
 Positions are reusable 3D transforms. They describe where an element should appear rather than how it gets there.
@@ -493,6 +617,34 @@ The Default profile is permanent and can be edited. Additional profiles can be c
 Animation profiles store position references rather than duplicating position data. When Action Replay sends an animation to the overlay, the saved position names are resolved to their position tags.
 
 This keeps positions reusable and prevents the animation data from becoming a second, conflicting copy of the position configuration.
+
+## Message Outputs
+
+Message Outputs control the optional chat and overlay messages generated by Action Replay.
+
+Each message has a message template, a **Chat** toggle and an **Overlay** toggle.
+
+| Output | Default message |
+|---|---|
+| **Save Replay** | `Replay saved: %replayTitle%.` |
+| **Name Replay** | `Replay #%replayNumber% renamed to %replayTitle%.` |
+| **Play Replay** | `Playing replay #%replayNumber%: %replayTitle%.` |
+| **Recent** | `%replayRecent%` |
+| **Playlist** | `%replayPlaylist%` |
+
+### Message templates
+
+The message text can contain Streamer.bot variables appropriate to the output.
+
+### Chat
+
+When enabled, the message is sent to the requesting platform's chat.
+
+### Overlay
+
+When enabled, the message is sent to the Action Replay overlay.
+
+These destinations are independent, so a message can be sent to chat, the overlay, both, or neither.
 
 ## Behaviour
 
