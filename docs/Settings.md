@@ -21,65 +21,6 @@ The Local Capture / OBS settings tell Action Replay where OBS saves its replays 
 | **HTTP Mapping** | The URL path Streamer.bot uses to serve files from the Replay Folder to the overlay. For example, `replays` creates `http://localhost:7474/replays/`. | `replays` |
 | **HTTP Port** | The port Streamer.bot's HTTP server uses to serve replay files. | `7474` |
 
-### Replay Folder
-
-Point this at the folder OBS uses for its Replay Buffer recordings.
-
-When a replay is saved, Action Replay checks the file before adding it to the catalog. The file must exist, have a recognised extension, have stopped changing, and be inside the configured Replay Folder.
-
-Twitch and Kick clips that are downloaded locally do not go into this folder. They have separate folder settings in their own sections.
-
-### Replay File Types
-
-This tells Action Replay which file types count as local replay files.
-
-For example:
-
-- `.mp4`
-- `.mkv`
-- `.mp4, .mkv`
-
-You can separate extensions with either commas or semicolons. The leading `.` is optional, so `mp4` and `.mp4` are treated the same way.
-
-The check is case-insensitive.
-
-This setting doesn't change the format OBS records in. It only controls which files Action Replay will recognise when it checks the Replay Folder.
-
-### HTTP Mapping
-
-The HTTP Mapping is the URL path used to make the replay files available to the overlay.
-
-For example, with:
-
-`replays`
-
-the replay URL path is:
-
-`/replays/`
-
-Enter the mapping itself, rather than the Windows path to the folder. Don't add the surrounding `/` characters.
-
-This needs to match the corresponding mapping in Streamer.bot's HTTP server configuration.
-
-### HTTP Port
-
-This is the port used by Streamer.bot's HTTP server when the overlay requests a replay.
-
-The default is `7474`.
-
-The value here must match the HTTP server port configured in Streamer.bot. Changing this setting in Action Replay does not change Streamer.bot's HTTP server configuration for you.
-
-## How the four settings fit together
-
-These settings each have a different job:
-
-1. **Replay Folder** tells Action Replay where to find the files.
-2. **Replay File Types** tells it which files to recognise.
-3. **HTTP Mapping** provides the URL path for those files.
-4. **HTTP Port** tells the overlay which HTTP server port to use.
-
-If Action Replay is finding and cataloguing your replays but the overlay won't play them, the first things to check are the HTTP Mapping and HTTP Port in both places.
-
 ### Replay Defaults
 
 These settings control the default titles used when replays are created or automatically played.
@@ -96,6 +37,28 @@ Defines the title template used when a new replay is saved. Streamer.bot variabl
 ### New Replay Display Title
 
 Sets the temporary title shown when a newly saved replay is automatically played. Changing this value does **not** rename the corresponding Catalog item.
+
+### Local Capture Handling
+
+These settings control what Action Replay does when a new OBS Replay Buffer capture is saved.
+
+| Setting | What it does | Default |
+|---|---|---|
+| **Auto-add Saved Replays (OBS Capture)** | Automatically adds newly saved OBS replays to the Catalog and Recent Clips list. | On |
+| **Auto-play OBS Captures** | Automatically loads and plays a newly saved OBS replay. | Off |
+
+### Auto-add Saved Replays (OBS Capture)
+
+When enabled, newly saved OBS replays are automatically added to the Catalog and Recent Clips list.
+
+When disabled, newly saved OBS replays are not added automatically. Existing replay files can still be registered manually:
+
+- **Add Replay** adds one replay file from the configured Replay Folder.
+- **Scan Replays** scans the configured Replay Folder and adds replay files that are not already in the Catalog.
+
+### Auto-play OBS Captures
+
+When enabled, a newly saved OBS replay is automatically loaded and played.
 
 ## Twitch
 
@@ -366,9 +329,6 @@ Twitch, YouTube and Kick **Create Clip** commands automatically add the resultin
 | Setting | What it does | Default |
 |---|---|---|
 | **Maximum Recent Clips** | Maximum number of entries shown by Recent Clips and retained in Last Played history. Older Catalog replays remain available even when they fall outside these lists. | `20` |
-| **Auto-add Saved Replays (OBS Capture)** | Automatically adds newly saved OBS replays to the Catalog and Recent Clips list. | On |
-| **Auto-play OBS Captures** | Automatically loads and plays a newly saved OBS replay. | Off |
-
 ### Maximum Recent Clips
 
 Controls how many entries are shown by **Recent Clips** and how many entries are retained in **Last Played** history. The range is 1 to 100.
