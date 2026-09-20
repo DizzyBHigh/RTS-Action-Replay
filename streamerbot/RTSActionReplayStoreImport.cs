@@ -110,7 +110,7 @@ public class CPHInline
         catch { return new JObject(); }
     }
 
-    private void Save(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None));
+    private void Save(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
     private JArray GetCatalog(JObject data)
     {
         var catalog = data["catalog"] as JArray;
