@@ -38,8 +38,8 @@ public class CPHInline
         var titleProfile = Arg("titlePreset", "default");
         var brandingProfile = Arg("brandingPreset", "default");
         var queue = LoadQueue();
-        queue.Add(new JObject { ["entryId"] = Guid.NewGuid().ToString("N"), ["replayId"] = replayId, ["title"] = (string)replay["title"] ?? "Replay", ["requesterId"] = userId ?? "", ["requesterName"] = requester, ["requesterPlatform"] = requesterPlatform ?? "", ["requesterBroadcastId"] = broadcastId ?? "", ["animationProfileId"] = profile, ["designPresetId"] = designProfile, ["titlePresetId"] = titleProfile, ["brandingPresetId"] = brandingProfile, ["queued"] = DateTime.Now.ToString("o") });
-        SaveQueue(queue); CPH.UnsetGlobalVar(ReplayIdHandoffKey, false);
+        queue.Add(new JObject { ["entryId"] = Guid.NewGuid().ToString("N"), ["replayId"] = replayId, ["title"] = (string)replay["title"] ?? "Replay", ["requesterId"] = userId ?? "", ["requesterName"] = requester, ["requesterPlatform"] = requesterPlatform ?? "", ["requesterBroadcastId"] = broadcastId ?? "", ["animationProfileId"] = profile, ["designPresetId"] = designProfile, ["titlePresetId"] = titleProfile, ["brandingPresetId"] = brandingProfile, ["showClapperboard"] = CPH.GetGlobalVar<bool?>("rts.actionreplay.handoff.showClapperboard", false) ?? false, ["queued"] = DateTime.Now.ToString("o") });
+        SaveQueue(queue); CPH.UnsetGlobalVar(ReplayIdHandoffKey, false); CPH.UnsetGlobalVar("rts.actionreplay.handoff.showClapperboard", false);
         if (!IsPaused() && ActiveId() == null) return PlayNext(queue);
         return true;
     }
@@ -105,7 +105,12 @@ public class CPHInline
         if (index < 0) return false;
         var profile = ArgItem(item, "animationProfileId", "default"); var designProfile = ArgItem(item, "designPresetId", "broadcast"); var titleProfile = ArgItem(item, "titlePresetId", "default"); var brandingProfile = ArgItem(item, "brandingPresetId", "default");
         CPH.SetGlobalVar(ReplayIdHandoffKey, (string)item["replayId"] ?? "", false); CPH.SetGlobalVar(PlaybackQueueEntryHandoffKey, (string)item["entryId"] ?? "", false); CPH.SetGlobalVar(PlaybackProfileHandoffKey, profile, false);
-        CPH.SetArgument("rawInput", (index + 1).ToString()); CPH.SetArgument("replayQueueEntryId", (string)item["entryId"]); CPH.SetArgument("replayAnimationProfileId", profile); CPH.SetArgument("animationProfile", profile); CPH.SetArgument("designPreset", designProfile); CPH.SetArgument("titlePreset", titleProfile); CPH.SetArgument("brandingPreset", brandingProfile); CPH.SetArgument("requesterPlatform", (string)item["requesterPlatform"] ?? ""); CPH.SetArgument("requesterBroadcastId", (string)item["requesterBroadcastId"] ?? "");
+        CPH.SetArgument("rawInput", (index + 1).ToString()); CPH.SetArgument("replayQueueEntryId", (string)item["entryId"]); CPH.SetArgument("replayAnimationProfileId", profile); CPH.SetArgument("animationProfile", profile); CPH.SetArgument("designPreset", designProfile); CPH.SetArgument("titlePreset", titleProfile); CPH.SetArgument("brandingPreset", brandingProfile); CPH.SetArgument("requesterPlatform", (string)item["requesterPlatform"] ?? ""); CPH.SetArgument("requesterBroadcastId", (string)item["requesterBroadcastId"] ?? ""); CPH.SetArgument("replaySource", (string)FindReplay(catalog, (string)item["replayId"])?["sourceType"] ?? "OBS");
+        if ((bool?)item["showClapperboard"] == true)
+        {
+            CPH.SetArgument("replayTitle", (string)item["title"] ?? "Replay");
+            CPH.ExecuteMethod("RTS - Action Replay - Core - Store", "ShowClapperboard");
+        }
         var started = CPH.ExecuteMethod(PlaybackCode, "PlayReplay");
         CPH.UnsetGlobalVar(ReplayIdHandoffKey, false); CPH.UnsetGlobalVar(PlaybackQueueEntryHandoffKey, false); CPH.UnsetGlobalVar(PlaybackProfileHandoffKey, false);
         if (started) { CPH.SetGlobalVar(ActiveKey, (string)item["entryId"], false); CPH.SetGlobalVar(ActiveReplayKey, (string)item["replayId"], false); CPH.SetArgument("historyReplayId", (string)item["replayId"] ?? ""); CPH.SetArgument("historyReplayTitle", (string)item["title"] ?? "Replay"); CPH.SetArgument("historyReplayCreator", (string)FindReplay(catalog, (string)item["replayId"])?["creator"]?["name"] ?? ""); CPH.SetArgument("historyReplayRequester", (string)item["requesterName"] ?? ""); CPH.SetArgument("historyReplayPlatform", (string)item["requesterPlatform"] ?? ""); CPH.ExecuteMethod(CatalogAction, "RecordPlayed"); }
