@@ -4,7 +4,96 @@ This is the command reference for RTS Action Replay.
 
 The groups below follow the order used by the Streamer.bot actions. Only actions with a chat command are included in the main reference. The internal Core actions are listed in Appendix A at the end.
 
-A few commands have more than one name. Pick whichever spelling you prefer; Action Replay is not precious about hyphens.
+A few commands have more than one name. Pick whichever spelling you prefer;
+
+---
+
+## RTS - Action Replay - Twitch
+
+### Create Twitch Clip
+
+Create a Twitch clip from the current Twitch stream.
+
+**Commands**
+
+`!twitchclip [<duration>] [<title>]`  
+`!create-clip [<duration>] [<title>]`  
+`!createclip [<duration>] [<title>]`
+
+**Twitch chat only.**
+
+**Examples**
+
+`!twitchclip`
+
+`!create-clip 45`
+
+`!create-clip 45 That was not planned`
+
+If no duration is supplied, the configured Twitch Clip Duration is used.
+
+The allowed duration is 5–60 seconds. A title can be supplied after the optional duration.
+
+---
+
+## RTS - Action Replay - YouTube
+
+### Create YouTube Clip
+
+Create a timestamped clip from the current YouTube live broadcast.
+
+**Commands**
+
+`!create-clip [<duration>] [<title>]`  
+`!createclip [<duration>] [<title>]`
+
+**YouTube chat only.**
+
+**Examples**
+
+`!create-clip`
+
+`!create-clip 45`
+
+`!create-clip 45 Something happened`
+
+If no duration is supplied, the configured YouTube Clip Duration is used.
+
+The allowed duration is 5–60 seconds.
+
+The title is everything after the optional duration.
+
+Action Replay uses the recorded start time of the current YouTube broadcast to calculate the timestamp for the clip. If the current broadcast or its recorded start time cannot be identified, the clip cannot be created.
+
+---
+
+## RTS - Action Replay - Kick
+
+### Create Kick Clip
+
+Request a Kick clip through the KickBot workflow.
+
+**Commands**
+
+`!create-clip [<duration>] [<title>]`  
+`!createclip [<duration>] [<title>]`
+
+**Kick chat only.**
+
+**Examples**
+
+`!create-clip`
+
+`!create-clip 45`
+
+`!create-clip 45 That was close`
+
+If no duration is supplied, the default is 30 seconds.
+
+The command parser accepts 5–240 seconds. The title is everything after the optional duration.
+
+The command first asks KickBot to create the clip. Action Replay then captures the returned KickBot clip and adds it to the Catalog.
+
 
 ## RTS - Action Replay
 
@@ -57,8 +146,6 @@ Tell OBS to save the current Replay Buffer.
 
 `!savereplay`  
 `!save-replay`  
-`!createreplay`  
-`!create-replay`  
 `!save-clip`  
 `!saveclip`  
 `!clip-local`  
@@ -72,7 +159,10 @@ If the save is associated with a chat user, that requester information is carrie
 
 ## RTS - Action Replay - Catalog
 
-The Catalog commands work with the current search/result state. Think of the Catalog as the library and these commands as the buttons you wish Streamer.bot had given you.
+The Catalog commands work with the current search/result state. Think of the Catalog as the library and these commands as the buttons you wish Streamer.bot had given you. The search is saved per user. 
+If you want to interact with another user's search, you can use <platform>:<user> in your command to target the search the user made.
+e.g. `!play-clip twitch:duhbuhhuh 3` would play the third clip in the list from duhbuhhuh's search results.
+If the platform is omitted, the command looks for the user on the platform the person performing the command is on.
 
 ### First Page
 
@@ -217,7 +307,8 @@ Search for replays from a date period.
 
 `!search-date this week --amount 10`
 
-The date-period text is passed to the Catalog date filter. The exact accepted period names depend on the date parser; the important bit is that the command is asking for a period, not a single replay date.
+The date-period text is passed to the Catalog date filter. The exact accepted period names depend on the date parser; 
+e.g. `this week`, `last week`, `this year`, `last year`, `2025`, `November`, `November 2025`
 
 ### Search By Views
 
@@ -245,11 +336,8 @@ List replays by rating.
 `!search-rating [<rating>] [--amount <N>]`
 
 The rating is optional and accepts **0–5**.
-
-A rating of `0` means unrated replays.
-
-For ratings 1–4, the command selects a rating band:
-
+For ratings 1–4, the command uses a rating band:
+- `0` = unrated replays.
 - `1` = average rating 1.0–1.9
 - `2` = 2.0–2.9
 - `3` = 3.0–3.9
@@ -283,35 +371,6 @@ Show the creator leaderboard.
 `!top-creators week --amount 10`
 
 The optional period can be used to narrow the leaderboard. Supported period forms include `today`, `week`, `month`, `year`, `all`, and month/year values understood by the Catalog date parser.
-
----
-
-## RTS - Action Replay - Kick
-
-### Create Kick Clip
-
-Request a Kick clip through the KickBot workflow.
-
-**Commands**
-
-`!create-clip [<duration>] [<title>]`  
-`!createclip [<duration>] [<title>]`
-
-**Kick chat only.**
-
-**Examples**
-
-`!create-clip`
-
-`!create-clip 45`
-
-`!create-clip 45 That was close`
-
-If no duration is supplied, the default is 30 seconds.
-
-The command parser accepts 5–240 seconds. The title is everything after the optional duration.
-
-The command first asks KickBot to create the clip. Action Replay then captures the returned KickBot clip and adds it to the Catalog.
 
 ---
 
@@ -446,33 +505,7 @@ Show the playback leaderboard.
 
 This reports playback activity rather than creator totals.
 
----
 
-## RTS - Action Replay - Twitch
-
-### Create Twitch Clip
-
-Create a Twitch clip from the current Twitch stream.
-
-**Commands**
-
-`!twitchclip [<duration>] [<title>]`  
-`!create-clip [<duration>] [<title>]`  
-`!createclip [<duration>] [<title>]`
-
-**Twitch chat only.**
-
-**Examples**
-
-`!twitchclip`
-
-`!create-clip 45`
-
-`!create-clip 45 That was not planned`
-
-If no duration is supplied, the configured Twitch Clip Duration is used.
-
-The allowed duration is 5–60 seconds. A title can be supplied after the optional duration.
 
 ---
 
@@ -574,36 +607,7 @@ Show the player again.
 
 The last two aliases are also attached to Hide Player in the current Streamer.bot mapping. That is an alias collision in the action configuration rather than something this documentation is going to quietly pretend doesn't exist.
 
----
 
-## RTS - Action Replay - YouTube
-
-### Create YouTube Clip
-
-Create a timestamped clip from the current YouTube live broadcast.
-
-**Commands**
-
-`!create-clip [<duration>] [<title>]`  
-`!createclip [<duration>] [<title>]`
-
-**YouTube chat only.**
-
-**Examples**
-
-`!create-clip`
-
-`!create-clip 45`
-
-`!create-clip 45 Something happened`
-
-If no duration is supplied, the configured YouTube Clip Duration is used.
-
-The allowed duration is 5–60 seconds.
-
-The title is everything after the optional duration.
-
-Action Replay uses the recorded start time of the current YouTube broadcast to calculate the timestamp for the clip. If the current broadcast or its recorded start time cannot be identified, the clip cannot be created.
 
 ---
 
