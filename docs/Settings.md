@@ -125,13 +125,13 @@ The mapping is used together with the main **HTTP Port** setting under General â
 
 ### Clip Duration
 
-This is the default duration used by `!clip` when no duration is supplied.
+This is the default duration used by `!twitchclip` when no duration is supplied.
 
 The normal range is 5 to 60 seconds. If a duration is supplied with the command, that value is used instead, within the same 5â€“60 second range.
 
 For example:
 
-`!clip 45`
+`!twitchclip 45`
 
 creates a 45-second Twitch clip.
 
@@ -246,12 +246,12 @@ The Playback settings control the player itself, including the viewer controls, 
 |---|---|---|
 | **Show Controls** | Shows the interactive Play/Pause control and playback progress bar. | Off |
 | **Show Progress Bar** | Shows the interactive playback progress bar. It can be clicked or dragged to seek. | On |
-| **Default Playback Speed** | Speed used when a replay is loaded. `1.0` is normal speed. | `1.0` |
-| **Show Visibility** | Controls when the playback speed indicator is shown. | `Only when greater or less than 1` |
+| **Default Playback Speed** | Speed used when a replay is loaded. `1.0` is normal speed. The range is `0.25` to `2.0`. | `1.0` |
+| **Show Visibility** | Controls when the playback speed indicator is displayed. | `Only when greater or less than 1` |
 
 ### Show Controls
 
-When enabled, the player displays its custom **Play/Pause** control and playback progress bar.
+When enabled, the player displays its custom **Play/Pause** control and interactive playback progress bar.
 
 The Play/Pause control is interactive:
 
