@@ -327,6 +327,34 @@ List replays ordered by playback count.
 
 Only replays with at least one recorded play are included.
 
+### Add Replay
+
+Add one existing OBS replay file from the configured Replay Folder to the Catalog.
+
+**Commands**
+
+`!add-replay <filename>`  
+`!addreplay <filename>`
+
+**Example**
+
+`!add-replay replay-2026-09-20-153000.mp4`
+
+The filename must refer to a file in the configured Replay Folder and use one of the configured Replay File Types.
+
+If the replay is already in the Catalog, it is not added again.
+
+### Scan Replays
+
+Scan the configured Replay Folder and add replay files that are not already in the Catalog.
+
+**Commands**
+
+`!scan-replays`  
+`!scanreplays`
+
+The scan only considers files matching the configured Replay File Types. Existing Catalog entries are skipped.
+
 ### Search Top Rated
 
 List replays by rating.
@@ -662,6 +690,17 @@ This is the bridge between the Streamer.bot settings UI and the stored Action Re
 Provides the shared Catalog/store functionality used by the rest of Action Replay.
 
 It owns persistent replay data and related store operations such as adding and naming replays.
+
+### Core — Store Import
+
+**Action:** `RTS - Action Replay - Core - Store Import`
+
+Provides the manual replay import operations used by **Add Replay** and **Scan Replays**.
+
+- `AddReplay` — adds one existing replay file from the configured Replay Folder.
+- `ScanReplays` — scans the configured Replay Folder and imports replay files missing from the Catalog.
+
+These operations do not depend on **Auto-add Saved Replays** being enabled.
 
 ### Core — Video Controls
 
