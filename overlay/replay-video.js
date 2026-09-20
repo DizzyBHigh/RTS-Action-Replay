@@ -269,7 +269,7 @@ RTSReplayVideo.loadReplay = command => {
   RTSReplayWatchdog?.stop?.();
   endedCommand = null;
   window.RTSDevToolbar?.updateClapper?.(command);
-  RTSReplayControls.configure(command);
+  RTSReplayControls.configureControls(command);
   RTSReplayElements.configure(command);
 
   playerRunner.configure(command.replayPlayerPositions);
@@ -316,7 +316,7 @@ RTSReplayVideo.loadReplay = command => {
 
 RTSReplayVideo.testTitle = command => {
   const params = new URLSearchParams(window.location.search); if (params.get('dev') !== 'true') return;
-  RTSReplayVideo.currentCommand = command; RTSReplayControls.configure(command); RTSReplayElements.configure(command); RTSReplayVideo.player.classList.add('dev-player', 'show'); RTSReplayVideo.player.style.opacity = '1'; RTSReplayVideo.player.style.visibility = 'visible'; RTSReplayVideo.frame?.classList.add('dev-frame'); window.RTSDevToolbar?.refreshPositions?.();
+  RTSReplayVideo.currentCommand = command; RTSReplayControls.configureControls(command); RTSReplayElements.configure(command); RTSReplayVideo.player.classList.add('dev-player', 'show'); RTSReplayVideo.player.style.opacity = '1'; RTSReplayVideo.player.style.visibility = 'visible'; RTSReplayVideo.frame?.classList.add('dev-frame'); window.RTSDevToolbar?.refreshPositions?.();
 };
 
 RTSReplayVideo.moveReplay = command => {
