@@ -232,6 +232,12 @@ KickBot requests are limited to 5–240 seconds by the command parser. The local
 
 ## Player
 
+### Configuration Testing
+
+**Send Configuration to Overlay** sends the complete current Action Replay configuration to the overlay for testing.
+
+This is useful when configuring Branding, Design, Title, Position and Animation settings because the current configuration can be previewed without starting a normal replay playback operation.
+
 ### Playback
 
 The Playback settings control the player itself, including the viewer controls, progress bar and default playback speed.
