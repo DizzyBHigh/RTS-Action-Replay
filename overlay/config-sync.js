@@ -113,7 +113,7 @@
     window.RTSReplay.configurePositions(command.replayPlayerPositions);
     window.RTSReplay.applyPosition(window.RTSReplay.getPosition(command.replayStartPosition), true);
     window.RTSReplayElements?.configure?.(command);
-    window.RTSReplayControls?.configure?.(command);
+    window.RTSReplayControls?.configureControls?.(command);
     window.RTSInformationPanels?.applySize?.(window.RTSReplay.recentList, command);
     window.RTSDevToolbar?.refresh?.();
     window.RTSDevToolbar?.log?.('Overlay configuration applied to controls', {
