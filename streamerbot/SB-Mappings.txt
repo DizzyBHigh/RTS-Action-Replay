@@ -1,7 +1,7 @@
 RTS - Action Replay
 RTS - Action Replay - Play History Item : Execute Method(RTS - Action Replay - Core - Catalog, PlayHistory) Commands: !play-history [Parameters: <history item>]
 RTS - Action Replay - Play Replay : Execute Method(RTS - Action Replay - Core - Playback, PlayReplay) Commands: !play-clip, !playclip, !play-replay, !playreplay [Parameters: <replay number>, <custom title>, or <platform:user number>]
-RTS - Action Replay - Save Replay : Execute Method(RTS - Action Replay - Core - Playback, SaveReplay) Commands: !savereplay, !save-replay !createreplay, !create-replay, !save-clip, !saveclip, !clip-local, !cliplocal
+RTS - Action Replay - Save Replay : Execute Method(RTS - Action Replay - Core - Playback, SaveReplay) Commands: !savereplay, !save-replay, !save-clip, !saveclip, !clip-local, !cliplocal
 
 RTS - Action Replay - Catalog
 RTS - Action Replay - Catalog - First Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogFirst) Commands: !search-first
