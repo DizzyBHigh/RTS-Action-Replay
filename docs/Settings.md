@@ -89,7 +89,7 @@ Twitch clips can be played directly from Twitch, downloaded to your PC, or handl
 | Setting | What it does | Default |
 |---|---|---|
 | **Twitch Clip Playback** | Chooses whether clips use the Twitch media URL, a local copy, or both. | `Download Locally` |
-| **Twitch Clip Folder** | Folder used when Twitch clips are downloaded locally. | Empty |
+| **Twitch Clip Folder** | Folder where downloaded Twitch clips are stored. Only needs setting up if you are Downloading locally. Do not use the OBS Replay Folder for Twitch Clips. | Empty |
 | **Twitch HTTP Mapping** | URL path used by Streamer.bot to serve downloaded Twitch clips to the overlay. | `twitch` |
 | **Clip Duration** | Default length used by `!clip` when no duration is given. | `30` seconds |
 
