@@ -118,7 +118,7 @@ public class CPHInline
         catalog.Insert(0, new JObject {
             ["id"] = id, ["sourceType"] = "OBS", ["sourceId"] = id,
             ["file"] = Path.GetFileName(path), ["filePath"] = fullPath, ["title"] = title,
-            ["customTitle"] = false, ["added"] = DateTime.Now.ToString("o"),
+            ["customTitle"] = !string.IsNullOrWhiteSpace(customTitle), ["added"] = DateTime.Now.ToString("o"),
             ["captured"] = captured.ToString("o"), ["acquisitionMethod"] = "OBSReplayBufferImport",
             ["creator"] = new JObject { ["platform"] = "OBS", ["id"] = "", ["name"] = "Imported" },
             ["plays"] = 0, ["users"] = new JObject()
