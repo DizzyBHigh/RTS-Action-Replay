@@ -61,7 +61,7 @@ public class CPHInline
         var title=(string)op["titlePresetId"]??(string)entry["titlePreset"]??"default";
         var brand=(string)op["brandingPresetId"]??(string)entry["brandingPreset"]??"default";
         if((bool?)entry["useSourcePlatformBranding"]==true){var b=PlatformBranding((string)op["replaySource"]??"");if(b!=null)brand=(string)b["id"]??brand;}
-        ApplyPresentation(design,title,brand,animation,false); CPH.TriggerEvent(EventName,true); CPH.UnsetGlobalVar(PlayerOperationKey,false); return true;
+        ApplyPresentation(design,title,brand,animation,false); CPH.LogInfo($"RTS Action Replay TRACE: Player colours; frame={CPH.GetArgument<string>("replayFrameColor")}; control={CPH.GetArgument<string>("replayControlColor")}; brandPrimary={CPH.GetArgument<string>("replayBrandPrimaryColor")}; brandSecondary={CPH.GetArgument<string>("replayTitleSecondaryColor")}"); CPH.TriggerEvent(EventName,true); CPH.UnsetGlobalVar(PlayerOperationKey,false); return true;
     }
 
     public bool ResolvePanel()
