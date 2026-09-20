@@ -368,8 +368,8 @@ The basic flow is:
 2. **Animation Profiles** define how an element moves between those positions.
 3. **Branding Presets** define colours, fonts and identity.
 4. **Design Presets** define the visual treatment used by panels.
-5. **Clapperboard Settings** define the optional new-clip clapperboard presentation.
-6. **Message Behaviour** defines the reusable panel-based message presentation.
+5. **Message Behaviour** defines the reusable panel-based message presentation.
+6. **Clapperboard Behaviour** defines the optional new-clip clapperboard presentation.
 7. **Behaviour** selects which of those pieces are used for a particular entry point.
 
 This means you can change a Branding Preset or Animation Profile once and have every entry point using it pick up the change.
@@ -452,7 +452,7 @@ Its settings control:
 
 Design Presets are selected by the Behaviour settings, so different entry points can use different panel treatments without changing the underlying panel implementation.
 
-## Clapperboard Settings
+## Clapperboard Behaviour
 
 Clapperboard Settings control the optional clapperboard shown when a new Twitch, Kick or YouTube clip is created.
 
@@ -464,6 +464,9 @@ The settings are:
 | **Use Source Platform Branding** | Use the Branding Preset associated with the clip's source platform when available. |
 | **Animation Profile** | Animation profile used by the clapperboard. |
 | **Branding Preset** | Branding used by the clapperboard when source-platform branding is disabled or unavailable. |
+| **Display Time** | How long the clapperboard remains visible before its end animation begins, in milliseconds. Default: `5000`. |
+
+Display Time is independent of the animation profile. Animation durations and delays control movement; Display Time controls how long the clapperboard remains on screen before the end animation starts.
 
 The clapperboard remains a separate presentation from normal Message Outputs.
 
@@ -674,9 +677,12 @@ Messages use:
 - a **Branding Preset**
 - a **Design Preset**
 - a **Message Animation** profile
+- a **Display Time**
 - a **Minimum Width**
 - a **Minimum Height**
 - a **Corner Radius**
+
+**Display Time** controls how long the message remains visible before its end animation begins. The default is `5000` milliseconds.
 
 The message uses the panel heading as its visual base. Its width and height are minimum dimensions: normal messages use the minimum size, while longer text wraps and grows the message vertically to fit the content.
 
