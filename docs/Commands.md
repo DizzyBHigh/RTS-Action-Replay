@@ -34,6 +34,8 @@ If no duration is supplied, the configured Twitch Clip Duration is used.
 
 The allowed duration is 5–60 seconds. A title can be supplied after the optional duration.
 
+When the clip is created, Action Replay adds it to the Catalog and automatically queues it in the Playlist for playback.
+
 ---
 
 ## RTS - Action Replay - YouTube
@@ -65,6 +67,8 @@ The title is everything after the optional duration.
 
 Action Replay uses the recorded start time of the current YouTube broadcast to calculate the timestamp for the clip. If the current broadcast or its recorded start time cannot be identified, the clip cannot be created.
 
+When the clip is created, Action Replay adds it to the Catalog and automatically queues it in the Playlist for playback.
+
 ---
 
 ## RTS - Action Replay - Kick
@@ -92,7 +96,7 @@ If no duration is supplied, the default is 30 seconds.
 
 The command parser accepts 5–240 seconds. The title is everything after the optional duration.
 
-The command first asks KickBot to create the clip. Action Replay then captures the returned KickBot clip and adds it to the Catalog.
+The command first asks KickBot to create the clip. Action Replay then captures the returned KickBot clip, adds it to the Catalog, and automatically queues it in the Playlist for playback.
 
 
 ## RTS - Action Replay
