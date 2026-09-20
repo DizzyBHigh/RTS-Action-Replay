@@ -331,16 +331,21 @@ Only replays with at least one recorded play are included.
 
 Add one existing OBS replay file from the configured Replay Folder to the Catalog.
 
-**Commands**
+**Command**
 
-`!add-replay <filename>`  
-`!addreplay <filename>`
+`!add-existing-replay <filename> [title]`
 
-**Example**
+**Examples**
 
-`!add-replay replay-2026-09-20-153000.mp4`
+`!add-existing-replay replay-2026-09-20-153000.mp4`
 
-The filename must refer to a file in the configured Replay Folder and use one of the configured Replay File Types.
+`!add-existing-replay replay-2026-09-20-153000.mp4 That was insane`
+
+`!add-existing-replay "My replay 2026-09-20.mp4" That was insane`
+
+The filename is resolved against the configured Replay Folder and must use one of the configured Replay File Types. If no title is supplied, the Replay Title Template is used.
+
+A supplied title becomes the replay's custom Catalog title.
 
 If the replay is already in the Catalog, it is not added again.
 
