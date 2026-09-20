@@ -223,6 +223,8 @@ public class CPHInline
         AddSnapshotGlobal(globals, "playbackSpeedVisibility", "rts.actionreplay.playbackSpeedVisibility");
         AddSnapshotGlobal(globals, "frameColorSource", "rts.actionreplay.frameColorSource");
         AddSnapshotGlobal(globals, "frameColor", "rts.actionreplay.frameColor");
+        AddSnapshotGlobal(globals, "controlColorSource", "rts.actionreplay.controlColorSource");
+        AddSnapshotGlobal(globals, "controlColor", "rts.actionreplay.controlColor");
         AddSnapshotGlobal(globals, "borderGlow", "rts.actionreplay.borderGlow");
         AddSnapshotGlobal(globals, "borderWidth", "rts.actionreplay.borderWidth");
         AddSnapshotGlobal(globals, "cornerRadius", "rts.actionreplay.cornerRadius");
