@@ -1,6 +1,7 @@
 (() => {
   const object = value => value && typeof value === 'object' && !Array.isArray(value) ? value : {};
   const list = value => Array.isArray(value) ? value : [];
+  const findPreset = (presets, id) => list(presets).find(preset => String(preset?.id || '') === String(id || ''));
   const positionsFor = (config, target) => object(config?.presets?.positions?.[target]);
 
   const sequence = (raw, positions, fallback) => list(raw).map(step => {
@@ -20,7 +21,7 @@
       const stored = object(store[id]);
       const targetName = target === 'clapperboard' ? 'clapperboard' : target;
       const positions = positionsFor(config, targetName);
-      const fallback = target === 'panel' ? 'Centered' : 'Full Screen';
+      const fallback = target === 'panel' || target === 'message' ? 'Centered' : 'Full Screen';
       return {
         id,
         name: profile?.name || id,
@@ -34,16 +35,20 @@
     const player = object(config?.player);
     const panel = object(config?.panel);
     const clapper = object(config?.clapperboard);
+    const message = object(config?.message);
+    const messageBrand = findPreset(config?.presets?.branding, message.entryPoint?.brandingPreset || 'default');
     const globals = object(config?.globals);
     const command = { replayCommand: 'config-test' };
 
     command.replayPlayerPositions = JSON.stringify(positionsFor(config, 'player'));
     command.replayPanelPositions = JSON.stringify(positionsFor(config, 'panel'));
-    command.replayClapperPositions = JSON.stringify(config?.clapperPositions || positionsFor(config, 'clapperboard'));
+    command.replayClapperPositions = JSON.stringify(positionsFor(config, 'clapperboard'));
+    command.replayMessagePositions = JSON.stringify(positionsFor(config, 'message'));
 
     command.replayAnimationProfiles = profilesFor(config, 'player', player.animationProfiles);
     command.replayPanelAnimationProfiles = profilesFor(config, 'panel', panel.animationProfiles);
     command.replayClapperAnimationProfiles = profilesFor(config, 'clapperboard', clapper.animationProfiles);
+    command.replayMessageAnimationProfiles = profilesFor(config, 'message', message.animationProfiles);
 
     const playerEntry = object(player.entryPoints?.play);
     const playerProfileId = String(playerEntry.animationProfile || player.animation?.selectedProfile || 'default');
@@ -62,6 +67,9 @@
     const clapperProfileId = String(clapper.animation?.selectedProfile || clapper.entryPoint?.animationProfile || 'default');
     const clapperProfile = command.replayClapperAnimationProfiles.find(p => p.id === clapperProfileId) || command.replayClapperAnimationProfiles[0];
     command.replayClapperAnimation = clapperProfile ? JSON.stringify(clapperProfile) : '';
+    const messageProfileId = String(message.animation?.selectedProfile || message.entryPoint?.animationProfile || 'default');
+    const messageProfile = command.replayMessageAnimationProfiles.find(p => p.id === messageProfileId) || command.replayMessageAnimationProfiles[0];
+    command.replayMessageAnimation = messageProfile ? JSON.stringify(messageProfile) : '';
 
     window.RTSOverlayConfigPresentation.apply(command, config, playerEntry);
 
@@ -74,17 +82,22 @@
       replayBorderGlow: globals.borderGlow !== false,
       replayBorderWidth: Number(globals.borderWidth) || 4,
       replayCornerRadius: Number(globals.cornerRadius) || 0,
-      replayPanelWidth: Number(panel.width) || 500,
-      replayPanelHeight: Number(panel.height) || 700,
+      replayPanelWidth: Number(globals.panelWidth) || Number(panel.width) || 500,
+      replayPanelHeight: Number(globals.panelHeight) || Number(panel.height) || 700,
+      replayPanelCornerRadius: Number(globals.panelCornerRadius) || Number(panel.cornerRadius) || 0,
+      replayMessageMinWidth: Number(globals.messageMinWidth) || Number(message.minWidth) || 500,
+      replayMessageMinHeight: Number(globals.messageMinHeight) || Number(message.minHeight) || 120,
+      replayMessageCornerRadius: Number(globals.messageCornerRadius) || Number(message.cornerRadius) || 0,
+      replayMessageDuration: Number.isFinite(Number(globals.messageDuration)) ? Number(globals.messageDuration) : 5000,
+      replayClapperDuration: Number.isFinite(Number(globals.clapperDuration)) ? Number(globals.clapperDuration) : 5000,
       replayLogoUrl: globals.brandLogoUrl || command.replayBrandLogoUrl || '',
-      replayClapperPosition: globals.clapperPosition || 'Centered',
-      replayMessageBoardColor: globals.clapperBoardColor || '#101416',
-      replayMessageTextColor: globals.clapperTextColor || '#0384CB',
-      replayMessageStripeLight: globals.clapperStripeLight || '#EEEEEE',
-      replayMessageStripeDark: globals.clapperStripeDark || '#111111',
-      replayMessageAccent: globals.clapperAccent || '#0384CB',
-      replayMessageFont: globals.clapperFont || 'Arial, sans-serif',
-      replayMessage: globals.messagePlayText || 'CLAPPERBOARD ANIMATION TEST'
+      replayMessageBoardColor: messageBrand?.textColor || '#FFFFFFFF',
+      replayMessageTextColor: messageBrand?.titleColor || '#FFFFFFFF',
+      replayMessageStripeLight: messageBrand?.primaryColor || '#0384CBFF',
+      replayMessageStripeDark: messageBrand?.secondaryColor || '#101416FF',
+      replayMessageAccent: messageBrand?.shadowColor || '#000000FF',
+      replayMessageFont: messageBrand?.font || 'Inter',
+      replayMessage: globals.messagePlayText || 'MESSAGE PREVIEW'
     });
 
     return command;
