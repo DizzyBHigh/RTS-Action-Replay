@@ -18,7 +18,7 @@ The Replay Source settings tell Action Replay where OBS saves its replays and ho
 |---|---|---|
 | **Replay Folder** | The folder where OBS saves Replay Buffer recordings. Twitch and Kick downloads are kept in their own folders instead. | Empty |
 | **Replay File Types** | The file extensions Action Replay will recognise when looking for saved replays. Multiple extensions can be separated with commas or semicolons. | `.mp4, .mkv` |
-| **HTTP Mapping** | The URL path Streamer.bot uses to serve files from the Replay Folder to the overlay. | `replays` |
+| **HTTP Mapping** | The URL path Streamer.bot uses to serve files from the Replay Folder to the overlay. For example, `replays` creates `http://localhost:7474/replays/`. | `replays` |
 | **HTTP Port** | The port Streamer.bot's HTTP server uses to serve replay files. | `7474` |
 
 ### Replay Folder
