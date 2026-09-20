@@ -1,6 +1,7 @@
 (() => {
   const object = value => value && typeof value === 'object' && !Array.isArray(value) ? value : {};
   const list = value => Array.isArray(value) ? value : [];
+  const findPreset = (presets, id) => list(presets).find(preset => String(preset?.id || '') === String(id || ''));
   const positionsFor = (config, target) => object(config?.presets?.positions?.[target]);
 
   const sequence = (raw, positions, fallback) => list(raw).map(step => {
@@ -34,12 +35,13 @@
     const player = object(config?.player);
     const panel = object(config?.panel);
     const clapper = object(config?.clapperboard);
+    const clapperBrand = findPreset(config?.presets?.branding, clapper.entryPoint?.brandingPreset || 'default');
     const globals = object(config?.globals);
     const command = { replayCommand: 'config-test' };
 
     command.replayPlayerPositions = JSON.stringify(positionsFor(config, 'player'));
     command.replayPanelPositions = JSON.stringify(positionsFor(config, 'panel'));
-    command.replayClapperPositions = JSON.stringify(config?.clapperPositions || positionsFor(config, 'clapperboard'));
+    command.replayClapperPositions = JSON.stringify(positionsFor(config, 'clapperboard'));
 
     command.replayAnimationProfiles = profilesFor(config, 'player', player.animationProfiles);
     command.replayPanelAnimationProfiles = profilesFor(config, 'panel', panel.animationProfiles);
