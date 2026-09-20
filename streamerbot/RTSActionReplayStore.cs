@@ -223,6 +223,9 @@ public class CPHInline
         AddSnapshotGlobal(globals, "borderGlow", "rts.actionreplay.borderGlow");
         AddSnapshotGlobal(globals, "borderWidth", "rts.actionreplay.borderWidth");
         AddSnapshotGlobal(globals, "cornerRadius", "rts.actionreplay.cornerRadius");
+        AddSnapshotGlobal(globals, "panelWidth", "rts.actionreplay.panel.width");
+        AddSnapshotGlobal(globals, "panelHeight", "rts.actionreplay.panel.height");
+        AddSnapshotGlobal(globals, "panelCornerRadius", "rts.actionreplay.panel.cornerRadius");
         AddSnapshotGlobal(globals, "brandLogoUrl", "rts.actionreplay.brandLogoUrl");
 
         foreach (var prefix in new[] { "save", "name", "play", "recent", "playlist" })
