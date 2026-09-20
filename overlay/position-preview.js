@@ -88,7 +88,7 @@ RTSPositionPreview.previewMessagePosition = command => {
   const card = RTSPositionPreview.messageCard;
   if (!card) return;
   RTSPositionPreview.currentCommand = { ...(RTSPositionPreview.currentCommand || {}), ...command };
-  RTSInformationPanelPresets?.apply?.(card, command);
+  window.RTSInformationPanelPresets?.apply?.(card, command);
   RTSInformationPanels.applyMessageSize(card, command);
   card.classList.add('position-preview', 'show');
   card.setAttribute('aria-hidden', 'false');
