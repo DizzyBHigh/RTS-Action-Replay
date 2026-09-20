@@ -163,3 +163,63 @@ A title can also be supplied after the duration:
 The clip is created from the current YouTube broadcast. Action Replay uses the recorded broadcast start time to work out the timestamp for the requested clip.
 
 If Action Replay cannot identify the current broadcast or its start time, the clip cannot be created.
+
+## Kick
+
+### Kick Clips
+
+Kick clips can be captured from Kick chat using the KickBot clip workflow, or captured directly from a Kick clip URL. When a clip is downloaded locally, Action Replay uses the Kick Clip Folder and Kick HTTP Mapping settings.
+
+| Setting | What it does | Default |
+|---|---|---|
+| **Kick Clip Playback** | Chooses whether Kick clips use the Kick URL, a local copy, or both. | `Kick URL` |
+| **Kick Clip Folder** | Folder used when Kick clips are downloaded locally. | Empty |
+| **Kick HTTP Mapping** | URL path used by Streamer.bot to serve downloaded Kick clips to the overlay. | `kick` |
+
+### Kick Clip Playback
+
+There are three choices:
+
+- **Kick URL** — use the Kick clip URL for playback.
+- **Download Locally** — keep a local copy for playback.
+- **Both** — support a local copy while retaining the Kick URL as a fallback.
+
+The setting controls how locally acquired Kick clips are made available for playback.
+
+### Kick Clip Folder
+
+Set this to the folder where downloaded Kick clips should be stored.
+
+This folder is separate from the OBS Replay Folder. The setting is only relevant when the selected playback mode needs a local copy.
+
+### Kick HTTP Mapping
+
+This is the URL path used when Streamer.bot serves a downloaded Kick clip to the overlay.
+
+For example, with:
+
+`kick`
+
+the local clip URL uses the `/kick/` path.
+
+The mapping is used with the main **HTTP Port** setting under General → Replay Source and must point to the Kick Clip Folder in Streamer.bot's HTTP server configuration.
+
+### Kick clip commands
+
+Kick uses `!create-clip` for clip creation. The duration is optional and defaults to 30 seconds.
+
+For example:
+
+`!create-clip`
+
+uses the default duration.
+
+`!create-clip 45`
+
+requests a 45-second clip.
+
+A title can be supplied after the duration:
+
+`!create-clip 45 Great moment`
+
+KickBot requests are limited to 5–240 seconds by the command parser. The locally configured **Kick Clip Playback** mode determines how the resulting clip is made available to Action Replay.
