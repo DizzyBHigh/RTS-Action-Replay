@@ -73,3 +73,60 @@ These settings each have a different job:
 4. **HTTP Port** tells the overlay which HTTP server port to use.
 
 If Action Replay is finding and cataloguing your replays but the overlay won't play them, the first things to check are the HTTP Mapping and HTTP Port in both places.
+
+## Twitch
+
+### Twitch Clips
+
+Twitch clips can be played directly from Twitch, downloaded to your PC, or handled using both methods.
+
+| Setting | What it does | Default |
+|---|---|---|
+| **Twitch Clip Playback** | Chooses whether clips use the Twitch media URL, a local copy, or both. | `Download Locally` |
+| **Twitch Clip Folder** | Folder used when Twitch clips are downloaded locally. | Empty |
+| **Twitch HTTP Mapping** | URL path used by Streamer.bot to serve downloaded Twitch clips to the overlay. | `twitch` |
+| **Clip Duration** | Default length used by `!clip` when no duration is given. | `30` seconds |
+
+### Twitch Clip Playback
+
+There are three choices:
+
+- **Twitch URL** — play the clip directly from Twitch. No local copy is required.
+- **Download Locally** — download the clip and play the local copy through Streamer.bot's HTTP server.
+- **Both** — keep a local copy available, while still allowing Action Replay to fall back to the Twitch URL if a local copy can't be used.
+
+When a local copy is required, Action Replay downloads it as an MP4 into the Twitch Clip Folder. The Twitch Clip Folder must not be the same folder as the OBS Replay Folder.
+
+### Twitch Clip Folder
+
+Set this to the folder where downloaded Twitch clips should be stored.
+
+This folder is only for Twitch downloads. It should be separate from the folder used by OBS for Replay Buffer files.
+
+If the folder is empty, local playback can't be used. Twitch URL playback can still work when the selected playback mode allows it.
+
+### Twitch HTTP Mapping
+
+This is the URL path Streamer.bot uses when serving downloaded Twitch clips to the overlay.
+
+For example, with:
+
+`twitch`
+
+the local clip URL uses the `/twitch/` path.
+
+The mapping is used together with the main **HTTP Port** setting under General → Replay Source. It should point to the Twitch Clip Folder in Streamer.bot's HTTP server configuration.
+
+### Clip Duration
+
+This is the default duration used by `!clip` when no duration is supplied.
+
+The normal range is 5 to 60 seconds. If a duration is supplied with the command, that value is used instead, within the same 5–60 second range.
+
+For example:
+
+`!clip 45`
+
+creates a 45-second Twitch clip.
+
+The duration setting is only the default; it does not limit the length of every Twitch clip that has already been added to the catalog.
