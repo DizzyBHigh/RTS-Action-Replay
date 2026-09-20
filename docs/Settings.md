@@ -179,34 +179,34 @@ Kick clips can be captured from Kick chat using the KickBot clip workflow, or ca
 | Setting | What it does | Default |
 |---|---|---|
 | **Kick Clip Playback** | Chooses whether Kick clips use the Kick URL, a local copy, or both. | `Kick URL` |
-| **Kick Clip Folder** | Folder used when Kick clips are downloaded locally. | Empty |
+| **Kick Clip Folder** | Folder where downloaded Kick clips are stored. Only needs setting up if you are Downloading locally. Do not use the OBS Replay Folder for Kick Clips. | Empty |
 | **Kick HTTP Mapping** | URL path used by Streamer.bot to serve downloaded Kick clips to the overlay. | `kick` |
 
 ### Kick Clip Playback
 
 There are three choices:
 
-- **Kick URL** — use the Kick clip URL for playback.
-- **Download Locally** — keep a local copy for playback.
-- **Both** — support a local copy while retaining the Kick URL as a fallback.
-
-The setting controls how locally acquired Kick clips are made available for playback.
+- **Kick URL** — play the clip directly from Kick. No local copy is required.
+- **Download Locally** — download the clip and play the local copy through Streamer.bot's HTTP server.
+- **Both** — keep a local copy available while retaining the Kick URL as a fallback.
 
 ### Kick Clip Folder
 
 Set this to the folder where downloaded Kick clips should be stored.
 
-This folder is separate from the OBS Replay Folder. The setting is only relevant when the selected playback mode needs a local copy.
+This folder is only for Kick downloads. It should be separate from the folder used by OBS for Replay Buffer files.
+
+If the folder is empty, local playback can't be used. Kick URL playback can still work when the selected playback mode allows it.
 
 ### Kick HTTP Mapping
 
-This is the URL path used when Streamer.bot serves a downloaded Kick clip to the overlay.
+This is the URL path Streamer.bot uses when serving downloaded Kick clips to the overlay.
 
-For example, with:
+For example, entering:
 
 `kick`
 
-the local clip URL uses the `/kick/` path.
+creates the `http://localhost:7474/kick/` path used to access local Kick clips.
 
 The mapping is used with the main **HTTP Port** setting under General → Replay Source and must point to the Kick Clip Folder in Streamer.bot's HTTP server configuration.
 
