@@ -78,6 +78,7 @@
       replayCornerRadius: Number(globals.cornerRadius) || 0,
       replayPanelWidth: Number(panel.width) || 500,
       replayPanelHeight: Number(panel.height) || 700,
+      replayPanelCornerRadius: Number(panel.cornerRadius) || 0,
       replayLogoUrl: globals.brandLogoUrl || command.replayBrandLogoUrl || '',
       replayClapperPosition: globals.clapperPosition || 'Centered',
       replayMessageBoardColor: globals.clapperBoardColor || '#101416',
