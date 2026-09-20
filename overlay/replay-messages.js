@@ -108,6 +108,8 @@ RTSReplayMessages.showMessage = command => {
 };
 
 
+RTSReplayMessages.showClapperboard = command => RTSReplayMessages.showMessage(command);
+
 RTSReplayMessages.hideMessage = command => {
   clearTimeout(RTSReplayMessages.messageTimer);
   const profile = RTSAnimationEngine.readProfile(command?.replayClapperAnimation);
