@@ -21,7 +21,7 @@ public class CPHInline
     public bool Initialize() { var data = Load(); if (data.Count == 0) { data = CreateDataDefaults(); Save(data); } else { if (!(data["catalog"] is JArray)) data["catalog"] = new JArray(); if (!(data["playHistory"] is JArray)) data["playHistory"] = new JArray(); data["version"] = "1.0"; Save(data); } return true; }
     public bool EnsureData() => Initialize();
     private JObject CreateDataDefaults() => new JObject { ["version"] = "1.0", ["catalog"] = new JArray(), ["playHistory"] = new JArray() };
-    public bool Ensure() { EnsurePlayer(); EnsureObject(PanelKey, CreatePanelDefaults()); return true; }
+    public bool Ensure() { EnsurePlayer(); EnsureObject(PanelKey, CreatePanelDefaults()); EnsureObject(MessageKey, CreateMessageDefaults()); return true; }
     public bool GetPlayer() { EnsurePlayer(); CPH.SetArgument("replayPlayerConfig", Read(PlayerKey).ToString(Newtonsoft.Json.Formatting.None)); return true; }
     public bool GetPlayerPositions() { EnsurePlayer(); var player = Read(PlayerKey); CPH.SetArgument("replayPositions", ((JObject)player["positions"] ?? new JObject()).ToString(Newtonsoft.Json.Formatting.None)); return true; }
     public bool SavePlayerPositions() { EnsurePlayer(); string positionsJson; if (!CPH.TryGetArg("replayPositions", out positionsJson) || string.IsNullOrWhiteSpace(positionsJson)) return false; try { var positions = JObject.Parse(positionsJson); var player = Read(PlayerKey); player["positions"] = positions; SaveConfig(PlayerKey, player); return true; } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: player position JSON save failed: " + ex.Message); return false; } }
@@ -31,6 +31,7 @@ public class CPHInline
     private void EnsurePlayer() { var current = Read(PlayerKey); if (current.Count > 0) return; SaveConfig(PlayerKey, CreatePlayerDefaults()); }
     private JObject CreatePlayerDefaults() => new JObject { ["positions"] = new JObject(), ["animationProfiles"] = new JArray { new JObject { ["id"] = "default", ["name"] = "Default" } }, ["animation"] = new JObject { ["selectedProfile"] = "default", ["entryPoints"] = new JObject { ["obs"] = "default", ["twitch"] = "default", ["youtube"] = "default", ["kick"] = "default", ["recent"] = "default", ["catalog"] = "default", ["playlist"] = "default" } }, ["entryPoints"] = CreatePlayerEntryPoints() };
     private JObject CreatePanelDefaults() => new JObject { ["width"] = 500, ["height"] = 700, ["cornerRadius"] = 0, ["positions"] = new JObject(), ["animationProfiles"] = new JArray { new JObject { ["id"] = "default", ["name"] = "Default" } }, ["animation"] = new JObject { ["entryPoints"] = new JObject { ["recent"] = "default", ["playlist"] = "default", ["creatorLeaderboard"] = "default" } }, ["entryPoints"] = CreatePanelEntryPoints() };
+    private JObject CreateMessageDefaults() => new JObject { ["minWidth"] = 500, ["minHeight"] = 120, ["cornerRadius"] = 0, ["positions"] = new JObject(), ["animationProfiles"] = new JArray { new JObject { ["id"] = "default", ["name"] = "Default" } }, ["animation"] = new JObject { ["selectedProfile"] = "default" }, ["entryPoint"] = CreateMessageEntryPoint() };
     private JObject CreateClapperDefaults() => new JObject { ["animationProfiles"] = new JArray { new JObject { ["id"] = "default", ["name"] = "Default" } }, ["animation"] = new JObject { ["selectedProfile"] = "default" }, ["entryPoint"] = CreateClapperEntryPoint() };
     private JObject Read(string key) { var raw = CPH.GetGlobalVar<string>(key, true); if (string.IsNullOrWhiteSpace(raw)) return new JObject(); try { return JObject.Parse(raw); } catch { return new JObject(); } }
     private void EnsureObject(string key, JObject defaults) { var current = Read(key); if (current.Count == 0) SaveConfig(key, defaults); }
@@ -169,6 +170,7 @@ public class CPHInline
     // Consolidated preset/config persistence from RTSActionReplayPresetStore.
     private JObject Read(string key, JObject fallback) { var raw = CPH.GetGlobalVar<string>(key, true); try { return string.IsNullOrWhiteSpace(raw) ? fallback : JObject.Parse(raw); } catch { return fallback; } }
 
+    const string MessageKey = "rts.actionreplay.config.message";
     const string ClapperKey = "rts.actionreplay.config.clapper";
 
     const string PresetsKey = "rts.actionreplay.config.presets";
@@ -187,6 +189,7 @@ public class CPHInline
             ["player"] = Read(PlayerKey, CreatePlayerDefaults()),
             ["panel"] = Read(PanelKey, CreatePanelDefaults()),
             ["clapperboard"] = Read(ClapperKey, CreateClapperDefaults()),
+            ["message"] = Read(MessageKey, CreateMessageDefaults()),
             ["presets"] = Read(PresetsKey, Defaults()),
             ["animation"] = Read("rts.actionreplay.config.animation", new JObject()),
             ["globals"] = new JObject()
@@ -259,11 +262,12 @@ public class CPHInline
         else target[name] = raw;
     }
 
-    public bool EnsureEntryPoints() { EnsureDefaults(); var player = Read(PlayerKey, CreatePlayerDefaults()); var panel = Read(PanelKey, CreatePanelDefaults()); var clapper = Read(ClapperKey, CreateClapperDefaults()); if (!(player["entryPoints"] is JObject)) player["entryPoints"] = CreatePlayerEntryPoints(); if (!(panel["entryPoints"] is JObject)) panel["entryPoints"] = CreatePanelEntryPoints(); if (!(clapper["entryPoint"] is JObject)) clapper["entryPoint"] = CreateClapperEntryPoint(); Save(PlayerKey, player); Save(PanelKey, panel); Save(ClapperKey, clapper); return true; }
+    public bool EnsureEntryPoints() { EnsureDefaults(); var player = Read(PlayerKey, CreatePlayerDefaults()); var panel = Read(PanelKey, CreatePanelDefaults()); var clapper = Read(ClapperKey, CreateClapperDefaults()); if (!(player["entryPoints"] is JObject)) player["entryPoints"] = CreatePlayerEntryPoints(); if (!(panel["entryPoints"] is JObject)) panel["entryPoints"] = CreatePanelEntryPoints(); if (!(clapper["entryPoint"] is JObject)) clapper["entryPoint"] = CreateClapperEntryPoint(); var message = Read(MessageKey, CreateMessageDefaults()); if (!(message["entryPoint"] is JObject)) message["entryPoint"] = CreateMessageEntryPoint(); Save(PlayerKey, player); Save(PanelKey, panel); Save(ClapperKey, clapper); Save(MessageKey, message); return true; }
 
     private JObject CreatePlayerEntryPoints() { return new JObject { ["obs"] = CreateEntryPoint(), ["twitch"] = CreateEntryPoint(), ["youtube"] = CreateEntryPoint(), ["kick"] = CreateEntryPoint(), ["play"] = new JObject { ["animationProfile"] = "default", ["designPreset"] = "broadcast", ["titlePreset"] = "default", ["brandingPreset"] = "default", ["useSourcePlatformBranding"] = false } }; }
     private JObject CreatePanelEntryPoints() { return new JObject { ["recent"] = CreateEntryPoint(), ["playlist"] = CreateEntryPoint(), ["creatorLeaderboard"] = CreateEntryPoint() }; }
     private JObject CreateEntryPoint() { return new JObject { ["animationProfile"] = "default", ["designPreset"] = "broadcast", ["titlePreset"] = "default", ["brandingPreset"] = "default" }; }
+    private JObject CreateMessageEntryPoint() { return new JObject { ["animationProfile"] = "default", ["designPreset"] = "broadcast", ["brandingPreset"] = "default" }; }
     private JObject CreateClapperEntryPoint() { return new JObject { ["animationProfile"] = "default", ["brandingPreset"] = "default" }; }
 
     public JArray Branding() => Read(PresetsKey, Defaults())["branding"] as JArray ?? new JArray();
