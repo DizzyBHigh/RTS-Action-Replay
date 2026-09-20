@@ -39,7 +39,7 @@ public class CPHInline
         var brandingProfile = Arg("brandingPreset", "default");
         var queue = LoadQueue();
         queue.Add(new JObject { ["entryId"] = Guid.NewGuid().ToString("N"), ["replayId"] = replayId, ["title"] = (string)replay["title"] ?? "Replay", ["requesterId"] = userId ?? "", ["requesterName"] = requester, ["requesterPlatform"] = requesterPlatform ?? "", ["requesterBroadcastId"] = broadcastId ?? "", ["animationProfileId"] = profile, ["designPresetId"] = designProfile, ["titlePresetId"] = titleProfile, ["brandingPresetId"] = brandingProfile, ["showClapperboard"] = CPH.GetGlobalVar<bool?>("rts.actionreplay.handoff.showClapperboard", false) ?? false, ["queued"] = DateTime.Now.ToString("o") });
-        SaveQueue(queue); CPH.UnsetGlobalVar(ReplayIdHandoffKey, false);
+        SaveQueue(queue); CPH.UnsetGlobalVar(ReplayIdHandoffKey, false); CPH.UnsetGlobalVar("rts.actionreplay.handoff.showClapperboard", false);
         if (!IsPaused() && ActiveId() == null) return PlayNext(queue);
         return true;
     }
