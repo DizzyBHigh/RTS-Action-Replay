@@ -15,10 +15,7 @@ public class CPHInline
     private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
     private const string PlayerKey = "rts.actionreplay.config.player";
     private const string PanelKey = "rts.actionreplay.config.panel";
-    private const string ClapperPositionsKey = "rts.actionreplay.clapper.positions";
     private const string ConfigurationSnapshotKey = "rts.actionreplay.handoff.configurationSnapshot";
-    private const int ClapperboardPreviewWidth = 680;
-    private const int ClapperboardPreviewHeight = 372;
 
     public bool Execute() => Initialize();
     public bool Initialize() { var data = Load(); if (data.Count == 0) { data = CreateDataDefaults(); Save(data); } else { if (!(data["catalog"] is JArray)) data["catalog"] = new JArray(); if (!(data["playHistory"] is JArray)) data["playHistory"] = new JArray(); data["version"] = "1.0"; Save(data); } return true; }
@@ -147,20 +144,16 @@ public class CPHInline
         CPH.SetArgument("replayCommand", "clapperboard");
         CPH.SetArgument("replayMessage", title);
         CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
-        CPH.SetArgument("replayClapperPosition", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.position", true) ?? "Centered");
-        CPH.SetArgument("replayClapperPositions", CPH.GetGlobalVar<string>(ClapperPositionsKey, true) ?? "{\"Centered\":{\"name\":\"Centered\",\"tag\":\"centered\",\"scale\":50,\"scaleX\":50,\"scaleY\":50,\"x\":0,\"y\":0,\"z\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0,\"fov\":90}}");
+        CPH.SetArgument("replayClapperPosition", "Centered");
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "GetClapperboardPositions");
+        CPH.SetArgument("replayClapperPositions", CPH.GetGlobalVar<string>("rts.actionreplay.handoff.clapperPositions", false) ?? "{}");
         CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveClapperboardBranding");
         CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveClapperAnimation");
-        CPH.SetArgument("replayClapperWidth", ClapperboardPreviewWidth);
-        CPH.SetArgument("replayClapperHeight", ClapperboardPreviewHeight);
-        CPH.SetArgument("replayMessageDuration", GetSettingInt("rts.actionreplay.clapper.duration", 5000));
         CPH.TriggerEvent("RTS-Action Replay", true);
         return true;
     }
 
-    private void SetMessageStyleArguments() { CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? ""); CPH.SetArgument("replayMessageBoardColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.boardColor", true) ?? "#101416"); CPH.SetArgument("replayMessageStripeLight", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeLight", true) ?? "#EEEEEE"); CPH.SetArgument("replayMessageStripeDark", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.stripeDark", true) ?? "#111111"); CPH.SetArgument("replayMessageAccent", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.accent", true) ?? "#0384CB"); CPH.SetArgument("replayMessageTextColor", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.textColor", true) ?? "#0384CB"); CPH.SetArgument("replayMessageFont", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.font", true) ?? "Arial, sans-serif"); CPH.SetArgument("replayClapperPosition", CPH.GetGlobalVar<string>("rts.actionreplay.clapper.position", true) ?? "Centered"); CPH.SetArgument("replayClapperPositions", CPH.GetGlobalVar<string>(ClapperPositionsKey, true) ?? "{\"Centered\":{\"name\":\"Centered\",\"tag\":\"centered\",\"scale\":50,\"scaleX\":50,\"scaleY\":50,\"x\":0,\"y\":0,\"z\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0,\"fov\":90}}"); CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveClapperAnimation"); CPH.SetArgument("replayClapperWidth", ClapperboardPreviewWidth); CPH.SetArgument("replayClapperHeight", ClapperboardPreviewHeight); CPH.SetArgument("replayMessageDuration", GetSettingInt("rts.actionreplay.clapper.duration", 5000)); }
-
-    private int GetSettingInt(string key, int fallback) { try { object value = CPH.GetGlobalVar<object>(key, true); return value == null ? fallback : Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture); } catch { return fallback; } }
+    private void SetMessageStyleArguments() { CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? ""); CPH.SetArgument("replayClapperPosition", "Centered"); CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "GetClapperboardPositions"); CPH.SetArgument("replayClapperPositions", CPH.GetGlobalVar<string>("rts.actionreplay.handoff.clapperPositions", false) ?? "{}"); CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveClapperboardBranding"); CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveClapperAnimation"); }
     private bool IsReplayFile(string path) { var extension = Path.GetExtension(path); if (string.IsNullOrWhiteSpace(extension)) return false; var configured = CPH.GetGlobalVar<string>(FileTypesKey, true) ?? ".mp4, .mkv"; foreach (var raw in configured.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)) { var type = raw.Trim(); if (!type.StartsWith(".")) type = "." + type; if (extension.Equals(type, StringComparison.OrdinalIgnoreCase)) return true; } return false; }
     private bool Stable(string path) { try { var a = new FileInfo(path).Length; System.Threading.Thread.Sleep(250); return new FileInfo(path).Length == a; } catch { return false; } }
     private string Get(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
@@ -196,7 +189,6 @@ public class CPHInline
             ["clapperboard"] = Read(ClapperKey, CreateClapperDefaults()),
             ["presets"] = Read(PresetsKey, Defaults()),
             ["animation"] = Read("rts.actionreplay.config.animation", new JObject()),
-            ["clapperPositions"] = ReadStringObject(ClapperPositionsKey),
             ["globals"] = new JObject()
         };
 
@@ -232,14 +224,6 @@ public class CPHInline
         AddSnapshotGlobal(globals, "borderWidth", "rts.actionreplay.borderWidth");
         AddSnapshotGlobal(globals, "cornerRadius", "rts.actionreplay.cornerRadius");
         AddSnapshotGlobal(globals, "brandLogoUrl", "rts.actionreplay.brandLogoUrl");
-        AddSnapshotGlobal(globals, "clapperPosition", "rts.actionreplay.clapper.position");
-        AddSnapshotGlobal(globals, "clapperDuration", "rts.actionreplay.clapper.duration");
-        AddSnapshotGlobal(globals, "clapperBoardColor", "rts.actionreplay.clapper.boardColor");
-        AddSnapshotGlobal(globals, "clapperTextColor", "rts.actionreplay.clapper.textColor");
-        AddSnapshotGlobal(globals, "clapperStripeLight", "rts.actionreplay.clapper.stripeLight");
-        AddSnapshotGlobal(globals, "clapperStripeDark", "rts.actionreplay.clapper.stripeDark");
-        AddSnapshotGlobal(globals, "clapperAccent", "rts.actionreplay.clapper.accent");
-        AddSnapshotGlobal(globals, "clapperFont", "rts.actionreplay.clapper.font");
 
         foreach (var prefix in new[] { "save", "name", "play", "recent", "playlist" })
         {
