@@ -2,7 +2,7 @@
 
 This is the reference for the settings in RTS Action Replay. It follows the same order as the settings window, so it should be easy to find a setting while you're configuring the extension.
 
-## General
+## Local Capture
 
 ### Settings Theme
 
@@ -10,9 +10,9 @@ Controls the RtsUI theme used by the Action Replay settings window. The default 
 
 This changes the appearance of the settings UI only; it does not change the Action Replay overlay.
 
-### Replay Source
+### Local Capture / OBS
 
-The Replay Source settings tell Action Replay where OBS saves its replays and how the overlay can access those files.
+The Local Capture / OBS settings tell Action Replay where OBS saves its replays and how the overlay can access those files.
 
 | Setting | What it does | Default |
 |---|---|---|
@@ -80,6 +80,23 @@ These settings each have a different job:
 
 If Action Replay is finding and cataloguing your replays but the overlay won't play them, the first things to check are the HTTP Mapping and HTTP Port in both places.
 
+### Replay Defaults
+
+These settings control the default titles used when replays are created or automatically played.
+
+| Setting | What it does | Default |
+|---|---|---|
+| **Replay Title Template** | Template used to generate the title of newly saved replays. Streamer.bot variables can be used. | `%replayName%` |
+| **New Replay Display Title** | Temporary title displayed when a newly saved replay is automatically played. This does not rename the Catalog item. | `New Replay` |
+
+### Replay Title Template
+
+Defines the title template used when a new replay is saved. Streamer.bot variables can be included in the template.
+
+### New Replay Display Title
+
+Sets the temporary title shown when a newly saved replay is automatically played. Changing this value does **not** rename the corresponding Catalog item.
+
 ## Twitch
 
 ### Twitch Clips
@@ -121,7 +138,7 @@ For example, with:
 
 the local clip URL uses the `/twitch/` path.
 
-The mapping is used together with the main **HTTP Port** setting under General → Replay Source. It should point to the Twitch Clip Folder in Streamer.bot's HTTP server configuration.
+The mapping is used together with the main **HTTP Port** setting under Local Capture → Local Capture / OBS. It should point to the Twitch Clip Folder in Streamer.bot's HTTP server configuration.
 
 ### Clip Duration
 
@@ -338,28 +355,11 @@ Sets the player border width from 0 to 12 pixels.
 
 Sets how rounded the player corners are, from 0 to 48 pixels. `0` leaves the corners square.
 
-## Playlist
+## Catalog
 
-The Playlist is the live playback queue. It can contain clips from any supported source, including OBS captures, Twitch clips, YouTube clips and Kick clips.
+The Catalog contains the replay records available to Action Replay. Recent Clips and Last Played are views/history derived from the Catalog, while the Playlist is the live playback queue.
 
-Twitch, YouTube and Kick **Create Clip** commands automatically add the resulting clip to the Playlist and queue it for playback. The OBS capture settings below control only what happens when a new OBS Replay Buffer capture is saved.
-
-### Replay Defaults
-
-These settings control the default titles used when replays are created or automatically played.
-
-| Setting | What it does | Default |
-|---|---|---|
-| **Replay Title Template** | Template used to generate the title of newly saved replays. Streamer.bot variables can be used. | `%replayName%` |
-| **New Replay Display Title** | Temporary title displayed when a newly saved replay is automatically played. This does not rename the Catalog item. | `New Replay` |
-
-### Replay Title Template
-
-Defines the title template used when a new replay is saved. Streamer.bot variables can be included in the template.
-
-### New Replay Display Title
-
-Sets the temporary title shown when a newly saved replay is automatically played. Changing this value does **not** rename the corresponding Catalog item.
+Twitch, YouTube and Kick **Create Clip** commands automatically add the resulting clip to the Catalog and queue it for Playlist playback. OBS capture settings in the Local Capture tab control only what happens when a new OBS Replay Buffer capture is saved.
 
 ### Recent Clips
 
@@ -390,7 +390,7 @@ When enabled, a newly saved OBS replay is automatically loaded and played.
 
 ### Live Playlist
 
-The Playlist is source-agnostic. Items can originate from OBS captures, Twitch clips, YouTube clips or Kick clips. Platform Create Clip commands automatically add their resulting clips to the queue for playback.
+The Playlist is the live playback queue and is source-agnostic. Items can originate from OBS captures, Twitch clips, YouTube clips or Kick clips. Platform Create Clip commands automatically add their resulting clips to the queue for playback.
 
 | Setting | What it does | Default |
 |---|---|---|
