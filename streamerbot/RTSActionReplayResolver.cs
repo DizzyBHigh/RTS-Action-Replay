@@ -126,6 +126,7 @@ public class CPHInline
         CPH.SetArgument("replayMessageMinWidth",CPH.GetGlobalVar<int?>("rts.actionreplay.message.minWidth",true)??500);
         CPH.SetArgument("replayMessageMinHeight",CPH.GetGlobalVar<int?>("rts.actionreplay.message.minHeight",true)??120);
         CPH.SetArgument("replayMessageCornerRadius",CPH.GetGlobalVar<int?>("rts.actionreplay.message.cornerRadius",true)??0);
+        CPH.SetArgument("replayMessageDuration",CPH.GetGlobalVar<int?>("rts.actionreplay.message.duration",true)??5000);
         CPH.SetArgument("replayPanelPreset",design);
         CPH.SetArgument("replayPanelPrimaryColor",PanelPrimaryColor(d,b));
         CPH.SetArgument("replayPanelSecondaryColor",PanelSecondaryColor(d,b));
