@@ -73,7 +73,7 @@ The first Start Sequence step establishes the initial position. Later steps tran
 
 ## Streamer.bot code modules
 
-`RTSActionReplayStore.cs` is the shared Execute C# Code module. Give the Execute C# Code sub-action the name `RTS Action Replay Store` and expose its public methods through Execute C# Method sub-actions.
+`RTSActionReplayStore.cs` is the shared Execute C# Code module for replay-store operations. Give the Execute C# Code sub-action the name `RTS - Action Replay - Core - Store` and expose its public methods through Execute C# Method sub-actions, including `AddExistingReplay` and `ScanReplays` for manual replay registration.
 
 `RTSActionReplayPlayback.cs` is the playback module. Give it the name `RTS Action Replay Playback`.
 
@@ -110,6 +110,11 @@ The browser player has no user controls. Its status bar is visual-only; playback
 
 `rts.actionreplay.positions` stores named positions as a JSON object. Each position supports `scale`, `x`, `y`, `rotateX`, `rotateY`, `rotateZ` and `fov`. `Full Screen` is the built-in fallback position.
 
-## External editor
+## Documentation
 
-`streamerbot/StreamerBot.csproj` follows the current Streamer.bot external-editor setup. Set `StreamerBotPath` to the local Streamer.bot installation before building in VS Code.
+The user-facing documentation lives in `docs/`.
+
+- [Commands](docs/Commands.md) — chat commands, aliases, parameters and command behaviour.
+- [Settings](docs/Settings.md) — the full settings reference, following the order of the Action Replay settings window.
+
+The command reference follows the Streamer.bot action groups. Internal Core actions are kept in an appendix rather than mixed into the normal chat command reference.
