@@ -365,15 +365,15 @@ Sets the temporary title shown when a newly saved replay is automatically played
 
 | Setting | What it does | Default |
 |---|---|---|
-| **Maximum Recent Clips** | Maximum number of entries retained in the Recent Clips and Last Played lists. Older entries remain in the Catalog. | `20` |
+| **Maximum Recent Clips** | Maximum number of entries shown by Recent Clips and retained in Last Played history. Older Catalog replays remain available even when they fall outside these lists. | `20` |
 | **Auto-add Saved Replays (OBS Capture)** | Automatically adds newly saved OBS replays to the Catalog and Recent Clips list. | On |
 | **Auto-play OBS Captures** | Automatically loads and plays a newly saved OBS replay. | Off |
 
 ### Maximum Recent Clips
 
-Controls how many entries are retained in the **Recent Clips** and **Last Played** lists. The range is 1 to 100.
+Controls how many entries are shown by **Recent Clips** and how many entries are retained in **Last Played** history. The range is 1 to 100.
 
-Older entries are removed from those lists but remain in the Catalog.
+This does not remove older replays from the Catalog.
 
 ### Auto-add Saved Replays (OBS Capture)
 
@@ -394,9 +394,9 @@ The Playlist is source-agnostic. Items can originate from OBS captures, Twitch c
 
 | Setting | What it does | Default |
 |---|---|---|
-| **Persist Playlist Across Restarts** | Keeps the current Playlist when Streamer.bot restarts. | Off |
+| **Persist Playlist Across Restarts** | Persists the Playlist queue across Streamer.bot restarts. The active playback and pause state are not persisted. | Off |
 
-When disabled, the queue is cleared when Streamer.bot restarts.
+When enabled, the Playlist queue data is saved persistently and is available again after a restart. The currently playing state and Playlist pause state are runtime state and are not restored. When disabled, the queue is not persisted and is cleared on restart.
 
 ## How the visual system fits together
 
