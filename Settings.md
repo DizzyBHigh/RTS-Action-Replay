@@ -1,70 +1,75 @@
 # Action Replay Settings
 
-This document describes the settings available in the RTS Action Replay Streamer.bot extension.
-
-The documentation follows the same section order as the Action Replay Settings interface. Settings are described according to their current runtime behaviour.
+This is the reference for the settings in RTS Action Replay. It follows the same order as the settings window, so it should be easy to find a setting while you're configuring the extension.
 
 ## General
 
 ### Replay Source
 
-These settings define where Action Replay finds local OBS Replay Buffer files and how those files are made available to the overlay.
+The Replay Source settings tell Action Replay where OBS saves its replays and how the overlay can access those files.
 
-| Setting | Description | Default |
+| Setting | What it does | Default |
 |---|---|---|
-| **Replay Folder** | Local folder containing the OBS Replay Buffer files that Action Replay can catalogue. Downloaded Twitch and Kick clips use their own separate folders and are not stored here. | Empty |
-| **Replay File Types** | File extensions recognised when Action Replay scans the Replay Folder for saved replay files. Enter multiple extensions separated by commas or semicolons. A leading `.` is optional. For example: `.mp4, .mkv`. | `.mp4, .mkv` |
-| **HTTP Mapping** | URL path used by Streamer.bot's HTTP server to make files from the Replay Folder available to the overlay. Enter the mapping without surrounding slashes. For example, `replays` produces the `/replays/` URL path. | `replays` |
-| **HTTP Port** | Port used by Streamer.bot's HTTP server to serve replay media. This must match the port configured for Streamer.bot's HTTP server. | `7474` |
+| **Replay Folder** | The folder where OBS saves Replay Buffer recordings. Twitch and Kick downloads are kept in their own folders instead. | Empty |
+| **Replay File Types** | The file extensions Action Replay will recognise when looking for saved replays. Multiple extensions can be separated with commas or semicolons. | `.mp4, .mkv` |
+| **HTTP Mapping** | The URL path Streamer.bot uses to serve files from the Replay Folder to the overlay. | `replays` |
+| **HTTP Port** | The port Streamer.bot's HTTP server uses to serve replay files. | `7474` |
 
 ### Replay Folder
 
-Set this to the local folder where OBS writes its Replay Buffer recordings.
+Point this at the folder OBS uses for its Replay Buffer recordings.
 
-When Action Replay receives a saved replay file, it checks that the file exists, is stable, has a recognised extension, and is inside the configured Replay Folder before automatically adding it to the catalog.
+When a replay is saved, Action Replay checks the file before adding it to the catalog. The file must exist, have a recognised extension, have stopped changing, and be inside the configured Replay Folder.
 
-Downloaded Twitch and Kick clips are handled separately and are not stored in this folder.
+Twitch and Kick clips that are downloaded locally do not go into this folder. They have separate folder settings in their own sections.
 
 ### Replay File Types
 
-This setting controls which file extensions Action Replay accepts when identifying local OBS replay files.
+This tells Action Replay which file types count as local replay files.
 
-Examples:
+For example:
 
 - `.mp4`
 - `.mkv`
 - `.mp4, .mkv`
 
-The comparison is case-insensitive. If an extension is entered without a leading period, Action Replay adds it automatically.
+You can separate extensions with either commas or semicolons. The leading `.` is optional, so `mp4` and `.mp4` are treated the same way.
 
-This setting does **not** convert files or change the format produced by OBS. It only controls which existing files are recognised as replay files.
+The check is case-insensitive.
+
+This setting doesn't change the format OBS records in. It only controls which files Action Replay will recognise when it checks the Replay Folder.
 
 ### HTTP Mapping
 
-The HTTP Mapping is the URL path that Streamer.bot uses when serving files from the Replay Folder to the overlay.
+The HTTP Mapping is the URL path used to make the replay files available to the overlay.
 
-For example:
+For example, with:
 
-- Mapping: `replays`
-- Resulting URL path: `/replays/`
+`replays`
 
-The mapping must correspond to the HTTP server configuration used by Streamer.bot. It is a URL path, not the Windows filesystem path to the replay folder.
+the replay URL path is:
+
+`/replays/`
+
+Enter the mapping itself, rather than the Windows path to the folder. Don't add the surrounding `/` characters.
+
+This needs to match the corresponding mapping in Streamer.bot's HTTP server configuration.
 
 ### HTTP Port
 
-This is the TCP port used by Streamer.bot's HTTP server for replay media.
+This is the port used by Streamer.bot's HTTP server when the overlay requests a replay.
 
 The default is `7474`.
 
-The port configured here must match the port configured in Streamer.bot's HTTP server. Changing this value in Action Replay does not itself change Streamer.bot's HTTP server configuration.
+The value here must match the HTTP server port configured in Streamer.bot. Changing this setting in Action Replay does not change Streamer.bot's HTTP server configuration for you.
 
-## Configuration Notes
+## How the four settings fit together
 
-The four Replay Source settings work together:
+These settings each have a different job:
 
-1. **Replay Folder** identifies the local files.
-2. **Replay File Types** determines which file extensions are recognised.
-3. **HTTP Mapping** determines the URL path used to serve those files.
-4. **HTTP Port** determines which HTTP server port the overlay connects to.
+1. **Replay Folder** tells Action Replay where to find the files.
+2. **Replay File Types** tells it which files to recognise.
+3. **HTTP Mapping** provides the URL path for those files.
+4. **HTTP Port** tells the overlay which HTTP server port to use.
 
-If the local replay folder is correct but the overlay cannot play a replay, verify the HTTP Mapping and HTTP Port against the Streamer.bot HTTP server configuration.
+If Action Replay is finding and cataloguing your replays but the overlay won't play them, the first things to check are the HTTP Mapping and HTTP Port in both places.
