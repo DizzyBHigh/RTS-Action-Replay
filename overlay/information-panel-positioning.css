@@ -2,9 +2,9 @@
   --panel-scale-x: 1;
   --panel-scale-y: 1;
   --panel-rotate-z: 0deg;
-  position: fixed;
-  left: 50%;
-  top: 50%;
+  position: absolute;
+  left: 0;
+  top: 0;
   transform-origin: center center;
   box-sizing: border-box;
   will-change: transform, left, top;
