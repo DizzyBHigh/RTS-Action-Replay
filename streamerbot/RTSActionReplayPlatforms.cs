@@ -132,7 +132,7 @@ private bool BroadcastReplay(JObject item, bool showClapperboard)
         var entryPoint = sourceType == "youtube" ? "youtube" : sourceType == "kick" ? "kick" : "twitch";
         CPH.SetGlobalVar(EntryPointHandoffKey, entryPoint, false);
         CPH.UnsetGlobalVar(ResolvedProfileHandoffKey, false);
-        CPH.SetGlobalVar("rts.actionreplay.handoff.showClapperboard", showClapperboard, false);
+        CPH.SetGlobalVar("rts.actionreplay.handoff.showClapperboard", showClapperboard && (CPH.GetGlobalVar<bool?>("rts.actionreplay.clapper.showOnNewClip", true) ?? true), false);
         CPH.SetArgument("replaySource", (string)item["sourceType"] ?? "");
         if (!CPH.ExecuteMethod(ResolverAction, "ResolveEntryPointProfile")) return false;
         return CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay");
