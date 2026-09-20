@@ -46,7 +46,7 @@ RTSReplayControls.configure = command => {
   player.classList.toggle('progress-hidden', command.replayShowProgress === false);
   RTSReplayControls.controls.setAttribute('aria-hidden', showControls ? 'false' : 'true');
   player.style.setProperty('--frame-color', command.replayFrameColor || '#0384CB');
-  player.style.setProperty('--control-color', command.replayBrandPrimaryColor || command.replayTitlePrimaryColor || '#0384CB');
+  player.style.setProperty('--control-color', command.replayControlColor || command.replayBrandPrimaryColor || command.replayTitlePrimaryColor || '#0384CB');
   player.style.setProperty('--border-color', command.replayBorderColor || '#FFFFFF');
   RTSReplayControls.frame.className = '';
   RTSReplayControls.frame.classList.add(`border-${String(command.replayBorderStyle || 'Solid').toLowerCase()}`);
