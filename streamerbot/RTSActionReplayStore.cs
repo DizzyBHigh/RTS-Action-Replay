@@ -154,7 +154,7 @@ public class CPHInline
         return true;
     }
 
-    private void SetMessageStyleArguments() { CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? ""); CPH.SetArgument("replayClapperPosition", "Centered"); CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "GetClapperboardPositions"); CPH.SetArgument("replayClapperPositions", CPH.GetGlobalVar<string>("rts.actionreplay.handoff.clapperPositions", false) ?? "{}"); CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveClapperboardBranding"); CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveClapperAnimation"); }
+    private void SetMessageStyleArguments() { CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveMessagePresentation"); }
     private bool IsReplayFile(string path) { var extension = Path.GetExtension(path); if (string.IsNullOrWhiteSpace(extension)) return false; var configured = CPH.GetGlobalVar<string>(FileTypesKey, true) ?? ".mp4, .mkv"; foreach (var raw in configured.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)) { var type = raw.Trim(); if (!type.StartsWith(".")) type = "." + type; if (extension.Equals(type, StringComparison.OrdinalIgnoreCase)) return true; } return false; }
     private bool Stable(string path) { try { var a = new FileInfo(path).Length; System.Threading.Thread.Sleep(250); return new FileInfo(path).Length == a; } catch { return false; } }
     private string Get(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
