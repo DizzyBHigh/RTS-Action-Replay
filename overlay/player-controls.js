@@ -46,7 +46,13 @@ RTSReplayControls.configure = command => {
   player.classList.toggle('progress-hidden', command.replayShowProgress === false);
   RTSReplayControls.controls.setAttribute('aria-hidden', showControls ? 'false' : 'true');
   player.style.setProperty('--frame-color', command.replayFrameColor || '#0384CB');
-  player.style.setProperty('--control-color', command.replayControlColor || command.replayBrandPrimaryColor || command.replayTitlePrimaryColor || '#0384CB');
+  const controlColor = command.replayControlColor || command.replayBrandPrimaryColor || command.replayTitlePrimaryColor || '#0384CB';
+  player.style.setProperty('--control-color', controlColor);
+  RTSReplayControls.controls.style.setProperty('--control-color', controlColor);
+  RTSReplayControls.playPause.style.setProperty('color', controlColor);
+  RTSReplayControls.playPause.style.setProperty('border-color', controlColor);
+  RTSReplayControls.progressBar.style.setProperty('background-color', controlColor);
+  RTSReplayControls.speed.style.setProperty('color', controlColor);
   const computed = getComputedStyle(player);
   const controlComputed = RTSReplayControls.playPause ? getComputedStyle(RTSReplayControls.playPause) : null;
   const progressComputed = RTSReplayControls.progressBar ? getComputedStyle(RTSReplayControls.progressBar) : null;
