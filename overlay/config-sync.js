@@ -21,7 +21,7 @@
       const stored = object(store[id]);
       const targetName = target === 'clapperboard' ? 'clapperboard' : target;
       const positions = positionsFor(config, targetName);
-      const fallback = target === 'panel' ? 'Centered' : 'Full Screen';
+      const fallback = target === 'panel' || target === 'message' ? 'Centered' : 'Full Screen';
       return {
         id,
         name: profile?.name || id,
