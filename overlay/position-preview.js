@@ -80,7 +80,7 @@ RTSPositionPreview.previewClapperPosition = command => {
   card.classList.add('position-preview', 'show');
   card.setAttribute('aria-hidden', 'false');
   const positionName = command.replayClapperPosition || 'Centered';
-  if (!clapperPreviewRunner) clapperPreviewRunner = RTSAnimationEngine.createRunner({ target: card, defaultPosition: { scale: 50, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, fov: 90 } });
+  if (!clapperPreviewRunner) clapperPreviewRunner = RTSAnimationEngine.createRunner({ target: card.querySelector('.clapper'), defaultPosition: { scale: 50, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, fov: 90 } });
   clapperPreviewRunner.configure(command.replayClapperPositions); clapperPreviewRunner.apply(clapperPreviewRunner.resolve(positionName));
 };
 

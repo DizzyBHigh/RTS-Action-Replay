@@ -4,7 +4,7 @@ let clapperRunner = null;
 
 const getClapperRunner = command => {
   if (!clapperRunner) clapperRunner = RTSAnimationEngine.createRunner({
-    target: RTSReplayMessages.clapperCard,
+    target: RTSReplayMessages.clapperCard?.querySelector('.clapper'),
     defaultPosition: { scale: 50, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, fov: 90 }
   });
   clapperRunner.configure(command?.replayClapperPositions);
