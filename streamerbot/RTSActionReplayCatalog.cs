@@ -22,7 +22,12 @@ public class CPHInline
 
     public bool Execute() => string.Equals(Arg("replayAvatarRequestId"), "", StringComparison.Ordinal) ? ListCatalog() : ResolveAvatar();
     public bool ListCatalog() { var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var amount = ParseAmount(ref parts); var search = string.Join(" ", parts).Trim(); return Queue(BuildState(string.IsNullOrWhiteSpace(search) ? "all" : "search", search, "catalog", amount)); }
-    public bool ListRecent() => Queue(BuildState("recent", "", "recent", ParseAmount(Arg("rawInput"))));
+    public bool ListRecent()
+    {
+        var state = BuildState("recent", "", "recent", ParseAmount(Arg("rawInput")));
+        if (CPH.GetGlobalVar<bool?>("rts.actionreplay.message.recent.chat", true) ?? true) SendRecentChat(Query(state));
+        return Queue(state);
+    }
     public bool ListLastPlayed() => Queue(BuildState("lastplayed", "", "history", ParseAmount(Arg("rawInput"))));
     public bool PlayHistory() { var input = Arg("rawInput").Trim(); if (!int.TryParse(input, out var index) || index < 1) { SendCatalogMessage("Please provide a history item number."); return false; } var history = (Load()["playHistory"] as JArray) ?? new JArray(); if (index > history.Count) { SendCatalogMessage($"History item #{index} does not exist."); return false; } var replayId = (string)(history[index - 1] as JObject)?["replayId"]; if (string.IsNullOrWhiteSpace(replayId)) { SendCatalogMessage($"History item #{index} is unavailable."); return false; } CPH.SetArgument("replayId", replayId); return CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay"); }
     public bool ResolveAvatar() { var requestId = Arg("replayAvatarRequestId"); var platform = NormalizePlatform(Arg("replayAvatarPlatform")); var userId = Arg("replayAvatarUserId"); var userName = Arg("replayAvatarUserName"); var avatar = ResolveAvatarUrl(platform, userId, userName); CPH.SetArgument("replayCommand", "avatar-response"); CPH.SetArgument("replayAvatarRequestId", requestId); CPH.SetArgument("replayAvatarUserId", userId); CPH.SetArgument("replayAvatarUrl", avatar ?? ""); CPH.TriggerEvent("RTS-Action Replay", true); return true; }
@@ -40,6 +45,30 @@ public class CPHInline
     public bool UserSearchPrevious() => ShowUserSearchPage(-1);
     public bool ResolveSelection() { var selector = Arg("rawInput").Trim(); if (!int.TryParse(selector, out var index) || index < 1) return false; var state = LoadUserState(); if (string.Equals((string)state["filterType"], "leaderboard", StringComparison.OrdinalIgnoreCase)) return false; return ResolveStateSelection(state, index); }
     public bool ResolveSelectionForUser() { var selector = Arg("rawInput").Trim(); var parts = selector.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var indexText = parts.Length == 1 ? parts[0] : parts.Length == 2 ? parts[1] : ""; if (!int.TryParse(indexText, out var index) || index < 1) return false; var platform = Arg("catalogSelectionPlatform"); var userName = Arg("catalogSelectionUser"); if (!TryParseUserTarget(platform + ":" + userName, out platform, out userName)) return false; var userId = ResolveUserId(platform, userName); if (string.IsNullOrWhiteSpace(userId)) return false; var state = LoadUserSearchState(platform, userId, userName); if (state == null || string.Equals((string)state["filterType"], "leaderboard", StringComparison.OrdinalIgnoreCase)) return false; return ResolveStateSelection(state, index); }
+    private void SendRecentChat(JArray results)
+    {
+        for (var i = 0; i < results.Count; i++)
+        {
+            var replay = results[i] as JObject;
+            if (replay == null) continue;
+            var creator = replay["creator"] as JObject;
+            SendListEntry(i + 1, (string)replay["title"] ?? "Untitled replay", (string)creator?["name"] ?? "", HasRatings(replay) ? Math.Round(Rating(replay), 1) : 0, (string)creator?["platform"] ?? (string)replay["sourceType"] ?? "", (int?)replay["plays"] ?? 0);
+        }
+    }
+
+    private void SendListEntry(int number, string title, string creator, double rating, string platform, int plays)
+    {
+        CPH.SetArgument("listNumber", number);
+        CPH.SetArgument("title", title);
+        CPH.SetArgument("creator", creator);
+        CPH.SetArgument("rating", rating);
+        CPH.SetArgument("platform", platform);
+        CPH.SetArgument("plays", plays);
+        if (!CPH.ExecuteMethod("RTS - Action Replay - Core - Messaging", "FormatListEntry")) return;
+        if (!CPH.TryGetArg("formattedListEntry", out string message) || string.IsNullOrWhiteSpace(message)) return;
+        SendCatalogMessage(message);
+    }
+
     public bool RenderSearchRequest() {
         var json = Arg("replaySearchRequest"); if (string.IsNullOrWhiteSpace(json)) return false;
         JObject request; try { request = JObject.Parse(json); } catch { return false; }
