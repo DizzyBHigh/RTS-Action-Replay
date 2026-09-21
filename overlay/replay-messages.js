@@ -123,7 +123,7 @@ RTSReplayMessages.showClapperboard = command => {
         card.style.visibility = '';
         card.style.zIndex = '';
         card.setAttribute('aria-hidden', 'true');
-        requestAnimationFrame(() => RTSReplayWebSocket.acknowledgeClapperboard(command?.replayId));
+        requestAnimationFrame(() => {\n          if (command?.replayClapperBlocksPlayback === true) RTSReplayWebSocket.acknowledgeClapperboard(command?.replayId);\n        });
       }, true);
     } else {
       getClapperRunner(command).cancel();
@@ -132,7 +132,7 @@ RTSReplayMessages.showClapperboard = command => {
       card.style.visibility = '';
       card.style.zIndex = '';
       card.setAttribute('aria-hidden', 'true');
-      RTSReplayWebSocket.acknowledgeClapperboard(command?.replayId);
+      if (command?.replayClapperBlocksPlayback === true) RTSReplayWebSocket.acknowledgeClapperboard(command?.replayId);
     }
   }, Number.isFinite(Number(command?.replayClapperDuration)) ? Number(command.replayClapperDuration) : RTSReplayMessages.config.messageDuration);
 };
