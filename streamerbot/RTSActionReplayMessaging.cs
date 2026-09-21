@@ -10,8 +10,12 @@ public class CPHInline
 
     public bool Execute() => IsOverlayCompletion() ? OverlayCompleted() : Enqueue();
 
-    private bool IsOverlayCompletion() =>
-        string.Equals(Arg("messageComplete"), "true", StringComparison.OrdinalIgnoreCase);
+    private bool IsOverlayCompletion()
+    {
+        var queueId = Arg("messageQueueId");
+        if (!string.IsNullOrWhiteSpace(queueId)) return true;
+        return string.Equals(Arg("messageComplete"), "true", StringComparison.OrdinalIgnoreCase);
+    }
 
     public bool Enqueue()
     {
