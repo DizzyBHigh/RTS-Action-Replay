@@ -42,7 +42,9 @@ public class CPHInline
         var replayCreated = string.Equals(Arg("replayCreated", ""), "true", StringComparison.OrdinalIgnoreCase);
         var replayUseClapperboard = string.Equals(Arg("replayUseClapperboard", "false"), "true", StringComparison.OrdinalIgnoreCase);
         var replayAutoPlay = string.Equals(Arg("replayAutoPlay", "false"), "true", StringComparison.OrdinalIgnoreCase);
-        if (replayAutoPlay)
+        var manualPlayback = !replayCreated;
+        var shouldQueue = replayAutoPlay || manualPlayback;
+        if (shouldQueue)
         {
             var queueEntry = new JObject {
                 ["entryId"] = Guid.NewGuid().ToString("N"),
@@ -66,7 +68,7 @@ public class CPHInline
         CPH.UnsetGlobalVar(ReplayIdHandoffKey, false);
         if (replayCreated && replayUseClapperboard)
             ShowReplayCreatedClapperboard(replayId, (string)replay["title"] ?? "Replay", creator);
-        if (!IsPaused() && ActiveId() == null && replayAutoPlay)
+        if (!IsPaused() && ActiveId() == null && shouldQueue)
             return PlayNext(queue);
         return true;
     }
