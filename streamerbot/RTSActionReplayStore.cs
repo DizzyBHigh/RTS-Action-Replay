@@ -10,6 +10,7 @@ public class CPHInline
     private const string PendingKey = "rts.actionreplay.pendingSaves";
     private const string FileTypesKey = "rts.actionreplay.replayFileTypes";
     private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
+    private const string PlaylistKey = "rts.actionreplay.playlist";
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
     private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
     private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
