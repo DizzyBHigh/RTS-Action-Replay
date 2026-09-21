@@ -18,7 +18,7 @@ public class CPHInline
     private const string PlaybackProfileHandoffKey = "rts.actionreplay.handoff.playbackProfile";
     private const string PlaybackQueueEntryHandoffKey = "rts.actionreplay.handoff.playbackQueueEntryId";
 
-    public bool Execute() => IsClapperboardCompletion() ? ClapperboardCompleted() : View();
+    public bool Execute() => IsClapperboardCompletion() ? ClapperboardFinished() : View();
 
     private bool IsClapperboardCompletion() =>
         string.Equals(Arg("clapperboardComplete", ""), "true", StringComparison.OrdinalIgnoreCase);
@@ -44,50 +44,58 @@ public class CPHInline
         var playlistNotEmpty = queue.Count > 0;
         var replayCreated = string.Equals(Arg("replayCreated", ""), "true", StringComparison.OrdinalIgnoreCase);
         var replayAutoPlay = string.Equals(Arg("replayAutoPlay", "false"), "true", StringComparison.OrdinalIgnoreCase);
-        if (replayCreated && !replayAutoPlay)
+        var clapperBlocksPlayback = replayCreated &&
+            replayAutoPlay &&
+            !playlistNotEmpty &&
+            !IsPaused() &&
+            ActiveId() == null;
+
+        if (replayAutoPlay)
         {
-            ShowReplayCreatedClapperboard(replayId, (string)replay["title"] ?? "Replay");
-            CPH.UnsetGlobalVar(ReplayIdHandoffKey, false);
-            return true;
+            var queueEntry = new JObject {
+                ["entryId"] = Guid.NewGuid().ToString("N"),
+                ["replayId"] = replayId,
+                ["title"] = (string)replay["title"] ?? "Replay",
+                ["requesterId"] = userId ?? "",
+                ["requesterName"] = requester,
+                ["requesterPlatform"] = requesterPlatform ?? "",
+                ["requesterBroadcastId"] = broadcastId ?? "",
+                ["animationProfileId"] = profile,
+                ["designPresetId"] = designProfile,
+                ["titlePresetId"] = titleProfile,
+                ["brandingPresetId"] = brandingProfile,
+                ["queued"] = DateTime.Now.ToString("o")
+            };
+            queue.Add(queueEntry);
+            SaveQueue(queue);
+            if (playlistNotEmpty) EnqueueReplayQueued(replay, userId, requester, requesterPlatform, broadcastId);
         }
-        var queueEntry = new JObject { ["entryId"] = Guid.NewGuid().ToString("N"), ["replayId"] = replayId, ["title"] = (string)replay["title"] ?? "Replay", ["requesterId"] = userId ?? "", ["requesterName"] = requester, ["requesterPlatform"] = requesterPlatform ?? "", ["requesterBroadcastId"] = broadcastId ?? "", ["animationProfileId"] = profile, ["designPresetId"] = designProfile, ["titlePresetId"] = titleProfile, ["brandingPresetId"] = brandingProfile, ["queued"] = DateTime.Now.ToString("o") };
-        queue.Add(queueEntry);
-        SaveQueue(queue);
+
         CPH.UnsetGlobalVar(ReplayIdHandoffKey, false);
-        if (playlistNotEmpty) EnqueueReplayQueued(replay, userId, requester, requesterPlatform, broadcastId);
-        if (replayCreated) ShowReplayCreatedClapperboard(replayId, (string)replay["title"] ?? "Replay");
-        if (!IsPaused() && ActiveId() == null && !replayCreated) return PlayNext(queue);
+        if (replayCreated)
+            ShowReplayCreatedClapperboard(replayId, (string)replay["title"] ?? "Replay", clapperBlocksPlayback);
+        if (!IsPaused() && ActiveId() == null && !replayCreated && replayAutoPlay)
+            return PlayNext(queue);
         return true;
     }
 
-    public bool ClapperboardCompleted()
+    public bool ClapperboardFinished()
     {
         var replayId = Arg("replayId", "");
         if (string.IsNullOrWhiteSpace(replayId)) return false;
         var queue = LoadQueue();
-        if (queue.Count == 0 || !string.Equals((string)queue[0]?["replayId"], replayId, StringComparison.OrdinalIgnoreCase)) return true;
+        if (queue.Count == 0) return true;
+        var first = queue[0] as JObject;
+        if (first == null || !string.Equals((string)first["replayId"], replayId, StringComparison.OrdinalIgnoreCase)) return true;
         if (IsPaused() || ActiveId() != null) return true;
-        CPH.LogInfo($"RTS Action Replay: clapperboard completed for {replayId}; starting replay.");
+        CPH.LogInfo("RTS Action Replay: clapperboard finished for " + replayId + "; starting replay.");
         return PlayNext(queue);
     }
 
-    private void ShowReplayCreatedClapperboard(string replayId, string title)
+    private void ShowReplayCreatedClapperboard(string replayId, string title, bool blocksPlayback)
     {
         CPH.SetArgument("replayId", replayId ?? "");
-        CPH.SetArgument("replayCommand", "clapperboard");
-        CPH.SetArgument("replayMessage", title ?? "Replay");
-        CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
-        CPH.SetArgument("replayClapperPosition", "Centered");
-        CPH.ExecuteMethod(ResolverAction, "GetClapperboardPositions");
-        CPH.SetArgument("replayClapperPositions", CPH.GetGlobalVar<string>("rts.actionreplay.handoff.clapperPositions", false) ?? "{}");
-        CPH.ExecuteMethod(ResolverAction, "ResolveClapperboardBranding");
-        CPH.SetArgument("replayLogoUrl", Arg("replayBrandLogoUrl", ""));
-        CPH.SetArgument("replayBrandFallbackText", Arg("replayBrandFallbackText", ""));
-        CPH.SetArgument("replayBrandLabel", Arg("replayBrandLabel", ""));
-        CPH.ExecuteMethod(ResolverAction, "ResolveClapperAnimation");
-        CPH.TriggerEvent("RTS-Action Replay", true);
-    }
-
+        CPH.SetArgument("replayClapperBlocksPlayback", blocksPlayback);
     public bool View()
     {
         var queue = LoadQueue();
