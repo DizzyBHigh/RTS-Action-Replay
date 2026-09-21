@@ -59,7 +59,8 @@ RTS - Action Replay - Catalog - Scan Replay Folder : Execute Method(RTS - Action
 Commands: !scan-replay-folder !scanreplayfolder
 
 RTS - Action Replay - Core
-RTS - Action Replay - Core - Messaging : Execute Code (RTS - Action Replay - Core - Messaging) - streamerbot/RTSActionReplayMessaging.cs - Methods: Enqueue, OverlayCompleted
+RTS - Action Replay - Core - Messaging : Execute Code (RTS - Action Replay - Core - Messaging) - streamerbot/RTSActionReplayMessaging.cs 
+Methods: Enqueue, OverlayCompleted
 
 RTS - Action Replay - Core - Catalog : Execute Code (RTS - Action Replay - Core - Catalog) - streamerbot/RTSActionReplayCatalog.cs
 
