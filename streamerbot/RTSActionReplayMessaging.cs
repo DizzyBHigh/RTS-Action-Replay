@@ -211,7 +211,6 @@ public class CPHInline
         if (eventName.Equals("Replay Created", StringComparison.OrdinalIgnoreCase) && string.Equals(CPH.GetGlobalVar<string>(ClapperPlaybackKey, false), Arg("replayId"), StringComparison.OrdinalIgnoreCase))
         {
             startPlaybackAfterClapperboard = true;
-            CPH.UnsetGlobalVar(ClapperPlaybackKey, false);
         }
         var presentation = eventName.Equals("Replay Created", StringComparison.OrdinalIgnoreCase) ? "clapperboard" : "message";
 
