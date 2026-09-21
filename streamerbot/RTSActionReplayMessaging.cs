@@ -168,18 +168,20 @@ public class CPHInline
 
         var values = new Dictionary<string, object>
         {
-            ["replayId"] = Arg("replayId"),
             ["replayNumber"] = Arg("replayNumber"),
             ["replayTitle"] = Arg("replayTitle"),
             ["replayRating"] = Arg("replayRating"),
             ["replayUser"] = Arg("replayUser"),
-            ["replayUserId"] = Arg("replayUserId"),
             ["replayPlatform"] = Arg("replayPlatform"),
             ["replaySourcePlatform"] = Arg("replaySourcePlatform"),
-            ["requesterId"] = Arg("requesterId"),
             ["requesterName"] = Arg("requesterName"),
             ["requesterPlatform"] = requesterPlatform,
-            ["requesterBroadcastId"] = Arg("requesterBroadcastId")
+            ["oldTitle"] = Arg("oldTitle"),
+            ["newTitle"] = Arg("newTitle"),
+            ["oldRating"] = Arg("oldRating"),
+            ["averageRating"] = Arg("averageRating"),
+            ["clearedCount"] = Arg("clearedCount"),
+            ["remainingCount"] = Arg("remainingCount")
         };
 
         var message = string.IsNullOrWhiteSpace(textTemplate) ? "" : CPH.Parse(textTemplate, values);
@@ -220,11 +222,33 @@ public class CPHInline
         {
             case "replay created": return "Replay saved: %replayTitle%.";
             case "replay queued": return "Replay queued: %replayTitle%.";
-            case "replay renamed": return "Replay #%replayNumber% renamed to %replayTitle%.";
+            case "replay renamed": return "Replay #%replayNumber% renamed from %oldTitle% to %newTitle%.";
             case "replay removed": return "Replay removed: %replayTitle%.";
-            case "replay rated": return "Rated %replayTitle% %replayRating%/5.";
+            case "replay rated": return "Rated %replayTitle% %replayRating%/5 (average %averageRating%/5).";
+            case "playlist cleared": return "Playlist cleared: %clearedCount% waiting item(s) removed.";
+            case "playlist completely cleared": return "Playlist completely cleared: %clearedCount% item(s) removed.";
             default: return "";
         }
+    }
+
+    public bool FormatListEntry()
+    {
+        var format = CPH.GetGlobalVar<string>("rts.actionreplay.message.list.format", true);
+        if (string.IsNullOrWhiteSpace(format)) format = "#%listNumber% %title% — %creator% | %rating%/5 | %platform% | %plays% plays";
+        var maxLength = Math.Max(1, CPH.GetGlobalVar<int?>("rts.actionreplay.message.list.maxLength", true) ?? 500);
+        var values = new Dictionary<string, object>
+        {
+            ["listNumber"] = Arg("listNumber"),
+            ["title"] = Arg("title"),
+            ["creator"] = Arg("creator"),
+            ["rating"] = Arg("rating"),
+            ["platform"] = Arg("platform"),
+            ["plays"] = Arg("plays")
+        };
+        var message = CPH.Parse(format, values) ?? "";
+        if (message.Length > maxLength) message = maxLength == 1 ? "…" : message.Substring(0, maxLength - 1) + "…";
+        CPH.SetArgument("formattedListEntry", message);
+        return true;
     }
 
     private string SourcePlatform()
@@ -249,6 +273,8 @@ public class CPHInline
             case "replay renamed": return "renamed";
             case "replay removed": return "removed";
             case "replay rated": return "rated";
+            case "playlist cleared": return "cleared";
+            case "playlist completely cleared": return "clearedall";
             default: return "";
         }
     }
