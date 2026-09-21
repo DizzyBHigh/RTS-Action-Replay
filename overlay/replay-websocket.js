@@ -1,3 +1,6 @@
+const RTSReplayWebSocket = window.RTSReplay;
+let pendingMessageCompletion = null;
+
 RTSReplayWebSocket.acknowledgeMessage = queueId => {
   if (!queueId) return false;
   if (!RTSReplayWebSocket.socket || RTSReplayWebSocket.socket.readyState !== WebSocket.OPEN) {
@@ -13,9 +16,6 @@ RTSReplayWebSocket.acknowledgeMessage = queueId => {
   }));
   return true;
 };
-
-const RTSReplayWebSocket = window.RTSReplay;
-let pendingMessageCompletion = null;
 
 RTSReplayWebSocket.setStatus = (text, state = '') => {
   RTSReplayWebSocket.status.textContent = text;
