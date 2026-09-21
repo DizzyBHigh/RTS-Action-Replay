@@ -43,6 +43,7 @@ public class CPHInline
         var queue = LoadQueue();
         var playlistNotEmpty = queue.Count > 0;
         var replayCreated = string.Equals(Arg("replayCreated", ""), "true", StringComparison.OrdinalIgnoreCase);
+        var replayUseClapperboard = string.Equals(Arg("replayUseClapperboard", "false"), "true", StringComparison.OrdinalIgnoreCase);
         var replayAutoPlay = string.Equals(Arg("replayAutoPlay", "false"), "true", StringComparison.OrdinalIgnoreCase);
         var clapperBlocksPlayback = replayCreated &&
             replayAutoPlay &&
@@ -72,7 +73,7 @@ public class CPHInline
         }
 
         CPH.UnsetGlobalVar(ReplayIdHandoffKey, false);
-        if (replayCreated)
+        if (replayCreated && replayUseClapperboard)
             ShowReplayCreatedClapperboard(replayId, (string)replay["title"] ?? "Replay", clapperBlocksPlayback);
         if (!IsPaused() && ActiveId() == null && !replayCreated && replayAutoPlay)
             return PlayNext(queue);
