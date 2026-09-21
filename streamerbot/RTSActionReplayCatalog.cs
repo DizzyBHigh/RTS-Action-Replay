@@ -87,9 +87,12 @@ public class CPHInline
 
         var ratings = replay["ratings"] as JObject ?? new JObject();
         var requesterPlatform = CurrentPlatform();
-        ratings[IdentityKey(requesterPlatform, userId)] = rating;
+        var identityKey = IdentityKey(requesterPlatform, userId);
+        var oldRating = ratings[identityKey] == null ? 0d : ratings[identityKey].Value<double>();
+        ratings[identityKey] = rating;
         replay["ratings"] = ratings;
         Save(data);
+        var averageRating = Math.Round(ratings.Properties().Select(x => x.Value.Value<double>()).DefaultIfEmpty().Average(), 1);
 
         var creator = replay["creator"] as JObject;
         CPH.SetArgument("messageEvent", "Replay Rated");
@@ -97,6 +100,8 @@ public class CPHInline
         CPH.SetArgument("replayNumber", "");
         CPH.SetArgument("replayTitle", (string)replay["title"] ?? "Replay");
         CPH.SetArgument("replayRating", rating);
+        CPH.SetArgument("oldRating", oldRating);
+        CPH.SetArgument("averageRating", averageRating);
         CPH.SetArgument("replayUserId", (string)creator?["id"] ?? "");
         CPH.SetArgument("replayUser", (string)creator?["name"] ?? "");
         CPH.SetArgument("replayPlatform", (string)creator?["platform"] ?? "");
