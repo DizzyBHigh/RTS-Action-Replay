@@ -9,7 +9,10 @@ public class CPHInline
     private const string OverlayEvent = "RTS-Action Replay";
     private const string ClapperPlaybackKey = "rts.actionreplay.handoff.clapperPlayback";
 
-    public bool Execute() => Enqueue();
+    public bool Execute() => IsOverlayCompletion() ? OverlayCompleted() : Enqueue();
+
+    private bool IsOverlayCompletion() =>
+        string.Equals(Arg("messageComplete", ""), "true", StringComparison.OrdinalIgnoreCase);
 
     public bool Enqueue()
     {
