@@ -117,12 +117,7 @@ public class CPHInline
         try { return string.IsNullOrWhiteSpace(raw) ? Defaults() : JObject.Parse(raw); }
         catch { return Defaults(); }
     }
-    private JObject Defaults() => new JObject
-    {
-        ["version"] = "1.0",
-        ["catalog"] = new JArray(),
-        ["playHistory"] = new JArray()
-    };
+    private JObject Defaults() => new JObject { ["version"] = "1.0", ["catalog"] = new JArray(), ["playHistory"] = new JArray() };
     private void Save(JObject data)
     {
         data["version"] = "1.0";
@@ -134,33 +129,18 @@ public class CPHInline
     {
         var platform = Arg("userType");
         if (string.Equals(platform, "Kick", StringComparison.OrdinalIgnoreCase)) { CPH.SendKickMessage(text); return; }
-        if (string.Equals(platform, "YouTube", StringComparison.OrdinalIgnoreCase))
-        {
-            var broadcastId = Arg("broadcast.id");
-            if (!string.IsNullOrWhiteSpace(broadcastId)) CPH.SendYouTubeMessage(text, true, true, broadcastId);
-            else CPH.SendYouTubeMessageToLatestMonitored(text);
-            return;
-        }
+        if (string.Equals(platform, "YouTube", StringComparison.OrdinalIgnoreCase)) { var id = Arg("broadcast.id"); if (!string.IsNullOrWhiteSpace(id)) CPH.SendYouTubeMessage(text, true, true, id); else CPH.SendYouTubeMessageToLatestMonitored(text); return; }
         if (string.Equals(platform, "Twitch", StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage(text); return; }
         CPH.LogWarn("RTS Action Replay: unable to route purge response because the originating platform is unknown.");
     }
     private void SendRemovedItems(List<string> items)
     {
-        if (items.Count == 0)
-        {
-            SendMessage("Nothing was purged.");
-            return;
-        }
+        if (items.Count == 0) { SendMessage("Nothing was purged."); return; }
         var message = "Purged: ";
         foreach (var item in items)
         {
             var next = message == "Purged: " ? item : message + " | " + item;
-            if (next.Length > 400)
-            {
-                SendMessage(message);
-                message = "Purged: " + item;
-            }
-            else message = next;
+            if (next.Length > 400) { SendMessage(message); message = "Purged: " + item; } else message = next;
         }
         if (message != "Purged: ") SendMessage(message);
     }
