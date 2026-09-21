@@ -300,8 +300,7 @@ public class CPHInline
 
     private void SendPlaylistPanel(string text)
     {
-        var key = "rts.actionreplay.message.playlist"; var playlistText = text; CPH.SetArgument("replayPlaylist", playlistText); var configured = CPH.GetGlobalVar<string>(key + ".text", true); var chatText = string.IsNullOrWhiteSpace(configured) ? playlistText : CPH.Parse(configured, new Dictionary<string, object> { ["replayPlaylist"] = playlistText });
-        if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) SendOriginMessage(chatText);
+        var playlistText = text; CPH.SetArgument("replayPlaylist", playlistText);
         var requestId = Guid.NewGuid().ToString("N");
         var operation = new JObject {
                 ["requestId"] = requestId,
