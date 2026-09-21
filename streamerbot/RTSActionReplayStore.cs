@@ -206,8 +206,9 @@ public class CPHInline
                 var pendingName = (string)pending["name"];
                 var queuedRaw = (string)pending["queued"];
                 DateTime queued;
-                var fresh = DateTime.TryParse(queuedRaw, null, System.Globalization.DateTimeStyles.RoundtripKind, out queued)
-                    && (DateTime.UtcNow - queued.ToUniversalTime()).TotalSeconds <= pendingLifetimeSeconds;
+                var fresh = DateTime.TryParse(queuedRaw, null, System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal, out queued)
+                    && (DateTime.UtcNow - queued).TotalSeconds >= 0
+                    && (DateTime.UtcNow - queued).TotalSeconds <= pendingLifetimeSeconds;
 
                 // Consume only a complete, recent OBS creator handoff. Never let a stale
                 // handoff manufacture a Twitch identity when the watcher has no platform.
@@ -222,7 +223,7 @@ public class CPHInline
                 return;
             }
 
-            CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), false);
+            CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), true);
         }
         catch { }
     }
