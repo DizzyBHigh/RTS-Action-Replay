@@ -96,7 +96,7 @@ public class CPHInline
         var design=(string)entry["designPreset"]??(string)entry["visualPreset"]??"broadcast";
         var title=(string)entry["titlePreset"]??"default";
         var brand=(string)entry["brandingPreset"]??"default";
-        if((bool?)entry["useSourcePlatformBranding"]==true){CPH.TryGetArg("replaySource",out string source);var b=PlatformBranding(source??"");if(b!=null)brand=(string)b["id"]??brand;}
+        if((bool?)entry["useSourcePlatformBranding"]==true){var source=ResolveReplaySourcePlatform();var b=PlatformBranding(source);if(b!=null)brand=(string)b["id"]??brand;}
         CPH.SetArgument("animationProfile",(string)entry["animationProfile"]??"default");
         CPH.SetArgument("visualPreset",design); CPH.SetArgument("designPreset",design); CPH.SetArgument("titlePreset",title); CPH.SetArgument("brandingPreset",brand);
         CPH.SetArgument("useSourcePlatformBranding",(bool?)entry["useSourcePlatformBranding"]??false);
@@ -111,7 +111,7 @@ public class CPHInline
         var design=(string)op["designPresetId"]??(string)entry["designPreset"]??(string)entry["visualPreset"]??"broadcast";
         var title=(string)op["titlePresetId"]??(string)entry["titlePreset"]??"default";
         var brand=(string)op["brandingPresetId"]??(string)entry["brandingPreset"]??"default";
-        if((bool?)entry["useSourcePlatformBranding"]==true){var b=PlatformBranding((string)op["replaySource"]??"");if(b!=null)brand=(string)b["id"]??brand;}
+        if((bool?)entry["useSourcePlatformBranding"]==true){var source=ResolveReplaySourcePlatform((string)op["replayId"]);var b=PlatformBranding(source);if(b!=null)brand=(string)b["id"]??brand;}
         ApplyPresentation(design,title,brand,animation,false); CPH.LogInfo("RTS Action Replay TRACE: Player colours resolved; event arguments set for frame/control/branding."); CPH.TriggerEvent(EventName,true); CPH.UnsetGlobalVar(PlayerOperationKey,false); return true;
     }
 
@@ -122,6 +122,20 @@ public class CPHInline
         var animation=Animation(config,"panel",(string)entry["animationProfile"]);
         ApplyPresentation((string)entry["designPreset"]??(string)entry["visualPreset"]??"broadcast",(string)entry["titlePreset"]??"default",(string)entry["brandingPreset"]??"default",animation,true);
         if((bool?)op["triggerEvent"]!=false) CPH.TriggerEvent(EventName,true); CPH.UnsetGlobalVar(PanelOperationKey,false); return true;
+    }
+
+    string ResolveReplaySourcePlatform(string replayId=null)
+    {
+        if(string.IsNullOrWhiteSpace(replayId)) CPH.TryGetArg("replayId",out replayId);
+        if(string.IsNullOrWhiteSpace(replayId)) return "";
+        var catalog=Read("rts.actionreplay.data")["catalog"] as JArray??new JArray();
+        foreach(var item in catalog)
+        {
+            var replay=item as JObject;
+            if(replay!=null&&string.Equals((string)replay["id"],replayId,StringComparison.OrdinalIgnoreCase))
+                return (string)(replay["creator"] as JObject)?["platform"]??"";
+        }
+        return "";
     }
 
     JObject Entry(JObject config,string id)
