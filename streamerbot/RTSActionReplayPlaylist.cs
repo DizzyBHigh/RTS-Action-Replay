@@ -47,7 +47,6 @@ public class CPHInline
         var replayAutoPlay = string.Equals(Arg("replayAutoPlay", "false"), "true", StringComparison.OrdinalIgnoreCase);
         var clapperBlocksPlayback = replayCreated &&
             replayAutoPlay &&
-            !playlistNotEmpty &&
             !IsPaused() &&
             ActiveId() == null;
 
@@ -90,11 +89,20 @@ public class CPHInline
         if (first == null || !string.Equals((string)first["replayId"], replayId, StringComparison.OrdinalIgnoreCase)) return true;
         if (IsPaused() || ActiveId() != null) return true;
         CPH.LogInfo("RTS Action Replay: clapperboard finished for " + replayId + "; starting replay.");
+        CPH.SetGlobalVar(ClapperShownKey, "", false);
         return PlayNext(queue);
     }
 
     private void ShowReplayCreatedClapperboard(string replayId, string title, bool blocksPlayback)
     {
+        if (string.IsNullOrWhiteSpace(replayId)) return;
+        var shownReplayId = CPH.GetGlobalVar<string>(ClapperShownKey, false);
+        if (string.Equals(shownReplayId, replayId, StringComparison.OrdinalIgnoreCase))
+        {
+            CPH.LogInfo("RTS Action Replay: clapperboard already dispatched for " + replayId + "; ignoring duplicate.");
+            return;
+        }
+        CPH.SetGlobalVar(ClapperShownKey, replayId, false);
         CPH.SetArgument("replayId", replayId ?? "");
         CPH.SetArgument("replayClapperBlocksPlayback", blocksPlayback);
         CPH.SetArgument("replayCommand", "clapperboard");
