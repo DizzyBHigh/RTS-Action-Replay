@@ -190,46 +190,39 @@ public class CPHInline
     private string NormalizePlatform(string userType) { if (string.Equals(userType, "YouTube", StringComparison.OrdinalIgnoreCase)) return "YouTube"; if (string.Equals(userType, "Kick", StringComparison.OrdinalIgnoreCase)) return "Kick"; return "Twitch"; }
     private void ApplyPendingCreator(ref string platform, ref string id, ref string name)
     {
-        const int pendingLifetimeSeconds = 15;
-        var raw = CPH.GetGlobalVar<string>(PendingKey, true);
-        if (string.IsNullOrWhiteSpace(raw)) return;
+        var raw = CPH.GetGlobalVar<string>(PendingKey, false);
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            CPH.LogInfo("RTS Action Replay: no pending replay creator handoff found.");
+            return;
+        }
 
         try
         {
             var pending = JObject.Parse(raw);
-            var pendingPlatform = (string)pending["platform"];
-            var pendingId = (string)pending["id"];
-            var pendingName = (string)pending["name"];
-            var queuedRaw = (string)pending["queued"];
-
-            DateTime queued;
-            var ageSeconds = DateTime.TryParse(
-                queuedRaw,
-                null,
-                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
-                out queued)
-                ? (DateTime.UtcNow - queued).TotalSeconds
-                : double.MaxValue;
+            var pendingPlatform = (string)pending["platform"] ?? "";
+            var pendingId = (string)pending["id"] ?? "";
+            var pendingName = (string)pending["name"] ?? "";
 
             if (string.IsNullOrWhiteSpace(pendingPlatform) ||
-                string.IsNullOrWhiteSpace(pendingId) ||
-                ageSeconds < 0 ||
-                ageSeconds > pendingLifetimeSeconds)
+                string.IsNullOrWhiteSpace(pendingId))
             {
-                CPH.UnsetGlobalVar(PendingKey, true);
+                CPH.LogWarn($"RTS Action Replay: pending replay creator handoff is incomplete; id={pendingId}; name={pendingName}; platform={pendingPlatform}.");
+                CPH.UnsetGlobalVar(PendingKey, false);
                 return;
             }
 
             platform = NormalizePlatform(pendingPlatform);
             id = pendingId;
-            name = pendingName ?? "";
+            name = pendingName;
 
-            CPH.UnsetGlobalVar(PendingKey, true);
+            CPH.UnsetGlobalVar(PendingKey, false);
             CPH.LogInfo($"RTS Action Replay: applied pending replay creator; platform={platform}; id={id}; name={name}.");
         }
-        catch
+        catch (Exception ex)
         {
-            CPH.UnsetGlobalVar(PendingKey, true);
+            CPH.LogWarn("RTS Action Replay: pending replay creator handoff could not be read: " + ex.Message);
+            CPH.UnsetGlobalVar(PendingKey, false);
         }
     }
     private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); } }
