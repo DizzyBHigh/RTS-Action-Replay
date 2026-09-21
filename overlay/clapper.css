@@ -1,4 +1,11 @@
 #clapper-card {
+  --board-color: #101416;
+  --stripe-light: #eeeeee;
+  --stripe-dark: #111111;
+  --accent-color: #0384cb;
+  --message-color: #0384cb;
+  --message-font: Arial, sans-serif;
+  --message-scale: 1;
   position: absolute;
   inset: 0;
   display: grid;
