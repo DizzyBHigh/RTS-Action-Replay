@@ -190,7 +190,7 @@ public class CPHInline
     private void ApplyPendingCreator(ref string platform, ref string id, ref string name)
     {
         const int pendingLifetimeSeconds = 15;
-        var raw = CPH.GetGlobalVar<string>(PendingKey, false);
+        var raw = CPH.GetGlobalVar<string>(PendingKey, true);
         if (string.IsNullOrWhiteSpace(raw)) return;
         try
         {
@@ -217,7 +217,7 @@ public class CPHInline
                 platform = NormalizePlatform(pendingPlatform);
                 id = pendingId;
                 name = pendingName ?? "";
-                CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), false);
+                CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), true);
                 CPH.LogInfo($"RTS Action Replay: applied pending replay creator; platform={platform}; id={id}; name={name}.");
                 return;
             }
