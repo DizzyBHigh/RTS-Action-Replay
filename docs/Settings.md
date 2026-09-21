@@ -383,7 +383,7 @@ A Branding Preset can contain:
 | Setting | Purpose |
 |---|---|
 | **Preset Name** | Name shown in the settings UI and in selection lists. |
-| **Source Platform** | Optional Twitch, Kick or YouTube association. When Use Source Platform Branding is enabled for Play — Replay, this preset is automatically selected for replays from the matching platform. |
+| **Source Platform** | Optional Twitch, Kick or YouTube association. When Change Player Branding to Clip Source is enabled for Play - Replay, this preset is automatically selected for replays from the matching platform. |
 | **Primary Colour** | Primary branding colour used by player, panel and design elements. |
 | **Secondary Colour** | Secondary branding colour used by player, panel and design elements. |
 | **Player Title Colour** | Colour used for the replay title text displayed by the player. |
@@ -402,7 +402,7 @@ Branding is selected by the Behaviour settings. A single preset can therefore be
 
 A Branding Preset can optionally be associated with **Twitch**, **Kick** or **YouTube**.
 
-Player Behaviour also has **Use Source Platform Branding**. When this is enabled, Action Replay checks the replay's source platform and uses the matching Branding Preset when one exists. If there is no matching preset, the configured Play — Replay Branding Preset is used.
+Player Behaviour has **Change Player Branding to Clip Source** under **Play - Replay**. When enabled, Action Replay checks the replay creator platform each time a replay loads and uses the matching Branding Preset. The player frame, design colours, playback buttons and progress bar follow that branding. When disabled, the **Play - Replay** Branding Preset is used.
 
 This lets the same playback entry point automatically use different branding for different clip sources.
 
@@ -701,17 +701,17 @@ Player Behaviour controls the presentation used when the player is created or a 
 
 The current entry points are:
 
-- **Create — OBS**
-- **Create — Twitch**
-- **Create — YouTube**
-- **Create — Kick**
-- **Play — Replay**
+- **Create - OBS**
+- **Create - Twitch**
+- **Create - YouTube**
+- **Create - Kick**
+- **Play - Replay**
 
 Each entry point can select its own Branding, Design, Title and Animation settings.
 
-For Player Behaviour, the selected **Branding Preset** is the fallback branding for that entry point. When **Use Source Platform Branding** is enabled, a matching Branding Preset assigned to the replay's source platform overrides that entry-point Branding Preset. If no matching platform preset exists, the entry-point Branding Preset is used.
+For Player Behaviour, the selected **Branding Preset** is the fallback branding for that entry point. **Change Player Branding to Clip Source** exists only under **Play - Replay**. When enabled, a matching Branding Preset assigned to the replay creator platform overrides the Play - Replay Branding Preset. The active branding is applied to the complete player presentation, including frame, design colours, playback buttons and progress bar. When disabled, the Play - Replay Branding Preset is always used.
 
-The **Play — Replay** entry point controls the reusable presentation used for normal replay playback.
+The **Play - Replay** entry point controls the reusable presentation used for normal replay playback.
 
 ### Panel Behaviour
 
