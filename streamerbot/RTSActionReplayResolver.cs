@@ -129,7 +129,7 @@ public class CPHInline
         var op=Read(PanelOperationKey); if(op==null)return false;
         ApplyObject(op); var config=Read(PanelKey); var type=(string)op["panelType"]??"recent"; var entry=Entry(config,type);
         var animation=Animation(config,"panel",(string)entry["animationProfile"]); var brand=(string)entry["brandingPreset"]??"default"; var useSource=(bool?)entry["useSourcePlatformBranding"]==true;
-        if(useSource){var source=(string)op["requesterPlatform"]??"";var b=PlatformBranding(source);if(b!=null)brand=(string)b["id"]??brand;}
+        if(useSource){var source=(string)op["requesterPlatform"]??(string)op["platform"]??"";if(string.IsNullOrWhiteSpace(source))CPH.TryGetArg("userType",out source);var b=PlatformBranding(source);if(b!=null)brand=(string)b["id"]??brand;}
         ApplyPresentation((string)entry["designPreset"]??(string)entry["visualPreset"]??"broadcast",(string)entry["titlePreset"]??"default",brand,animation,true,useSource);
         if((bool?)op["triggerEvent"]!=false) CPH.TriggerEvent(EventName,true); CPH.UnsetGlobalVar(PanelOperationKey,false); return true;
     }
