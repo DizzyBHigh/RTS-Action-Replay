@@ -37,11 +37,11 @@ public class CPHInline
         var handoff = new JObject {
             ["id"] = userId ?? "",
             ["name"] = userName ?? "",
-            ["platform"] = userType ?? "",
-            ["queued"] = DateTime.UtcNow.ToString("o")
+            ["platform"] = userType ?? ""
         };
 
-        CPH.SetGlobalVar(PendingKey, handoff.ToString(Newtonsoft.Json.Formatting.None), true);
+        CPH.SetGlobalVar(PendingKey, handoff.ToString(Newtonsoft.Json.Formatting.None), false);
+        CPH.LogInfo($"RTS Action Replay: stored replay creator handoff; id={userId}; name={userName}; platform={userType}.");
         CPH.ObsReplayBufferSave();
         CPH.LogInfo($"RTS Action Replay: requested OBS Replay Buffer save; creator={userName}; platform={userType}.");
         return true;
