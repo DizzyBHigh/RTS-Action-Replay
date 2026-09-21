@@ -115,7 +115,10 @@ public class CPHInline
         CPH.SetArgument("rawInput", (index + 1).ToString()); CPH.SetArgument("replayQueueEntryId", (string)item["entryId"]); CPH.SetArgument("replayAnimationProfileId", profile); CPH.SetArgument("animationProfile", profile); CPH.SetArgument("designPreset", designProfile); CPH.SetArgument("titlePreset", titleProfile); CPH.SetArgument("brandingPreset", brandingProfile); CPH.SetArgument("requesterPlatform", (string)item["requesterPlatform"] ?? ""); CPH.SetArgument("requesterBroadcastId", (string)item["requesterBroadcastId"] ?? ""); CPH.SetArgument("replaySource", (string)FindReplay(catalog, (string)item["replayId"])?["sourceType"] ?? "OBS");
         if ((bool?)item["showClapperboard"] == true)
         {
+            var replay = FindReplay(catalog, (string)item["replayId"]) as JObject;
+            var creator = replay?["creator"] as JObject;
             CPH.SetArgument("replayTitle", (string)item["title"] ?? "Replay");
+            CPH.SetArgument("replayDirector", (string)creator?["name"] ?? "");
             CPH.ExecuteMethod("RTS - Action Replay - Core - Store", "ShowClapperboard");
         }
         var started = CPH.ExecuteMethod(PlaybackCode, "PlayReplay");
