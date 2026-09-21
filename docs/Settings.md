@@ -709,7 +709,9 @@ The current entry points are:
 
 Each entry point can select its own Branding, Design, Title and Animation settings.
 
-The **Play — Replay** entry point can also use source-platform branding as described under Branding Presets.
+For Player Behaviour, the selected **Branding Preset** is the fallback branding for that entry point. When **Use Source Platform Branding** is enabled, a matching Branding Preset assigned to the replay's source platform overrides that entry-point Branding Preset. If no matching platform preset exists, the entry-point Branding Preset is used.
+
+The **Play — Replay** entry point controls the reusable presentation used for normal replay playback.
 
 ### Panel Behaviour
 
