@@ -4,16 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using Newtonsoft.Json.Linq;
-
 public class CPHInline
 {
     private const string DataKey = "rts.actionreplay.data";
     private const string ReplayFolderKey = "rts.actionreplay.replayFolder";
     private const string TwitchFolderKey = "rts.actionreplay.twitch.folder";
     private const string KickFolderKey = "rts.actionreplay.kick.folder";
-
     public bool Execute() => Purge();
-
     public bool Purge()
     {
         var data = Load();
@@ -34,7 +31,6 @@ public class CPHInline
         SendMessage($"Catalog purge complete: {removed} unavailable replay(s) removed, {kept.Count} kept.");
         return true;
     }
-
     private bool HasLocalFile(JObject item)
     {
         var path = (string)item["filePath"];
@@ -45,20 +41,17 @@ public class CPHInline
         if (string.IsNullOrWhiteSpace(folder)) return false;
         return File.Exists(Path.IsPathRooted(file) ? file : Path.Combine(folder, file));
     }
-
     private string GetFolder(string source)
     {
         if (string.Equals(source, "Twitch", StringComparison.OrdinalIgnoreCase)) return CPH.GetGlobalVar<string>(TwitchFolderKey, true) ?? "";
         if (string.Equals(source, "Kick", StringComparison.OrdinalIgnoreCase)) return CPH.GetGlobalVar<string>(KickFolderKey, true) ?? "";
         return CPH.GetGlobalVar<string>(ReplayFolderKey, true) ?? "";
     }
-
     private bool HasUrl(JObject item)
     {
         foreach (var url in UrlCandidates(item)) if (UrlExists(url)) return true;
         return false;
     }
-
     private IEnumerable<string> UrlCandidates(JObject item)
     {
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -67,7 +60,6 @@ public class CPHInline
             var url = (string)item[field];
             if (!string.IsNullOrWhiteSpace(url) && seen.Add(url)) yield return url;
         }
-
         var source = (string)item["sourceType"];
         var id = (string)item["sourceId"];
         if (string.Equals(source, "YouTube", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(id))
@@ -81,12 +73,10 @@ public class CPHInline
             if (seen.Add(url)) yield return url;
         }
     }
-
     private bool UrlExists(string url)
     {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
             (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)) return false;
-
         try
         {
             var request = (HttpWebRequest)WebRequest.Create(uri);
@@ -102,7 +92,6 @@ public class CPHInline
             if (response == null || ((int)response.StatusCode != 405 && (int)response.StatusCode != 501)) return false;
         }
         catch { return false; }
-
         try
         {
             var request = (HttpWebRequest)WebRequest.Create(uri);
@@ -115,23 +104,19 @@ public class CPHInline
         }
         catch { return false; }
     }
-
     private bool Success(HttpStatusCode status) { var code = (int)status; return code >= 200 && code < 300; }
-
     private JObject Load()
     {
         var raw = CPH.GetGlobalVar<string>(DataKey, true);
         try { return string.IsNullOrWhiteSpace(raw) ? Defaults() : JObject.Parse(raw); }
         catch { return Defaults(); }
     }
-
     private JObject Defaults() => new JObject
     {
         ["version"] = "1.0",
         ["catalog"] = new JArray(),
         ["playHistory"] = new JArray()
     };
-
     private void Save(JObject data)
     {
         data["version"] = "1.0";
@@ -139,7 +124,6 @@ public class CPHInline
         data["playHistory"] = data["playHistory"] as JArray ?? new JArray();
         CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
     }
-
     private void SendMessage(string text)
     {
         var platform = Arg("userType");
@@ -154,6 +138,5 @@ public class CPHInline
         if (string.Equals(platform, "Twitch", StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage(text); return; }
         CPH.LogWarn("RTS Action Replay: unable to route purge response because the originating platform is unknown.");
     }
-
     private string Arg(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
 }
