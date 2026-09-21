@@ -26,7 +26,7 @@ public class CPHInline
     {
         var state = BuildState("recent", "", "recent", ParseAmount(Arg("rawInput")));
         if (CPH.GetGlobalVar<bool?>("rts.actionreplay.message.recent.chat", true) ?? true)
-            SendRecentChat(Query(state).Take(Math.Max(1, (int?)state["amount"] ?? MaxAmount())));
+            SendRecentChat(new JArray(Query(state).Take(Math.Max(1, (int?)state["amount"] ?? MaxAmount()))));
         return Queue(state);
     }
     public bool ListLastPlayed() => Queue(BuildState("lastplayed", "", "history", ParseAmount(Arg("rawInput"))));
