@@ -4,14 +4,17 @@ RTSPlaylistList.panel = document.getElementById('playlist-list');
 RTSPlaylistList.timer = null;
 RTSPlaylistList.scrollTimer = null;
 RTSPlaylistList.scrollInterval = null;
+RTSPlaylistList.endTimer = null;
 
 RTSPlaylistList.clearTimers = () => {
   clearTimeout(RTSPlaylistList.timer);
   clearTimeout(RTSPlaylistList.scrollTimer);
   clearInterval(RTSPlaylistList.scrollInterval);
+  clearTimeout(RTSPlaylistList.endTimer);
   RTSPlaylistList.timer = null;
   RTSPlaylistList.scrollTimer = null;
   RTSPlaylistList.scrollInterval = null;
+  RTSPlaylistList.endTimer = null;
 };
 
 RTSPlaylistList.show = command => {
@@ -49,7 +52,19 @@ RTSPlaylistList.show = command => {
   RTSInformationPanels.show(panel, animationCommand, panelPosition);
 
   const scrollable = list.scrollHeight > list.clientHeight;
-  const hide = () => RTSInformationPanels.hide(panel, animationCommand);
+  const requestId = String(command?.replayPanelRequestId || command?.replaySearchRequestId || '');
+  const notifyEnded = () => {
+    if (!RTSReplay.socket || RTSReplay.socket.readyState !== WebSocket.OPEN) return;
+    RTSReplay.socket.send(JSON.stringify({
+      request: 'DoAction', id: `rts-panel-ended-${Date.now()}`,
+      action: { name: RTSReplay.config.searchEndedAction },
+      args: { replayPanelRequestId: requestId }
+    }));
+  };
+  const hide = () => {
+    RTSInformationPanels.hide(panel, animationCommand);
+    RTSPlaylistList.endTimer = setTimeout(notifyEnded, 700);
+  };
   if (!scrollable) { RTSPlaylistList.timer = setTimeout(hide, 10000); return; }
   RTSPlaylistList.scrollTimer = setTimeout(() => {
     RTSPlaylistList.scrollInterval = setInterval(() => {
