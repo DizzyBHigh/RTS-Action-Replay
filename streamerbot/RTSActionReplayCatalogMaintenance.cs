@@ -17,18 +17,24 @@ public class CPHInline
         var catalog = data["catalog"] as JArray ?? new JArray();
         var kept = new JArray();
         var removed = 0;
+        var removedItems = new List<string>();
         foreach (var item in catalog.OfType<JObject>())
         {
             if (HasLocalFile(item) || HasUrl(item)) kept.Add(item);
             else
             {
                 removed++;
-                CPH.LogInfo($"RTS Action Replay: purge removing unavailable replay; id={(string)item["id"] ?? "<missing>"}; title={(string)item["title"] ?? "<untitled>"}.");
+                var id = (string)item["id"] ?? "<missing>";
+                var title = (string)item["title"] ?? "<untitled>";
+                var source = (string)item["sourceType"] ?? "Unknown";
+                removedItems.Add(source + ": " + title + " [" + id + "]");
+                CPH.LogInfo($"RTS Action Replay: purge removing unavailable replay; id={id}; title={title}.");
             }
         }
         data["catalog"] = kept;
         Save(data);
         SendMessage($"Catalog purge complete: {removed} unavailable replay(s) removed, {kept.Count} kept.");
+        SendRemovedItems(removedItems);
         return true;
     }
     private bool HasLocalFile(JObject item)
@@ -137,6 +143,26 @@ public class CPHInline
         }
         if (string.Equals(platform, "Twitch", StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage(text); return; }
         CPH.LogWarn("RTS Action Replay: unable to route purge response because the originating platform is unknown.");
+    }
+    private void SendRemovedItems(List<string> items)
+    {
+        if (items.Count == 0)
+        {
+            SendMessage("Nothing was purged.");
+            return;
+        }
+        var message = "Purged: ";
+        foreach (var item in items)
+        {
+            var next = message == "Purged: " ? item : message + " | " + item;
+            if (next.Length > 400)
+            {
+                SendMessage(message);
+                message = "Purged: " + item;
+            }
+            else message = next;
+        }
+        if (message != "Purged: ") SendMessage(message);
     }
     private string Arg(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
 }
