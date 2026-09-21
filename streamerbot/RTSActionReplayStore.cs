@@ -185,6 +185,9 @@ public class CPHInline
         CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "GetClapperboardPositions");
         CPH.SetArgument("replayClapperPositions", CPH.GetGlobalVar<string>("rts.actionreplay.handoff.clapperPositions", false) ?? "{}");
         CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveClapperboardBranding");
+        CPH.SetArgument("replayLogoUrl", Get("replayBrandLogoUrl"));
+        CPH.SetArgument("replayBrandFallbackText", Get("replayBrandFallbackText"));
+        CPH.SetArgument("replayBrandLabel", Get("replayBrandLabel"));
         CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveClapperAnimation");
         CPH.TriggerEvent("RTS-Action Replay", true);
         return true;
