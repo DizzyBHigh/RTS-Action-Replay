@@ -17,6 +17,18 @@ RTSReplayWebSocket.acknowledgeMessage = queueId => {
   return true;
 };
 
+RTSReplayWebSocket.acknowledgeClapperboard = replayId => {
+  if (!replayId) return false;
+  if (!RTSReplayWebSocket.socket || RTSReplayWebSocket.socket.readyState !== WebSocket.OPEN) return false;
+  RTSReplayWebSocket.socket.send(JSON.stringify({
+    request: "DoAction",
+    id: "rts-clapper-complete-" + replayId,
+    action: { name: "RTS - Action Replay - Core - Playlist" },
+    args: { replayId, clapperboardComplete: "true" }
+  }));
+  return true;
+};
+
 RTSReplayWebSocket.setStatus = (text, state = '') => {
   RTSReplayWebSocket.status.textContent = text;
   RTSReplayWebSocket.status.className = state;
