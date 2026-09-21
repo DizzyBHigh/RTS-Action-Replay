@@ -46,7 +46,7 @@ public class CPHInline
         var useSource = CPH.GetGlobalVar<bool?>("rts.actionreplay.clapper.useSourcePlatformBranding", true) ?? false;
         if (useSource)
         {
-            CPH.TryGetArg("replaySource", out string source);
+            CPH.TryGetArg("replayCreatorPlatform", out string source);
             var sourceBrand = PlatformBranding(source ?? "");
             if (sourceBrand != null) brand = (string)sourceBrand["id"] ?? brand;
         }
