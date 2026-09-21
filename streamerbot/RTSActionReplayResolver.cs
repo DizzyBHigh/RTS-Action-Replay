@@ -58,6 +58,13 @@ public class CPHInline
         CPH.SetArgument("replayMessageStripeLight", (string)branding["primaryColor"] ?? "#0384CBFF");
         CPH.SetArgument("replayMessageStripeDark", (string)branding["secondaryColor"] ?? "#101416FF");
         CPH.SetArgument("replayMessageAccent", (string)branding["shadowColor"] ?? "#000000FF");
+        CPH.SetArgument("replayBrandPrimaryColor", (string)branding["primaryColor"] ?? "#0384CBFF");
+        CPH.SetArgument("replayBrandSecondaryColor", (string)branding["secondaryColor"] ?? "#101416FF");
+        CPH.SetArgument("replayBrandFallbackTextColor", (string)branding["primaryColor"] ?? "#0384CBFF");
+        CPH.SetArgument("replayBrandLabelColor", (string)branding["textColor"] ?? "#FFFFFFFF");
+        CPH.SetArgument("replayBrandLogoUrl", (string)branding["logo"] ?? "");
+        CPH.SetArgument("replayBrandFallbackText", (string)branding["fallbackText"] ?? "RTS");
+        CPH.SetArgument("replayBrandLabel", (string)branding["brandLabel"] ?? "ACTION REPLAY");
         CPH.SetArgument("replayMessageFont", (string)branding["font"] ?? "Inter");
         CPH.SetArgument("replayBrandingPresetId", (string)branding["id"] ?? "default");
         CPH.SetArgument("replayClapperDuration", CPH.GetGlobalVar<int?>("rts.actionreplay.clapper.duration", true) ?? 5000);
