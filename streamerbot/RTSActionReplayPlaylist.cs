@@ -43,6 +43,13 @@ public class CPHInline
         var queue = LoadQueue();
         var playlistNotEmpty = queue.Count > 0;
         var replayCreated = string.Equals(Arg("replayCreated", ""), "true", StringComparison.OrdinalIgnoreCase);
+        var replayAutoPlay = string.Equals(Arg("replayAutoPlay", "false"), "true", StringComparison.OrdinalIgnoreCase);
+        if (replayCreated && !replayAutoPlay)
+        {
+            ShowReplayCreatedClapperboard(replayId, (string)replay["title"] ?? "Replay");
+            CPH.UnsetGlobalVar(ReplayIdHandoffKey, false);
+            return true;
+        }
         var queueEntry = new JObject { ["entryId"] = Guid.NewGuid().ToString("N"), ["replayId"] = replayId, ["title"] = (string)replay["title"] ?? "Replay", ["requesterId"] = userId ?? "", ["requesterName"] = requester, ["requesterPlatform"] = requesterPlatform ?? "", ["requesterBroadcastId"] = broadcastId ?? "", ["animationProfileId"] = profile, ["designPresetId"] = designProfile, ["titlePresetId"] = titleProfile, ["brandingPresetId"] = brandingProfile, ["queued"] = DateTime.Now.ToString("o") };
         queue.Add(queueEntry);
         SaveQueue(queue);
