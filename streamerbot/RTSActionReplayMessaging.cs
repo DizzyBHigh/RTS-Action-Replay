@@ -188,7 +188,7 @@ public class CPHInline
         if (string.IsNullOrWhiteSpace(textTemplate)) textTemplate = DefaultMessage(eventName);
         var chat = CPH.GetGlobalVar<bool?>(configKey + ".chat", true) ?? true;
         var defaultOverlay = eventName.Equals("Replay Created", StringComparison.OrdinalIgnoreCase);
-        var overlay = CPH.GetGlobalVar<bool?>(configKey + ".overlay", true) ?? defaultOverlay;
+        var configuredOverlay = CPH.GetGlobalVar<bool?>(configKey + ".overlay", true);\n        var overlay = eventName.Equals("Replay Created", StringComparison.OrdinalIgnoreCase)\n            ? ((CPH.GetGlobalVar<bool?>("rts.actionreplay.clapper.showOnNewClip", true) ?? true) && (configuredOverlay ?? defaultOverlay))\n            : (configuredOverlay ?? defaultOverlay);
 
         var values = new Dictionary<string, object>
         {
