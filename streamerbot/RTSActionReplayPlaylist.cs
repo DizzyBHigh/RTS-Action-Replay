@@ -129,7 +129,7 @@ public class CPHInline
         var creator = replay?["creator"] as JObject;
         CPH.SetArgument("messageEvent", "Replay Queued");
         CPH.SetArgument("replayId", (string)replay?["id"] ?? "");
-        CPH.SetArgument("replayNumber", FindReplay(Catalog(Load()), (string)replay?["id"] ?? "") != null ? Array.IndexOf(Catalog(Load()).ToObject<JObject[]>(), FindReplay(Catalog(Load()), (string)replay?["id"] ?? "")) + 1 : 0);
+        CPH.SetArgument("replayNumber", ReplayNumber((string)replay?["id"] ?? ""));
         CPH.SetArgument("replayTitle", (string)replay?["title"] ?? "Replay");
         CPH.SetArgument("replayUserId", (string)creator?["id"] ?? "");
         CPH.SetArgument("replayUser", (string)creator?["name"] ?? "");
@@ -164,19 +164,26 @@ public class CPHInline
     {
         var key = "rts.actionreplay.message.playlist"; var playlistText = text; CPH.SetArgument("replayPlaylist", playlistText); var configured = CPH.GetGlobalVar<string>(key + ".text", true); var chatText = string.IsNullOrWhiteSpace(configured) ? playlistText : CPH.Parse(configured, new Dictionary<string, object> { ["replayPlaylist"] = playlistText });
         if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) SendOriginMessage(chatText);
-        {
-            var operation = new JObject {
+        var operation = new JObject {
                 ["replayCommand"] = "playlist-panel",
                 ["replayPlaylist"] = playlistText,
                 ["panelType"] = "playlist",
                 ["replayPanelWidth"] = CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500,
                 ["replayPanelHeight"] = CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700
             };
-            CPH.SetGlobalVar(PanelOperationKey, operation.ToString(Newtonsoft.Json.Formatting.None), false);
-            CPH.ExecuteMethod(ResolverAction, "ResolvePanel");
-        }
+        CPH.SetGlobalVar(PanelOperationKey, operation.ToString(Newtonsoft.Json.Formatting.None), false);
+        CPH.ExecuteMethod(ResolverAction, "ResolvePanel");
     }
 
+    private int ReplayNumber(string replayId)
+    {
+        var catalog = Catalog(Load());
+        for (var i = 0; i < catalog.Count; i++)
+        {
+            if (string.Equals((string)catalog[i]?["id"], replayId, StringComparison.OrdinalIgnoreCase)) return i + 1;
+        }
+        return 0;
+    }
 
     private void SendOriginMessage(string message)
     {
