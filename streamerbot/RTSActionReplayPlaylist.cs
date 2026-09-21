@@ -18,7 +18,10 @@ public class CPHInline
     private const string PlaybackProfileHandoffKey = "rts.actionreplay.handoff.playbackProfile";
     private const string PlaybackQueueEntryHandoffKey = "rts.actionreplay.handoff.playbackQueueEntryId";
 
-    public bool Execute() => View();
+    public bool Execute() => IsClapperboardCompletion() ? ClapperboardCompleted() : View();
+
+    private bool IsClapperboardCompletion() =>
+        string.Equals(Arg("clapperboardComplete", ""), "true", StringComparison.OrdinalIgnoreCase);
 
     public bool EnqueueCurrentReplay()
     {
@@ -39,25 +42,43 @@ public class CPHInline
         var brandingProfile = Arg("brandingPreset", "default");
         var queue = LoadQueue();
         var playlistNotEmpty = queue.Count > 0;
-        var waitingForClapperboard = string.Equals(CPH.GetGlobalVar<string>("rts.actionreplay.handoff.clapperPlayback", false), replayId, StringComparison.OrdinalIgnoreCase);
-        var queueEntry = new JObject { ["entryId"] = Guid.NewGuid().ToString("N"), ["replayId"] = replayId, ["title"] = (string)replay["title"] ?? "Replay", ["requesterId"] = userId ?? "", ["requesterName"] = requester, ["requesterPlatform"] = requesterPlatform ?? "", ["requesterBroadcastId"] = broadcastId ?? "", ["animationProfileId"] = profile, ["designPresetId"] = designProfile, ["titlePresetId"] = titleProfile, ["brandingPresetId"] = brandingProfile, ["showClapperboard"] = CPH.GetGlobalVar<bool?>("rts.actionreplay.handoff.showClapperboard", false) ?? false, ["queued"] = DateTime.Now.ToString("o") };
+        var replayCreated = string.Equals(Arg("replayCreated", ""), "true", StringComparison.OrdinalIgnoreCase);
+        var queueEntry = new JObject { ["entryId"] = Guid.NewGuid().ToString("N"), ["replayId"] = replayId, ["title"] = (string)replay["title"] ?? "Replay", ["requesterId"] = userId ?? "", ["requesterName"] = requester, ["requesterPlatform"] = requesterPlatform ?? "", ["requesterBroadcastId"] = broadcastId ?? "", ["animationProfileId"] = profile, ["designPresetId"] = designProfile, ["titlePresetId"] = titleProfile, ["brandingPresetId"] = brandingProfile, ["queued"] = DateTime.Now.ToString("o") };
         queue.Add(queueEntry);
         SaveQueue(queue);
-        if (playlistNotEmpty) EnqueueReplayQueued(replay, userId, requester, requesterPlatform, broadcastId); CPH.UnsetGlobalVar(ReplayIdHandoffKey, false); CPH.UnsetGlobalVar("rts.actionreplay.handoff.showClapperboard", false);
-        if (playlistNotEmpty) { CPH.UnsetGlobalVar("rts.actionreplay.handoff.clapperPlayback", false); waitingForClapperboard = false; }
-        if (!IsPaused() && ActiveId() == null && !waitingForClapperboard) return PlayNext(queue);
+        CPH.UnsetGlobalVar(ReplayIdHandoffKey, false);
+        if (playlistNotEmpty) EnqueueReplayQueued(replay, userId, requester, requesterPlatform, broadcastId);
+        if (replayCreated) ShowReplayCreatedClapperboard(replayId, (string)replay["title"] ?? "Replay");
+        if (!IsPaused() && ActiveId() == null && !replayCreated) return PlayNext(queue);
         return true;
     }
 
-    public bool StartAfterClapperboard()
+    public bool ClapperboardCompleted()
     {
         var replayId = Arg("replayId", "");
         if (string.IsNullOrWhiteSpace(replayId)) return false;
         var queue = LoadQueue();
-        if (queue.Count == 0 || !string.Equals((string)queue[0]?["replayId"], replayId, StringComparison.OrdinalIgnoreCase)) return false;
-        CPH.UnsetGlobalVar("rts.actionreplay.handoff.clapperPlayback", false);
+        if (queue.Count == 0 || !string.Equals((string)queue[0]?["replayId"], replayId, StringComparison.OrdinalIgnoreCase)) return true;
         if (IsPaused() || ActiveId() != null) return true;
+        CPH.LogInfo($"RTS Action Replay: clapperboard completed for {replayId}; starting replay.");
         return PlayNext(queue);
+    }
+
+    private void ShowReplayCreatedClapperboard(string replayId, string title)
+    {
+        CPH.SetArgument("replayId", replayId ?? "");
+        CPH.SetArgument("replayCommand", "clapperboard");
+        CPH.SetArgument("replayMessage", title ?? "Replay");
+        CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
+        CPH.SetArgument("replayClapperPosition", "Centered");
+        CPH.ExecuteMethod(ResolverAction, "GetClapperboardPositions");
+        CPH.SetArgument("replayClapperPositions", CPH.GetGlobalVar<string>("rts.actionreplay.handoff.clapperPositions", false) ?? "{}");
+        CPH.ExecuteMethod(ResolverAction, "ResolveClapperboardBranding");
+        CPH.SetArgument("replayLogoUrl", Arg("replayBrandLogoUrl", ""));
+        CPH.SetArgument("replayBrandFallbackText", Arg("replayBrandFallbackText", ""));
+        CPH.SetArgument("replayBrandLabel", Arg("replayBrandLabel", ""));
+        CPH.ExecuteMethod(ResolverAction, "ResolveClapperAnimation");
+        CPH.TriggerEvent("RTS-Action Replay", true);
     }
 
     public bool View()
