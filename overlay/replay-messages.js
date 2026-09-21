@@ -93,7 +93,7 @@ RTSReplayMessages.showClapperboard = command => {
     RTSReplayMessages.brandFallback.style.display = 'block';
   }
 
-  clearTimeout(RTSReplayMessages.messageTimer);
+  clearTimeout(RTSReplayMessages.clapperboardTimer);
   const profile = RTSAnimationEngine.readProfile(command.replayClapperAnimation);
   const start = profile?.start;
   card.classList.remove('show');
@@ -114,7 +114,7 @@ RTSReplayMessages.showClapperboard = command => {
     if (stick) { stick.classList.remove('clap'); void stick.offsetWidth; stick.classList.add('clap'); }
   }
 
-  RTSReplayMessages.messageTimer = setTimeout(() => {
+  RTSReplayMessages.clapperboardTimer = setTimeout(() => {
     const end = RTSAnimationEngine.readProfile(command.replayClapperAnimation)?.end;
     if (Array.isArray(end) && end.length) {
       runClapper(command, end, () => {
