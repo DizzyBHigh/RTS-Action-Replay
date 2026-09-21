@@ -154,14 +154,16 @@ public class CPHInline
             string.Equals((string)x["sourceType"] ?? "OBS", "OBS", StringComparison.OrdinalIgnoreCase));
     }
 
-    public bool NameReplay() { string indexInput; string rawInput; if (!CPH.TryGetArg("input0", out indexInput) || !CPH.TryGetArg("rawInput", out rawInput)) return false; if (!int.TryParse(indexInput, out var index)) { CPH.SendMessage("Please provide a valid replay number."); return false; } var title = (rawInput ?? "").Trim(); if (title.StartsWith(indexInput + " ", StringComparison.OrdinalIgnoreCase)) title = title.Substring(indexInput.Length).Trim(); if (title.Length == 0) { CPH.SendMessage("Please provide a replay title."); return false; } var data = Load(); var list = GetCatalog(data); if (index < 1 || index > list.Count) { CPH.SendMessage($"Replay #{index} does not exist."); return false; } var target = (JObject)list[index - 1]; for (var i = 0; i < list.Count; i++) { var other = (JObject)list[i]; if (ReferenceEquals(other, target) || !((bool?)other["customTitle"] ?? false)) continue; if (string.Equals((string)other["title"], title, StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage("That title already exists."); return false; } } target["title"] = title; target["customTitle"] = true; Save(data); CPH.SetArgument("replayNumber", index); CPH.SetArgument("replayTitle", title); EnqueueReplayRenamed(target, index, title); return true; }
-    private void EnqueueReplayRenamed(JObject replay, int number, string title)
+    public bool NameReplay() { string indexInput; string rawInput; if (!CPH.TryGetArg("input0", out indexInput) || !CPH.TryGetArg("rawInput", out rawInput)) return false; if (!int.TryParse(indexInput, out var index)) { CPH.SendMessage("Please provide a valid replay number."); return false; } var title = (rawInput ?? "").Trim(); if (title.StartsWith(indexInput + " ", StringComparison.OrdinalIgnoreCase)) title = title.Substring(indexInput.Length).Trim(); if (title.Length == 0) { CPH.SendMessage("Please provide a replay title."); return false; } var data = Load(); var list = GetCatalog(data); if (index < 1 || index > list.Count) { CPH.SendMessage($"Replay #{index} does not exist."); return false; } var target = (JObject)list[index - 1]; for (var i = 0; i < list.Count; i++) { var other = (JObject)list[i]; if (ReferenceEquals(other, target) || !((bool?)other["customTitle"] ?? false)) continue; if (string.Equals((string)other["title"], title, StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage("That title already exists."); return false; } } var oldTitle = (string)target["title"] ?? ""; target["title"] = title; target["customTitle"] = true; Save(data); CPH.SetArgument("replayNumber", index); CPH.SetArgument("replayTitle", title); EnqueueReplayRenamed(target, index, oldTitle, title); return true; }
+    private void EnqueueReplayRenamed(JObject replay, int number, string oldTitle, string newTitle)
     {
         var creator = replay["creator"] as JObject;
         CPH.SetArgument("messageEvent", "Replay Renamed");
         CPH.SetArgument("replayId", (string)replay["id"] ?? "");
         CPH.SetArgument("replayNumber", number);
-        CPH.SetArgument("replayTitle", title);
+        CPH.SetArgument("replayTitle", newTitle);
+        CPH.SetArgument("oldTitle", oldTitle ?? "");
+        CPH.SetArgument("newTitle", newTitle ?? "");
         CPH.SetArgument("replayUserId", (string)creator?["id"] ?? "");
         CPH.SetArgument("replayUser", (string)creator?["name"] ?? "");
         CPH.SetArgument("replayPlatform", (string)creator?["platform"] ?? "");
