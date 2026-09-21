@@ -113,10 +113,13 @@ public class CPHInline
         var animation=Animation(config,"player",(string)op["animationProfileId"]??(string)entry["animationProfile"]);
         var design=(string)op["designPresetId"]??(string)entry["designPreset"]??(string)entry["visualPreset"]??"broadcast";
         var title=(string)op["titlePresetId"]??(string)entry["titlePreset"]??"default";
-        var brand=(string)op["brandingPresetId"]??(string)entry["brandingPreset"]??"default";
+        var brand=(string)entry["brandingPreset"]??"default";
+        var replayCreated=(bool?)op["replayCreated"]==true;
+        var useCreateBranding=replayCreated&&(bool?)entry["useSourcePlatformBranding"]==true;
         var useSourceBranding=(bool?)entry["changePlayerBrandingToClipSource"]==true;
         if(useSourceBranding){var source=ResolveReplaySourcePlatform((string)op["replayId"]);var b=PlatformBranding(source);if(b!=null)brand=(string)b["id"]??brand;}
-        ApplyPresentation(design,title,brand,animation,false,useSourceBranding); CPH.LogInfo("RTS Action Replay TRACE: Player colours resolved; event arguments set for frame/control/branding."); CPH.TriggerEvent(EventName,true); CPH.UnsetGlobalVar(PlayerOperationKey,false); return true;
+        else if(useCreateBranding){var source=(string)op["replaySource"]??"";var b=PlatformBranding(source);if(b!=null)brand=(string)b["id"]??brand;}
+        ApplyPresentation(design,title,brand,animation,false,useSourceBranding||useCreateBranding); CPH.LogInfo("RTS Action Replay TRACE: Player colours resolved; event arguments set for frame/control/branding."); CPH.TriggerEvent(EventName,true); CPH.UnsetGlobalVar(PlayerOperationKey,false); return true;
     }
 
     public bool ResolvePanel()
