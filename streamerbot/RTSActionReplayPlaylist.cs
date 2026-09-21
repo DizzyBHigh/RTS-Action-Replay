@@ -91,6 +91,26 @@ public class CPHInline
             CPH.GetGlobalVar<string>("rts.actionreplay.handoff.clapperPositions", false) ?? "{}");
 
         CPH.ExecuteMethod(ResolverAction, "ResolveClapperboardBranding");
+        var brandingRaw = CPH.GetGlobalVar<string>("rts.actionreplay.handoff.clapperBranding", false) ?? "";
+        if (!string.IsNullOrWhiteSpace(brandingRaw))
+        {
+            try
+            {
+                var branding = JObject.Parse(brandingRaw);
+                CPH.SetArgument("replayBrandLogoUrl", (string)branding["logo"] ?? "");
+                CPH.SetArgument("replayBrandFallbackText", (string)branding["fallbackText"] ?? "RTS");
+                CPH.SetArgument("replayBrandLabel", (string)branding["brandLabel"] ?? "ACTION REPLAY");
+                CPH.SetArgument("replayBrandPrimaryColor", (string)branding["primaryColor"] ?? "#0384CBFF");
+                CPH.SetArgument("replayBrandSecondaryColor", (string)branding["secondaryColor"] ?? "#101416FF");
+                CPH.SetArgument("replayBrandFallbackTextColor", (string)branding["primaryColor"] ?? "#0384CBFF");
+                CPH.SetArgument("replayBrandLabelColor", (string)branding["textColor"] ?? "#FFFFFFFF");
+                CPH.SetArgument("replayBrandingPresetId", (string)branding["id"] ?? "default");
+            }
+            catch (Exception ex)
+            {
+                CPH.LogWarn("RTS Action Replay: clapperboard branding handoff could not be parsed: " + ex.Message);
+            }
+        }
         CPH.SetArgument("replayLogoUrl", Arg("replayBrandLogoUrl", ""));
         CPH.SetArgument("replayBrandFallbackText", Arg("replayBrandFallbackText", ""));
         CPH.SetArgument("replayBrandLabel", Arg("replayBrandLabel", ""));
