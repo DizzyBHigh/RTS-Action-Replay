@@ -30,6 +30,9 @@ Commands: !search-prev
 RTS - Action Replay - Catalog - Rate Replay : Execute Method(RTS - Action Replay - Core - Catalog, RateReplay) 
 Commands: !rate-clip, !rate-replay, !rate-video [Parameters: <rating> 1-5]
 
+RTS - Action Replay - Catalog - Purge : Execute Method(RTS - Action Replay - Core - Catalog Maintenance, Purge) 
+Commands: !purge, !catalog-purge, !catalogpurge
+
 RTS - Action Replay - Catalog - Search : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalog) 
 Commands: !search [Parameters: <search text> and optional --amount <N>]
 
@@ -63,6 +66,8 @@ RTS - Action Replay - Core - Messaging : Execute Code (RTS - Action Replay - Cor
 Methods: Enqueue, OverlayCompleted
 
 RTS - Action Replay - Core - Catalog : Execute Code (RTS - Action Replay - Core - Catalog) - streamerbot/RTSActionReplayCatalog.cs
+
+RTS - Action Replay - Core - Catalog Maintenance : Execute Code (RTS - Action Replay - Core - Catalog Maintenance) - streamerbot/RTSActionReplayCatalogMaintenance.cs
 
 RTS - Action Replay - Core - Playback : Execute Code (RTS - Action Replay - Core - Playback) - streamerbot/RTSActionReplayPlayback.cs
 
