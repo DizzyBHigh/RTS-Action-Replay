@@ -21,9 +21,18 @@
   visibility: visible;
 }
 
+.clapper-position {
+  position: absolute;
+  width: 700.2px;
+  height: 506.7px;
+  pointer-events: none;
+}
+
 .clapper {
   position: absolute;
-  width: min(680px, 78vw);
+  left: 20.2px;
+  top: 176.6px;
+  width: 680px;
   filter: drop-shadow(0 22px 28px #000b);
 }
 

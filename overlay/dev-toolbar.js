@@ -86,7 +86,7 @@
     const profile = RTSAnimationEngine.readProfile(command.replayClapperAnimation);
     const start = profile?.start;
     if (Array.isArray(start) && start.length) {
-      const runner = RTSAnimationEngine.createRunner({ target: card });
+      const runner = RTSAnimationEngine.createRunner({ target: card.querySelector('.clapper-position') });
       runner.configure(command.replayClapperPositions);
       runner.run(start);
     }
@@ -98,7 +98,7 @@
     clapperVisible = false;
     const card = RTSReplayMessages.clapperCard;
     if (card) {
-      RTSAnimationEngine.createRunner({ target: card }).cancel();
+      RTSAnimationEngine.createRunner({ target: card.querySelector('.clapper-position') }).cancel();
       card.classList.remove('show');
       card.setAttribute('aria-hidden', 'true');
     }
