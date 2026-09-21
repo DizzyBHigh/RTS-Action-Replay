@@ -17,6 +17,17 @@ public class CPHInline
         return string.Equals(Arg("messageComplete"), "true", StringComparison.OrdinalIgnoreCase);
     }
 
+    public bool Reset()
+    {
+        lock (typeof(CPHInline))
+        {
+            SaveQueue(new JArray());
+            CPH.SetGlobalVar(ActiveKey, "", false);
+        }
+
+        return true;
+    }
+
     public bool Enqueue()
     {
         var item = BuildItem();
