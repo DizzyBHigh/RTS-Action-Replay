@@ -85,6 +85,9 @@ RTSReplayMessages.showClapperboard = command => {
   const profile = RTSAnimationEngine.readProfile(command.replayClapperAnimation);
   const start = profile?.start;
   card.classList.remove('show');
+  card.style.opacity = '1';
+  card.style.visibility = 'visible';
+  card.style.zIndex = '55';
   void card.offsetWidth;
   card.classList.add('show');
   card.setAttribute('aria-hidden', 'false');
@@ -104,12 +107,18 @@ RTSReplayMessages.showClapperboard = command => {
     if (Array.isArray(end) && end.length) {
       runClapper(command, end, () => {
         card.classList.remove('show');
+        card.style.opacity = '';
+        card.style.visibility = '';
+        card.style.zIndex = '';
         card.setAttribute('aria-hidden', 'true');
         RTSReplayWebSocket.acknowledgeMessage(command?.messageQueueId);
       }, true);
     } else {
       getClapperRunner(command).cancel();
       card.classList.remove('show');
+      card.style.opacity = '';
+      card.style.visibility = '';
+      card.style.zIndex = '';
       card.setAttribute('aria-hidden', 'true');
       RTSReplayWebSocket.acknowledgeMessage(command?.messageQueueId);
     }
