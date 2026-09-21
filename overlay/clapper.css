@@ -1,3 +1,19 @@
+#clapper-card {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 55;
+}
+
+#clapper-card.show {
+  opacity: 1;
+  visibility: visible;
+}
+
 .clapper {
   position: relative;
   width: min(680px, 78vw);
