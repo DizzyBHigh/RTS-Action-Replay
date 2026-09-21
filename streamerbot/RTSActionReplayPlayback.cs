@@ -30,26 +30,22 @@ public class CPHInline
 
     public bool SaveReplay()
     {
-        CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName); CPH.TryGetArg("userType", out string userType);
-        var pending = CPH.GetGlobalVar<string>(PendingKey, true);
-        JArray queue;
-        try { queue = string.IsNullOrWhiteSpace(pending) ? new JArray() : JArray.Parse(pending); }
-        catch { queue = new JArray(); }
-        if (!string.IsNullOrWhiteSpace(userId))
-        {
-            queue.Add(new JObject {
-                ["id"] = userId,
-                ["name"] = userName ?? "",
-                ["platform"] = userType ?? "",
-                ["queued"] = DateTime.UtcNow.ToString("o")
-            });
-        }
-        CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), true);
+        CPH.TryGetArg("userId", out string userId);
+        CPH.TryGetArg("userName", out string userName);
+        CPH.TryGetArg("userType", out string userType);
+
+        var handoff = new JObject {
+            ["id"] = userId ?? "",
+            ["name"] = userName ?? "",
+            ["platform"] = userType ?? "",
+            ["queued"] = DateTime.UtcNow.ToString("o")
+        };
+
+        CPH.SetGlobalVar(PendingKey, handoff.ToString(Newtonsoft.Json.Formatting.None), true);
         CPH.ObsReplayBufferSave();
         CPH.LogInfo($"RTS Action Replay: requested OBS Replay Buffer save; creator={userName}; platform={userType}.");
         return true;
     }
-
     public bool PlayReplay()
     {
         var data = Load(); var list = GetCatalog(data); JObject replay = null;
