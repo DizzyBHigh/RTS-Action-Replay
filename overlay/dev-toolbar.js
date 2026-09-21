@@ -70,8 +70,41 @@
   const setSpeed = value => { const speed = Number(value); if (!Number.isFinite(speed) || !RTSReplay?.video) return; RTSReplay.video.playbackRate = speed; const command = { ...currentCommand(), replayPlaybackSpeed: speed }; RTSReplay.command = command; RTSReplayVideo.currentCommand = command; RTSReplayElements?.configureSpeed?.(command); };
   const testPosition = () => { const command = applyPlayerProfile(), from = document.getElementById('rts-dev-from').value, to = document.getElementById('rts-dev-to').value, duration = Math.max(0.1, Number(document.getElementById('rts-dev-duration').value) || 1), easing = document.getElementById('rts-dev-easing').value; command.replayStartPosition = from; command.replayEndPosition = to; command.replayAnimationDuration = duration; command.replayAnimationEasing = easing; RTSReplayVideo.currentCommand = command; RTSReplay.command = command; showPlayer(); RTSReplayVideo.animateIn(RTSReplayVideo.getPosition(from), RTSReplayVideo.getPosition(to)); };
 
-  const showClapper = () => { const command = setProfile(currentCommand(), 'rts-dev-clapper-profile', 'replayClapperAnimationProfiles', 'replayClapperAnimation'); RTSReplay.command = command; RTSReplayVideo.currentCommand = command; clapperVisible = true; updateClapper(command); RTSReplayMessages.showClapperboard(command); bar.querySelector('[data-action="clapper"]').textContent = 'Hide Clapperboard'; };
-  const hideClapper = () => { clapperVisible = false; const card = RTSReplayMessages.clapperCard; if (card) { card.classList.remove('show'); card.setAttribute('aria-hidden', 'true'); } bar.querySelector('[data-action="clapper"]').textContent = 'Show Clapperboard'; };
+  const showClapper = () => {
+    const command = setProfile(currentCommand(), 'rts-dev-clapper-profile', 'replayClapperAnimationProfiles', 'replayClapperAnimation');
+    RTSReplay.command = command;
+    RTSReplayVideo.currentCommand = command;
+    clapperVisible = true;
+    updateClapper(command);
+    const card = RTSReplayMessages.clapperCard;
+    if (!card) return;
+    clearTimeout(RTSReplay.messageTimer);
+    card.classList.remove('show');
+    void card.offsetWidth;
+    card.classList.add('show');
+    card.setAttribute('aria-hidden', 'false');
+    const profile = RTSAnimationEngine.readProfile(command.replayClapperAnimation);
+    const start = profile?.start;
+    if (Array.isArray(start) && start.length) {
+      const runner = RTSAnimationEngine.createRunner({ target: card });
+      runner.configure(command.replayClapperPositions);
+      runner.run(start);
+    }
+    const stick = card.querySelector('.clapstick');
+    if (stick) { stick.classList.remove('clap'); void stick.offsetWidth; stick.classList.add('clap'); }
+    bar.querySelector('[data-action="clapper"]').textContent = 'Hide Clapperboard';
+  };
+  const hideClapper = () => {
+    clapperVisible = false;
+    const card = RTSReplayMessages.clapperCard;
+    if (card) {
+      RTSAnimationEngine.createRunner({ target: card }).cancel();
+      card.classList.remove('show');
+      card.setAttribute('aria-hidden', 'true');
+    }
+    clearTimeout(RTSReplay.messageTimer);
+    bar.querySelector('[data-action="clapper"]').textContent = 'Show Clapperboard';
+  };
   const playClapperEnd = () => hideClapper();
 
   const buildPanelCommand = () => { const command = setProfile(currentCommand(), 'rts-dev-panel-profile', 'replayPanelAnimationProfiles', 'replayPanelAnimation'); command.replayRecent = 'dev-preview'; command.replayRecentData = JSON.stringify(Array.from({ length: 8 }, (_, i) => ({ number: String(i + 1).padStart(2, '0'), title: ['FIRST TEST — REPLAY CAPTURE', 'GTA V — ACTION REPLAY', 'CINEMATIC DRIVE', 'NIGHT SHIFT', 'HIGHWAY RUN', 'MISSION COMPLETE', 'STREAM HIGHLIGHT', 'LAST CALL'][i], avatarUrl: '' }))); command.replayPanelPreset = document.getElementById('rts-dev-panel-style').value; command.replayPanelPosition = document.getElementById('rts-dev-panel-position').value || command.replayPanelPosition || 'Centered'; return command; };
