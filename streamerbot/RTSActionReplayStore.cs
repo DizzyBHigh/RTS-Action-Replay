@@ -177,20 +177,7 @@ public class CPHInline
     private void SendStoreOriginMessage(string text) { var platform = Get("userType"); if (platform.Equals("Kick", StringComparison.OrdinalIgnoreCase)) { CPH.SendKickMessage(text); return; } if (platform.Equals("YouTube", StringComparison.OrdinalIgnoreCase)) { var broadcastId = Get("broadcast.id"); if (!string.IsNullOrWhiteSpace(broadcastId)) CPH.SendYouTubeMessage(text, true, true, broadcastId); else CPH.SendYouTubeMessageToLatestMonitored(text); return; } if (platform.Equals("Twitch", StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage(text); return; } CPH.LogWarn("RTS Action Replay: unable to route store chat response because the originating platform is unknown."); }
     public bool ShowClapperboard()
     {
-        var title = CPH.GetGlobalVar<string>("rts.actionreplay.newReplayTitle", true) ?? "";
-        if (CPH.TryGetArg("replayTitle", out string replayTitle) && !string.IsNullOrWhiteSpace(replayTitle)) title = replayTitle;
-        CPH.SetArgument("replayCommand", "clapperboard");
-        CPH.SetArgument("replayMessage", title);
-        CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
-        CPH.SetArgument("replayClapperPosition", "Centered");
-        CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "GetClapperboardPositions");
-        CPH.SetArgument("replayClapperPositions", CPH.GetGlobalVar<string>("rts.actionreplay.handoff.clapperPositions", false) ?? "{}");
-        CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveClapperboardBranding");
-        CPH.SetArgument("replayLogoUrl", Get("replayBrandLogoUrl"));
-        CPH.SetArgument("replayBrandFallbackText", Get("replayBrandFallbackText"));
-        CPH.SetArgument("replayBrandLabel", Get("replayBrandLabel"));
-        CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveClapperAnimation");
-        CPH.TriggerEvent("RTS-Action Replay", true);
+        CPH.LogInfo("RTS Action Replay: legacy ShowClapperboard action ignored; Replay Created clapperboard is owned by Playlist.");
         return true;
     }
 
