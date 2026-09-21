@@ -192,40 +192,44 @@ public class CPHInline
         const int pendingLifetimeSeconds = 15;
         var raw = CPH.GetGlobalVar<string>(PendingKey, true);
         if (string.IsNullOrWhiteSpace(raw)) return;
+
         try
         {
-            var queue = JArray.Parse(raw);
-            while (queue.Count > 0)
+            var pending = JObject.Parse(raw);
+            var pendingPlatform = (string)pending["platform"];
+            var pendingId = (string)pending["id"];
+            var pendingName = (string)pending["name"];
+            var queuedRaw = (string)pending["queued"];
+
+            DateTime queued;
+            var ageSeconds = DateTime.TryParse(
+                queuedRaw,
+                null,
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                out queued)
+                ? (DateTime.UtcNow - queued).TotalSeconds
+                : double.MaxValue;
+
+            if (string.IsNullOrWhiteSpace(pendingPlatform) ||
+                string.IsNullOrWhiteSpace(pendingId) ||
+                ageSeconds < 0 ||
+                ageSeconds > pendingLifetimeSeconds)
             {
-                var pending = queue[0] as JObject;
-                queue.RemoveAt(0);
-                if (pending == null) continue;
-
-                var pendingPlatform = (string)pending["platform"];
-                var pendingId = (string)pending["id"];
-                var pendingName = (string)pending["name"];
-                var queuedRaw = (string)pending["queued"];
-                DateTime queued;
-                var fresh = DateTime.TryParse(queuedRaw, null, System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal, out queued)
-                    && (DateTime.UtcNow - queued).TotalSeconds >= 0
-                    && (DateTime.UtcNow - queued).TotalSeconds <= pendingLifetimeSeconds;
-
-                // Consume only a complete, recent OBS creator handoff. Never let a stale
-                // handoff manufacture a Twitch identity when the watcher has no platform.
-                if (string.IsNullOrWhiteSpace(pendingPlatform) || string.IsNullOrWhiteSpace(pendingId) || !fresh)
-                    continue;
-
-                platform = NormalizePlatform(pendingPlatform);
-                id = pendingId;
-                name = pendingName ?? "";
-                CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), true);
-                CPH.LogInfo($"RTS Action Replay: applied pending replay creator; platform={platform}; id={id}; name={name}.");
+                CPH.UnsetGlobalVar(PendingKey, true);
                 return;
             }
 
-            CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), true);
+            platform = NormalizePlatform(pendingPlatform);
+            id = pendingId;
+            name = pendingName ?? "";
+
+            CPH.UnsetGlobalVar(PendingKey, true);
+            CPH.LogInfo($"RTS Action Replay: applied pending replay creator; platform={platform}; id={id}; name={name}.");
         }
-        catch { }
+        catch
+        {
+            CPH.UnsetGlobalVar(PendingKey, true);
+        }
     }
     private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); } }
     private void Save(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
