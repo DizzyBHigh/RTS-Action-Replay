@@ -235,14 +235,15 @@ public class CPHInline
         var key = "rts.actionreplay.message.playlist"; var playlistText = text; CPH.SetArgument("replayPlaylist", playlistText); var configured = CPH.GetGlobalVar<string>(key + ".text", true); var chatText = string.IsNullOrWhiteSpace(configured) ? playlistText : CPH.Parse(configured, new Dictionary<string, object> { ["replayPlaylist"] = playlistText });
         if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) SendOriginMessage(chatText);
         var operation = new JObject {
+                ["requestId"] = Guid.NewGuid().ToString("N"),
                 ["replayCommand"] = "playlist-panel",
                 ["replayPlaylist"] = playlistText,
                 ["panelType"] = "playlist",
                 ["replayPanelWidth"] = CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width", true) ?? 500,
                 ["replayPanelHeight"] = CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height", true) ?? 700
             };
-        CPH.SetGlobalVar(PanelOperationKey, operation.ToString(Newtonsoft.Json.Formatting.None), false);
-        CPH.ExecuteMethod(ResolverAction, "ResolvePanel");
+        CPH.SetArgument("replayPanelRequest", operation.ToString(Newtonsoft.Json.Formatting.None));
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Search Queue", "Enqueue");
     }
 
     private int ReplayNumber(string replayId)
