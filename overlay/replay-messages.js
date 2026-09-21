@@ -63,7 +63,19 @@ RTSReplayMessages.showClapperboard = command => {
   RTSReplayMessages.clapperMessageText.textContent = text;
   const showBranding = command.replayShowClapperBranding !== false;
   card.querySelector('.brand').style.display = showBranding ? '' : 'none';
-  const logoUrl = command.replayLogoUrl || '';
+  const logoUrl = command.replayBrandLogoUrl || command.replayLogoUrl || '';
+  card.style.setProperty('--stripe-light', command.replayBrandPrimaryColor || '#eeeeee');
+  card.style.setProperty('--stripe-dark', command.replayBrandSecondaryColor || '#111111');
+  card.style.setProperty('--accent-color', command.replayBrandPrimaryColor || '#0384cb');
+  card.style.setProperty('--message-color', command.replayMessageTextColor || '#0384cb');
+  card.style.setProperty('--message-font', command.replayMessageFont || 'Arial, sans-serif');
+  const fallbackText = command.replayBrandFallbackText || 'RTS';
+  const brandLabel = command.replayBrandLabel || 'ACTION REPLAY';
+  RTSReplayMessages.brandFallback.textContent = fallbackText;
+  const label = card.querySelector('.brand small');
+  if (label) label.textContent = brandLabel;
+  RTSReplayMessages.brandFallback.style.color = command.replayBrandFallbackTextColor || command.replayBrandPrimaryColor || '#0384cb';
+  if (label) label.style.color = command.replayBrandLabelColor || '#ddd';
 
   if (logoUrl) {
     RTSReplayMessages.brandLogo.onload = () => {
