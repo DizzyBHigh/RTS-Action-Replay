@@ -123,7 +123,9 @@ RTSReplayMessages.showClapperboard = command => {
         card.style.visibility = '';
         card.style.zIndex = '';
         card.setAttribute('aria-hidden', 'true');
-        requestAnimationFrame(() => {\n          if (command?.replayClapperBlocksPlayback === true) RTSReplayWebSocket.acknowledgeClapperboard(command?.replayId);\n        });
+        requestAnimationFrame(() => {
+          if (command?.replayClapperBlocksPlayback === true) RTSReplayWebSocket.acknowledgeClapperboard(command?.replayId);
+        });
       }, true);
     } else {
       getClapperRunner(command).cancel();
