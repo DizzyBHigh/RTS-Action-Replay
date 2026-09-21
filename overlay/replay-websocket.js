@@ -20,7 +20,11 @@ RTSReplayWebSocket.acknowledgeMessage = queueId => {
 
 RTSReplayWebSocket.acknowledgeClapperboard = replayId => {
   if (!replayId) return false;
-  if (!RTSReplayWebSocket.socket || RTSReplayWebSocket.socket.readyState !== WebSocket.OPEN) return false;
+  if (!RTSReplayWebSocket.socket || RTSReplayWebSocket.socket.readyState !== WebSocket.OPEN) {
+    pendingClapperboardCompletion = replayId;
+    return false;
+  }
+  pendingClapperboardCompletion = null;
   RTSReplayWebSocket.socket.send(JSON.stringify({
     request: "DoAction",
     id: "rts-clapper-complete-" + replayId,
@@ -49,6 +53,7 @@ RTSReplayWebSocket.connect = () => {
     }));
     RTSReplayWebSocket.setStatus('Connected to Streamer.bot WebSocket', 'connected');
     if (pendingMessageCompletion) RTSReplayWebSocket.acknowledgeMessage(pendingMessageCompletion);
+    if (pendingClapperboardCompletion) RTSReplayWebSocket.acknowledgeClapperboard(pendingClapperboardCompletion);
     if (pendingClapperboardCompletion) RTSReplayWebSocket.acknowledgeClapperboard(pendingClapperboardCompletion);
   };
 
