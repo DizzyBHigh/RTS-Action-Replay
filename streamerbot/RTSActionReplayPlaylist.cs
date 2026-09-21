@@ -238,6 +238,7 @@ public class CPHInline
         var operation = new JObject {
                 ["requestId"] = requestId,
                 ["replayPanelRequestId"] = requestId,
+                ["requesterPlatform"] = GetRequestPlatform() ?? "",
                 ["replayCommand"] = "playlist-panel",
                 ["replayPlaylist"] = playlistText,
                 ["panelType"] = "playlist",
