@@ -123,7 +123,7 @@ RTSReplayMessages.showClapperboard = command => {
         card.style.visibility = '';
         card.style.zIndex = '';
         card.setAttribute('aria-hidden', 'true');
-        RTSReplayWebSocket.acknowledgeMessage(command?.messageQueueId);
+        requestAnimationFrame(() => RTSReplayWebSocket.acknowledgeMessage(command?.messageQueueId));
       }, true);
     } else {
       getClapperRunner(command).cancel();
