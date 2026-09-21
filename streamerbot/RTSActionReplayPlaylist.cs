@@ -65,19 +65,22 @@ public class CPHInline
 
         CPH.UnsetGlobalVar(ReplayIdHandoffKey, false);
         if (replayCreated && replayUseClapperboard)
-            ShowReplayCreatedClapperboard(replayId, (string)replay["title"] ?? "Replay");
+            ShowReplayCreatedClapperboard(replayId, (string)replay["title"] ?? "Replay", creator);
         if (!IsPaused() && ActiveId() == null && replayAutoPlay)
             return PlayNext(queue);
         return true;
     }
 
-    private void ShowReplayCreatedClapperboard(string replayId, string title)
+    private void ShowReplayCreatedClapperboard(string replayId, string title, JObject creator)
     {
         if (string.IsNullOrWhiteSpace(replayId)) return;
 
         CPH.SetArgument("replayId", replayId);
         CPH.SetArgument("replayCommand", "clapperboard");
         CPH.SetArgument("replayMessage", title ?? "Replay");
+        CPH.SetArgument("replayDirector", (string)creator?["name"] ?? "");
+        CPH.SetArgument("replayCreatorId", (string)creator?["id"] ?? "");
+        CPH.SetArgument("replayCreatorPlatform", (string)creator?["platform"] ?? "");
         CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
         CPH.SetArgument("replayClapperPosition", "Centered");
 
