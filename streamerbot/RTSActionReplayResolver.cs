@@ -111,7 +111,7 @@ public class CPHInline
         var design=(string)op["designPresetId"]??(string)entry["designPreset"]??(string)entry["visualPreset"]??"broadcast";
         var title=(string)op["titlePresetId"]??(string)entry["titlePreset"]??"default";
         var brand=(string)op["brandingPresetId"]??(string)entry["brandingPreset"]??"default";
-        var useSourceBranding=(bool?)entry["useSourcePlatformBranding"]==true;
+        var useSourceBranding=(bool?)entry["changePlayerBrandingToClipSource"]==true;
         if(useSourceBranding){var source=ResolveReplaySourcePlatform((string)op["replayId"]);var b=PlatformBranding(source);if(b!=null)brand=(string)b["id"]??brand;}
         ApplyPresentation(design,title,brand,animation,false,useSourceBranding); CPH.LogInfo("RTS Action Replay TRACE: Player colours resolved; event arguments set for frame/control/branding."); CPH.TriggerEvent(EventName,true); CPH.UnsetGlobalVar(PlayerOperationKey,false); return true;
     }
