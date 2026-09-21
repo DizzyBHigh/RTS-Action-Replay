@@ -98,7 +98,9 @@ public class CPHInline
         var brand=(string)entry["brandingPreset"]??"default";
         var replayCreated=false; if(CPH.TryGetArg("replayCreated",out string created)) bool.TryParse(created,out replayCreated);
         var useSourcePlatformBranding=(bool?)entry["useSourcePlatformBranding"]==true;
-        if(replayCreated&&useSourcePlatformBranding){CPH.TryGetArg("replaySource",out string source);var b=PlatformBranding(source??"");if(b!=null)brand=(string)b["id"]??brand;}
+        var changePlayerBrandingToClipSource=(bool?)entry["changePlayerBrandingToClipSource"]==true;
+        if(changePlayerBrandingToClipSource){var source=ResolveReplaySourcePlatform();var b=PlatformBranding(source);if(b!=null)brand=(string)b["id"]??brand;}
+        else if(replayCreated&&useSourcePlatformBranding){CPH.TryGetArg("replaySource",out string source);var b=PlatformBranding(source??"");if(b!=null)brand=(string)b["id"]??brand;}
         CPH.SetArgument("animationProfile",(string)entry["animationProfile"]??"default");
         CPH.SetArgument("visualPreset",design); CPH.SetArgument("designPreset",design); CPH.SetArgument("titlePreset",title); CPH.SetArgument("brandingPreset",brand);
         CPH.SetArgument("useSourcePlatformBranding",useSourcePlatformBranding);
