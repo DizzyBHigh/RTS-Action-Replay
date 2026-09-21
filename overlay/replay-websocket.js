@@ -12,7 +12,7 @@ RTSReplayWebSocket.acknowledgeMessage = queueId => {
     request: 'DoAction',
     id: 'rts-message-complete-' + queueId,
     action: { name: 'RTS - Action Replay - Core - Messaging' },
-    args: { messageQueueId: queueId }
+    args: { messageQueueId: queueId, messageComplete: 'true' }
   }));
   return true;
 };
