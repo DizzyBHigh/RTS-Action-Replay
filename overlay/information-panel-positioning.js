@@ -73,14 +73,15 @@ RTSInformationPanels.show = (panel, command, name) => {
   panel.setAttribute('aria-hidden', 'false');
 };
 
-RTSInformationPanels.hide = (panel, command) => {
+RTSInformationPanels.hide = (panel, command, complete) => {
   if (!panel) return;
   if (window.RTSInformationPanelAnimation) {
-    RTSInformationPanelAnimation.hide(panel, command);
+    RTSInformationPanelAnimation.hide(panel, command, complete);
     return;
   }
   panel.classList.remove('show');
   panel.setAttribute('aria-hidden', 'true');
+  complete?.();
 };
 
 window.RTSInformationPanels = RTSInformationPanels;

@@ -23,6 +23,7 @@ RTS - Action Replay - Catalog - Add Existing Replay: Execute Method(RTS - Action
 RTS - Action Replay - Catalog - Scan Replay Folder : Execute Method(RTS - Action Replay - Core - Store, ScanReplays) Commands: !scan-replay-folder !scanreplayfolder
 
 RTS - Action Replay - Core
+RTS - Action Replay - Core - Messaging : Execute Code (RTS - Action Replay - Core - Messaging) - streamerbot/RTSActionReplayMessaging.cs - Methods: Enqueue, OverlayCompleted
 RTS - Action Replay - Core - Catalog : Execute Code (RTS - Action Replay - Core - Catalog) - streamerbot/RTSActionReplayCatalog.cs
 RTS - Action Replay - Core - Playback : Execute Code (RTS - Action Replay - Core - Playback) - streamerbot/RTSActionReplayPlayback.cs
 RTS - Action Replay - Core - Playlist : Execute Code (RTS - Action Replay - Core - Playlist) - streamerbot/RTSActionReplayPlaylist.cs

@@ -1,4 +1,21 @@
+RTSReplayWebSocket.acknowledgeMessage = queueId => {
+  if (!queueId) return false;
+  if (!RTSReplayWebSocket.socket || RTSReplayWebSocket.socket.readyState !== WebSocket.OPEN) {
+    pendingMessageCompletion = queueId;
+    return false;
+  }
+  pendingMessageCompletion = null;
+  RTSReplayWebSocket.socket.send(JSON.stringify({
+    request: 'DoAction',
+    id: 'rts-message-complete-' + queueId,
+    action: { name: 'RTS - Action Replay - Core - Messaging' },
+    args: { messageQueueId: queueId }
+  }));
+  return true;
+};
+
 const RTSReplayWebSocket = window.RTSReplay;
+let pendingMessageCompletion = null;
 
 RTSReplayWebSocket.setStatus = (text, state = '') => {
   RTSReplayWebSocket.status.textContent = text;
@@ -18,6 +35,7 @@ RTSReplayWebSocket.connect = () => {
       events: { Custom: ['Event'] }
     }));
     RTSReplayWebSocket.setStatus('Connected to Streamer.bot WebSocket', 'connected');
+    if (pendingMessageCompletion) RTSReplayWebSocket.acknowledgeMessage(pendingMessageCompletion);
   };
 
   RTSReplayWebSocket.socket.onmessage = event => {

@@ -38,8 +38,11 @@ public class CPHInline
         var titleProfile = Arg("titlePreset", "default");
         var brandingProfile = Arg("brandingPreset", "default");
         var queue = LoadQueue();
-        queue.Add(new JObject { ["entryId"] = Guid.NewGuid().ToString("N"), ["replayId"] = replayId, ["title"] = (string)replay["title"] ?? "Replay", ["requesterId"] = userId ?? "", ["requesterName"] = requester, ["requesterPlatform"] = requesterPlatform ?? "", ["requesterBroadcastId"] = broadcastId ?? "", ["animationProfileId"] = profile, ["designPresetId"] = designProfile, ["titlePresetId"] = titleProfile, ["brandingPresetId"] = brandingProfile, ["showClapperboard"] = CPH.GetGlobalVar<bool?>("rts.actionreplay.handoff.showClapperboard", false) ?? false, ["queued"] = DateTime.Now.ToString("o") });
-        SaveQueue(queue); CPH.UnsetGlobalVar(ReplayIdHandoffKey, false); CPH.UnsetGlobalVar("rts.actionreplay.handoff.showClapperboard", false);
+        var playlistNotEmpty = queue.Count > 0;
+        var queueEntry = new JObject { ["entryId"] = Guid.NewGuid().ToString("N"), ["replayId"] = replayId, ["title"] = (string)replay["title"] ?? "Replay", ["requesterId"] = userId ?? "", ["requesterName"] = requester, ["requesterPlatform"] = requesterPlatform ?? "", ["requesterBroadcastId"] = broadcastId ?? "", ["animationProfileId"] = profile, ["designPresetId"] = designProfile, ["titlePresetId"] = titleProfile, ["brandingPresetId"] = brandingProfile, ["showClapperboard"] = CPH.GetGlobalVar<bool?>("rts.actionreplay.handoff.showClapperboard", false) ?? false, ["queued"] = DateTime.Now.ToString("o") };
+        queue.Add(queueEntry);
+        SaveQueue(queue);
+        if (playlistNotEmpty) EnqueueReplayQueued(replay, userId, requester, requesterPlatform, broadcastId); CPH.UnsetGlobalVar(ReplayIdHandoffKey, false); CPH.UnsetGlobalVar("rts.actionreplay.handoff.showClapperboard", false);
         if (!IsPaused() && ActiveId() == null) return PlayNext(queue);
         return true;
     }
@@ -74,7 +77,11 @@ public class CPHInline
     {
         if (!CPH.TryGetArg("rawInput", out string input) || !int.TryParse(input, out var index)) return false;
         var queue = LoadQueue(); if (index < 1 || index > queue.Count) return false; if (string.Equals((string)queue[index - 1]["entryId"], ActiveId(), StringComparison.OrdinalIgnoreCase)) return false;
-        queue.RemoveAt(index - 1); SaveQueue(queue); return true;
+        var removed = queue[index - 1] as JObject;
+        var replay = FindReplay(Catalog(Load()), (string)removed?["replayId"] ?? "");
+        queue.RemoveAt(index - 1); SaveQueue(queue);
+        EnqueueReplayRemoved(removed, replay, userId: Arg("userId"), userName: Arg("userName"), userPlatform: Arg("userType"), broadcastId: Arg("broadcast.id"));
+        return true;
     }
 
     public bool Pause() { CPH.SetGlobalVar(PausedKey, true, false); return true; }
@@ -121,7 +128,6 @@ public class CPHInline
     {
         var key = "rts.actionreplay.message.playlist"; var playlistText = text; CPH.SetArgument("replayPlaylist", playlistText); var configured = CPH.GetGlobalVar<string>(key + ".text", true); var chatText = string.IsNullOrWhiteSpace(configured) ? playlistText : CPH.Parse(configured, new Dictionary<string, object> { ["replayPlaylist"] = playlistText });
         if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) SendOriginMessage(chatText);
-        if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false)
         {
             var operation = new JObject {
                 ["replayCommand"] = "playlist-panel",

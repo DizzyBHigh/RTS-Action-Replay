@@ -109,6 +109,13 @@ public class CPHInline
         var entry = message["entryPoint"] as JObject ?? new JObject();
         var design = (string)entry["designPreset"] ?? "broadcast";
         var brand = (string)entry["brandingPreset"] ?? "default";
+        if (CPH.GetGlobalVar<bool?>("rts.actionreplay.message.useSourcePlatformBranding", true) == true)
+        {
+            CPH.TryGetArg("replayMessageSourcePlatform", out string messageSource);
+            if (string.IsNullOrWhiteSpace(messageSource)) CPH.TryGetArg("replaySource", out messageSource);
+            var sourceBrand = PlatformBranding(messageSource ?? "");
+            if (sourceBrand != null) brand = (string)sourceBrand["id"] ?? brand;
+        }
         var animation = Animation(message, "message", (string)entry["animationProfile"] ?? "default");
         ApplyMessagePresentation(design, brand, animation);
         return true;

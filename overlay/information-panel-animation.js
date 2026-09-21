@@ -55,7 +55,7 @@ RTSInformationPanelAnimation.show = (panel, command, name) => {
   }
 };
 
-RTSInformationPanelAnimation.hide = (panel, command) => {
+RTSInformationPanelAnimation.hide = (panel, command, complete) => {
   if (!panel) return;
   const hideCommand = command || panelCommand || {};
   panelCommand = hideCommand;
@@ -66,12 +66,14 @@ RTSInformationPanelAnimation.hide = (panel, command) => {
     RTSInformationPanelAnimation.cancel();
     panel.classList.remove('show');
     panel.setAttribute('aria-hidden', 'true');
+    complete?.();
     return;
   }
   const runner = getPanelRunner(panel, hideCommand);
   runner.runEnd(end, () => {
     panel.classList.remove('show');
     panel.setAttribute('aria-hidden', 'true');
+    complete?.();
   });
 };
 

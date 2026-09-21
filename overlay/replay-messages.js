@@ -49,7 +49,9 @@ RTSReplayMessages.showMessage = command => {
 RTSReplayMessages.hideMessage = command => {
   clearTimeout(RTSReplayMessages.messageTimer);
   if (!RTSReplayMessages.messageCard) return;
-  RTSInformationPanels.hide(RTSReplayMessages.messageCard, messagePanelCommand(command || {}));
+  RTSInformationPanels.hide(RTSReplayMessages.messageCard, messagePanelCommand(command || {}), () => {
+    RTSReplayWebSocket.acknowledgeMessage(command?.messageQueueId);
+  });
 };
 
 RTSReplayMessages.showClapperboard = command => {
@@ -103,11 +105,13 @@ RTSReplayMessages.showClapperboard = command => {
       runClapper(command, end, () => {
         card.classList.remove('show');
         card.setAttribute('aria-hidden', 'true');
+        RTSReplayWebSocket.acknowledgeMessage(command?.messageQueueId);
       }, true);
     } else {
       getClapperRunner(command).cancel();
       card.classList.remove('show');
       card.setAttribute('aria-hidden', 'true');
+      RTSReplayWebSocket.acknowledgeMessage(command?.messageQueueId);
     }
   }, Number.isFinite(Number(command?.replayClapperDuration)) ? Number(command.replayClapperDuration) : RTSReplayMessages.config.messageDuration);
 };
