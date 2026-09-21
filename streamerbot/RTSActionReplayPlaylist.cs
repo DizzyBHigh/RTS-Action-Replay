@@ -125,11 +125,24 @@ public class CPHInline
     public bool View()
     {
         var queue = LoadQueue();
-        if (queue.Count == 0) { SendPlaylistMessage("Playlist is empty."); return true; }
-        var lines = "";
-        for (var i = 0; i < queue.Count; i++) { var item = queue[i] as JObject; if (item == null) continue; var requester = (string)item["requesterName"]; if (string.IsNullOrWhiteSpace(requester)) requester = "Created automatically"; lines += (lines.Length == 0 ? "" : " | ") + "#" + (i + 1) + " " + (string)item["title"] + " — " + requester; }
-        SendPlaylistMessage(lines);
+        if (queue.Count == 0) { SendPlaylistPanel("Playlist is empty."); return true; }
+        SendPlaylistPanel(BuildPlaylistPanelText(queue));
+        if (CPH.GetGlobalVar<bool?>("rts.actionreplay.message.playlist.chat", true) ?? true) SendPlaylistChat(queue);
         return true;
+    }
+
+    private string BuildPlaylistPanelText(JArray queue)
+    {
+        var lines = "";
+        for (var i = 0; i < queue.Count; i++)
+        {
+            var item = queue[i] as JObject;
+            if (item == null) continue;
+            var requester = (string)item["requesterName"];
+            if (string.IsNullOrWhiteSpace(requester)) requester = "Created automatically";
+            lines += (lines.Length == 0 ? "" : " | ") + "#" + (i + 1) + " " + (string)item["title"] + " — " + requester;
+        }
+        return lines;
     }
 
     public bool Clear()
@@ -140,12 +153,12 @@ public class CPHInline
             var item = queue[i] as JObject;
             if (string.IsNullOrWhiteSpace(activeId) || item == null || !string.Equals((string)item["entryId"], activeId, StringComparison.OrdinalIgnoreCase)) { queue.RemoveAt(i); cleared++; }
         }
-        SaveQueueAndClearOtherStore(queue); CPH.LogInfo($"RTS Action Replay: playlist Clear removed {cleared} waiting item(s); active={(string.IsNullOrWhiteSpace(activeId) ? "<none>" : activeId)}; remaining={queue.Count}."); SendPlaylistMessage(queue.Count == 0 ? "Playlist cleared." : "Playlist cleared; active replay retained."); return true;
+        SaveQueueAndClearOtherStore(queue); CPH.LogInfo($"RTS Action Replay: playlist Clear removed {cleared} waiting item(s); active={(string.IsNullOrWhiteSpace(activeId) ? "<none>" : activeId)}; remaining={queue.Count}."); EnqueuePlaylistCleared(cleared, queue.Count); return true;
     }
 
     public bool ClearAll()
     {
-        var queue = LoadQueue(); var cleared = queue.Count; queue.Clear(); SaveQueueAndClearOtherStore(queue); CPH.SetGlobalVar(ActiveKey, "", false); CPH.SetGlobalVar(PausedKey, false, false); CPH.LogInfo($"RTS Action Replay: playlist ClearAll removed {cleared} item(s); active playback was not stopped; playlist pause state reset."); SendPlaylistMessage("Playlist completely cleared."); return true;
+        var queue = LoadQueue(); var cleared = queue.Count; queue.Clear(); SaveQueueAndClearOtherStore(queue); CPH.SetGlobalVar(ActiveKey, "", false); CPH.SetGlobalVar(PausedKey, false, false); CPH.LogInfo($"RTS Action Replay: playlist ClearAll removed {cleared} item(s); active playback was not stopped; playlist pause state reset."); EnqueuePlaylistCompletelyCleared(cleared); return true;
     }
 
     public bool Remove()
@@ -230,7 +243,61 @@ public class CPHInline
         CPH.ExecuteMethod("RTS - Action Replay - Core - Messaging", "Enqueue");
     }
 
-    private void SendPlaylistMessage(string text)
+    private void SendPlaylistChat(JArray queue)
+    {
+        var catalog = Catalog(Load());
+        for (var i = 0; i < queue.Count; i++)
+        {
+            var item = queue[i] as JObject;
+            var replay = FindReplay(catalog, (string)item?["replayId"] ?? "");
+            if (item == null || replay == null) continue;
+            var creator = replay["creator"] as JObject;
+            SendListEntry(i + 1, (string)replay["title"] ?? (string)item["title"] ?? "Untitled replay", (string)creator?["name"] ?? "", Rating(replay), (string)creator?["platform"] ?? (string)replay["sourceType"] ?? "", (int?)replay["plays"] ?? 0);
+        }
+    }
+
+    private void SendListEntry(int number, string title, string creator, double rating, string platform, int plays)
+    {
+        CPH.SetArgument("listNumber", number);
+        CPH.SetArgument("title", title);
+        CPH.SetArgument("creator", creator);
+        CPH.SetArgument("rating", rating);
+        CPH.SetArgument("platform", platform);
+        CPH.SetArgument("plays", plays);
+        if (!CPH.ExecuteMethod("RTS - Action Replay - Core - Messaging", "FormatListEntry")) return;
+        if (!CPH.TryGetArg("formattedListEntry", out string message) || string.IsNullOrWhiteSpace(message)) return;
+        SendOriginMessage(message);
+    }
+
+    private double Rating(JObject replay)
+    {
+        var ratings = replay?["ratings"] as JObject;
+        return ratings == null || !ratings.Properties().Any() ? 0 : Math.Round(ratings.Properties().Select(x => x.Value.Value<double>()).Average(), 1);
+    }
+
+    private void EnqueuePlaylistCleared(int cleared, int remaining)
+    {
+        SetPlaylistMessageArguments("Playlist Cleared", cleared, remaining);
+    }
+
+    private void EnqueuePlaylistCompletelyCleared(int cleared)
+    {
+        SetPlaylistMessageArguments("Playlist Completely Cleared", cleared, 0);
+    }
+
+    private void SetPlaylistMessageArguments(string eventName, int cleared, int remaining)
+    {
+        CPH.SetArgument("messageEvent", eventName);
+        CPH.SetArgument("clearedCount", cleared);
+        CPH.SetArgument("remainingCount", remaining);
+        CPH.SetArgument("requesterId", Arg("userId", ""));
+        CPH.SetArgument("requesterName", Arg("userName", ""));
+        CPH.SetArgument("requesterPlatform", Arg("userType", ""));
+        CPH.SetArgument("requesterBroadcastId", Arg("broadcast.id", ""));
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Messaging", "Enqueue");
+    }
+
+    private void SendPlaylistPanel(string text)
     {
         var key = "rts.actionreplay.message.playlist"; var playlistText = text; CPH.SetArgument("replayPlaylist", playlistText); var configured = CPH.GetGlobalVar<string>(key + ".text", true); var chatText = string.IsNullOrWhiteSpace(configured) ? playlistText : CPH.Parse(configured, new Dictionary<string, object> { ["replayPlaylist"] = playlistText });
         if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) SendOriginMessage(chatText);
