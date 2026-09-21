@@ -90,7 +90,9 @@ public class CPHInline
         CPH.SetArgument("replayClapperPositions",
             CPH.GetGlobalVar<string>("rts.actionreplay.handoff.clapperPositions", false) ?? "{}");
 
+        CPH.SetGlobalVar(ReplayIdHandoffKey, replayId, false);
         CPH.ExecuteMethod(ResolverAction, "ResolveClapperboardBranding");
+        CPH.UnsetGlobalVar(ReplayIdHandoffKey, false);
         var brandingRaw = CPH.GetGlobalVar<string>("rts.actionreplay.handoff.clapperBranding", false) ?? "";
         if (!string.IsNullOrWhiteSpace(brandingRaw))
         {
