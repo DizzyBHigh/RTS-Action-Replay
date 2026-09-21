@@ -7,7 +7,6 @@ public class CPHInline
     private const string QueueKey = "rts.actionreplay.message.queue";
     private const string ActiveKey = "rts.actionreplay.message.active";
     private const string OverlayEvent = "RTS-Action Replay";
-    private const string ClapperPlaybackKey = "rts.actionreplay.handoff.clapperPlayback";
 
     public bool Execute() => IsOverlayCompletion() ? OverlayCompleted() : Enqueue();
 
@@ -43,21 +42,13 @@ public class CPHInline
         if (string.IsNullOrWhiteSpace(completedId)) return false;
 
         var shouldProcess = false;
-        var startPlayback = false;
-        var replayId = "";
         lock (typeof(CPHInline))
         {
             var activeId = CPH.GetGlobalVar<string>(ActiveKey, false);
             if (!string.Equals(activeId, completedId, StringComparison.OrdinalIgnoreCase)) return false;
 
             var queue = LoadQueue();
-            var completed = queue.Count > 0 && string.Equals((string)queue[0]?["id"], completedId, StringComparison.OrdinalIgnoreCase)
-                ? queue[0] as JObject
-                : null;
-            startPlayback = (bool?)completed?["startPlaybackAfterClapperboard"] == true;
-            replayId = (string)completed?["replay"]?["id"] ?? "";
-
-            if (completed != null)
+            if (queue.Count > 0 && string.Equals((string)queue[0]?["id"], completedId, StringComparison.OrdinalIgnoreCase))
             {
                 queue.RemoveAt(0);
                 SaveQueue(queue);
@@ -65,12 +56,6 @@ public class CPHInline
 
             CPH.SetGlobalVar(ActiveKey, "", false);
             shouldProcess = true;
-        }
-
-        if (startPlayback && !string.IsNullOrWhiteSpace(replayId))
-        {
-            CPH.SetArgument("replayId", replayId);
-            CPH.ExecuteMethod("RTS - Action Replay - Core - Playlist", "StartAfterClapperboard");
         }
 
         if (shouldProcess) ProcessQueue();
@@ -158,22 +143,9 @@ public class CPHInline
         CPH.SetArgument("replayMessageSourcePlatform", (string)item["replay"]?["sourcePlatform"] ?? "");
         CPH.SetArgument("replaySource", (string)item["replay"]?["sourcePlatform"] ?? "");
 
-        if (string.Equals((string)item["presentation"], "clapperboard", StringComparison.OrdinalIgnoreCase))
-        {
-            CPH.SetArgument("replayCommand", "clapperboard");
-            CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
-            CPH.SetArgument("replayClapperPosition", "Centered");
-            CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "GetClapperboardPositions");
-            CPH.SetArgument("replayClapperPositions", CPH.GetGlobalVar<string>("rts.actionreplay.handoff.clapperPositions", false) ?? "{}");
-            CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveClapperboardBranding");
-            CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveClapperAnimation");
-        }
-        else
-        {
-            CPH.SetArgument("replayCommand", "message");
-            CPH.SetArgument("replayMessagePosition", "Centered");
-            CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveMessagePresentation");
-        }
+        CPH.SetArgument("replayCommand", "message");
+        CPH.SetArgument("replayMessagePosition", "Centered");
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveMessagePresentation");
 
         CPH.TriggerEvent(OverlayEvent, true);
     }
@@ -211,12 +183,7 @@ public class CPHInline
         };
 
         var message = string.IsNullOrWhiteSpace(textTemplate) ? "" : CPH.Parse(textTemplate, values);
-        var startPlaybackAfterClapperboard = false;
-        if (eventName.Equals("Replay Created", StringComparison.OrdinalIgnoreCase) && string.Equals(CPH.GetGlobalVar<string>(ClapperPlaybackKey, false), Arg("replayId"), StringComparison.OrdinalIgnoreCase))
-        {
-            startPlaybackAfterClapperboard = true;
-        }
-        var presentation = eventName.Equals("Replay Created", StringComparison.OrdinalIgnoreCase) ? "clapperboard" : "message";
+        var presentation = "message";
 
         return new JObject
         {
@@ -226,7 +193,6 @@ public class CPHInline
             ["chat"] = chat,
             ["overlay"] = overlay,
             ["presentation"] = presentation,
-            ["startPlaybackAfterClapperboard"] = startPlaybackAfterClapperboard,
             ["requester"] = new JObject
             {
                 ["id"] = Arg("requesterId"),
