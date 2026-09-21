@@ -40,14 +40,32 @@ public class CPHInline
 
     public bool ResolveClapperboardBranding()
     {
+        var replayId = CPH.GetGlobalVar<string>("rts.actionreplay.handoff.replayId", false) ?? "";
+        var catalogData = Read("rts.actionreplay.data");
+        var catalog = catalogData["catalog"] as JArray ?? new JArray();
+        JObject replay = null;
+        foreach (var item in catalog)
+        {
+            var candidate = item as JObject;
+            if (candidate != null && string.Equals((string)candidate["id"], replayId, StringComparison.OrdinalIgnoreCase))
+            {
+                replay = candidate;
+                break;
+            }
+        }
+
+        var creator = replay?["creator"] as JObject;
+        var creatorPlatform = (string)creator?["platform"] ?? "";
+        CPH.SetGlobalVar("rts.actionreplay.handoff.clapperCreatorPlatform", creatorPlatform, false);
+
         var clapper = Read(ClapperKey);
         var entry = clapper["entryPoint"] as JObject ?? new JObject();
         var brand = (string)entry["brandingPreset"] ?? "default";
         var useSource = CPH.GetGlobalVar<bool?>("rts.actionreplay.clapper.useSourcePlatformBranding", true) ?? false;
         if (useSource)
         {
-            CPH.TryGetArg("replayCreatorPlatform", out string source);
-            var sourceBrand = PlatformBranding(source ?? "");
+            var source = creatorPlatform;
+            var sourceBrand = PlatformBranding(source);
             if (sourceBrand != null) brand = (string)sourceBrand["id"] ?? brand;
         }
         var presets = Read(PresetsKey);
@@ -67,6 +85,7 @@ public class CPHInline
         CPH.SetArgument("replayBrandLabel", (string)branding["brandLabel"] ?? "ACTION REPLAY");
         CPH.SetArgument("replayMessageFont", (string)branding["font"] ?? "Inter");
         CPH.SetArgument("replayBrandingPresetId", (string)branding["id"] ?? "default");
+        CPH.SetGlobalVar("rts.actionreplay.handoff.clapperBranding", branding.ToString(Newtonsoft.Json.Formatting.None), false);
         CPH.SetArgument("replayClapperDuration", CPH.GetGlobalVar<int?>("rts.actionreplay.clapper.duration", true) ?? 5000);
         return true;
     }
