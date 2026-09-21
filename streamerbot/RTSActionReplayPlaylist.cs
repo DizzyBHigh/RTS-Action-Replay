@@ -236,6 +236,7 @@ public class CPHInline
         if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) SendOriginMessage(chatText);
         var operation = new JObject {
                 ["requestId"] = Guid.NewGuid().ToString("N"),
+                ["replayPanelRequestId"] = "",
                 ["replayCommand"] = "playlist-panel",
                 ["replayPlaylist"] = playlistText,
                 ["panelType"] = "playlist",
