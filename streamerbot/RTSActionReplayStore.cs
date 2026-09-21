@@ -187,7 +187,25 @@ public class CPHInline
     private bool PlaylistHasItems() { var persist = CPH.GetGlobalVar<bool?>("rts.actionreplay.playlistPersist", true) ?? false; var raw = CPH.GetGlobalVar<string>(PlaylistKey, persist); if (string.IsNullOrWhiteSpace(raw)) return false; try { return JArray.Parse(raw).Count > 0; } catch { return false; } }
     private string Get(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
     private string NormalizePlatform(string userType) { if (string.Equals(userType, "YouTube", StringComparison.OrdinalIgnoreCase)) return "YouTube"; if (string.Equals(userType, "Kick", StringComparison.OrdinalIgnoreCase)) return "Kick"; return "Twitch"; }
-    private void ApplyPendingCreator(ref string platform, ref string id, ref string name) { var raw = CPH.GetGlobalVar<string>(PendingKey, false); if (string.IsNullOrWhiteSpace(raw)) return; try { var pending = JObject.Parse(raw); if (!string.IsNullOrWhiteSpace((string)pending["platform"])) platform = NormalizePlatform((string)pending["platform"]); if (!string.IsNullOrWhiteSpace((string)pending["id"])) id = (string)pending["id"]; if (!string.IsNullOrWhiteSpace((string)pending["name"])) name = (string)pending["name"]; } catch { } }
+    private void ApplyPendingCreator(ref string platform, ref string id, ref string name)
+    {
+        var raw = CPH.GetGlobalVar<string>(PendingKey, false);
+        if (string.IsNullOrWhiteSpace(raw)) return;
+        try
+        {
+            var queue = JArray.Parse(raw);
+            if (queue.Count == 0) return;
+            var pending = queue[0] as JObject;
+            if (pending == null) return;
+            if (!string.IsNullOrWhiteSpace((string)pending["platform"])) platform = NormalizePlatform((string)pending["platform"]);
+            if (!string.IsNullOrWhiteSpace((string)pending["id"])) id = (string)pending["id"];
+            if (!string.IsNullOrWhiteSpace((string)pending["name"])) name = (string)pending["name"];
+            queue.RemoveAt(0);
+            CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), false);
+            CPH.LogInfo($"RTS Action Replay: applied pending replay creator; platform={platform}; id={id}; name={name}.");
+        }
+        catch { }
+    }
     private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); } }
     private void Save(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
     private void Save(string key, JObject value) => CPH.SetGlobalVar(key, value.ToString(Newtonsoft.Json.Formatting.None), true);
