@@ -1,6 +1,5 @@
 const RTSReplayWebSocket = window.RTSReplay;
 let pendingMessageCompletion = null;
-let pendingClapperboardCompletion = null;
 
 RTSReplayWebSocket.acknowledgeMessage = queueId => {
   if (!queueId) return false;
@@ -14,22 +13,6 @@ RTSReplayWebSocket.acknowledgeMessage = queueId => {
     id: 'rts-message-complete-' + queueId,
     action: { name: 'RTS - Action Replay - Core - Messaging' },
     args: { messageQueueId: queueId, messageComplete: 'true' }
-  }));
-  return true;
-};
-
-RTSReplayWebSocket.acknowledgeClapperboard = replayId => {
-  if (!replayId) return false;
-  if (!RTSReplayWebSocket.socket || RTSReplayWebSocket.socket.readyState !== WebSocket.OPEN) {
-    pendingClapperboardCompletion = replayId;
-    return false;
-  }
-  pendingClapperboardCompletion = null;
-  RTSReplayWebSocket.socket.send(JSON.stringify({
-    request: "DoAction",
-    id: "rts-clapper-complete-" + replayId,
-    action: { name: "RTS - Action Replay - Core - Playlist" },
-    args: { replayId, clapperboardComplete: "true" }
   }));
   return true;
 };
@@ -53,8 +36,6 @@ RTSReplayWebSocket.connect = () => {
     }));
     RTSReplayWebSocket.setStatus('Connected to Streamer.bot WebSocket', 'connected');
     if (pendingMessageCompletion) RTSReplayWebSocket.acknowledgeMessage(pendingMessageCompletion);
-    if (pendingClapperboardCompletion) RTSReplayWebSocket.acknowledgeClapperboard(pendingClapperboardCompletion);
-    if (pendingClapperboardCompletion) RTSReplayWebSocket.acknowledgeClapperboard(pendingClapperboardCompletion);
   };
 
   RTSReplayWebSocket.socket.onmessage = event => {
