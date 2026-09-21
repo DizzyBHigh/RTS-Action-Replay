@@ -1,5 +1,6 @@
 const RTSReplayWebSocket = window.RTSReplay;
-let pendingMessageCompletion = null;\nlet pendingClapperboardCompletion = null;
+let pendingMessageCompletion = null;
+let pendingClapperboardCompletion = null;
 
 RTSReplayWebSocket.acknowledgeMessage = queueId => {
   if (!queueId) return false;
@@ -47,7 +48,8 @@ RTSReplayWebSocket.connect = () => {
       events: { Custom: ['Event'] }
     }));
     RTSReplayWebSocket.setStatus('Connected to Streamer.bot WebSocket', 'connected');
-    if (pendingMessageCompletion) RTSReplayWebSocket.acknowledgeMessage(pendingMessageCompletion);\n    if (pendingClapperboardCompletion) RTSReplayWebSocket.acknowledgeClapperboard(pendingClapperboardCompletion);
+    if (pendingMessageCompletion) RTSReplayWebSocket.acknowledgeMessage(pendingMessageCompletion);
+    if (pendingClapperboardCompletion) RTSReplayWebSocket.acknowledgeClapperboard(pendingClapperboardCompletion);
   };
 
   RTSReplayWebSocket.socket.onmessage = event => {
