@@ -194,15 +194,29 @@ public class CPHInline
         try
         {
             var queue = JArray.Parse(raw);
-            if (queue.Count == 0) return;
-            var pending = queue[0] as JObject;
-            if (pending == null) return;
-            if (!string.IsNullOrWhiteSpace((string)pending["platform"])) platform = NormalizePlatform((string)pending["platform"]);
-            if (!string.IsNullOrWhiteSpace((string)pending["id"])) id = (string)pending["id"];
-            if (!string.IsNullOrWhiteSpace((string)pending["name"])) name = (string)pending["name"];
-            queue.RemoveAt(0);
+            while (queue.Count > 0)
+            {
+                var pending = queue[0] as JObject;
+                queue.RemoveAt(0);
+                if (pending == null) continue;
+
+                var pendingPlatform = (string)pending["platform"];
+                var pendingId = (string)pending["id"];
+                var pendingName = (string)pending["name"];
+
+                // Ignore legacy/incomplete entries left by the pre-platform handoff format.
+                if (string.IsNullOrWhiteSpace(pendingPlatform) || string.IsNullOrWhiteSpace(pendingId))
+                    continue;
+
+                platform = NormalizePlatform(pendingPlatform);
+                id = pendingId;
+                name = pendingName ?? "";
+                CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), false);
+                CPH.LogInfo($"RTS Action Replay: applied pending replay creator; platform={platform}; id={id}; name={name}.");
+                return;
+            }
+
             CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), false);
-            CPH.LogInfo($"RTS Action Replay: applied pending replay creator; platform={platform}; id={id}; name={name}.");
         }
         catch { }
     }
