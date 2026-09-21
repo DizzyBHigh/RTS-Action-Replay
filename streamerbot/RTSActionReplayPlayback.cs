@@ -31,7 +31,7 @@ public class CPHInline
     public bool SaveReplay()
     {
         CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName); CPH.TryGetArg("userType", out string userType);
-        var pending = CPH.GetGlobalVar<string>(PendingKey, false);
+        var pending = CPH.GetGlobalVar<string>(PendingKey, true);
         JArray queue;
         try { queue = string.IsNullOrWhiteSpace(pending) ? new JArray() : JArray.Parse(pending); }
         catch { queue = new JArray(); }
@@ -44,7 +44,7 @@ public class CPHInline
                 ["queued"] = DateTime.UtcNow.ToString("o")
             });
         }
-        CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), false);
+        CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), true);
         CPH.ObsReplayBufferSave();
         CPH.LogInfo($"RTS Action Replay: requested OBS Replay Buffer save; creator={userName}; platform={userType}.");
         return true;
