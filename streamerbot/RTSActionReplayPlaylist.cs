@@ -96,6 +96,20 @@ public class CPHInline
     {
         CPH.SetArgument("replayId", replayId ?? "");
         CPH.SetArgument("replayClapperBlocksPlayback", blocksPlayback);
+        CPH.SetArgument("replayCommand", "clapperboard");
+        CPH.SetArgument("replayMessage", title ?? "Replay");
+        CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
+        CPH.SetArgument("replayClapperPosition", "Centered");
+        CPH.ExecuteMethod(ResolverAction, "GetClapperboardPositions");
+        CPH.SetArgument("replayClapperPositions", CPH.GetGlobalVar<string>("rts.actionreplay.handoff.clapperPositions", false) ?? "{}");
+        CPH.ExecuteMethod(ResolverAction, "ResolveClapperboardBranding");
+        CPH.SetArgument("replayLogoUrl", Arg("replayBrandLogoUrl", ""));
+        CPH.SetArgument("replayBrandFallbackText", Arg("replayBrandFallbackText", ""));
+        CPH.SetArgument("replayBrandLabel", Arg("replayBrandLabel", ""));
+        CPH.ExecuteMethod(ResolverAction, "ResolveClapperAnimation");
+        CPH.TriggerEvent("RTS-Action Replay", true);
+    }
+
     public bool View()
     {
         var queue = LoadQueue();
