@@ -7,6 +7,8 @@ public class CPHInline
     private const string QueueKey = "rts.actionreplay.message.queue";
     private const string ActiveKey = "rts.actionreplay.message.active";
     private const string OverlayEvent = "RTS-Action Replay";
+    private const string ResolverAction = "RTS - Action Replay - Core - Resolver";
+    private const string MessageOperationKey = "rts.actionreplay.operation.message";
 
     public bool Execute() => IsOverlayCompletion() ? OverlayCompleted() : Enqueue();
 
@@ -69,24 +71,15 @@ public class CPHInline
     public bool TestMessage()
     {
         var item = BuildItem();
-        CPH.LogInfo("RTS Action Replay TRACE: TestMessage BuildItem completed.");
         if (item == null) return false;
         if ((bool?)item["chat"] == true) SendChat(item);
-        CPH.LogInfo("RTS Action Replay TRACE: TestMessage SendChat completed.");
         if ((bool?)item["overlay"] != true) return true;
+
         item["test"] = true;
-        CPH.SetArgument("messageTest", true);
-        CPH.SetArgument("messageQueueId", "");
-        CPH.SetArgument("replayMessage", (string)item["message"] ?? "");
-        CPH.SetArgument("replayMessageSourcePlatform", (string)item["replay"]?["sourcePlatform"] ?? "");
-        CPH.SetArgument("replaySource", (string)item["replay"]?["sourcePlatform"] ?? "");
-        CPH.SetArgument("replayCommand", "message");
-        CPH.SetArgument("replayMessagePosition", "Centered");
-        CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveMessagePresentation");
-        CPH.LogInfo("RTS Action Replay TRACE: TestMessage ResolveMessagePresentation completed.");
-        CPH.TriggerEvent(OverlayEvent, true);
-        CPH.LogInfo("RTS Action Replay TRACE: TestMessage TriggerEvent completed.");
-        return true;
+        WriteMessageOperation(item);
+
+        CPH.LogInfo("RTS Action Replay: test message operation handed to Resolver.");
+        return CPH.ExecuteMethod(ResolverAction, "ResolveMessagePresentation");
     }
 
     public bool OverlayCompleted()
@@ -191,16 +184,28 @@ public class CPHInline
 
     private void TriggerOverlay(JObject item)
     {
-        if ((bool?)item["test"] != true) CPH.SetArgument("messageQueueId", (string)item["id"] ?? "");
-        CPH.SetArgument("replayMessage", (string)item["message"] ?? "");
-        CPH.SetArgument("replayMessageSourcePlatform", (string)item["replay"]?["sourcePlatform"] ?? "");
-        CPH.SetArgument("replaySource", (string)item["replay"]?["sourcePlatform"] ?? "");
+        WriteMessageOperation(item);
+        CPH.LogInfo("RTS Action Replay: message operation handed to Resolver.");
+        CPH.ExecuteMethod(ResolverAction, "ResolveMessagePresentation");
+    }
 
-        CPH.SetArgument("replayCommand", "message");
-        CPH.SetArgument("replayMessagePosition", "Centered");
-        CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveMessagePresentation");
+    private void WriteMessageOperation(JObject item)
+    {
+        var replay = item["replay"] as JObject ?? new JObject();
+        var operation = new JObject
+        {
+            ["message"] = (string)item["message"] ?? "",
+            ["messageQueueId"] = (bool?)item["test"] == true ? "" : (string)item["id"] ?? "",
+            ["messageTest"] = (bool?)item["test"] == true,
+            ["messagePosition"] = "Centered",
+            ["replaySourcePlatform"] = (string)replay["sourcePlatform"] ?? ""
+        };
 
-        CPH.TriggerEvent(OverlayEvent, true);
+        CPH.SetGlobalVar(
+            MessageOperationKey,
+            operation.ToString(Newtonsoft.Json.Formatting.None),
+            false
+        );
     }
 
     private JObject BuildItem()
