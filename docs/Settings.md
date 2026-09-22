@@ -816,3 +816,32 @@ A typical replay presentation therefore looks roughly like this:
 -> supplies message-specific appearance
 
 The settings are deliberately separated this way so that presentation changes can be made once and reused across multiple operations.
+
+## Import / Export
+
+**Export Settings** writes a complete JSON backup of the RTS Action Replay configuration. Export always includes everything; there is no export selection.
+
+**Import Settings** is selective. You can choose:
+
+- Player Settings
+- Panel Settings
+- Message Settings
+- Branding Profiles — all or selected profile IDs
+- Animation Profiles — all or selected component/profile IDs (`player:id`, `panel:id`, `message:id`, `clapperboard:id`)
+- Visual / Design Presets
+- Title Presets
+- Catalog
+
+Catalog imports can be limited to Twitch, YouTube, Kick or Local / OBS entries. Catalog imports never modify play history.
+
+### Duplicate handling
+
+For imported profiles and Catalog entries, **Skip** leaves an existing entry unchanged. **Overwrite** replaces the existing entry with the imported version.
+
+Local / OBS Catalog entries use the replay source ID when available and the filename as a fallback duplicate check.
+
+### Factory Reset
+
+**Factory Reset** restores RTS Action Replay configuration to its built-in defaults after a confirmation prompt.
+
+Factory Reset **does not delete the Catalog or play history**.
