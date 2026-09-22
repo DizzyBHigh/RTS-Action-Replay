@@ -70,6 +70,11 @@ public class CPHInline
 
     public bool TestMessage()
     {
+        var testOperation = ReadTestOperation();
+        if (testOperation == null) return false;
+
+        ApplyTestOperation(testOperation);
+
         var item = BuildItem();
         if (item == null) return false;
         if ((bool?)item["chat"] == true) SendChat(item);
@@ -80,6 +85,40 @@ public class CPHInline
 
         CPH.LogInfo("RTS Action Replay: test message operation handed to Resolver.");
         return CPH.ExecuteMethod(ResolverAction, "ResolveMessagePresentation");
+    }
+
+    private JObject ReadTestOperation()
+    {
+        var raw = CPH.GetGlobalVar<string>("rts.actionreplay.operation.message.test", false);
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+
+        try
+        {
+            var operation = JObject.Parse(raw);
+            CPH.UnsetGlobalVar("rts.actionreplay.operation.message.test", false);
+            return operation;
+        }
+        catch
+        {
+            CPH.LogWarn("RTS Action Replay: invalid message test operation.");
+            CPH.UnsetGlobalVar("rts.actionreplay.operation.message.test", false);
+            return null;
+        }
+    }
+
+    private void ApplyTestOperation(JObject operation)
+    {
+        var fields = new[]
+        {
+            "messageEvent", "replayId", "replayNumber", "replayTitle", "replayUserId",
+            "replayUser", "replayPlatform", "replaySourcePlatform", "requesterId",
+            "requesterName", "requesterPlatform", "requesterBroadcastId", "replaySource",
+            "oldTitle", "newTitle", "oldRating", "averageRating", "replayRating",
+            "clearedCount", "remainingCount"
+        };
+
+        foreach (var field in fields)
+            CPH.SetArgument(field, operation[field]?.ToString() ?? "");
     }
 
     public bool OverlayCompleted()
