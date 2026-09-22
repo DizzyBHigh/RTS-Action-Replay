@@ -1,5 +1,5 @@
 const RTSPositioningEngine = {
-  version: '20260922-1',
+  version: '20260922-2',
   diagnostics: new WeakMap(),
   referenceWidth: 1920,
   referenceHeight: 1080,
@@ -22,12 +22,17 @@ const RTSPositioningEngine = {
     const viewportWidth = dev ? this.referenceWidth : Math.max(1, window.innerWidth || this.referenceWidth);
     const viewportHeight = dev ? this.referenceHeight : Math.max(1, window.innerHeight || this.referenceHeight);
 
-    // Match the deployed RtsUI.dll position preview. Its camera distance is
-    // 360 * tan(FOV / 2), and its X/Y translations compensate for Z depth.
-    const perspective = Math.max(1, 360.0 * Math.tan((fov * Math.PI / 180) / 2));
+    const tanHalfFov = Math.tan((fov * Math.PI / 180) / 2);
+
+    // Match the deployed RtsUI.dll position preview. The DLL preview uses a
+    // 640x360 position canvas and a camera distance of 360*tan(FOV/2).
+    // WPF projection therefore scales screen-space translation by
+    // (640/2/tan(FOV/2)) / (360*tan(FOV/2)).
+    const perspective = Math.max(1, 360.0 * tanHalfFov);
+    const projectionScale = (320.0 / tanHalfFov) / perspective;
     const depthFactor = (perspective - z) / perspective;
-    const xValue = `${x * viewportWidth / 100 * depthFactor}px`;
-    const yValue = `${-y * viewportHeight / 100 * depthFactor}px`;
+    const xValue = `${x * viewportWidth / 100 * projectionScale * depthFactor}px`;
+    const yValue = `${-y * viewportHeight / 100 * projectionScale * depthFactor}px`;
     return `perspective(${perspective}px) translate3d(${xValue}, ${yValue}, ${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX}, ${scaleY}, 1)`;
   },
 
