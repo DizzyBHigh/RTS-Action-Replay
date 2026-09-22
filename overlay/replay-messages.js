@@ -43,6 +43,11 @@ RTSReplayMessages.showMessage = command => {
   if (!text || !RTSReplayMessages.messageCard) return;
 
   RTSReplayMessages.messageText.textContent = text;
+  console.info('[RTS Message TRACE] received dimensions', {
+    replayMessageWidth: command?.replayMessageWidth,
+    replayMessageHeight: command?.replayMessageHeight,
+    replayMessageCornerRadius: command?.replayMessageCornerRadius
+  });
   const panelCommand = messagePanelCommand(command);
   clearTimeout(RTSReplayMessages.messageTimer);
   RTSReplayMessages.messageCard.classList.remove('show');
