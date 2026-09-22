@@ -252,6 +252,7 @@ public class CPHInline
             ["messageQueueId"] = (bool?)item["test"] == true ? "" : (string)item["id"] ?? "",
             ["messageTest"] = (bool?)item["test"] == true,
             ["messagePosition"] = "Centered",
+            ["messageSourcePlatform"] = (string)item["requester"]?["platform"] ?? "",
             ["replaySourcePlatform"] = (string)replay["sourcePlatform"] ?? ""
         };
 
