@@ -33,7 +33,7 @@ public class CPHInline
     private void EnsurePlayer() { var current = Read(PlayerKey); if (current.Count > 0) return; SaveConfig(PlayerKey, CreatePlayerDefaults()); }
     private JObject CreatePlayerDefaults() => new JObject { ["positions"] = new JObject(), ["animationProfiles"] = new JArray { new JObject { ["id"] = "default", ["name"] = "Default" } }, ["animation"] = new JObject { ["selectedProfile"] = "default", ["entryPoints"] = new JObject { ["obs"] = "default", ["twitch"] = "default", ["youtube"] = "default", ["kick"] = "default", ["recent"] = "default", ["catalog"] = "default", ["playlist"] = "default" } }, ["entryPoints"] = CreatePlayerEntryPoints() };
     private JObject CreatePanelDefaults() => new JObject { ["width"] = 500, ["height"] = 700, ["cornerRadius"] = 0, ["positions"] = new JObject(), ["animationProfiles"] = new JArray { new JObject { ["id"] = "default", ["name"] = "Default" } }, ["animation"] = new JObject { ["entryPoints"] = new JObject { ["recent"] = "default", ["playlist"] = "default", ["creatorLeaderboard"] = "default" } }, ["entryPoints"] = CreatePanelEntryPoints() };
-    private JObject CreateMessageDefaults() => new JObject { ["minWidth"] = 500, ["minHeight"] = 120, ["cornerRadius"] = 0, ["positions"] = new JObject(), ["animationProfiles"] = new JArray { new JObject { ["id"] = "default", ["name"] = "Default" } }, ["animation"] = new JObject { ["selectedProfile"] = "default" }, ["entryPoint"] = CreateMessageEntryPoint() };
+    private JObject CreateMessageDefaults() => new JObject { ["width"] = 500, ["height"] = 120, ["cornerRadius"] = 0, ["positions"] = new JObject(), ["animationProfiles"] = new JArray { new JObject { ["id"] = "default", ["name"] = "Default" } }, ["animation"] = new JObject { ["selectedProfile"] = "default" }, ["entryPoint"] = CreateMessageEntryPoint() };
     private JObject CreateClapperDefaults() => new JObject { ["animationProfiles"] = new JArray { new JObject { ["id"] = "default", ["name"] = "Default" } }, ["animation"] = new JObject { ["selectedProfile"] = "default" }, ["entryPoint"] = CreateClapperEntryPoint() };
     private JObject Read(string key) { var raw = CPH.GetGlobalVar<string>(key, true); if (string.IsNullOrWhiteSpace(raw)) return new JObject(); try { return JObject.Parse(raw); } catch { return new JObject(); } }
     private void EnsureObject(string key, JObject defaults) { var current = Read(key); if (current.Count == 0) SaveConfig(key, defaults); }
@@ -297,8 +297,8 @@ public class CPHInline
         AddSnapshotGlobal(globals, "panelWidth", "rts.actionreplay.panel.width");
         AddSnapshotGlobal(globals, "panelHeight", "rts.actionreplay.panel.height");
         AddSnapshotGlobal(globals, "panelCornerRadius", "rts.actionreplay.panel.cornerRadius");
-        AddSnapshotGlobal(globals, "messageMinWidth", "rts.actionreplay.message.minWidth");
-        AddSnapshotGlobal(globals, "messageMinHeight", "rts.actionreplay.message.minHeight");
+        AddSnapshotGlobal(globals, "messageWidth", "rts.actionreplay.message.width");
+        AddSnapshotGlobal(globals, "messageHeight", "rts.actionreplay.message.height");
         AddSnapshotGlobal(globals, "messageCornerRadius", "rts.actionreplay.message.cornerRadius");
         AddSnapshotGlobal(globals, "messageDuration", "rts.actionreplay.message.duration");
         AddSnapshotGlobal(globals, "clapperDuration", "rts.actionreplay.clapper.duration");
