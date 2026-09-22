@@ -222,8 +222,12 @@ public class CPHInline
         var positions=((JObject)animation["positions"]??new JObject()).ToString(Newtonsoft.Json.Formatting.None);
         CPH.SetArgument("replayMessagePositions",positions);
         CPH.SetArgument("replayMessageAnimation",animation.ToString(Newtonsoft.Json.Formatting.None));
-        CPH.SetArgument("replayMessageMinWidth",CPH.GetGlobalVar<int?>("rts.actionreplay.message.minWidth",true)??500);
-        CPH.SetArgument("replayMessageMinHeight",CPH.GetGlobalVar<int?>("rts.actionreplay.message.minHeight",true)??120);
+        var messageWidth=CPH.GetGlobalVar<int?>("rts.actionreplay.message.minWidth",true)??500;
+        var messageHeight=CPH.GetGlobalVar<int?>("rts.actionreplay.message.minHeight",true)??120;
+        CPH.SetArgument("replayMessageWidth",messageWidth);
+        CPH.SetArgument("replayMessageHeight",messageHeight);
+        CPH.SetArgument("replayMessageMinWidth",messageWidth);
+        CPH.SetArgument("replayMessageMinHeight",messageHeight);
         CPH.SetArgument("replayMessageCornerRadius",CPH.GetGlobalVar<int?>("rts.actionreplay.message.cornerRadius",true)??0);
         CPH.SetArgument("replayMessageDuration",CPH.GetGlobalVar<int?>("rts.actionreplay.message.duration",true)??5000);
         CPH.SetArgument("replayPanelPreset",design);
