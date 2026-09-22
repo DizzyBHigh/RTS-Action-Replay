@@ -245,7 +245,9 @@ public class CPHInline
         {
             CPH.SetArgument("replayMessagePositions",positions);CPH.SetArgument("replayMessageAnimation",animation.ToString(Newtonsoft.Json.Formatting.None));
             var messageWidth=CPH.GetGlobalVar<int?>("rts.actionreplay.message.width",true)??500;var messageHeight=CPH.GetGlobalVar<int?>("rts.actionreplay.message.height",true)??120;
+            CPH.LogInfo($"RTS Action Replay TRACE: message dimensions global width={messageWidth}, height={messageHeight}.");
             CPH.SetArgument("replayMessageWidth",messageWidth);CPH.SetArgument("replayMessageHeight",messageHeight);
+            CPH.LogInfo($"RTS Action Replay TRACE: message arguments width={CPH.GetArgument<int?>("replayMessageWidth")}, height={CPH.GetArgument<int?>("replayMessageHeight")}.");
             CPH.SetArgument("replayMessageCornerRadius",CPH.GetGlobalVar<int?>("rts.actionreplay.message.cornerRadius",true)??0);CPH.SetArgument("replayMessageDuration",CPH.GetGlobalVar<int?>("rts.actionreplay.message.duration",true)??5000);
         }
         else
