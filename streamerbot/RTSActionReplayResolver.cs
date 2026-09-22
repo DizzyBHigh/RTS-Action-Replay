@@ -191,6 +191,11 @@ public class CPHInline
         CPH.LogInfo("RTS Action Replay TRACE: resolving message animation.");
         var animation = Animation(message, "message", (string)entry["animationProfile"] ?? "default");
         CPH.LogInfo("RTS Action Replay TRACE: message animation resolved.");
+        var messagePositions = animation["positions"] as JObject ?? new JObject();
+        var selectedMessagePosition = messagePositions.Properties()
+            .FirstOrDefault(p => string.Equals(p.Name, (string)op["messagePosition"] ?? "Centered", StringComparison.OrdinalIgnoreCase)
+                || string.Equals((string)p.Value["tag"], (string)op["messagePosition"] ?? "Centered", StringComparison.OrdinalIgnoreCase));
+        CPH.LogInfo($"RTS Action Replay TRACE: message position source={(selectedMessagePosition == null ? "missing" : selectedMessagePosition.Name)}, data={(selectedMessagePosition?.Value ?? new JObject()).ToString(Newtonsoft.Json.Formatting.None)}.");
         ApplyMessagePresentation(design, brand, animation);
         CPH.LogInfo("RTS Action Replay TRACE: message presentation applied.");
 
