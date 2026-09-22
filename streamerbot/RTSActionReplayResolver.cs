@@ -155,10 +155,20 @@ public class CPHInline
 
     public bool ResolveMessagePresentation()
     {
-        var op = Read(MessageOperationKey);
-        if (op == null || op.Count == 0) return false;
+        try
+        {
+            CPH.LogInfo("RTS Action Replay TRACE: ResolveMessagePresentation entered.");
 
-        var message = ReadConfig(MessageKey, CreateMessageDefaults());
+            var op = Read(MessageOperationKey);
+            if (op == null || op.Count == 0)
+            {
+                CPH.LogWarn("RTS Action Replay TRACE: message operation was empty.");
+                return false;
+            }
+            CPH.LogInfo("RTS Action Replay TRACE: message operation read.");
+
+            var message = ReadConfig(MessageKey, CreateMessageDefaults());
+            CPH.LogInfo("RTS Action Replay TRACE: message configuration read.");
         var entry = message["entryPoint"] as JObject ?? new JObject();
         var design = (string)entry["designPreset"] ?? "broadcast";
         var brand = (string)entry["brandingPreset"] ?? "default";
@@ -170,8 +180,11 @@ public class CPHInline
             if (sourceBrand != null) brand = (string)sourceBrand["id"] ?? brand;
         }
 
+        CPH.LogInfo("RTS Action Replay TRACE: resolving message animation.");
         var animation = Animation(message, "message", (string)entry["animationProfile"] ?? "default");
+        CPH.LogInfo("RTS Action Replay TRACE: message animation resolved.");
         ApplyMessagePresentation(design, brand, animation);
+        CPH.LogInfo("RTS Action Replay TRACE: message presentation applied.");
 
         CPH.SetArgument("replayMessage", (string)op["message"] ?? "");
         CPH.SetArgument("messageQueueId", (string)op["messageQueueId"] ?? "");
@@ -183,6 +196,12 @@ public class CPHInline
         CPH.TriggerEvent(EventName, true);
         CPH.UnsetGlobalVar(MessageOperationKey, false);
         return true;
+        }
+        catch (Exception ex)
+        {
+            CPH.LogError($"RTS Action Replay: ResolveMessagePresentation failed: {ex}");
+            return false;
+        }
     }
 
     void ApplyMessagePresentation(string designId, string brandId, JObject animation)
