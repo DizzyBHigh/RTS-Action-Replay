@@ -180,7 +180,7 @@ public class CPHInline
         var entry = message["entryPoint"] as JObject ?? new JObject();
         var design = (string)entry["designPreset"] ?? "broadcast";
         var brand = (string)entry["brandingPreset"] ?? "default";
-        var source = (string)op["replaySourcePlatform"] ?? "";
+        var source = (string)op["messageSourcePlatform"] ?? "";
 
         if (CPH.GetGlobalVar<bool?>("rts.actionreplay.message.useSourcePlatformBranding", true) == true)
         {
