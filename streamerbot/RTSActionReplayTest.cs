@@ -54,6 +54,7 @@ public class CPHInline
         CPH.SetArgument("replaySearchRequesterPlatform", TestOrigin());
         CPH.SetArgument("replaySearchDuration", 10000);
         CPH.SetArgument("replaySearchRequestId", "rts-test-panel-" + Guid.NewGuid().ToString("N"));
+        CPH.SetArgument("replayTest", true);
         CPH.SetArgument("replayPanelPosition", "Centered");
         CPH.SetGlobalVar("rts.actionreplay.operation.panel", new JObject {
             ["panelType"] = "recent", ["requesterPlatform"] = TestOrigin(), ["triggerEvent"] = false
