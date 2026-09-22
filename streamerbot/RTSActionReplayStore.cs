@@ -304,12 +304,19 @@ public class CPHInline
         AddSnapshotGlobal(globals, "clapperDuration", "rts.actionreplay.clapper.duration");
         AddSnapshotGlobal(globals, "brandLogoUrl", "rts.actionreplay.brandLogoUrl");
 
-        foreach (var prefix in new[] { "save", "name", "play", "recent", "playlist" })
+        foreach (var prefix in new[] { "created", "queued", "renamed", "removed", "rated", "cleared", "clearedall" })
         {
             AddSnapshotGlobal(globals, "message" + Cap(prefix) + "Text", "rts.actionreplay.message." + prefix + ".text");
             AddSnapshotGlobal(globals, "message" + Cap(prefix) + "Chat", "rts.actionreplay.message." + prefix + ".chat");
             AddSnapshotGlobal(globals, "message" + Cap(prefix) + "Overlay", "rts.actionreplay.message." + prefix + ".overlay");
         }
+        AddSnapshotGlobal(globals, "messageRecentChat", "rts.actionreplay.message.recent.chat");
+        AddSnapshotGlobal(globals, "messagePlaylistChat", "rts.actionreplay.message.playlist.chat");
+        AddSnapshotGlobal(globals, "messageListFormat", "rts.actionreplay.message.list.format");
+        AddSnapshotGlobal(globals, "messageListMaxLength", "rts.actionreplay.message.list.maxLength");
+        AddSnapshotGlobal(globals, "messageUseSourcePlatformBranding", "rts.actionreplay.message.useSourcePlatformBranding");
+        AddSnapshotGlobal(globals, "messageWidth", "rts.actionreplay.message.width");
+        AddSnapshotGlobal(globals, "messageHeight", "rts.actionreplay.message.height");
 
         CPH.SetGlobalVar(ConfigurationSnapshotKey, config.ToString(Newtonsoft.Json.Formatting.None), false);
         CPH.LogInfo("RTS Action Replay: configuration snapshot prepared.");
