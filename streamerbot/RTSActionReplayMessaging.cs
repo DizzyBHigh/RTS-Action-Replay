@@ -70,15 +70,30 @@ public class CPHInline
 
     public bool TestMessage()
     {
+        CPH.LogInfo("RTS Action Replay: TestMessage entered.");
         var testOperation = ReadTestOperation();
-        if (testOperation == null) return false;
+        if (testOperation == null)
+        {
+            CPH.LogWarn("RTS Action Replay: test message operation was not found.");
+            return false;
+        }
 
         ApplyTestOperation(testOperation);
+        CPH.LogInfo($"RTS Action Replay: test operation read event={Arg("messageEvent")}, source={Arg("replaySourcePlatform")}.");
 
         var item = BuildItem();
-        if (item == null) return false;
+        if (item == null)
+        {
+            CPH.LogWarn($"RTS Action Replay: test message BuildItem returned null event={Arg("messageEvent")}." );
+            return false;
+        }
+        CPH.LogInfo($"RTS Action Replay: test message built chat={(bool?)item["chat"] == true}, overlay={(bool?)item["overlay"] == true}, text={(string)item["message"] ?? ""}.");
         if ((bool?)item["chat"] == true) SendChat(item);
-        if ((bool?)item["overlay"] != true) return true;
+        if ((bool?)item["overlay"] != true)
+        {
+            CPH.LogWarn("RTS Action Replay: test message overlay is disabled.");
+            return true;
+        }
 
         item["test"] = true;
         WriteMessageOperation(item);
