@@ -64,7 +64,7 @@ public class CPHInline
         var useSource = CPH.GetGlobalVar<bool?>("rts.actionreplay.clapper.useSourcePlatformBranding", true) ?? false;
         if (useSource)
         {
-            var source = creatorPlatform;
+            var source = CPH.TryGetArg("replaySourcePlatform",out string testSource)&&!string.IsNullOrWhiteSpace(testSource)?testSource:creatorPlatform;
             var sourceBrand = PlatformBranding(source);
             if (sourceBrand != null) brand = (string)sourceBrand["id"] ?? brand;
         }
@@ -99,7 +99,7 @@ public class CPHInline
         var replayCreated=false; if(CPH.TryGetArg("replayCreated",out string created)) bool.TryParse(created,out replayCreated);
         var useSourcePlatformBranding=(bool?)entry["useSourcePlatformBranding"]==true;
         var changePlayerBrandingToClipSource=(bool?)entry["changePlayerBrandingToClipSource"]==true;
-        if(changePlayerBrandingToClipSource){var source=ResolveReplaySourcePlatform();var b=PlatformBranding(source);if(b!=null)brand=(string)b["id"]??brand;}
+        if(changePlayerBrandingToClipSource){var source=CPH.TryGetArg("replaySourcePlatform",out string testSource)&&!string.IsNullOrWhiteSpace(testSource)?testSource:ResolveReplaySourcePlatform();var b=PlatformBranding(source);if(b!=null)brand=(string)b["id"]??brand;}
         else if(replayCreated&&useSourcePlatformBranding){CPH.TryGetArg("replaySource",out string source);var b=PlatformBranding(source??"");if(b!=null)brand=(string)b["id"]??brand;}
         CPH.SetArgument("animationProfile",(string)entry["animationProfile"]??"default");
         CPH.SetArgument("visualPreset",design); CPH.SetArgument("designPreset",design); CPH.SetArgument("titlePreset",title); CPH.SetArgument("brandingPreset",brand);
@@ -119,7 +119,7 @@ public class CPHInline
         var replayCreated=(bool?)op["replayCreated"]==true;
         var useCreateBranding=replayCreated&&(bool?)entry["useSourcePlatformBranding"]==true;
         var useSourceBranding=(bool?)entry["changePlayerBrandingToClipSource"]==true;
-        if(useSourceBranding){var source=ResolveReplaySourcePlatform((string)op["replayId"]);var b=PlatformBranding(source);if(b!=null)brand=(string)b["id"]??brand;}
+        if(useSourceBranding){var source=(string)op["replaySourcePlatform"];if(string.IsNullOrWhiteSpace(source))source=ResolveReplaySourcePlatform((string)op["replayId"]);var b=PlatformBranding(source);if(b!=null)brand=(string)b["id"]??brand;}
         else if(useCreateBranding){var source=(string)op["replaySource"]??"";var b=PlatformBranding(source);if(b!=null)brand=(string)b["id"]??brand;}
         ApplyPresentation(design,title,brand,animation,false,useSourceBranding||useCreateBranding); CPH.LogInfo("RTS Action Replay TRACE: Player colours resolved; event arguments set for frame/control/branding."); CPH.TriggerEvent(EventName,true); CPH.UnsetGlobalVar(PlayerOperationKey,false); return true;
     }
