@@ -121,7 +121,7 @@ public class CPHInline
         var useSourceBranding=(bool?)entry["changePlayerBrandingToClipSource"]==true;
         if(useSourceBranding){var source=(string)op["replaySourcePlatform"];if(string.IsNullOrWhiteSpace(source))source=ResolveReplaySourcePlatform((string)op["replayId"]);var b=PlatformBranding(source);if(b!=null)brand=(string)b["id"]??brand;}
         else if(useCreateBranding){var source=(string)op["replaySourcePlatform"]??(string)op["replaySource"]??"";var b=PlatformBranding(source);if(b!=null)brand=(string)b["id"]??brand;}
-        ApplyPresentation(design,title,brand,animation,false,useSourceBranding||useCreateBranding); CPH.LogInfo("RTS Action Replay TRACE: Player colours resolved; event arguments set for frame/control/branding."); CPH.TriggerEvent(EventName,true); CPH.UnsetGlobalVar(PlayerOperationKey,false); return true;
+        ApplyPresentation(design,title,brand,animation,"player",useSourceBranding||useCreateBranding); CPH.LogInfo("RTS Action Replay TRACE: Player colours resolved; event arguments set for frame/control/branding."); CPH.TriggerEvent(EventName,true); CPH.UnsetGlobalVar(PlayerOperationKey,false); return true;
     }
 
     public bool ResolvePanel()
@@ -130,7 +130,7 @@ public class CPHInline
         ApplyObject(op); var config=Read(PanelKey); var type=(string)op["panelType"]??"recent"; var entry=Entry(config,type);
         var animation=Animation(config,"panel",(string)entry["animationProfile"]); var brand=(string)entry["brandingPreset"]??"default"; var useSource=(bool?)config["useSourcePlatformBranding"]==true;
         if(useSource){var source=(string)op["requesterPlatform"]??(string)op["platform"]??"";if(string.IsNullOrWhiteSpace(source))CPH.TryGetArg("userType",out source);var b=PlatformBranding(source);if(b!=null)brand=(string)b["id"]??brand;}
-        ApplyPresentation((string)entry["designPreset"]??(string)entry["visualPreset"]??"broadcast",(string)entry["titlePreset"]??"default",brand,animation,true,useSource);
+        ApplyPresentation((string)entry["designPreset"]??(string)entry["visualPreset"]??"broadcast",(string)entry["titlePreset"]??"default",brand,animation,"panel",useSource);
         if((bool?)op["triggerEvent"]!=false) CPH.TriggerEvent(EventName,true); CPH.UnsetGlobalVar(PanelOperationKey,false); return true;
     }
 
@@ -190,13 +190,8 @@ public class CPHInline
 
         CPH.LogInfo("RTS Action Replay TRACE: resolving message animation.");
         var animation = Animation(message, "message", (string)entry["animationProfile"] ?? "default");
-        if (CPH.TryGetArg("replayMessagePositionPreview", out bool preview) && preview)
-        {
-            if (CPH.TryGetArg("replayMessagePositions", out string previewPositions) && !string.IsNullOrWhiteSpace(previewPositions))
-                animation["positions"] = JObject.Parse(previewPositions);
-        }
         CPH.LogInfo("RTS Action Replay TRACE: message animation resolved.");
-        ApplyMessagePresentation(design, brand, animation);
+        ApplyPresentation(design, "default", brand, animation, "message", false);
         CPH.LogInfo("RTS Action Replay TRACE: message presentation applied.");
 
         CPH.SetArgument("replayMessage", (string)op["message"] ?? "");
@@ -217,40 +212,6 @@ public class CPHInline
         }
     }
 
-    void ApplyMessagePresentation(string designId, string brandId, JObject animation)
-    {
-        var presets=Read(PresetsKey);
-        var d=Find(presets["visual"] as JArray,designId)??Find(presets["visual"] as JArray,"broadcast");
-        var b=Find(presets["branding"] as JArray,brandId)??Find(presets["branding"] as JArray,"default");
-        if(d==null||b==null)return;
-        var design=(string)d["design"]??(string)d["id"]??"broadcast";
-        var positions=((JObject)animation["positions"]??new JObject()).ToString(Newtonsoft.Json.Formatting.None);
-        CPH.SetArgument("replayMessagePositions",positions);
-        CPH.SetArgument("replayMessageAnimation",animation.ToString(Newtonsoft.Json.Formatting.None));
-        var messageWidth=CPH.GetGlobalVar<int?>("rts.actionreplay.message.minWidth",true)??500;
-        var messageHeight=CPH.GetGlobalVar<int?>("rts.actionreplay.message.minHeight",true)??120;
-        CPH.SetArgument("replayMessageWidth",messageWidth);
-        CPH.SetArgument("replayMessageHeight",messageHeight);
-        CPH.SetArgument("replayMessageMinWidth",messageWidth);
-        CPH.SetArgument("replayMessageMinHeight",messageHeight);
-        CPH.SetArgument("replayMessageCornerRadius",CPH.GetGlobalVar<int?>("rts.actionreplay.message.cornerRadius",true)??0);
-        CPH.SetArgument("replayMessageDuration",CPH.GetGlobalVar<int?>("rts.actionreplay.message.duration",true)??5000);
-        CPH.SetArgument("replayPanelPreset",design);
-        CPH.SetArgument("replayPanelPrimaryColor",PanelPrimaryColor(d,b));
-        CPH.SetArgument("replayPanelSecondaryColor",PanelSecondaryColor(d,b));
-        CPH.SetArgument("replayPanelTitleFont",(string)b["font"]??"Inter");
-        CPH.SetArgument("replayPanelTitleSize",(int?)b["fontSize"]??34);
-        CPH.SetArgument("replayPanelTitleColor",(string)b["textColor"]??"#FFFFFFFF");
-        CPH.SetArgument("replayPanelListColor",(string)b["textColor"]??"#FFFFFFFF");
-        CPH.SetArgument("replayPanelListShadowColor",(string)b["shadowColor"]??"#000000FF");
-        CPH.SetArgument("replayPanelBackgroundColor",PanelBackgroundColor(d,b));
-        Props("replayBroadcast",Broadcast(d,b));
-        Props("replayCut",Cut(d,b));
-        CPH.SetArgument("replayDesignPresetId",(string)d["id"]??"broadcast");
-        CPH.SetArgument("replayBrandingPresetId",(string)b["id"]??"default");
-        return;
-    }
-
     JObject Animation(JObject config,string target,string profileId)
     {
         profileId=string.IsNullOrWhiteSpace(profileId)?"default":profileId;
@@ -268,20 +229,42 @@ public class CPHInline
 
     JArray DefaultSequence(string target)=>new JArray(new JObject{["position"]=target=="panel"||target=="message"?"centered":"full-screen",["duration"]=0,["delay"]=0,["easing"]="ease-in-out"});
 
-    void ApplyPresentation(string designId,string titleId,string brandId,JObject animation,bool panel,bool useSourceBranding)
+    void ApplyPresentation(string designId,string titleId,string brandId,JObject animation,string target,bool useSourceBranding)
     {
         var presets=Read(PresetsKey);var d=Find(presets["visual"] as JArray,designId)??Find(presets["visual"] as JArray,"broadcast");
         var t=Find(presets["title"] as JArray,titleId)??Find(presets["title"] as JArray,"default");
         var b=Find(presets["branding"] as JArray,brandId)??Find(presets["branding"] as JArray,"default");if(d==null||t==null||b==null)return;
-        if(!panel&&useSourceBranding){d=(JObject)d.DeepClone();d["backgroundSource"]="Branding Secondary";}
+        if(target=="player"&&useSourceBranding){d=(JObject)d.DeepClone();d["backgroundSource"]="Branding Secondary";}
         var design=(string)d["design"]??(string)d["id"]??"broadcast";var positions=((JObject)animation["positions"]??new JObject()).ToString(Newtonsoft.Json.Formatting.None);
-        if(panel){CPH.SetArgument("replayPanelPositions",positions);CPH.SetArgument("replayPanelAnimation",animation.ToString(Newtonsoft.Json.Formatting.None));CPH.SetArgument("replayPanelWidth",CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width",true)??500);CPH.SetArgument("replayPanelHeight",CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height",true)??700);CPH.SetArgument("replayPanelCornerRadius",CPH.GetGlobalVar<int?>("rts.actionreplay.panel.cornerRadius",true)??0);}
-        else{CPH.SetArgument("replayAnimationProfile",animation.ToString(Newtonsoft.Json.Formatting.None));CPH.SetArgument("replayAnimationProfileId",(string)animation["id"]);CPH.SetArgument("replayPlayerPositions",positions);CPH.SetArgument("replayPositions",positions);var start=animation["start"] as JArray??new JArray();var end=animation["end"] as JArray??new JArray();CPH.SetArgument("replayStartPosition",(string)start[0]?["position"]??"full-screen");CPH.SetArgument("replayEndPosition",(string)end[end.Count-1]?["position"]??"full-screen");}
+        if(target=="panel")
+        {
+            CPH.SetArgument("replayPanelPositions",positions);CPH.SetArgument("replayPanelAnimation",animation.ToString(Newtonsoft.Json.Formatting.None));
+            CPH.SetArgument("replayPanelWidth",CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width",true)??500);CPH.SetArgument("replayPanelHeight",CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height",true)??700);CPH.SetArgument("replayPanelCornerRadius",CPH.GetGlobalVar<int?>("rts.actionreplay.panel.cornerRadius",true)??0);
+        }
+        else if(target=="message")
+        {
+            CPH.SetArgument("replayMessagePositions",positions);CPH.SetArgument("replayMessageAnimation",animation.ToString(Newtonsoft.Json.Formatting.None));
+            var messageWidth=CPH.GetGlobalVar<int?>("rts.actionreplay.message.minWidth",true)??500;var messageHeight=CPH.GetGlobalVar<int?>("rts.actionreplay.message.minHeight",true)??120;
+            CPH.SetArgument("replayMessageWidth",messageWidth);CPH.SetArgument("replayMessageHeight",messageHeight);CPH.SetArgument("replayMessageMinWidth",messageWidth);CPH.SetArgument("replayMessageMinHeight",messageHeight);
+            CPH.SetArgument("replayMessageCornerRadius",CPH.GetGlobalVar<int?>("rts.actionreplay.message.cornerRadius",true)??0);CPH.SetArgument("replayMessageDuration",CPH.GetGlobalVar<int?>("rts.actionreplay.message.duration",true)??5000);
+        }
+        else
+        {
+            CPH.SetArgument("replayAnimationProfile",animation.ToString(Newtonsoft.Json.Formatting.None));CPH.SetArgument("replayAnimationProfileId",(string)animation["id"]);CPH.SetArgument("replayPlayerPositions",positions);CPH.SetArgument("replayPositions",positions);
+            var start=animation["start"] as JArray??new JArray();var end=animation["end"] as JArray??new JArray();CPH.SetArgument("replayStartPosition",(string)start[0]?["position"]??"full-screen");CPH.SetArgument("replayEndPosition",(string)end[end.Count-1]?["position"]??"full-screen");
+        }
         CPH.SetArgument("replayPanelPreset",design);CPH.SetArgument("replayPanelPrimaryColor",PanelPrimaryColor(d,b));CPH.SetArgument("replayPanelSecondaryColor",PanelSecondaryColor(d,b));CPH.SetArgument("replayPanelTitleFont",(string)b["font"]??"Inter");CPH.SetArgument("replayPanelTitleSize",(int?)b["fontSize"]??34);CPH.SetArgument("replayPanelTitleColor",(string)b["textColor"]??"#FFFFFFFF");CPH.SetArgument("replayPanelListColor",(string)b["textColor"]??"#FFFFFFFF");CPH.SetArgument("replayPanelListShadowColor",(string)b["shadowColor"]??"#000000FF");
         CPH.SetArgument("replayTitleDecorationPosition",(string)t["decorationPosition"]??"Prefix");CPH.SetArgument("replayTitleDecoration",(string)t["decoration"]??"Action Replay -");CPH.SetArgument("replayTitlePosition",(string)t["position"]??"Bottom");CPH.SetArgument("replayTitleAnimation",(string)t["animation"]??"Left to right");CPH.SetArgument("replayTitleDelay",(int?)t["delay"]??2000);CPH.SetArgument("replayTitleDuration",(int?)t["duration"]??10000);CPH.SetArgument("replayTitleAnimationDuration",(int?)t["animationDuration"]??1000);
         CPH.SetArgument("replayTitleFont",(string)b["font"]??"Inter");CPH.SetArgument("replayTitleFontSize",(int?)b["fontSize"]??34);CPH.SetArgument("replayTitleTextColor",(string)b["textColor"]??"#FFFFFFFF");CPH.SetArgument("replayTitleShadowColor",(string)b["shadowColor"]??"#000000FF");CPH.SetArgument("replayTitlePrimaryColor",(string)b["primaryColor"]??"#0384CBFF");CPH.SetArgument("replayBrandPrimaryColor",(string)b["primaryColor"]??"#0384CBFF");CPH.SetArgument("replayTitleSecondaryColor",(string)b["secondaryColor"]??"#101416FF");CPH.SetArgument("replayBrandLogoUrl",(string)b["logo"]??"");CPH.SetArgument("replayBrandFallbackText",(string)b["fallbackText"]??"RTS");CPH.SetArgument("replayBrandLabel",(string)b["brandLabel"]??"ACTION REPLAY");CPH.SetArgument("replayBrandFallbackTextColor",(string)b["primaryColor"]??"#0384CBFF");CPH.SetArgument("replayBrandLabelColor",(string)b["textColor"]??"#FFFFFFFF");
         Props("replayBroadcast",Broadcast(d,b));Props("replayCut",Cut(d,b));CPH.SetArgument("replayPanelBackgroundColor",PanelBackgroundColor(d,b));CPH.SetArgument("replayDesignPresetId",(string)d["id"]??"broadcast");CPH.SetArgument("replayTitlePresetId",(string)t["id"]??"default");CPH.SetArgument("replayBrandingPresetId",(string)b["id"]??"default");
-        if(!panel){var source=CPH.GetGlobalVar<string>("rts.actionreplay.frameColorSource",true)??"Custom";var frame=CPH.GetGlobalVar<string>("rts.actionreplay.frameColor",true)??"#0384CBFF";if(useSourceBranding||!string.Equals(source,"Custom",StringComparison.OrdinalIgnoreCase))frame=(string)b[string.Equals(source,"Branding Secondary",StringComparison.OrdinalIgnoreCase)&&!useSourceBranding?"secondaryColor":"primaryColor"]??frame;CPH.SetArgument("replayFrameColor",frame);var controlSource=CPH.GetGlobalVar<string>("rts.actionreplay.controlColorSource",true)??"Branding Primary";var control=CPH.GetGlobalVar<string>("rts.actionreplay.controlColor",true)??"#0384CBFF";if(useSourceBranding||!string.Equals(controlSource,"Custom",StringComparison.OrdinalIgnoreCase))control=(string)b[string.Equals(controlSource,"Branding Secondary",StringComparison.OrdinalIgnoreCase)&&!useSourceBranding?"secondaryColor":"primaryColor"]??control;CPH.SetArgument("replayControlColor",control);CPH.SetArgument("replayBorderGlow",CPH.GetGlobalVar<bool?>("rts.actionreplay.borderGlow",true)??true);CPH.SetArgument("replayBorderWidth",CPH.GetGlobalVar<int?>("rts.actionreplay.borderWidth",true)??4);CPH.SetArgument("replayCornerRadius",CPH.GetGlobalVar<int?>("rts.actionreplay.cornerRadius",true)??0);}
+        if(target=="player")
+        {
+            var source=CPH.GetGlobalVar<string>("rts.actionreplay.frameColorSource",true)??"Custom";var frame=CPH.GetGlobalVar<string>("rts.actionreplay.frameColor",true)??"#0384CBFF";
+            if(useSourceBranding||!string.Equals(source,"Custom",StringComparison.OrdinalIgnoreCase))frame=(string)b[string.Equals(source,"Branding Secondary",StringComparison.OrdinalIgnoreCase)&&!useSourceBranding?"secondaryColor":"primaryColor"]??frame;
+            CPH.SetArgument("replayFrameColor",frame);var controlSource=CPH.GetGlobalVar<string>("rts.actionreplay.controlColorSource",true)??"Branding Primary";var control=CPH.GetGlobalVar<string>("rts.actionreplay.controlColor",true)??"#0384CBFF";
+            if(useSourceBranding||!string.Equals(controlSource,"Custom",StringComparison.OrdinalIgnoreCase))control=(string)b[string.Equals(controlSource,"Branding Secondary",StringComparison.OrdinalIgnoreCase)&&!useSourceBranding?"secondaryColor":"primaryColor"]??control;
+            CPH.SetArgument("replayControlColor",control);CPH.SetArgument("replayBorderGlow",CPH.GetGlobalVar<bool?>("rts.actionreplay.borderGlow",true)??true);CPH.SetArgument("replayBorderWidth",CPH.GetGlobalVar<int?>("rts.actionreplay.borderWidth",true)??4);CPH.SetArgument("replayCornerRadius",CPH.GetGlobalVar<int?>("rts.actionreplay.cornerRadius",true)??0);
+        }
     }
 
     string PanelPrimaryColor(JObject d,JObject b){var source=((string)d["backgroundSource"]??"").Trim();if((string.Equals((string)d["id"],"cut",StringComparison.OrdinalIgnoreCase)||string.Equals((string)d["id"],"broadcast",StringComparison.OrdinalIgnoreCase))&&string.Equals(source,"RTS Dark Blue",StringComparison.OrdinalIgnoreCase))return "#0384CBFF";return (string)b["primaryColor"]??"#0384CBFF";}
