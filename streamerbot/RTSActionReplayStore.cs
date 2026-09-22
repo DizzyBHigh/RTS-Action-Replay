@@ -246,9 +246,10 @@ public class CPHInline
 
     public bool GetConfigurationSnapshot()
     {
+        // This method can be called from the settings UI thread. Do not call EnsureDefaults
+        // or EnsureEntryPoints here because they invoke other Streamer.bot methods and can
+        // deadlock the settings dialog while it is waiting for this export action.
         EnsureData();
-        EnsureDefaults();
-        EnsureEntryPoints();
 
         var config = new JObject
         {
