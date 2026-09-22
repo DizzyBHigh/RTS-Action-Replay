@@ -17,7 +17,9 @@ public class CPHInline
         return string.Equals(Arg("messageComplete"), "true", StringComparison.OrdinalIgnoreCase);
     }
 
-    public bool Reset()
+    public bool Reset() => ClearQueue();
+
+    public bool ClearQueue()
     {
         lock (typeof(CPHInline))
         {
@@ -25,6 +27,19 @@ public class CPHInline
             CPH.SetGlobalVar(ActiveKey, "", false);
         }
 
+        CPH.LogInfo("RTS Action Replay: message queue cleared.");
+        return true;
+    }
+
+    public bool Resume()
+    {
+        lock (typeof(CPHInline))
+        {
+            CPH.SetGlobalVar(ActiveKey, "", false);
+        }
+
+        CPH.LogInfo("RTS Action Replay: message queue resume requested.");
+        ProcessQueue();
         return true;
     }
 
@@ -59,6 +74,7 @@ public class CPHInline
         if ((bool?)item["overlay"] != true) return true;
         item["test"] = true;
         CPH.SetArgument("messageTest", true);
+        CPH.SetArgument("messageQueueId", "");
         CPH.SetArgument("replayMessage", (string)item["message"] ?? "");
         CPH.SetArgument("replayMessageSourcePlatform", (string)item["replay"]?["sourcePlatform"] ?? "");
         CPH.SetArgument("replaySource", (string)item["replay"]?["sourcePlatform"] ?? "");
