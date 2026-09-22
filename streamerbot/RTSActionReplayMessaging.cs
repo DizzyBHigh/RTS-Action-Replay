@@ -51,6 +51,24 @@ public class CPHInline
         return true;
     }
 
+    public bool TestMessage()
+    {
+        var item = BuildItem();
+        if (item == null) return false;
+        if ((bool?)item["chat"] == true) SendChat(item);
+        if ((bool?)item["overlay"] != true) return true;
+        item["test"] = true;
+        CPH.SetArgument("messageTest", true);
+        CPH.SetArgument("replayMessage", (string)item["message"] ?? "");
+        CPH.SetArgument("replayMessageSourcePlatform", (string)item["replay"]?["sourcePlatform"] ?? "");
+        CPH.SetArgument("replaySource", (string)item["replay"]?["sourcePlatform"] ?? "");
+        CPH.SetArgument("replayCommand", "message");
+        CPH.SetArgument("replayMessagePosition", "Centered");
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveMessagePresentation");
+        CPH.TriggerEvent(OverlayEvent, true);
+        return true;
+    }
+
     public bool OverlayCompleted()
     {
         var completedId = Arg("messageQueueId");
@@ -153,7 +171,7 @@ public class CPHInline
 
     private void TriggerOverlay(JObject item)
     {
-        CPH.SetArgument("messageQueueId", (string)item["id"] ?? "");
+        if ((bool?)item["test"] != true) CPH.SetArgument("messageQueueId", (string)item["id"] ?? "");
         CPH.SetArgument("replayMessage", (string)item["message"] ?? "");
         CPH.SetArgument("replayMessageSourcePlatform", (string)item["replay"]?["sourcePlatform"] ?? "");
         CPH.SetArgument("replaySource", (string)item["replay"]?["sourcePlatform"] ?? "");
@@ -210,6 +228,7 @@ public class CPHInline
             ["chat"] = chat,
             ["overlay"] = overlay,
             ["presentation"] = presentation,
+            ["test"] = false,
             ["requester"] = new JObject
             {
                 ["id"] = Arg("requesterId"),
