@@ -1,5 +1,5 @@
 const RTSPositioningEngine = {
-  version: '20260920-1',
+  version: '20260922-1',
   diagnostics: new WeakMap(),
   referenceWidth: 1920,
   referenceHeight: 1080,
@@ -21,10 +21,10 @@ const RTSPositioningEngine = {
     const dev = Boolean(document.getElementById('rts-dev-stage'));
     const viewportWidth = dev ? this.referenceWidth : Math.max(1, window.innerWidth || this.referenceWidth);
     const viewportHeight = dev ? this.referenceHeight : Math.max(1, window.innerHeight || this.referenceHeight);
-    const perspective = Math.max(1, (viewportWidth / 2) / Math.tan((fov * Math.PI / 180) / 2));
-    // X/Y are screen-space positioning values. Compensate their
-    // translation for Z depth so Z zooms around the existing screen position
-    // instead of causing the element to drift toward/away from the center.
+
+    // Match the deployed RtsUI.dll position preview. Its camera distance is
+    // 360 * tan(FOV / 2), and its X/Y translations compensate for Z depth.
+    const perspective = Math.max(1, 360.0 * Math.tan((fov * Math.PI / 180) / 2));
     const depthFactor = (perspective - z) / perspective;
     const xValue = `${x * viewportWidth / 100 * depthFactor}px`;
     const yValue = `${-y * viewportHeight / 100 * depthFactor}px`;
