@@ -34,8 +34,8 @@ RTSInformationPanels.applySize = (panel, command) => {
 
 RTSInformationPanels.applyMessageSize = (panel, command) => {
   if (!panel) return;
-  const width = Number(command?.replayMessageWidth ?? command?.replayMessageMinWidth);
-  const height = Number(command?.replayMessageHeight ?? command?.replayMessageMinHeight);
+  const width = Number(command?.replayMessageWidth);
+  const height = Number(command?.replayMessageHeight);
   const radius = Number(command?.replayMessageCornerRadius);
   if (Number.isFinite(width) && width > 0) panel.style.width = `${width}px`;
   if (Number.isFinite(height) && height > 0) panel.style.height = `${height}px`;
@@ -43,7 +43,6 @@ RTSInformationPanels.applyMessageSize = (panel, command) => {
   panel.style.minHeight = '0';
   panel.style.maxWidth = 'none';
   panel.style.maxHeight = 'none';
-  if (Number.isFinite(height) && height > 0) panel.style.setProperty('--message-min-height', `${height}px`);
   if (Number.isFinite(radius) && radius >= 0) panel.style.borderRadius = `${radius}px`;
 };
 
