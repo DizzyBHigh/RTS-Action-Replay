@@ -26,7 +26,7 @@ const messagePanelCommand = command => ({
   replayPanelPosition: command?.replayMessagePosition || 'Centered'
 });
 
-RTSReplayMessages.showMessage = command => {
+const fitMessageText = () => {\n  const text = RTSReplayMessages.messageText;\n  if (!text) return;\n  let size = Number.parseFloat(getComputedStyle(text).fontSize) || 14;\n  const minimum = 8;\n  text.style.fontSize = size + 'px';\n  while (size > minimum && (text.scrollWidth > text.clientWidth || text.scrollHeight > text.clientHeight)) {\n    size -= 0.5;\n    text.style.fontSize = size + 'px';\n  }\n};\n\nRTSReplayMessages.showMessage = command => {
   const text = String(command?.replayMessage || '').trim();
   if (!text || !RTSReplayMessages.messageCard) return;
 
@@ -40,6 +40,7 @@ RTSReplayMessages.showMessage = command => {
     panelCommand,
     panelCommand.replayPanelPosition
   );
+  requestAnimationFrame(fitMessageText);
   RTSReplayMessages.messageTimer = setTimeout(
     () => RTSReplayMessages.hideMessage(command),
     Number.isFinite(Number(command?.replayMessageDuration)) ? Number(command.replayMessageDuration) : RTSReplayMessages.config.messageDuration
