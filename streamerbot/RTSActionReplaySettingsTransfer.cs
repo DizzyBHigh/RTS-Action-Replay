@@ -31,6 +31,7 @@ public class CPHInline
   actions.Children.Add(all);actions.Children.Add(none);DockPanel.SetDock(actions,Dock.Top);root.Children.Add(actions);
 
   var list=new StackPanel{Margin=new Thickness(8,0,8,8)};
+  ApplyTheme(w,root);
   var checks=new List<RtsUICustomToggle>();
   var catalog=new RtsUICustomToggle{Content="Catalog",IsChecked=B("import.catalog",true),Margin=new Thickness(0,2,0,6)};
   var platforms=new List<RtsUICustomToggle>();
@@ -55,24 +56,16 @@ public class CPHInline
   catalogBody.Children.Add(platformRow);
   catalogBody.Children.Add(new TextBlock{Text="Duplicate Entries",Margin=new Thickness(0,8,0,2)});
   catalogBody.Children.Add(duplicates);
-  AddSection(list,"Catalog",catalogBody);
-
-  Action<string,string,bool> addProfile=(label,id,isAnimation)=>{
-   var row=new StackPanel{Margin=new Thickness(0,2,0,7)};
-   var cb=new RtsUICustomToggle{Content=label,IsChecked=true,Tag=(isAnimation?"a:":"b:")+id,Margin=new Thickness(0,2,0,0)};
-   row.Children.Add(cb);
-   row.Children.Add(new TextBlock{Text="ID: "+id,Margin=new Thickness(37,0,0,0),FontSize=12,Foreground=(Brush)w.Resources["duhBuhDescriptionText"]});
-   list.Children.Add(row);checks.Add(cb);
-  };
+  AddSection(list,"Catalog",catalogBody,w);
 
   if(branding)
   {
    var body=new StackPanel();
    foreach(var p in (r["presets"]?["branding"] as JArray??new JArray()).OfType<JObject>())
    {
-    var id=(string)p["id"];if(!string.IsNullOrWhiteSpace(id))AddProfile(body,(string)p["name"]??id,id,false,checks);
+    var id=(string)p["id"];if(!string.IsNullOrWhiteSpace(id))AddProfile(body,(string)p["name"]??id,id,false,checks,w);
    }
-   AddSection(list,"Branding Profiles",body);
+   AddSection(list,"Branding Profiles",body,w);
   }
 
   if(animation)
@@ -83,9 +76,9 @@ public class CPHInline
     var body=new StackPanel();
     foreach(var p in ps.OfType<JObject>())
     {
-     var id=(string)p["id"];if(!string.IsNullOrWhiteSpace(id))AddProfile(body,(string)p["name"]??id,component+":"+id,true,checks);
+     var id=(string)p["id"];if(!string.IsNullOrWhiteSpace(id))AddProfile(body,(string)p["name"]??id,component+":"+id,true,checks,w);
     }
-    AddSection(list,char.ToUpper(component[0])+component.Substring(1)+" Animation Profiles",body);
+    AddSection(list,char.ToUpper(component[0])+component.Substring(1)+" Animation Profiles",body,w);
    }
   }
 
@@ -114,22 +107,26 @@ public class CPHInline
   var result=w.ShowDialog()==true;b=selectedBranding;a=selectedAnimation;return result;
  }
 
- void AddSection(StackPanel list,string title,Panel body)
+ void AddSection(StackPanel list,string title,Panel body,Window w)
  {
   var content=new StackPanel();
-  content.Children.Add(new Border{Height=3,Background=(Brush)Application.Current.TryFindResource("duhBuhAccent"),HorizontalAlignment=HorizontalAlignment.Stretch,Margin=new Thickness(0,0,0,8)});
-  content.Children.Add(new TextBlock{Text=title,FontSize=14,FontWeight=FontWeights.SemiBold,Padding=new Thickness(10,7,10,7),Margin=new Thickness(0,0,0,10)});
+  var accent=w.Resources["duhBuhAccent"] as Brush;
+  var sectionBg=w.Resources["duhBuhSectionBackground"] as Brush;
+  var sectionBorder=w.Resources["duhBuhSectionBorder"] as Brush;
+  var sectionText=w.Resources["duhBuhSectionText"] as Brush;
+  content.Children.Add(new Border{Height=3,Background=accent,HorizontalAlignment=HorizontalAlignment.Stretch,Margin=new Thickness(0,0,0,8)});
+  content.Children.Add(new TextBlock{Text=title,FontSize=14,FontWeight=FontWeights.SemiBold,Foreground=sectionText,Background=sectionBg,Padding=new Thickness(10,7,10,7),Margin=new Thickness(0,0,0,10),HorizontalAlignment=HorizontalAlignment.Stretch});
   content.Children.Add(body);
-  var card=new Border{Background=(Brush)Application.Current.TryFindResource("duhBuhSectionBackground"),BorderBrush=(Brush)Application.Current.TryFindResource("duhBuhSectionBorder"),BorderThickness=new Thickness(1),CornerRadius=new CornerRadius(10),Padding=new Thickness(14,8,14,10),Margin=new Thickness(0,0,0,14),Child=content};
+  var card=new Border{Background=sectionBg,BorderBrush=sectionBorder,BorderThickness=new Thickness(1),CornerRadius=new CornerRadius(10),Padding=new Thickness(14,8,14,10),Margin=new Thickness(0,0,0,14),Child=content};
   list.Children.Add(card);
  }
 
- void AddProfile(StackPanel body,string label,string id,bool isAnimation,List<RtsUICustomToggle> checks)
+ void AddProfile(StackPanel body,string label,string id,bool isAnimation,List<RtsUICustomToggle> checks,Window w)
  {
   var row=new StackPanel{Margin=new Thickness(0,2,0,7)};
   var cb=new RtsUICustomToggle{Content=label,IsChecked=true,Tag=(isAnimation?"a:":"b:")+id,Margin=new Thickness(0,2,0,0)};
   row.Children.Add(cb);
-  row.Children.Add(new TextBlock{Text="ID: "+id,Margin=new Thickness(37,0,0,0),FontSize=12});
+  row.Children.Add(new TextBlock{Text="ID: "+id,Margin=new Thickness(37,0,0,0),FontSize=12,Foreground=w.Resources["duhBuhDescriptionText"] as Brush});
   body.Children.Add(row);checks.Add(cb);
  }
  void ApplyTheme(Window w,Panel root){var light=!string.Equals(CPH.GetGlobalVar<string>("rts.actionreplay.uiTheme",true),"Dark",StringComparison.OrdinalIgnoreCase);var bg=new SolidColorBrush((Color)ColorConverter.ConvertFromString(light?"#FFFFFF":"#1E1E1E"));var fg=new SolidColorBrush((Color)ColorConverter.ConvertFromString(light?"#111111":"#F2F2F2"));var sub=new SolidColorBrush((Color)ColorConverter.ConvertFromString(light?"#666666":"#B8B8B8"));w.Background=bg;root.Background=bg;RtsUITheme.Initialize();RtsUITheme.Apply(w,light);foreach(var x in Find(root)){if(x is TextBlock t)t.Foreground=t.FontWeight==FontWeights.SemiBold?fg:sub;if(x is RtsUICustomToggle toggle)toggle.Foreground=fg;}} IEnumerable<DependencyObject> Find(DependencyObject p){if(p==null)yield break;foreach(var c in LogicalTreeHelper.GetChildren(p)){if(c is DependencyObject d){yield return d;foreach(var x in Find(d))yield return x;}}}
