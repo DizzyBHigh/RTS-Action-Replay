@@ -55,7 +55,6 @@ public class CPHInline
         var url = ResolveReplayUrl(replay);
         if (string.Equals(source, "Kick", StringComparison.OrdinalIgnoreCase)) url = ResolveKickUrl(replay);
         if (string.IsNullOrWhiteSpace(url)) { CPH.LogWarn("RTS Action Replay: test video could not resolve media for the first Catalog replay."); return false; }
-        var profile = "default";
         var operation = new JObject {
             ["replayCommand"] = "load", ["replayId"] = (string)replay["id"] ?? "", ["replayUrl"] = url,
             ["replayAutoplay"] = true, ["replayQueueEntryId"] = "", ["replayUserId"] = "rts-test-user",
@@ -63,7 +62,6 @@ public class CPHInline
             ["replayNumber"] = Array.IndexOf(GetCatalog(data).ToArray(), replay) + 1, ["replayTitle"] = (string)replay["title"] ?? "Test Replay",
             ["replayPlayedCount"] = (int?)replay["plays"] ?? 0, ["replaySource"] = source, ["replaySourceId"] = (string)replay["sourceId"] ?? "",
             ["replaySourcePlatform"] = CPH.GetGlobalVar<string>("rts.actionreplay.test.replayOrigin", true) ?? source,
-            ["animationProfileId"] = profile, ["designPresetId"] = "broadcast", ["titlePresetId"] = "default", ["brandingPresetId"] = "default",
             ["replayCreated"] = true
         };
         if (string.Equals(source, "YouTube", StringComparison.OrdinalIgnoreCase)) { operation["replayStartTime"] = (long?)replay["startTime"] ?? 0; operation["replayDuration"] = (int?)replay["duration"] ?? 0; }
