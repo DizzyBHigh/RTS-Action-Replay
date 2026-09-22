@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 public class CPHInline
 {
     const string PlayerKey="rts.actionreplay.config.player", PanelKey="rts.actionreplay.config.panel", MessageKey="rts.actionreplay.config.message", PresetsKey="rts.actionreplay.config.presets", AnimationKey="rts.actionreplay.config.animation";
-    const string PlayerOperationKey="rts.actionreplay.operation.player", PanelOperationKey="rts.actionreplay.operation.panel", EventName="RTS-Action Replay";
+    const string PlayerOperationKey="rts.actionreplay.operation.player", PanelOperationKey="rts.actionreplay.operation.panel", MessageOperationKey="rts.actionreplay.operation.message", EventName="RTS-Action Replay";
 
     private const string ClapperKey = "rts.actionreplay.config.clapper";
     private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
@@ -155,19 +155,33 @@ public class CPHInline
 
     public bool ResolveMessagePresentation()
     {
+        var op = Read(MessageOperationKey);
+        if (op == null || op.Count == 0) return false;
+
         var message = ReadConfig(MessageKey, CreateMessageDefaults());
         var entry = message["entryPoint"] as JObject ?? new JObject();
         var design = (string)entry["designPreset"] ?? "broadcast";
         var brand = (string)entry["brandingPreset"] ?? "default";
+        var source = (string)op["replaySourcePlatform"] ?? "";
+
         if (CPH.GetGlobalVar<bool?>("rts.actionreplay.message.useSourcePlatformBranding", true) == true)
         {
-            CPH.TryGetArg("replayMessageSourcePlatform", out string messageSource);
-            if (string.IsNullOrWhiteSpace(messageSource)) CPH.TryGetArg("replaySource", out messageSource);
-            var sourceBrand = PlatformBranding(messageSource ?? "");
+            var sourceBrand = PlatformBranding(source);
             if (sourceBrand != null) brand = (string)sourceBrand["id"] ?? brand;
         }
+
         var animation = Animation(message, "message", (string)entry["animationProfile"] ?? "default");
         ApplyMessagePresentation(design, brand, animation);
+
+        CPH.SetArgument("replayMessage", (string)op["message"] ?? "");
+        CPH.SetArgument("messageQueueId", (string)op["messageQueueId"] ?? "");
+        CPH.SetArgument("messageTest", (bool?)op["messageTest"] ?? false);
+        CPH.SetArgument("replayCommand", "message");
+        CPH.SetArgument("replayMessagePosition", (string)op["messagePosition"] ?? "Centered");
+
+        CPH.LogInfo($"RTS Action Replay: message presentation resolved for source={source}, test={(bool?)op["messageTest"] == true}.");
+        CPH.TriggerEvent(EventName, true);
+        CPH.UnsetGlobalVar(MessageOperationKey, false);
         return true;
     }
 
