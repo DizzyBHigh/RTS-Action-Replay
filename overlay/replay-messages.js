@@ -26,7 +26,19 @@ const messagePanelCommand = command => ({
   replayPanelPosition: command?.replayMessagePosition || 'Centered'
 });
 
-const fitMessageText = () => {\n  const text = RTSReplayMessages.messageText;\n  if (!text) return;\n  let size = Number.parseFloat(getComputedStyle(text).fontSize) || 14;\n  const minimum = 8;\n  text.style.fontSize = size + 'px';\n  while (size > minimum && (text.scrollWidth > text.clientWidth || text.scrollHeight > text.clientHeight)) {\n    size -= 0.5;\n    text.style.fontSize = size + 'px';\n  }\n};\n\nRTSReplayMessages.showMessage = command => {
+const fitMessageText = () => {
+  const text = RTSReplayMessages.messageText;
+  if (!text) return;
+  let size = Number.parseFloat(getComputedStyle(text).fontSize) || 14;
+  const minimum = 8;
+  text.style.fontSize = size + 'px';
+  while (size > minimum && (text.scrollWidth > text.clientWidth || text.scrollHeight > text.clientHeight)) {
+    size -= 0.5;
+    text.style.fontSize = size + 'px';
+  }
+};
+
+RTSReplayMessages.showMessage = command => {
   const text = String(command?.replayMessage || '').trim();
   if (!text || !RTSReplayMessages.messageCard) return;
 
