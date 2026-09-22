@@ -31,11 +31,12 @@ public class CPHInline
         CPH.SetArgument("clearedCount", 3);
         CPH.SetArgument("remainingCount", 0);
 
+        var testEvent = CPH.GetGlobalVar<string>(MessageTypeKey, true) ?? "Replay Created";
         CPH.SetGlobalVar(
             "rts.actionreplay.operation.message.test",
             new JObject
             {
-                ["messageEvent"] = CPH.GetGlobalVar<string>(MessageTypeKey, true) ?? "Replay Created",
+                ["messageEvent"] = testEvent,
                 ["replayId"] = (string)replay["id"] ?? "",
                 ["replayNumber"] = ReplayNumber((string)replay["id"] ?? ""),
                 ["replayTitle"] = (string)replay["title"] ?? "Test Replay",
@@ -59,6 +60,7 @@ public class CPHInline
             false
         );
 
+        CPH.LogInfo($"RTS Action Replay: test message handoff written event={testEvent}, replay={replay["id"]}.");
         return CPH.ExecuteMethod(MessagingAction, "TestMessage");
     }
 
