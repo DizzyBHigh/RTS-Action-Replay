@@ -19,6 +19,7 @@ public class CPHInline
     {
         var replay = FirstReplay();
         if (replay == null) return false;
+        var creator = replay["creator"] as JObject;
         SetReplayArgs(replay);
         CPH.SetArgument("messageEvent", CPH.GetGlobalVar<string>(MessageTypeKey, true) ?? "Replay Created");
         CPH.SetArgument("oldTitle", (string)replay["title"] ?? "Test Replay");
