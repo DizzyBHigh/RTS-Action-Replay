@@ -29,6 +29,35 @@ public class CPHInline
         CPH.SetArgument("replayRating", rating);
         CPH.SetArgument("clearedCount", 3);
         CPH.SetArgument("remainingCount", 0);
+
+        CPH.SetGlobalVar(
+            "rts.actionreplay.operation.message.test",
+            new JObject
+            {
+                ["messageEvent"] = CPH.GetGlobalVar<string>(MessageTypeKey, true) ?? "Replay Created",
+                ["replayId"] = (string)replay["id"] ?? "",
+                ["replayNumber"] = ReplayNumber((string)replay["id"] ?? ""),
+                ["replayTitle"] = (string)replay["title"] ?? "Test Replay",
+                ["replayUserId"] = (string)creator?[ "id" ] ?? "",
+                ["replayUser"] = (string)creator?[ "name" ] ?? "Unknown Creator",
+                ["replayPlatform"] = (string)creator?[ "platform" ] ?? "",
+                ["replaySourcePlatform"] = ReplayOrigin(),
+                ["requesterId"] = "rts-test-user",
+                ["requesterName"] = "Test User",
+                ["requesterPlatform"] = TestOrigin(),
+                ["requesterBroadcastId"] = "",
+                ["replaySource"] = ReplayOrigin(),
+                ["oldTitle"] = (string)replay["title"] ?? "Test Replay",
+                ["newTitle"] = ((string)replay["title"] ?? "Test Replay") + " (Test)",
+                ["oldRating"] = rating,
+                ["averageRating"] = rating,
+                ["replayRating"] = rating,
+                ["clearedCount"] = 3,
+                ["remainingCount"] = 0
+            }.ToString(Newtonsoft.Json.Formatting.None),
+            false
+        );
+
         return CPH.ExecuteMethod(MessagingAction, "TestMessage");
     }
 
