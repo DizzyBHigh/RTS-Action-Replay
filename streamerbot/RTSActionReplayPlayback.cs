@@ -46,6 +46,31 @@ public class CPHInline
         CPH.LogInfo($"RTS Action Replay: requested OBS Replay Buffer save; creator={userName}; platform={userType}.");
         return true;
     }
+    public bool PrepareTestVideo()
+    {
+        var data = Load();
+        var replay = GetCatalog(data).OfType<JObject>().FirstOrDefault();
+        if (replay == null) return false;
+        var source = (string)replay["sourceType"] ?? "OBS";
+        var url = ResolveReplayUrl(replay);
+        if (string.Equals(source, "Kick", StringComparison.OrdinalIgnoreCase)) url = ResolveKickUrl(replay);
+        if (string.IsNullOrWhiteSpace(url)) { CPH.LogWarn("RTS Action Replay: test video could not resolve media for the first Catalog replay."); return false; }
+        var profile = "default";
+        var operation = new JObject {
+            ["replayCommand"] = "load", ["replayId"] = (string)replay["id"] ?? "", ["replayUrl"] = url,
+            ["replayAutoplay"] = true, ["replayQueueEntryId"] = "", ["replayUserId"] = "rts-test-user",
+            ["replayUserName"] = "Test User", ["replayDirector"] = (string)replay["creator"]?["name"] ?? "",
+            ["replayNumber"] = Array.IndexOf(GetCatalog(data).ToArray(), replay) + 1, ["replayTitle"] = (string)replay["title"] ?? "Test Replay",
+            ["replayPlayedCount"] = (int?)replay["plays"] ?? 0, ["replaySource"] = source, ["replaySourceId"] = (string)replay["sourceId"] ?? "",
+            ["replaySourcePlatform"] = CPH.GetGlobalVar<string>("rts.actionreplay.test.replayOrigin", true) ?? source,
+            ["animationProfileId"] = profile, ["designPresetId"] = "broadcast", ["titlePresetId"] = "default", ["brandingPresetId"] = "default",
+            ["replayCreated"] = true
+        };
+        if (string.Equals(source, "YouTube", StringComparison.OrdinalIgnoreCase)) { operation["replayStartTime"] = (long?)replay["startTime"] ?? 0; operation["replayDuration"] = (int?)replay["duration"] ?? 0; }
+        CPH.SetGlobalVar(PlayerOperationKey, operation.ToString(Newtonsoft.Json.Formatting.None), false);
+        return true;
+    }
+
     public bool PlayReplay()
     {
         var data = Load(); var list = GetCatalog(data); JObject replay = null;
