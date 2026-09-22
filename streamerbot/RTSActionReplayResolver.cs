@@ -153,13 +153,21 @@ public class CPHInline
         var entries=config["entryPoints"] as JObject??new JObject(); return entries[id] as JObject??entries["recent"] as JObject??new JObject();
     }
 
+
+    private JObject ReadOperation(string key)
+    {
+        var raw = CPH.GetGlobalVar<string>(key, false);
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+        try { return JObject.Parse(raw); } catch { return null; }
+    }
+
     public bool ResolveMessagePresentation()
     {
         try
         {
             CPH.LogInfo("RTS Action Replay TRACE: ResolveMessagePresentation entered.");
 
-            var op = Read(MessageOperationKey);
+            var op = ReadOperation(MessageOperationKey);
             if (op == null || op.Count == 0)
             {
                 CPH.LogWarn("RTS Action Replay TRACE: message operation was empty.");
