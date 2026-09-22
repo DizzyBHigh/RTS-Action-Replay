@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.Win32;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Newtonsoft.Json.Linq;
 public class CPHInline
 {
