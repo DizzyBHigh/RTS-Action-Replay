@@ -117,7 +117,7 @@ public class CPHInline
     private JObject FirstReplay()
     {
         var raw = CPH.GetGlobalVar<string>(DataKey, true);
-        try { return (JObject)(JObject.Parse(raw ?? "{}")["catalog"] as JArray)?.FirstOrDefault(); }
+        try { var catalog = JObject.Parse(raw ?? "{}")["catalog"] as JArray; return catalog?.FirstOrDefault() as JObject; }
         catch { return null; }
     }
 
