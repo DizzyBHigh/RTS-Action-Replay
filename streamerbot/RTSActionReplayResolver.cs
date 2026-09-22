@@ -190,6 +190,11 @@ public class CPHInline
 
         CPH.LogInfo("RTS Action Replay TRACE: resolving message animation.");
         var animation = Animation(message, "message", (string)entry["animationProfile"] ?? "default");
+        if (CPH.GetArgument<bool?>("replayMessagePositionPreview") == true)
+        {
+            var previewPositions = CPH.GetArgument<string>("replayMessagePositions") ?? "{}";
+            animation["positions"] = JObject.Parse(previewPositions);
+        }
         CPH.LogInfo("RTS Action Replay TRACE: message animation resolved.");
         ApplyMessagePresentation(design, brand, animation);
         CPH.LogInfo("RTS Action Replay TRACE: message presentation applied.");
