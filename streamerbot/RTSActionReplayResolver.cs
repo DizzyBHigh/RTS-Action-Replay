@@ -191,11 +191,6 @@ public class CPHInline
         CPH.LogInfo("RTS Action Replay TRACE: resolving message animation.");
         var animation = Animation(message, "message", (string)entry["animationProfile"] ?? "default");
         CPH.LogInfo("RTS Action Replay TRACE: message animation resolved.");
-        var messagePositions = animation["positions"] as JObject ?? new JObject();
-        var selectedMessagePosition = messagePositions.Properties()
-            .FirstOrDefault(p => string.Equals(p.Name, (string)op["messagePosition"] ?? "Centered", StringComparison.OrdinalIgnoreCase)
-                || string.Equals((string)p.Value["tag"], (string)op["messagePosition"] ?? "Centered", StringComparison.OrdinalIgnoreCase));
-        CPH.LogInfo($"RTS Action Replay TRACE: message position source={(selectedMessagePosition == null ? "missing" : selectedMessagePosition.Name)}, data={(selectedMessagePosition?.Value ?? new JObject()).ToString(Newtonsoft.Json.Formatting.None)}.");
         ApplyMessagePresentation(design, brand, animation);
         CPH.LogInfo("RTS Action Replay TRACE: message presentation applied.");
 
@@ -689,6 +684,11 @@ public class CPHInline
         positions["panel"]=EnsurePositionSet(positions["panel"] as JObject,"Centered","centered",100);
         positions["clapperboard"]=EnsurePositionSet(positions["clapperboard"] as JObject,"Centered","centered",50);
         positions["message"]=EnsurePositionSet(positions["message"] as JObject,"Centered","centered",100);
+        if (!string.Equals((string)presets["messagePositionCoordinates"],"center-offset-v1",StringComparison.OrdinalIgnoreCase))
+        {
+            NormalizeMessagePositionCoordinates(positions["message"] as JObject);
+            presets["messagePositionCoordinates"]="center-offset-v1";
+        }
         presets["positions"]=positions;
         SavePositionStore(PresetsKey,presets);
         return true;
@@ -697,6 +697,21 @@ public class CPHInline
     public bool GetPlayerPositions(){EnsurePositions();var presets=ReadPositionStore(PresetsKey);var positions=(presets["positions"] as JObject)?["player"] as JObject??new JObject();CPH.SetGlobalVar(HandoffKey,positions.ToString(Newtonsoft.Json.Formatting.None),false);return true;}
     public bool GetPanelPositions(){EnsurePositions();var presets=ReadPositionStore(PresetsKey);var positions=(presets["positions"] as JObject)?["panel"] as JObject??new JObject();CPH.SetGlobalVar("rts.actionreplay.handoff.panelPositions",positions.ToString(Newtonsoft.Json.Formatting.None),false);return true;}
     public bool GetClapperboardPositions(){EnsurePositions();var presets=ReadPositionStore(PresetsKey);var positions=(presets["positions"] as JObject)?["clapperboard"] as JObject??new JObject();CPH.SetGlobalVar("rts.actionreplay.handoff.clapperPositions",positions.ToString(Newtonsoft.Json.Formatting.None),false);return true;}
+
+    void NormalizeMessagePositionCoordinates(JObject positions)
+    {
+        if(positions==null)return;
+        foreach(var property in positions.Properties())
+        {
+            var p=property.Value as JObject;
+            if(p==null)continue;
+            var name=(string)p["name"]??property.Name;
+            if(string.Equals(name,"Centered",StringComparison.OrdinalIgnoreCase) || string.Equals(name,"Full Screen",StringComparison.OrdinalIgnoreCase))continue;
+            p["x"]=((int?)p["x"]??0)-50;
+            p["y"]=((int?)p["y"]??0)-50;
+        }
+        CPH.LogInfo("RTS Action Replay: normalized legacy message positions to center-relative coordinates.");
+    }
 
     JObject EnsurePositionSet(JObject value,string name,string tag,int scale)
     {
