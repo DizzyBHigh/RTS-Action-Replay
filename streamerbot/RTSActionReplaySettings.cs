@@ -121,6 +121,8 @@ public static class RtsActionReplaySettingsWindow
                 if (applySections != null)
                     applySections.Invoke(ui, new object[] { window });
 
+                ApplyMainSectionStyle(window);
+
                 window.ShowDialog();
             }
             catch (Exception ex)
@@ -137,4 +139,89 @@ public static class RtsActionReplaySettingsWindow
         if (error != null)
             throw error;
     }
+    
+    static void ApplyMainSectionStyle(Window window)
+    {
+        var sections = new List<GroupBox>();
+        CollectMainSections(window, sections);
+
+        foreach (var section in sections)
+        {
+            var header = section.Header as TextBlock;
+            if (header != null)
+            {
+                var textBrush = window.Resources["duhBuhSectionText"] as Brush;
+                if (textBrush != null)
+                    header.Foreground = textBrush;
+                header.FontSize = 14;
+                header.FontWeight = FontWeights.SemiBold;
+                header.Margin = new Thickness(10, 7, 10, 7);
+            }
+
+            section.Template = CreateMainSectionTemplate(window);
+            section.Padding = new Thickness(14, 8, 14, 10);
+            section.Margin = new Thickness(0, 0, 0, 14);
+        }
+    }
+
+    static void CollectMainSections(DependencyObject root, List<GroupBox> result)
+    {
+        foreach (var childObject in LogicalTreeHelper.GetChildren(root))
+        {
+            var child = childObject as DependencyObject;
+            if (child == null)
+                continue;
+
+            var section = child as GroupBox;
+            if (section != null &&
+                Convert.ToString(section.Tag).StartsWith("__rts_section:",
+                    StringComparison.Ordinal))
+            {
+                result.Add(section);
+                continue;
+            }
+
+            CollectMainSections(child, result);
+        }
+    }
+
+    static ControlTemplate CreateMainSectionTemplate(Window window)
+    {
+        var sectionBg = window.Resources["duhBuhSectionBackground"] as Brush;
+        var sectionBorder = window.Resources["duhBuhSectionBorder"] as Brush;
+        var accent = window.Resources["duhBuhAccent"] as Brush;
+
+        var outer = new FrameworkElementFactory(typeof(Border));
+        outer.SetValue(Border.BackgroundProperty, sectionBg);
+        outer.SetValue(Border.BorderBrushProperty, sectionBorder);
+        outer.SetValue(Border.BorderThicknessProperty, new Thickness(1));
+        outer.SetValue(Border.CornerRadiusProperty, new CornerRadius(10));
+
+        var content = new FrameworkElementFactory(typeof(StackPanel));
+
+        var accentBar = new FrameworkElementFactory(typeof(Border));
+        accentBar.SetValue(Border.HeightProperty, 3.0);
+        accentBar.SetValue(Border.BackgroundProperty, accent);
+        accentBar.SetValue(Border.HorizontalAlignmentProperty, HorizontalAlignment.Stretch);
+        accentBar.SetValue(Border.MarginProperty, new Thickness(0, 0, 0, 8));
+        content.AppendChild(accentBar);
+
+        var header = new FrameworkElementFactory(typeof(ContentPresenter));
+        header.SetValue(ContentPresenter.ContentSourceProperty, "Header");
+        header.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Stretch);
+        content.AppendChild(header);
+
+        var body = new FrameworkElementFactory(typeof(ContentPresenter));
+        body.SetValue(ContentPresenter.ContentSourceProperty, "Content");
+        body.SetValue(ContentPresenter.MarginProperty, new Thickness(0));
+        content.AppendChild(body);
+
+        outer.AppendChild(content);
+
+        var template = new ControlTemplate(typeof(GroupBox));
+        template.VisualTree = outer;
+        return template;
+    }
+
+
 }
