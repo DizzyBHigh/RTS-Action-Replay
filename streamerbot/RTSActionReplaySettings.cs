@@ -121,6 +121,7 @@ public static class RtsActionReplaySettingsWindow
                 if (applySections != null)
                     applySections.Invoke(ui, new object[] { window });
 
+                ApplyTransferTheme(window);
                 ApplyMainSectionStyle(window);
                 window.Loaded += delegate
                 {
@@ -230,6 +231,27 @@ public static class RtsActionReplaySettingsWindow
         return template;
     }
 
+
+    static void ApplyTransferTheme(Window window)
+    {
+        var light = !string.Equals(
+            CPH.GetGlobalVar<string>("rts.actionreplay.uiTheme", true),
+            "Dark",
+            StringComparison.OrdinalIgnoreCase);
+
+        var bg = new SolidColorBrush(
+            (Color)ColorConverter.ConvertFromString(
+                light ? "#FFFFFF" : "#1E1E1E"));
+
+        window.Background = bg;
+
+        var root = window.Content as Panel;
+        if (root != null)
+            root.Background = bg;
+
+        RtsUITheme.Initialize();
+        RtsUITheme.Apply(window, light);
+    }
 
     static void ApplyTransferComboBoxStyle(Window window)
     {
