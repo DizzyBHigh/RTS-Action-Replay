@@ -130,10 +130,10 @@ if (originalShow) {
   };
 }
 if (originalHide) {
-  window.RTSInformationPanelAnimation.hide = (panel, command) => {
+  window.RTSInformationPanelAnimation.hide = (panel, command, complete) => {
     RTSInformationPanelPresets.stopCutBlocks(panel);
     window.RTSReplayPanelBroadcast?.stopPanelChevrons(panel);
-    return originalHide(panel, command);
+    return originalHide(panel, command, complete);
   };
 }
 
