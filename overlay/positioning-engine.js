@@ -1,5 +1,5 @@
 const RTSPositioningEngine = {
-  version: '20260923-2',
+  version: '20260923-3',
   diagnostics: new WeakMap(),
   referenceWidth: 1920,
   referenceHeight: 1080,
@@ -17,28 +17,22 @@ const RTSPositioningEngine = {
     const rotateX = -number(p.rotateX, 0);
     const rotateY = number(p.rotateY, 0);
     const rotateZ = -number(p.rotateZ, 0);
-    const zoom = this.zoomFor(z);
     const canvas = element.offsetParent || document.getElementById('rts-overlay') || document.body;
     const viewportWidth = Math.max(1, canvas.clientWidth || this.referenceWidth);
     const viewportHeight = Math.max(1, canvas.clientHeight || this.referenceHeight);
     const width = Math.max(0, element?.offsetWidth || 0);
     const height = Math.max(0, element?.offsetHeight || 0);
-    const visibleWidth = width * scaleX * zoom;
-    const visibleHeight = height * scaleY * zoom;
     const xValue = this.positionOffset(x, viewportWidth);
     const yValue = this.positionOffset(y, viewportHeight);
 
-    return `translate3d(${xValue}px, ${yValue}px, ${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX * zoom}, ${scaleY * zoom}, 1)`;
+    return `perspective(960px) translate3d(${xValue}px, ${yValue}px, ${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX}, ${scaleY}, 1)`;
   },
 
   positionOffset(value, canvasSize) {
     return value / 100 * canvasSize;
   },
 
-  zoomFor(z) {
-    const denominator = Math.max(36, 360 - z);
-    return Math.max(0.05, Math.min(10, 360 / denominator));
-  },
+
 
   apply(element, position) {
     if (!element) return null;
