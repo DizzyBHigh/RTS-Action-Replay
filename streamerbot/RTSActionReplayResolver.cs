@@ -113,7 +113,7 @@ public class CPHInline
     {
         var op=Read(PlayerOperationKey); if(op==null)return false;
         ApplyObject(op); var config=Read(PlayerKey); var entry=Entry(config,"play");
-        var animation=Animation(config,"player",(string)op["animationProfileId"]??(string)entry["animationProfile"]); var currentPosition=CPH.GetGlobalVar<string>("rts.actionreplay.handoff.currentPlayerPosition",false); if(!string.IsNullOrWhiteSpace(currentPosition)){var start=animation["start"] as JArray;var end=animation["end"] as JArray;if(start!=null&&start.Count>0)start[0]["position"]=currentPosition;if(end!=null&&end.Count>0)end[end.Count-1]["position"]=currentPosition;}
+        var animation=Animation(config,"player",(string)op["animationProfileId"]??(string)entry["animationProfile"]);
         var design=(string)op["designPresetId"]??(string)entry["designPreset"]??(string)entry["visualPreset"]??"broadcast";
         var title=(string)op["titlePresetId"]??(string)entry["titlePreset"]??"default";
         var brand=(string)entry["brandingPreset"]??"default";
