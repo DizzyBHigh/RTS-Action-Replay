@@ -40,6 +40,7 @@ public class CPHInline
         var brandingProfile = Arg("brandingPreset", "default");
         var queue = LoadQueue();
         var playlistNotEmpty = queue.Count > 0;
+        CPH.LogInfo($"RTS Action Replay TRACE: EnqueueCurrentReplay queueCountBeforeAdd={queue.Count}; playlistNotEmpty={playlistNotEmpty}; replayId={replayId}; requester={requester}; requesterPlatform={requesterPlatform ?? "<none>"}.");
         var replayCreated = string.Equals(Arg("replayCreated", ""), "true", StringComparison.OrdinalIgnoreCase);
         var replayUseClapperboard = string.Equals(Arg("replayUseClapperboard", "false"), "true", StringComparison.OrdinalIgnoreCase);
         var replayAutoPlay = string.Equals(Arg("replayAutoPlay", "false"), "true", StringComparison.OrdinalIgnoreCase);
@@ -64,7 +65,11 @@ public class CPHInline
             };
             queue.Add(queueEntry);
             SaveQueue(queue);
-            if (playlistNotEmpty) EnqueueReplayQueued(replay, userId, requester, requesterPlatform, broadcastId);
+            if (playlistNotEmpty)
+            {
+                CPH.LogInfo($"RTS Action Replay TRACE: EnqueueCurrentReplay calling EnqueueReplayQueued; queueCountAfterAdd={queue.Count}.");
+                EnqueueReplayQueued(replay, userId, requester, requesterPlatform, broadcastId);
+            }
         }
 
         CPH.UnsetGlobalVar(ReplayIdHandoffKey, false);
