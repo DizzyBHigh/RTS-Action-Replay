@@ -376,4 +376,4 @@ public static class RtsActionReplaySettingsWindow
         RtsUITheme.Apply(window, light);
     }
 
-}}
+}
