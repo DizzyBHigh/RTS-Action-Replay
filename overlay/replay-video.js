@@ -322,6 +322,7 @@ RTSReplayVideo.testTitle = command => {
 
 RTSReplayVideo.moveReplay = command => {
   RTSReplayVideo.currentCommand = { ...(RTSReplayVideo.currentCommand || {}), ...command };
+  if (command.replayPositions) playerRunner.configure(command.replayPositions);
   const position = RTSReplayVideo.getPosition(command.replayPosition || 'Full Screen'); const current = RTSReplayVideo.activePosition;
   if (current && RTSReplayVideo.positionsEqual?.(current, position)) return;
   RTSReplayVideo.player.classList.add('show');
