@@ -274,9 +274,12 @@ public static class RtsActionReplaySettingsWindow
             return;
         }
 
-        var visualCount = VisualTreeHelper.GetChildrenCount(root);
-        for (var i = 0; i < visualCount; i++)
-            ApplyComboBoxStyle(VisualTreeHelper.GetChild(root, i), comboStyle, itemStyle);
+        if (root is Visual || root is Visual3D)
+        {
+            var visualCount = VisualTreeHelper.GetChildrenCount(root);
+            for (var i = 0; i < visualCount; i++)
+                ApplyComboBoxStyle(VisualTreeHelper.GetChild(root, i), comboStyle, itemStyle);
+        }
 
         foreach (var childObject in LogicalTreeHelper.GetChildren(root))
         {
