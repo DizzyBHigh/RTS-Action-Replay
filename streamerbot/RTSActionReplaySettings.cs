@@ -224,4 +224,33 @@ public static class RtsActionReplaySettingsWindow
     }
 
 
+    static void ApplyTransferComboBoxStyle(Window window)
+    {
+        var style = window.Resources[typeof(ComboBox)] as Style;
+        if (style == null)
+            return;
+
+        ApplyComboBoxStyle(window, style);
+    }
+
+    static void ApplyComboBoxStyle(DependencyObject root, Style style)
+    {
+        foreach (var childObject in LogicalTreeHelper.GetChildren(root))
+        {
+            var child = childObject as DependencyObject;
+            if (child == null)
+                continue;
+
+            var combo = child as ComboBox;
+            if (combo != null)
+            {
+                combo.Style = style;
+                continue;
+            }
+
+            ApplyComboBoxStyle(child, style);
+        }
+    }
+
+
 }
