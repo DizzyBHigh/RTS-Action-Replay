@@ -266,8 +266,35 @@ public static class RtsActionReplaySettingsWindow
         {
             if (comboStyle != null)
                 combo.Style = comboStyle;
+
             if (comboItemStyle != null)
+            {
                 combo.ItemContainerStyle = comboItemStyle;
+
+                // The ComboBox popup is a separate WPF visual tree. Transfer creates
+                // its ComboBox directly, so its generated items resolve the theme
+                // resource normally. RtsUI creates this ComboBox internally, so
+                // explicitly apply the same item style to generated containers too.
+                combo.ItemContainerGenerator.StatusChanged += delegate
+                {
+                    if (combo.ItemContainerGenerator.Status != GeneratorStatus.ContainersGenerated)
+                        return;
+
+                    for (int i = 0; i < combo.Items.Count; i++)
+                    {
+                        var item = combo.ItemContainerGenerator.ContainerFromIndex(i) as ComboBoxItem;
+                        if (item != null)
+                            item.Style = comboItemStyle;
+                    }
+                };
+
+                for (int i = 0; i < combo.Items.Count; i++)
+                {
+                    var item = combo.ItemContainerGenerator.ContainerFromIndex(i) as ComboBoxItem;
+                    if (item != null)
+                        item.Style = comboItemStyle;
+                }
+            }
         }
 
         // Use the logical tree first because BuildCategory has just constructed
