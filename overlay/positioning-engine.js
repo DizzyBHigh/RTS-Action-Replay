@@ -32,7 +32,7 @@ const RTSPositioningEngine = {
   },
 
   positionOffset(value, edgeRange, canvasSize) {
-    const edge = Math.abs(edgeRange) || canvasSize / 2;
+    const edge = Math.abs(edgeRange);
     if (Math.abs(value) <= 100) return value / 100 * edge;
     return Math.sign(value) * (edge + (Math.abs(value) - 100) / 100 * canvasSize);
   },
