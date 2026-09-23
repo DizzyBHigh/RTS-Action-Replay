@@ -99,7 +99,8 @@ public static class RtsActionReplaySettingsWindow
     public static void Show(RtsUI ui, string theme)
     {
         Exception error = null;
-        var t = new System.Threading.Thread(() =>
+
+        var t = new Thread(() =>
         {
             try
             {
@@ -132,10 +133,10 @@ public static class RtsActionReplaySettingsWindow
                 registerRoot.Invoke(ui, new object[] { root });
                 window.Content = root;
 
-                // Match the Transfer window: install the theme before RtsUI creates
-                // any ComboBox controls so the implicit ComboBox and ComboBoxItem
-                // styles are present during control construction.
+                // Use the same theme/resource construction order as the Transfer UI.
+                // The ComboBox style is installed before any RtsUI category is built.
                 ApplyTransferTheme(window, theme);
+                var comboStyle = window.Resources[typeof(ComboBox)] as Style;
 
                 var header = buildHeader.Invoke(ui, new object[] { theme }) as StackPanel;
                 if (header != null)
@@ -143,51 +144,6 @@ public static class RtsActionReplaySettingsWindow
                     DockPanel.SetDock(header, Dock.Top);
                     root.Children.Add(header);
                 }
-
-                var footer = new StackPanel
-                {
-                    Orientation = Orientation.Horizontal,
-                    HorizontalAlignment = HorizontalAlignment.Right,
-                    Margin = new Thickness(12)
-                };
-
-                var saveButton = new Button
-                {
-                    Content = "Save",
-                    Padding = new Thickness(18, 7, 18, 7),
-                    Margin = new Thickness(0, 0, 8, 0),
-                    Background = new SolidColorBrush(Color.FromRgb(40, 167, 69)),
-                    Foreground = Brushes.White
-                };
-                var closeButton = new Button
-                {
-                    Content = "Save & Exit",
-                    Padding = new Thickness(18, 7, 18, 7),
-                    Margin = new Thickness(0, 0, 8, 0),
-                    Background = new SolidColorBrush(Color.FromRgb(40, 167, 69)),
-                    Foreground = Brushes.White
-                };
-                var cancelButton = new Button
-                {
-                    Content = "Cancel",
-                    Padding = new Thickness(18, 7, 18, 7),
-                    Background = new SolidColorBrush(Color.FromRgb(220, 53, 69)),
-                    Foreground = Brushes.White
-                };
-
-                saveButton.Click += delegate { save.Invoke(ui, new object[] { root }); };
-                closeButton.Click += delegate
-                {
-                    save.Invoke(ui, new object[] { root });
-                    window.Close();
-                };
-                cancelButton.Click += delegate { window.Close(); };
-
-                footer.Children.Add(saveButton);
-                footer.Children.Add(closeButton);
-                footer.Children.Add(cancelButton);
-                DockPanel.SetDock(footer, Dock.Bottom);
-                root.Children.Add(footer);
 
                 var tabs = new TabControl
                 {
@@ -210,10 +166,16 @@ public static class RtsActionReplaySettingsWindow
                             Margin = new Thickness(18)
                         };
 
-                        // Apply the RtsUI theme BEFORE BuildCategory creates controls.
-                        // This is the same construction order used by
-                        // RTSActionReplaySettingsTransfer.cs.
+                        // Build the category through RtsUI exactly as the existing
+                        // settings system does. Do not rebuild rows or controls here.
                         buildCategory.Invoke(ui, new object[] { panel, category, theme });
+
+                        // Transfer explicitly assigns the themed ComboBox Style when
+                        // it creates ComboBoxes. RtsUI creates ours internally, so do
+                        // the equivalent immediately after construction while the
+                        // logical tree is still available.
+                        if (comboStyle != null)
+                            ApplyTransferComboBoxStylesRecursive(panel, comboStyle);
 
                         tabs.Items.Add(new TabItem
                         {
@@ -229,17 +191,19 @@ public static class RtsActionReplaySettingsWindow
 
                 root.Children.Add(tabs);
 
-                // Match the Transfer window's second ApplyTheme call after the
-                // complete visual tree has been built.
-                // RtsUI applies horizontal rows and its section structure from the
-                // Window.Loaded class handler. Do not invoke ApplySections early:
-                // doing so bypasses the normal construction order and breaks rows.
-                // Once RtsUI has finished its Loaded work, apply only the Action Replay
-                // presentation layer and the explicit Transfer ComboBox styles.
+                // Match Transfer's final theme pass after the complete visual tree
+                // has been assembled. This preserves the RtsUI row/group construction
+                // and then applies our Action Replay section presentation.
+                ApplyTransferTheme(window, theme);
+
                 window.Loaded += delegate
                 {
                     ApplyMainSectionStyle(window);
-                    ApplyTransferComboBoxStyles(window);
+
+                    // A final pass catches controls created by any deferred RtsUI
+                    // construction without changing the base DLL.
+                    if (comboStyle != null)
+                        ApplyTransferComboBoxStylesRecursive(window, comboStyle);
                 };
 
                 window.ShowDialog();
@@ -250,7 +214,7 @@ public static class RtsActionReplaySettingsWindow
             }
         });
 
-        t.SetApartmentState(System.Threading.ApartmentState.STA);
+        t.SetApartmentState(ApartmentState.STA);
         t.IsBackground = false;
         t.Start();
         t.Join();
@@ -270,32 +234,39 @@ public static class RtsActionReplaySettingsWindow
             BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic,
             null,
             new[] { typeof(TabControl), typeof(string) },
-            null
-        );
+            null);
+
         if (apply == null)
             throw new MissingMethodException("RtsUIVerticalTabs.Apply");
 
         apply.Invoke(null, new object[] { tabs, theme });
     }
 
-    static void ApplyTransferComboBoxStyles(Window window)
-    {
-        var comboStyle = window.Resources[typeof(ComboBox)] as Style;
-        if (comboStyle == null)
-            return;
-
-        ApplyTransferComboBoxStylesRecursive(window, comboStyle);
-    }
-
     static void ApplyTransferComboBoxStylesRecursive(DependencyObject root, Style comboStyle)
     {
+        if (root == null || comboStyle == null)
+            return;
+
         var combo = root as ComboBox;
         if (combo != null)
             combo.Style = comboStyle;
 
-        int count = VisualTreeHelper.GetChildrenCount(root);
-        for (int i = 0; i < count; i++)
-            ApplyTransferComboBoxStylesRecursive(VisualTreeHelper.GetChild(root, i), comboStyle);
+        // Use the logical tree first because BuildCategory has just constructed
+        // the controls and they may not yet have a WPF visual tree.
+        foreach (var childObject in LogicalTreeHelper.GetChildren(root))
+        {
+            var child = childObject as DependencyObject;
+            if (child != null)
+                ApplyTransferComboBoxStylesRecursive(child, comboStyle);
+        }
+
+        // Once loaded, templates/visual children can contain additional ComboBoxes.
+        if (PresentationSource.FromDependencyObject(root) != null)
+        {
+            var count = VisualTreeHelper.GetChildrenCount(root);
+            for (var i = 0; i < count; i++)
+                ApplyTransferComboBoxStylesRecursive(VisualTreeHelper.GetChild(root, i), comboStyle);
+        }
     }
 
     static void ApplyMainSectionStyle(Window window)
@@ -311,6 +282,7 @@ public static class RtsActionReplaySettingsWindow
                 var textBrush = window.Resources["duhBuhSectionText"] as Brush;
                 if (textBrush != null)
                     header.Foreground = textBrush;
+
                 header.FontSize = 14;
                 header.FontWeight = FontWeights.SemiBold;
                 header.Margin = new Thickness(10, 7, 10, 7);
@@ -332,7 +304,8 @@ public static class RtsActionReplaySettingsWindow
 
             var section = child as GroupBox;
             if (section != null &&
-                Convert.ToString(section.Tag).StartsWith("__rts_section:",
+                Convert.ToString(section.Tag).StartsWith(
+                    "__rts_section:",
                     StringComparison.Ordinal))
             {
                 result.Add(section);
@@ -360,18 +333,30 @@ public static class RtsActionReplaySettingsWindow
         var accentBar = new FrameworkElementFactory(typeof(Border));
         accentBar.SetValue(Border.HeightProperty, 3.0);
         accentBar.SetValue(Border.BackgroundProperty, accent);
-        accentBar.SetValue(Border.HorizontalAlignmentProperty, HorizontalAlignment.Stretch);
-        accentBar.SetValue(Border.MarginProperty, new Thickness(0, 0, 0, 8));
+        accentBar.SetValue(
+            Border.HorizontalAlignmentProperty,
+            HorizontalAlignment.Stretch);
+        accentBar.SetValue(
+            Border.MarginProperty,
+            new Thickness(0, 0, 0, 8));
         content.AppendChild(accentBar);
 
         var header = new FrameworkElementFactory(typeof(ContentPresenter));
-        header.SetValue(ContentPresenter.ContentSourceProperty, "Header");
-        header.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Stretch);
+        header.SetValue(
+            ContentPresenter.ContentSourceProperty,
+            "Header");
+        header.SetValue(
+            ContentPresenter.HorizontalAlignmentProperty,
+            HorizontalAlignment.Stretch);
         content.AppendChild(header);
 
         var body = new FrameworkElementFactory(typeof(ContentPresenter));
-        body.SetValue(ContentPresenter.ContentSourceProperty, "Content");
-        body.SetValue(ContentPresenter.MarginProperty, new Thickness(0));
+        body.SetValue(
+            ContentPresenter.ContentSourceProperty,
+            "Content");
+        body.SetValue(
+            ContentPresenter.MarginProperty,
+            new Thickness(0));
         content.AppendChild(body);
 
         outer.AppendChild(content);
@@ -383,7 +368,10 @@ public static class RtsActionReplaySettingsWindow
 
     static void ApplyTransferTheme(Window window, string theme)
     {
-        var light = !string.Equals(theme, "Dark", StringComparison.OrdinalIgnoreCase);
+        var light = !string.Equals(
+            theme,
+            "Dark",
+            StringComparison.OrdinalIgnoreCase);
 
         var bg = new SolidColorBrush(
             (Color)ColorConverter.ConvertFromString(
@@ -395,8 +383,8 @@ public static class RtsActionReplaySettingsWindow
         if (root != null)
             root.Background = bg;
 
+        // This is the same theme initialization used by the Transfer window.
         RtsUITheme.Initialize();
         RtsUITheme.Apply(window, light);
     }
-
 }
