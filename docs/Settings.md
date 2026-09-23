@@ -77,9 +77,9 @@ Twitch clips can be played directly from Twitch, downloaded to your PC, or handl
 
 There are three choices:
 
-- **Twitch URL** — play the clip directly from Twitch. No local copy is required.
-- **Download Locally** — download the clip and play the local copy through Streamer.bot's HTTP server.
-- **Both** — keep a local copy available, while still allowing Action Replay to fall back to the Twitch URL if a local copy can't be used.
+- **Twitch URL** - play the clip directly from Twitch. No local copy is required.
+- **Download Locally** - download the clip and play the local copy through Streamer.bot's HTTP server.
+- **Both** - keep a local copy available, while still allowing Action Replay to fall back to the Twitch URL if a local copy can't be used.
 
 When a local copy is required, Action Replay downloads it as an MP4 into the Twitch Clip Folder. The Twitch Clip Folder must not be the same folder as the OBS Replay Folder.
 
@@ -101,13 +101,13 @@ For example, with:
 
 the local clip URL uses the `/twitch/` path.
 
-The mapping is used together with the main **HTTP Port** setting under Local Capture → Local Capture / OBS. It should point to the Twitch Clip Folder in Streamer.bot's HTTP server configuration.
+The mapping is used together with the main **HTTP Port** setting under Local Capture -> Local Capture / OBS. It should point to the Twitch Clip Folder in Streamer.bot's HTTP server configuration.
 
 ### Clip Duration
 
 This is the default duration used by `!twitchclip` when no duration is supplied.
 
-The normal range is 5 to 60 seconds. If a duration is supplied with the command, that value is used instead, within the same 5–60 second range.
+The normal range is 5 to 60 seconds. If a duration is supplied with the command, that value is used instead, within the same 5-60 second range.
 
 For example:
 
@@ -166,9 +166,9 @@ Kick clips can be captured from Kick chat using the KickBot clip workflow, or ca
 
 There are three choices:
 
-- **Kick URL** — play the clip directly from Kick. No local copy is required.
-- **Download Locally** — download the clip and play the local copy through Streamer.bot's HTTP server.
-- **Both** — keep a local copy available while retaining the Kick URL as a fallback.
+- **Kick URL** - play the clip directly from Kick. No local copy is required.
+- **Download Locally** - download the clip and play the local copy through Streamer.bot's HTTP server.
+- **Both** - keep a local copy available while retaining the Kick URL as a fallback.
 
 ### Kick Clip Folder
 
@@ -188,7 +188,7 @@ For example, entering:
 
 creates the `http://localhost:7474/kick/` path used to access local Kick clips.
 
-The mapping is used with the main **HTTP Port** setting under General → Replay Source and must point to the Kick Clip Folder in Streamer.bot's HTTP server configuration.
+The mapping is used with the main **HTTP Port** setting under General -> Replay Source and must point to the Kick Clip Folder in Streamer.bot's HTTP server configuration.
 
 ### Kick clip commands
 
@@ -208,7 +208,7 @@ A title can be supplied after the duration:
 
 `!create-clip 45 Great moment`
 
-KickBot requests are limited to 5–240 seconds by the command parser. The locally configured **Kick Clip Playback** mode determines how the resulting clip is made available to Action Replay.
+KickBot requests are limited to 5-240 seconds by the command parser. The locally configured **Kick Clip Playback** mode determines how the resulting clip is made available to Action Replay.
 
 ## Player
 
@@ -252,9 +252,9 @@ Sets the speed used when a replay is loaded. The available range is 0.25 to 2.0,
 
 Examples:
 
-- `0.5` — half speed
-- `1.0` — normal speed
-- `2.0` — double speed
+- `0.5` - half speed
+- `1.0` - normal speed
+- `2.0` - double speed
 
 The setting is the starting playback speed. It does not prevent the video speed from being changed later with the video speed command.
 
@@ -262,9 +262,9 @@ The setting is the starting playback speed. It does not prevent the video speed 
 
 Choose when the playback speed indicator is displayed:
 
-- **Always** — show the indicator at all times.
-- **Only when greater or less than 1** — show it when playback is slower or faster than normal speed.
-- **Never** — don't show it.
+- **Always** - show the indicator at all times.
+- **Only when greater or less than 1** - show it when playback is slower or faster than normal speed.
+- **Never** - don't show it.
 
 ### Player Appearance
 
@@ -284,9 +284,9 @@ These settings control the frame, controls and border styling around the replay 
 
 There are three choices:
 
-- **Custom** — use the colour selected in Frame Colour.
-- **Branding Primary** — use the active Branding Preset primary colour.
-- **Branding Secondary** — use the active Branding Preset secondary colour.
+- **Custom** - use the colour selected in Frame Colour.
+- **Branding Primary** - use the active Branding Preset primary colour.
+- **Branding Secondary** - use the active Branding Preset secondary colour.
 
 ### Frame Colour
 
@@ -296,9 +296,9 @@ Sets the custom player frame colour. This is used when **Frame Colour Source** i
 
 There are three choices:
 
-- **Custom** — use the colour selected in Control Colour.
-- **Branding Primary** — use the active Branding Preset primary colour.
-- **Branding Secondary** — use the active Branding Preset secondary colour.
+- **Custom** - use the colour selected in Control Colour.
+- **Branding Primary** - use the active Branding Preset primary colour.
+- **Branding Secondary** - use the active Branding Preset secondary colour.
 
 The default is **Branding Primary**.
 
@@ -383,7 +383,7 @@ A Branding Preset can contain:
 | Setting | Purpose |
 |---|---|
 | **Preset Name** | Name shown in the settings UI and in selection lists. |
-| **Source Platform** | Optional Twitch, Kick or YouTube association. When Use Source Platform Branding is enabled for Play — Replay, this preset is automatically selected for replays from the matching platform. |
+| **Source Platform** | Optional Twitch, Kick or YouTube association. When Use Source Platform Branding is enabled for newly created clips, or Change Player Branding to Clip Source is enabled for Play - Replay, this preset is selected for the matching platform. |
 | **Primary Colour** | Primary branding colour used by player, panel and design elements. |
 | **Secondary Colour** | Secondary branding colour used by player, panel and design elements. |
 | **Player Title Colour** | Colour used for the replay title text displayed by the player. |
@@ -402,7 +402,7 @@ Branding is selected by the Behaviour settings. A single preset can therefore be
 
 A Branding Preset can optionally be associated with **Twitch**, **Kick** or **YouTube**.
 
-Player Behaviour also has **Use Source Platform Branding**. When this is enabled, Action Replay checks the replay's source platform and uses the matching Branding Preset when one exists. If there is no matching preset, the configured Play — Replay Branding Preset is used.
+Player Behaviour has the existing **Use Source Platform Branding** option for newly created clips. When enabled, the source platform of a newly created clip selects its Branding Preset; if there is no matching preset, the **Play - Replay** Branding Preset is used. Separately, **Play - Replay** has **Change Player Branding to Clip Source**. When enabled, every replay load checks the replay creator platform and applies the matching Branding Preset to the complete player presentation. When disabled, the **Play - Replay** Branding Preset is used.
 
 This lets the same playback entry point automatically use different branding for different clip sources.
 
@@ -521,9 +521,9 @@ Positions are reusable 3D transforms. They describe where an element should appe
 
 Action Replay maintains three position sets:
 
-- **Player Positions** — positions for the replay video.
-- **Panel Positions** — positions for search, recent, playlist and leaderboard panels.
-- **Message Positions** — positions for panel-based messages.
+- **Player Positions** - positions for the replay video.
+- **Panel Positions** - positions for search, recent, playlist and leaderboard panels.
+- **Message Positions** - positions for panel-based messages.
 
 Each position contains the transform information used by the overlay, including:
 
@@ -544,7 +544,7 @@ That means changing a saved position also changes every animation profile that u
 
 For example:
 
-**Full Screen → Mini Player**
+**Full Screen -> Mini Player**
 
 is an animation sequence made from two saved Player Positions. If the Mini Player position is later adjusted, the animation uses the updated position automatically.
 
@@ -562,10 +562,10 @@ Each profile has a **Start Sequence** and an **End Sequence**.
 
 A sequence is a list of steps. Each step selects:
 
-- **Position** — the saved position used for that step.
-- **Duration** — how long the movement to that position takes, in milliseconds.
-- **Easing** — the timing curve used for the movement.
-- **Delay** — how long to wait before the next animation step starts.
+- **Position** - the saved position used for that step.
+- **Duration** - how long the movement to that position takes, in milliseconds.
+- **Easing** - the timing curve used for the movement.
+- **Delay** - how long to wait before the next animation step starts.
 
 Available easing options are:
 
@@ -585,7 +585,7 @@ A sequence can contain more than one position, which allows multi-step movements
 
 For example, a sequence can move:
 
-**Full Screen → Mini Player**
+**Full Screen -> Mini Player**
 
 using multiple saved positions, each with its own duration and easing.
 
@@ -599,31 +599,138 @@ This keeps positions reusable and prevents the animation data from becoming a se
 
 ## Message Outputs
 
-Message Outputs control the optional chat and overlay messages generated by Action Replay.
+Message Outputs define the transient chat and overlay responses generated by Action Replay.
 
-Each message has a message template, a **Chat** toggle and an **Overlay** toggle.
+| Output | Default message | Overlay presentation |
+|---|---|---|
+| **Replay Created** | `Replay saved: %replayTitle%.` | Clapperboard |
+| **Replay Queued** | `Replay queued: %replayTitle%.` | Message |
+| **Replay Renamed** | `Replay #%replayNumber% renamed from %oldTitle% to %newTitle%.` | Message |
+| **Replay Removed** | `Replay removed: %replayTitle%.` | Message |
+| **Replay Rated** | `Rated %replayTitle% %replayRating%/5 (average %averageRating%/5).` | Message |
+| **Playlist Cleared** | `Playlist cleared: %clearedCount% waiting item(s) removed.` | Message |
+| **Playlist Completely Cleared** | `Playlist completely cleared: %clearedCount% item(s) removed.` | Message |
 
-| Output | Default message |
-|---|---|
-| **Save Replay** | `Replay saved: %replayTitle%.` |
-| **Name Replay** | `Replay #%replayNumber% renamed to %replayTitle%.` |
-| **Play Replay** | `Playing replay #%replayNumber%: %replayTitle%.` |
-| **Recent** | `%replayRecent%` |
-| **Playlist** | `%replayPlaylist%` |
+Every output has a **Chat** toggle. The transient overlay outputs use the central message queue. Replay Created uses the separate Clapperboard presentation.
+
+### Replay Created variables
+
+- `%replayTitle%` — title of the replay.
+- `%replayUser%` — creator name.
+- `%replayPlatform%` — platform associated with the replay creator.
+- `%replaySourcePlatform%` — platform the replay came from.
+- `%requesterName%` — name of the person who triggered the action.
+- `%requesterPlatform%` — platform where the request originated.
+
+### Replay Queued variables
+
+- `%replayTitle%` — title of the replay.
+- `%replayUser%` — creator name.
+- `%replayPlatform%` — platform associated with the replay creator.
+- `%replaySourcePlatform%` — platform the replay came from.
+- `%requesterName%` — name of the person who triggered the action.
+- `%requesterPlatform%` — platform where the request originated.
+
+### Replay Renamed variables
+
+- `%replayNumber%` — Catalog position of the replay.
+- `%oldTitle%` — title before the rename.
+- `%newTitle%` — title after the rename.
+- `%requesterName%` — name of the person who triggered the action.
+- `%requesterPlatform%` — platform where the request originated.
+
+### Replay Removed variables
+
+- `%replayTitle%` — title of the replay.
+- `%requesterName%` — name of the person who triggered the action.
+- `%requesterPlatform%` — platform where the request originated.
+
+### Replay Rated variables
+
+- `%replayTitle%` — title of the replay.
+- `%replayRating%` — rating just submitted.
+- `%averageRating%` — replay's current average rating after the new rating.
+- `%requesterName%` — name of the person who triggered the action.
+- `%requesterPlatform%` — platform where the request originated.
+
+### Playlist Cleared variables
+
+- `%clearedCount%` — number of waiting Playlist items removed.
+- `%requesterName%` — name of the person who triggered the action.
+- `%requesterPlatform%` — platform where the request originated.
+
+### Playlist Completely Cleared variables
+
+- `%clearedCount%` — number of Playlist items removed.
+- `%requesterName%` — name of the person who triggered the action.
+- `%requesterPlatform%` — platform where the request originated.
+
+### List Chat Output variables
+
+Recent Clips and Playlist chat entries use a separate list-entry formatter:
+
+- `%listNumber%` — position of the entry in the list.
+- `%title%` — replay title.
+- `%creator%` — creator name.
+- `%rating%` — replay rating.
+- `%platform%` — replay platform.
+- `%plays%` — play count.
+
+These are the **user-facing Message variables**. Internal replay IDs, requester IDs, broadcast IDs and other handoff values are not exposed as message variables.
 
 ### Message templates
 
-The message text can contain Streamer.bot variables appropriate to the output.
+Message templates are resolved when the event occurs. The available variables above are resolved from the event context before the message enters the central messaging action.
 
-### Chat
+### Chat routing
 
-When enabled, the message is sent to the requesting platform's chat.
+Chat responses are sent immediately to the platform that originated the action:
 
-### Overlay
+- Twitch -> Twitch
+- Kick -> Kick
+- YouTube -> the originating broadcast when its broadcast ID is available, otherwise the latest monitored broadcast.
 
-When enabled, the message is sent to the Action Replay overlay.
+The routing uses the captured requester platform rather than the platform of whatever action happens to process the message later.
 
-These destinations are independent, so a message can be sent to chat, the overlay, both, or neither.
+### Overlay message queue
+
+Overlay presentations are handled by the central message queue.
+
+Only overlay presentations enter the queue. Chat does not wait for the overlay.
+
+The queue stores the complete message context, including the requester identity, replay identity, source platform, rendered message and presentation type. This prevents later action boundaries from changing or losing the variables that belonged to the original event.
+
+A queued overlay message is considered **finished only when its exit animation has completed**.
+
+The browser reports completion back to the messaging action through the Streamer.bot WebSocket. The next queued overlay message is then presented.
+
+This means a sequence such as:
+
+`Replay Created -> Replay Queued -> Replay Rated`
+
+is presented as:
+
+`Created -> exit animation -> Queued -> exit animation -> Rated`
+
+rather than allowing the messages to overlap.
+
+### Replay Queued
+
+Every replay is added to the Playlist.
+
+**Replay Queued** is only generated when the Playlist was already non-empty **before** the new replay was added.
+
+The decision is made inside `EnqueueCurrentReplay()` using the descriptive `playlistNotEmpty` value.
+
+If the Playlist was empty, the replay is added and can start immediately without generating a Replay Queued message.
+
+### Source Platform Branding
+
+Message Behaviour has its own **Use Source Platform Branding** setting, independent of the equivalent Player and Clapperboard settings.
+
+When disabled, the configured Message Behaviour Branding Preset is used.
+
+When enabled, Action Replay checks the replay's source platform for an associated Branding Preset. If no matching preset exists, the configured Message Behaviour Branding Preset is used as the fallback.
 
 ## Behaviour
 
@@ -644,15 +751,17 @@ Player Behaviour controls the presentation used when the player is created or a 
 
 The current entry points are:
 
-- **Create — OBS**
-- **Create — Twitch**
-- **Create — YouTube**
-- **Create — Kick**
-- **Play — Replay**
+- **Create - OBS**
+- **Create - Twitch**
+- **Create - YouTube**
+- **Create - Kick**
+- **Play - Replay**
 
 Each entry point can select its own Branding, Design, Title and Animation settings.
 
-The **Play — Replay** entry point can also use source-platform branding as described under Branding Presets.
+For Player Behaviour, **Use Source Platform Branding** controls branding for newly created clips, using the clip source platform. The selected **Play - Replay Branding Preset** remains the fallback when no matching source branding exists. **Change Player Branding to Clip Source** is a separate Play - Replay option. When enabled, each replay load uses the replay creator platform branding for the complete player presentation, including frame, design colours, playback buttons and progress bar. When disabled, the Play - Replay Branding Preset is always used.
+
+The **Play - Replay** entry point controls the reusable presentation used for normal replay playback.
 
 ### Panel Behaviour
 
@@ -670,7 +779,7 @@ For example, the Playlist panel can use a different animation profile or design 
 
 ### Message Behaviour
 
-Message Behaviour controls the presentation of overlay messages. Messages use the same heading-area design as information panels rather than the Clapperboard presentation.
+Message Behaviour controls the presentation of normal transient overlay messages. Replay Created uses the separate Clapperboard presentation.
 
 Messages use:
 
@@ -678,6 +787,7 @@ Messages use:
 - a **Design Preset**
 - a **Message Animation** profile
 - a **Display Time**
+- **Use Source Platform Branding**
 - a **Minimum Width**
 - a **Minimum Height**
 - a **Corner Radius**
@@ -691,18 +801,47 @@ The message uses the panel heading as its visual base. Its width and height are 
 A typical replay presentation therefore looks roughly like this:
 
 **Entry Point**
-→ selects **Branding + Design + Title + Animation**
+-> selects **Branding + Design + Title + Animation**
 
 **Animation**
-→ uses **saved Positions**
+-> uses **saved Positions**
 
 **Branding**
-→ supplies colours, font and identity
+-> supplies colours, font and identity
 
 **Design**
-→ supplies the panel's visual treatment
+-> supplies the panel's visual treatment
 
 **Clapperboard**
-→ supplies message-specific appearance
+-> supplies message-specific appearance
 
 The settings are deliberately separated this way so that presentation changes can be made once and reused across multiple operations.
+
+## Import / Export
+
+**Export Settings** writes a complete JSON backup of the RTS Action Replay configuration. Export always includes everything; there is no export selection.
+
+**Import Settings** is selective. You can choose:
+
+- Player Settings
+- Panel Settings
+- Message Settings
+- Branding Profiles — all or selected profile IDs
+- Animation Profiles — all or selected component/profile IDs (`player:id`, `panel:id`, `message:id`, `clapperboard:id`)
+- Visual / Design Presets
+- Title Presets
+- Catalog
+
+Catalog imports can be limited to Twitch, YouTube, Kick or Local / OBS entries. Catalog imports never modify play history.
+
+### Duplicate handling
+
+For imported profiles and Catalog entries, **Skip** leaves an existing entry unchanged. **Overwrite** replaces the existing entry with the imported version.
+
+Local / OBS Catalog entries use the replay source ID when available and the filename as a fallback duplicate check.
+
+### Factory Reset
+
+**Factory Reset** restores RTS Action Replay configuration to its built-in defaults after a confirmation prompt.
+
+Factory Reset **does not delete the Catalog or play history**.

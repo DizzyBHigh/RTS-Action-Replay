@@ -1,5 +1,5 @@
 const RTSPositioningEngine = {
-  version: '20260920-1',
+  version: '20260923-4',
   diagnostics: new WeakMap(),
   referenceWidth: 1920,
   referenceHeight: 1080,
@@ -17,19 +17,22 @@ const RTSPositioningEngine = {
     const rotateX = -number(p.rotateX, 0);
     const rotateY = number(p.rotateY, 0);
     const rotateZ = -number(p.rotateZ, 0);
-    const fov = Math.max(30, Math.min(120, number(p.fov, 90)));
-    const dev = Boolean(document.getElementById('rts-dev-stage'));
-    const viewportWidth = dev ? this.referenceWidth : Math.max(1, window.innerWidth || this.referenceWidth);
-    const viewportHeight = dev ? this.referenceHeight : Math.max(1, window.innerHeight || this.referenceHeight);
-    const perspective = Math.max(1, (viewportWidth / 2) / Math.tan((fov * Math.PI / 180) / 2));
-    // X/Y are screen-space positioning values. Compensate their
-    // translation for Z depth so Z zooms around the existing screen position
-    // instead of causing the element to drift toward/away from the center.
-    const depthFactor = (perspective - z) / perspective;
-    const xValue = `${x * viewportWidth / 100 * depthFactor}px`;
-    const yValue = `${-y * viewportHeight / 100 * depthFactor}px`;
-    return `perspective(${perspective}px) translate3d(${xValue}, ${yValue}, ${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX}, ${scaleY}, 1)`;
+    const canvas = element.offsetParent || document.getElementById('rts-overlay') || document.body;
+    const viewportWidth = Math.max(1, canvas.clientWidth || this.referenceWidth);
+    const viewportHeight = Math.max(1, canvas.clientHeight || this.referenceHeight);
+    const width = Math.max(0, element?.offsetWidth || 0);
+    const height = Math.max(0, element?.offsetHeight || 0);
+    const xValue = this.positionOffset(x, viewportWidth);
+    const yValue = -this.positionOffset(y, viewportHeight);
+
+    return `perspective(960px) translate3d(${xValue}px, ${yValue}px, ${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX}, ${scaleY}, 1)`;
   },
+
+  positionOffset(value, canvasSize) {
+    return value / 100 * canvasSize;
+  },
+
+
 
   apply(element, position) {
     if (!element) return null;
@@ -48,7 +51,7 @@ const RTSPositioningEngine = {
       const name = String(position?.name || position?.tag || '');
       const z = Number(position?.z);
       if (/center.?hidden/i.test(name) || (Number.isFinite(z) && z <= -2500)) {
-        const signature = [name, position?.x, position?.y, position?.z, position?.scaleX, position?.scaleY, position?.fov].join('|');
+        const signature = [name, position?.x, position?.y, position?.z, position?.scaleX, position?.scaleY].join('|');
         if (this.diagnostics.get(element) !== signature) {
           this.diagnostics.set(element, signature);
           const screen = document.getElementById('rts-dev-screen');
@@ -59,7 +62,7 @@ const RTSPositioningEngine = {
             name,
             position: {
               x: position?.x, y: position?.y, z: position?.z,
-              scaleX: position?.scaleX, scaleY: position?.scaleY, fov: position?.fov
+              scaleX: position?.scaleX, scaleY: position?.scaleY
             },
             transform,
             rectCenter: {

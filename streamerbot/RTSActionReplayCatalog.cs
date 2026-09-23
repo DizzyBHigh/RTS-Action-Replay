@@ -22,7 +22,13 @@ public class CPHInline
 
     public bool Execute() => string.Equals(Arg("replayAvatarRequestId"), "", StringComparison.Ordinal) ? ListCatalog() : ResolveAvatar();
     public bool ListCatalog() { var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var amount = ParseAmount(ref parts); var search = string.Join(" ", parts).Trim(); return Queue(BuildState(string.IsNullOrWhiteSpace(search) ? "all" : "search", search, "catalog", amount)); }
-    public bool ListRecent() => Queue(BuildState("recent", "", "recent", ParseAmount(Arg("rawInput"))));
+    public bool ListRecent()
+    {
+        var state = BuildState("recent", "", "recent", ParseAmount(Arg("rawInput")));
+        if (CPH.GetGlobalVar<bool?>("rts.actionreplay.message.recent.chat", true) ?? true)
+            SendRecentChat(new JArray(Query(state).Take(Math.Max(1, (int?)state["amount"] ?? MaxAmount()))));
+        return Queue(state);
+    }
     public bool ListLastPlayed() => Queue(BuildState("lastplayed", "", "history", ParseAmount(Arg("rawInput"))));
     public bool PlayHistory() { var input = Arg("rawInput").Trim(); if (!int.TryParse(input, out var index) || index < 1) { SendCatalogMessage("Please provide a history item number."); return false; } var history = (Load()["playHistory"] as JArray) ?? new JArray(); if (index > history.Count) { SendCatalogMessage($"History item #{index} does not exist."); return false; } var replayId = (string)(history[index - 1] as JObject)?["replayId"]; if (string.IsNullOrWhiteSpace(replayId)) { SendCatalogMessage($"History item #{index} is unavailable."); return false; } CPH.SetArgument("replayId", replayId); return CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay"); }
     public bool ResolveAvatar() { var requestId = Arg("replayAvatarRequestId"); var platform = NormalizePlatform(Arg("replayAvatarPlatform")); var userId = Arg("replayAvatarUserId"); var userName = Arg("replayAvatarUserName"); var avatar = ResolveAvatarUrl(platform, userId, userName); CPH.SetArgument("replayCommand", "avatar-response"); CPH.SetArgument("replayAvatarRequestId", requestId); CPH.SetArgument("replayAvatarUserId", userId); CPH.SetArgument("replayAvatarUrl", avatar ?? ""); CPH.TriggerEvent("RTS-Action Replay", true); return true; }
@@ -40,6 +46,30 @@ public class CPHInline
     public bool UserSearchPrevious() => ShowUserSearchPage(-1);
     public bool ResolveSelection() { var selector = Arg("rawInput").Trim(); if (!int.TryParse(selector, out var index) || index < 1) return false; var state = LoadUserState(); if (string.Equals((string)state["filterType"], "leaderboard", StringComparison.OrdinalIgnoreCase)) return false; return ResolveStateSelection(state, index); }
     public bool ResolveSelectionForUser() { var selector = Arg("rawInput").Trim(); var parts = selector.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var indexText = parts.Length == 1 ? parts[0] : parts.Length == 2 ? parts[1] : ""; if (!int.TryParse(indexText, out var index) || index < 1) return false; var platform = Arg("catalogSelectionPlatform"); var userName = Arg("catalogSelectionUser"); if (!TryParseUserTarget(platform + ":" + userName, out platform, out userName)) return false; var userId = ResolveUserId(platform, userName); if (string.IsNullOrWhiteSpace(userId)) return false; var state = LoadUserSearchState(platform, userId, userName); if (state == null || string.Equals((string)state["filterType"], "leaderboard", StringComparison.OrdinalIgnoreCase)) return false; return ResolveStateSelection(state, index); }
+    private void SendRecentChat(JArray results)
+    {
+        for (var i = 0; i < results.Count; i++)
+        {
+            var replay = results[i] as JObject;
+            if (replay == null) continue;
+            var creator = replay["creator"] as JObject;
+            SendListEntry(i + 1, (string)replay["title"] ?? "Untitled replay", (string)creator?["name"] ?? "", HasRatings(replay) ? Math.Round(Rating(replay), 1) : 0, (string)creator?["platform"] ?? (string)replay["sourceType"] ?? "", (int?)replay["plays"] ?? 0);
+        }
+    }
+
+    private void SendListEntry(int number, string title, string creator, double rating, string platform, int plays)
+    {
+        CPH.SetArgument("listNumber", number);
+        CPH.SetArgument("title", title);
+        CPH.SetArgument("creator", creator);
+        CPH.SetArgument("rating", rating);
+        CPH.SetArgument("platform", platform);
+        CPH.SetArgument("plays", plays);
+        if (!CPH.ExecuteMethod("RTS - Action Replay - Core - Messaging", "FormatListEntry")) return;
+        if (!CPH.TryGetArg("formattedListEntry", out string message) || string.IsNullOrWhiteSpace(message)) return;
+        SendCatalogMessage(message);
+    }
+
     public bool RenderSearchRequest() {
         var json = Arg("replaySearchRequest"); if (string.IsNullOrWhiteSpace(json)) return false;
         JObject request; try { request = JObject.Parse(json); } catch { return false; }
@@ -72,7 +102,47 @@ public class CPHInline
     }
 
     public bool RecordPlayed() { var replayId = Arg("historyReplayId"); if (string.IsNullOrWhiteSpace(replayId)) return false; var data = Load(); var catalog = data["catalog"] as JArray ?? new JArray(); var replay = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase)); if (replay == null) return false; replay["plays"] = Math.Max(0, (int?)replay["plays"] ?? 0) + 1; var history = data["playHistory"] as JArray ?? new JArray(); var existing = history.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["replayId"], replayId, StringComparison.OrdinalIgnoreCase)); var count = existing == null ? 1 : Math.Max(1, (int?)existing["count"] ?? 1) + 1; if (existing != null) history.Remove(existing); var requesterId = ""; var activeId = CPH.GetGlobalVar<string>(ActiveKey, false); var queueRaw = CPH.GetGlobalVar<string>(PlaylistKey, false); if (!string.IsNullOrWhiteSpace(queueRaw)) { try { var queue = JArray.Parse(queueRaw); var active = queue.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["entryId"], activeId, StringComparison.OrdinalIgnoreCase)); requesterId = (string)active?["requesterId"] ?? ""; } catch { } } history.Insert(0, new JObject { ["replayId"] = replayId, ["title"] = Arg("historyReplayTitle"), ["creator"] = Arg("historyReplayCreator"), ["count"] = count, ["lastPlayedBy"] = Arg("historyReplayRequester"), ["lastPlayedPlatform"] = Arg("historyReplayPlatform"), ["lastPlayedUserId"] = requesterId, ["lastPlayed"] = DateTime.Now.ToString("o") }); while (history.Count > MaxAmount()) history.RemoveAt(history.Count - 1); data["playHistory"] = history; Save(data); return true; }
-    public bool RateReplay() { var input = Arg("rawInput").Trim(); if (!int.TryParse(input, out var rating) || rating < 1 || rating > 5) { SendCatalogMessage("Please provide a rating from 1 to 5 for the currently playing replay."); return false; } var userId = Arg("userId"); if (string.IsNullOrWhiteSpace(userId)) { SendCatalogMessage("A user account is required to rate a replay."); return false; } var replayId = CPH.GetGlobalVar<string>(ActiveReplayKey, false); if (string.IsNullOrWhiteSpace(replayId)) { SendCatalogMessage("There is no replay currently playing."); return false; } var data = Load(); var catalog = data["catalog"] as JArray ?? new JArray(); var replay = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase)); if (replay == null) { SendCatalogMessage("The currently playing replay is no longer in the Catalog."); return false; } var ratings = replay["ratings"] as JObject ?? new JObject(); ratings[IdentityKey(CurrentPlatform(), userId)] = rating; replay["ratings"] = ratings; Save(data); SendCatalogMessage($"Rated {(string)replay["title"] ?? "Replay"} {rating}/5."); return true; }
+    public bool RateReplay()
+    {
+        var input = Arg("rawInput").Trim();
+        if (!int.TryParse(input, out var rating) || rating < 1 || rating > 5) { SendCatalogMessage("Please provide a rating from 1 to 5 for the currently playing replay."); return false; }
+        var userId = Arg("userId");
+        if (string.IsNullOrWhiteSpace(userId)) { SendCatalogMessage("A user account is required to rate a replay."); return false; }
+        var replayId = CPH.GetGlobalVar<string>(ActiveReplayKey, false);
+        if (string.IsNullOrWhiteSpace(replayId)) { SendCatalogMessage("There is no replay currently playing."); return false; }
+        var data = Load();
+        var catalog = data["catalog"] as JArray ?? new JArray();
+        var replay = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase));
+        if (replay == null) { SendCatalogMessage("The currently playing replay is no longer in the Catalog."); return false; }
+
+        var ratings = replay["ratings"] as JObject ?? new JObject();
+        var requesterPlatform = CurrentPlatform();
+        var identityKey = IdentityKey(requesterPlatform, userId);
+        var oldRating = ratings[identityKey] == null ? 0d : ratings[identityKey].Value<double>();
+        ratings[identityKey] = rating;
+        replay["ratings"] = ratings;
+        Save(data);
+        var averageRating = Math.Round(ratings.Properties().Select(x => x.Value.Value<double>()).DefaultIfEmpty().Average(), 1);
+
+        var creator = replay["creator"] as JObject;
+        CPH.SetArgument("messageEvent", "Replay Rated");
+        CPH.SetArgument("replayId", replayId);
+        CPH.SetArgument("replayNumber", "");
+        CPH.SetArgument("replayTitle", (string)replay["title"] ?? "Replay");
+        CPH.SetArgument("replayRating", rating);
+        CPH.SetArgument("oldRating", oldRating);
+        CPH.SetArgument("averageRating", averageRating);
+        CPH.SetArgument("replayUserId", (string)creator?["id"] ?? "");
+        CPH.SetArgument("replayUser", (string)creator?["name"] ?? "");
+        CPH.SetArgument("replayPlatform", (string)creator?["platform"] ?? "");
+        CPH.SetArgument("replaySourcePlatform", (string)replay["sourceType"] ?? "OBS");
+        CPH.SetArgument("requesterId", userId);
+        CPH.SetArgument("requesterName", Arg("userName"));
+        CPH.SetArgument("requesterPlatform", requesterPlatform);
+        CPH.SetArgument("requesterBroadcastId", Arg("broadcast.id"));
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Messaging", "Enqueue");
+        return true;
+    }
 
     private string ResolveAvatarUrl(string platform, string userId, string userName)
     {

@@ -1,14 +1,5 @@
-#message-card.show .clapper {
-  animation: clapper-in .42s cubic-bezier(.2,.8,.2,1) forwards;
-}
-
-#message-card.show .clapstick.clap {
+#clapper-card.show .clapstick.clap {
   animation: clap .78s cubic-bezier(.2,.7,.2,1) forwards;
-}
-
-@keyframes clapper-in {
-  0% { opacity: 0; transform: rotate(-5deg) translateY(45px); }
-  100% { opacity: 1; transform: rotate(-1deg) translateY(0); }
 }
 
 @keyframes clap {

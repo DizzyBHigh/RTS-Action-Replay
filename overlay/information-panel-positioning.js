@@ -34,21 +34,17 @@ RTSInformationPanels.applySize = (panel, command) => {
 
 RTSInformationPanels.applyMessageSize = (panel, command) => {
   if (!panel) return;
-  const width = Number(command?.replayMessageMinWidth);
-  const height = Number(command?.replayMessageMinHeight);
+  const width = Number(command?.replayMessageWidth ?? command?.replayMessageMinWidth);
+  const height = Number(command?.replayMessageHeight ?? command?.replayMessageMinHeight);
   const radius = Number(command?.replayMessageCornerRadius);
-  if (Number.isFinite(width) && width > 0) {
-    panel.style.width = `${width}px`;
-    panel.style.minWidth = `${width}px`;
-  }
-  if (Number.isFinite(height) && height > 0) {
-    panel.style.height = `${height}px`;
-    panel.style.minHeight = `${height}px`;
-    panel.style.setProperty('--message-min-height', `${height}px`);
-  }
-  if (Number.isFinite(radius) && radius >= 0) panel.style.borderRadius = `${radius}px`;
+  if (Number.isFinite(width) && width > 0) panel.style.width = `${width}px`;
+  if (Number.isFinite(height) && height > 0) panel.style.height = `${height}px`;
+  panel.style.minWidth = '0';
+  panel.style.minHeight = '0';
   panel.style.maxWidth = 'none';
   panel.style.maxHeight = 'none';
+  if (Number.isFinite(height) && height > 0) panel.style.setProperty('--message-min-height', `${height}px`);
+  if (Number.isFinite(radius) && radius >= 0) panel.style.borderRadius = `${radius}px`;
 };
 
 RTSInformationPanels.getViewportOffset = position => {
@@ -78,14 +74,15 @@ RTSInformationPanels.show = (panel, command, name) => {
   panel.setAttribute('aria-hidden', 'false');
 };
 
-RTSInformationPanels.hide = (panel, command) => {
+RTSInformationPanels.hide = (panel, command, complete) => {
   if (!panel) return;
   if (window.RTSInformationPanelAnimation) {
-    RTSInformationPanelAnimation.hide(panel, command);
+    RTSInformationPanelAnimation.hide(panel, command, complete);
     return;
   }
   panel.classList.remove('show');
   panel.setAttribute('aria-hidden', 'true');
+  complete?.();
 };
 
 window.RTSInformationPanels = RTSInformationPanels;

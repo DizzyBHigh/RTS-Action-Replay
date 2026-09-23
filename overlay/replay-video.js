@@ -86,6 +86,7 @@ const notifyEndedOnce = (command, token) => {
   if (token !== youtubeReplayToken || youtubeEndedNotified) return;
   youtubeEndedNotified = true;
   RTSReplayVideo.notifyPlaybackEnded(command);
+  RTSReplayVideo.hideReplay();
 };
 
 const startYouTubeBoundaryTimer = (command, token) => {
@@ -321,6 +322,7 @@ RTSReplayVideo.testTitle = command => {
 
 RTSReplayVideo.moveReplay = command => {
   RTSReplayVideo.currentCommand = { ...(RTSReplayVideo.currentCommand || {}), ...command };
+  if (command.replayPositions) playerRunner.configure(command.replayPositions);
   const position = RTSReplayVideo.getPosition(command.replayPosition || 'Full Screen'); const current = RTSReplayVideo.activePosition;
   if (current && RTSReplayVideo.positionsEqual?.(current, position)) return;
   RTSReplayVideo.player.classList.add('show');
@@ -368,7 +370,11 @@ RTSReplayVideo.handleReplayCommand = command => {
 RTSReplayVideo.video.addEventListener('ended', () => {
   const command = RTSReplayVideo.currentCommand;
   if (command?.replaySource?.toLowerCase() === 'youtube') return;
-  if (command) { RTSReplayVideo.notifyPlaybackEnded(command); RTSReplayWatchdog?.stop?.(); }
+  if (command) {
+    RTSReplayVideo.notifyPlaybackEnded(command);
+    RTSReplayVideo.hideReplay();
+    RTSReplayWatchdog?.stop?.();
+  }
 });
 
 RTSReplayVideo.youtubeState = () => youtubePlayer?.getPlayerState?.();

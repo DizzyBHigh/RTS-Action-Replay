@@ -189,6 +189,7 @@ RTSSearchPanel.show = command => {
   const hidePanel = () => {
     RTSSearchPanel.clearTimers();
     RTSInformationPanels.hide(panel, command);
+    if (command?.replayTest === true) return;
     RTSSearchPanel.endTimer = setTimeout(() => RTSSearchPanel.notifyEnded(requestId), 700);
   };
 

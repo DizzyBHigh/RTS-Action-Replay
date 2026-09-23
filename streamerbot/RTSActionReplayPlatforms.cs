@@ -114,6 +114,7 @@ private JObject AddTwitchClip(ClipData clip, bool playAfterAdd)
         };
         catalog.Insert(0, item); data["catalog"] = catalog; Save(data);
         if (ModeNeedsLocalCopy(mode) && string.IsNullOrWhiteSpace(localPath)) CPH.LogWarn("RTS Action Replay: local Twitch copy could not be created for " + clip.Id + "; retaining Twitch playback as fallback.");
+        if (playAfterAdd) EnqueueReplayCreated(item);
         return item;
     }
 
@@ -123,6 +124,24 @@ private void EnsureLocalCopyIfConfigured(JObject data, JObject item, string clip
         var current = (string)item["filePath"]; if (!string.IsNullOrWhiteSpace(current) && File.Exists(current)) return;
         var path = DownloadClip(clipId); if (string.IsNullOrWhiteSpace(path)) return;
         item["file"] = Path.GetFileName(path); item["filePath"] = path; Save(data);
+    }
+
+private void EnqueueReplayCreated(JObject item)
+    {
+        var creator = item["creator"] as JObject;
+        CPH.SetArgument("messageEvent", "Replay Created");
+        CPH.SetArgument("replayId", (string)item["id"] ?? "");
+        CPH.SetArgument("replayNumber", 1);
+        CPH.SetArgument("replayTitle", (string)item["title"] ?? "Replay");
+        CPH.SetArgument("replayUserId", (string)creator?["id"] ?? "");
+        CPH.SetArgument("replayUser", (string)creator?["name"] ?? "");
+        CPH.SetArgument("replayPlatform", (string)creator?["platform"] ?? (string)item["sourceType"] ?? "");
+        CPH.SetArgument("replaySourcePlatform", (string)item["sourceType"] ?? "");
+        CPH.SetArgument("requesterId", Arg("userId"));
+        CPH.SetArgument("requesterName", Arg("userName"));
+        CPH.SetArgument("requesterPlatform", Arg("userType"));
+        CPH.SetArgument("requesterBroadcastId", Arg("broadcast.id"));
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Messaging", "Enqueue");
     }
 
 private bool BroadcastReplay(JObject item, bool showClapperboard)
@@ -266,7 +285,8 @@ public bool CreateYouTubeClip()
         };
         catalog.Insert(0, item); data["catalog"] = catalog;  Save(data);
         CPH.LogInfo($"RTS Action Replay: added YouTube timestamp replay {id} ({startTime}s + {duration}s) title='{title}'.");
-        return BroadcastReplay(item, true);
+        EnqueueReplayCreated(item);
+        return BroadcastReplay(item, false);
     }
 
 private bool TryGetStartTime(string videoId, out long startTime)
@@ -339,7 +359,7 @@ public bool CaptureKickBotClip()
             ["title"] = title, ["customTitle"] = title != "Kick Clip", ["duration"] = duration, ["added"] = DateTime.Now.ToString("o"), ["captured"] = DateTime.Now.ToString("o"),
             ["acquisitionMethod"] = "KickBot", ["creator"] = creator, ["plays"] = 0, ["users"] = new JObject()
         };
-        catalog.Insert(0, item); data["catalog"] = catalog;  ClearPending(); Save(data); return BroadcastReplay(item, true);
+        catalog.Insert(0, item); data["catalog"] = catalog;  ClearPending(); Save(data); EnqueueReplayCreated(item); return BroadcastReplay(item, false);
     }
 
 public bool CaptureKickClip()
@@ -373,7 +393,8 @@ public bool CaptureKickClip()
         };
         catalog.Insert(0, item); data["catalog"] = catalog;  Save(data);
         CPH.LogInfo($"RTS Action Replay: native Kick clip captured; clipId={clipId}; title={title}; duration={duration}.");
-        return BroadcastReplay(item, true);
+        EnqueueReplayCreated(item);
+        return BroadcastReplay(item, false);
     }
 
 private JObject GetNativeKickClipMetadata(string clipId)

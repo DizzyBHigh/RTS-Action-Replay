@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Globalization;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 
@@ -10,6 +11,7 @@ public class CPHInline
     private const string PendingKey = "rts.actionreplay.pendingSaves";
     private const string FileTypesKey = "rts.actionreplay.replayFileTypes";
     private const string PlaylistAction = "RTS - Action Replay - Core - Playlist";
+    private const string PlaylistKey = "rts.actionreplay.playlist";
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
     private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
     private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
@@ -39,8 +41,25 @@ public class CPHInline
 
     public bool AddReplay()
     {
-        if (!(CPH.GetGlobalVar<bool?>("rts.actionreplay.autoAdd", true) ?? true)) return true; string path; if (!CPH.TryGetArg("fullPath", out path) || string.IsNullOrWhiteSpace(path) || !File.Exists(path) || !IsReplayFile(path)) return false; var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true); if (!string.IsNullOrWhiteSpace(folder) && !Path.GetFullPath(path).StartsWith(Path.GetFullPath(folder).TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase)) return false; if (Path.GetExtension(path).Equals(".tmp", StringComparison.OrdinalIgnoreCase) || !Stable(path)) return false; var data = Load(); var catalog = GetCatalog(data); var file = Path.GetFileName(path); if (catalog.OfType<JObject>().Any(x => string.Equals((string)x["file"], file, StringComparison.OrdinalIgnoreCase) && string.Equals((string)x["sourceType"] ?? "OBS", "OBS", StringComparison.OrdinalIgnoreCase))) return true; var now = DateTime.Now; var id = now.ToString("yyyyMMdd-HHmmssfff") + "-" + Guid.NewGuid().ToString("N").Substring(0, 6); var creatorId = Get("userId"); var creatorName = Get("userName"); var creatorPlatform = NormalizePlatform(Get("userType")); ApplyPendingCreator(ref creatorPlatform, ref creatorId, ref creatorName); CPH.SetArgument("replayId", id); CPH.SetArgument("replayFile", file); CPH.SetArgument("replayPath", path); CPH.SetArgument("replayName", Path.GetFileNameWithoutExtension(path)); CPH.SetArgument("replayNumber", 1); CPH.SetArgument("replayDate", now.ToString("yyyy-MM-dd")); CPH.SetArgument("replayTime", now.ToString("HH:mm:ss")); CPH.SetArgument("replayPlays", 0); CPH.SetArgument("replayUser", creatorName); CPH.SetArgument("replayUserId", creatorId); CPH.SetArgument("replayPlatform", creatorPlatform); CPH.SetArgument("replayUserPlays", 0); CPH.SetArgument("replayTitle", ""); var title = CPH.Parse(CPH.GetGlobalVar<string>(TitleKey, true) ?? "%replayName%"); if (string.IsNullOrWhiteSpace(title)) title = Path.GetFileNameWithoutExtension(path); var replay = new JObject { ["id"] = id, ["sourceType"] = "OBS", ["sourceId"] = id, ["file"] = file, ["filePath"] = path, ["title"] = title, ["customTitle"] = false, ["added"] = now.ToString("o"), ["captured"] = now.ToString("o"), ["acquisitionMethod"] = "OBSReplayBuffer", ["creator"] = new JObject { ["platform"] = creatorPlatform, ["id"] = creatorId, ["name"] = creatorName }, ["plays"] = 0, ["users"] = new JObject() }; catalog.Insert(0, replay); Save(data); CPH.LogInfo($"RTS Action Replay: added {title} ({id})"); CPH.SetArgument("replayTitle", title); CPH.SetArgument("animationEntryPoint", "obs"); CPH.SetArgument("replayAutoPlay", CPH.GetGlobalVar<bool?>("rts.actionreplay.autoPlay", true) ?? false); SendStoreMessage("save"); return true;
+        if (!(CPH.GetGlobalVar<bool?>("rts.actionreplay.autoAdd", true) ?? true)) return true; string path; if (!CPH.TryGetArg("fullPath", out path) || string.IsNullOrWhiteSpace(path) || !File.Exists(path) || !IsReplayFile(path)) return false; var folder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true); if (!string.IsNullOrWhiteSpace(folder) && !Path.GetFullPath(path).StartsWith(Path.GetFullPath(folder).TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase)) return false; if (Path.GetExtension(path).Equals(".tmp", StringComparison.OrdinalIgnoreCase) || !Stable(path)) return false; var data = Load(); var catalog = GetCatalog(data); var file = Path.GetFileName(path); if (catalog.OfType<JObject>().Any(x => string.Equals((string)x["file"], file, StringComparison.OrdinalIgnoreCase) && string.Equals((string)x["sourceType"] ?? "OBS", "OBS", StringComparison.OrdinalIgnoreCase))) return true; var now = DateTime.Now; var id = now.ToString("yyyyMMdd-HHmmssfff") + "-" + Guid.NewGuid().ToString("N").Substring(0, 6); var creatorId = Get("userId"); var creatorName = Get("userName"); var rawCreatorPlatform = Get("userType"); var creatorPlatform = string.IsNullOrWhiteSpace(rawCreatorPlatform) ? "" : NormalizePlatform(rawCreatorPlatform); ApplyPendingCreator(ref creatorPlatform, ref creatorId, ref creatorName); CPH.SetArgument("replayId", id); CPH.SetArgument("replayFile", file); CPH.SetArgument("replayPath", path); CPH.SetArgument("replayName", Path.GetFileNameWithoutExtension(path)); CPH.SetArgument("replayNumber", 1); CPH.SetArgument("replayDate", now.ToString("yyyy-MM-dd")); CPH.SetArgument("replayTime", now.ToString("HH:mm:ss")); CPH.SetArgument("replayPlays", 0); CPH.SetArgument("replayUser", creatorName); CPH.SetArgument("replayUserId", creatorId); CPH.SetArgument("replayPlatform", creatorPlatform); CPH.SetArgument("replayUserPlays", 0); CPH.SetArgument("replayTitle", ""); var title = CPH.Parse(CPH.GetGlobalVar<string>(TitleKey, true) ?? "%replayName%"); if (string.IsNullOrWhiteSpace(title)) title = Path.GetFileNameWithoutExtension(path); var replay = new JObject { ["id"] = id, ["sourceType"] = "OBS", ["sourceId"] = id, ["file"] = file, ["filePath"] = path, ["title"] = title, ["customTitle"] = false, ["added"] = now.ToString("o"), ["captured"] = now.ToString("o"), ["acquisitionMethod"] = "OBSReplayBuffer", ["creator"] = new JObject { ["platform"] = creatorPlatform, ["id"] = creatorId, ["name"] = creatorName }, ["plays"] = 0, ["users"] = new JObject() }; catalog.Insert(0, replay); Save(data); CPH.LogInfo($"RTS Action Replay: added {title} ({id})"); CPH.SetArgument("replayTitle", title); CPH.SetArgument("animationEntryPoint", "obs"); CPH.SetArgument("replayAutoPlay", CPH.GetGlobalVar<bool?>("rts.actionreplay.autoPlay", true) ?? false); var autoPlay = CPH.GetGlobalVar<bool?>("rts.actionreplay.autoPlay", true) ?? false; CPH.SetArgument("userId", creatorId ?? ""); CPH.SetArgument("userName", creatorName ?? ""); CPH.SetArgument("userType", creatorPlatform ?? ""); CPH.SetArgument("broadcast.id", Get("broadcast.id")); var replayCreatedOverlay = CPH.GetGlobalVar<bool?>("rts.actionreplay.message.created.overlay", true) ?? true; var useClapperboard = CPH.GetGlobalVar<bool?>("rts.actionreplay.clapper.useOnReplayCreated", true) ?? true; CPH.SetArgument("replayCreated", replayCreatedOverlay); CPH.SetArgument("replayUseClapperboard", replayCreatedOverlay && useClapperboard); CPH.SetArgument("replayAutoPlay", autoPlay); if (!CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay")) return false; if (replayCreatedOverlay && !useClapperboard) EnqueueReplayCreated(replay, creatorId, creatorName, creatorPlatform); return true;
     }
+    private void EnqueueReplayCreated(JObject replay, string creatorId, string creatorName, string creatorPlatform)
+    {
+        CPH.SetArgument("messageEvent", "Replay Created");
+        CPH.SetArgument("replayId", (string)replay["id"] ?? "");
+        CPH.SetArgument("replayNumber", 1);
+        CPH.SetArgument("replayTitle", (string)replay["title"] ?? "");
+        CPH.SetArgument("replayUserId", creatorId ?? "");
+        CPH.SetArgument("replayUser", creatorName ?? "");
+        CPH.SetArgument("replayPlatform", creatorPlatform ?? "");
+        CPH.SetArgument("replaySourcePlatform", (string)replay["sourceType"] ?? "OBS");
+        CPH.SetArgument("requesterId", Get("userId"));
+        CPH.SetArgument("requesterName", Get("userName"));
+        CPH.SetArgument("requesterPlatform", Get("userType"));
+        CPH.SetArgument("requesterBroadcastId", Get("broadcast.id"));
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Messaging", "Enqueue");
+    }
+
     public bool AddExistingReplay()
     {
         var input = Get("rawInput").Trim();
@@ -135,31 +154,79 @@ public class CPHInline
             string.Equals((string)x["sourceType"] ?? "OBS", "OBS", StringComparison.OrdinalIgnoreCase));
     }
 
-    public bool NameReplay() { string indexInput; string rawInput; if (!CPH.TryGetArg("input0", out indexInput) || !CPH.TryGetArg("rawInput", out rawInput)) return false; if (!int.TryParse(indexInput, out var index)) { CPH.SendMessage("Please provide a valid replay number."); return false; } var title = (rawInput ?? "").Trim(); if (title.StartsWith(indexInput + " ", StringComparison.OrdinalIgnoreCase)) title = title.Substring(indexInput.Length).Trim(); if (title.Length == 0) { CPH.SendMessage("Please provide a replay title."); return false; } var data = Load(); var list = GetCatalog(data); if (index < 1 || index > list.Count) { CPH.SendMessage($"Replay #{index} does not exist."); return false; } var target = (JObject)list[index - 1]; for (var i = 0; i < list.Count; i++) { var other = (JObject)list[i]; if (ReferenceEquals(other, target) || !((bool?)other["customTitle"] ?? false)) continue; if (string.Equals((string)other["title"], title, StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage("That title already exists."); return false; } } target["title"] = title; target["customTitle"] = true; Save(data); CPH.SetArgument("replayNumber", index); CPH.SetArgument("replayTitle", title); SendStoreMessage("name"); return true; }
+    public bool NameReplay() { string indexInput; string rawInput; if (!CPH.TryGetArg("input0", out indexInput) || !CPH.TryGetArg("rawInput", out rawInput)) return false; if (!int.TryParse(indexInput, out var index)) { CPH.SendMessage("Please provide a valid replay number."); return false; } var title = (rawInput ?? "").Trim(); if (title.StartsWith(indexInput + " ", StringComparison.OrdinalIgnoreCase)) title = title.Substring(indexInput.Length).Trim(); if (title.Length == 0) { CPH.SendMessage("Please provide a replay title."); return false; } var data = Load(); var list = GetCatalog(data); if (index < 1 || index > list.Count) { CPH.SendMessage($"Replay #{index} does not exist."); return false; } var target = (JObject)list[index - 1]; for (var i = 0; i < list.Count; i++) { var other = (JObject)list[i]; if (ReferenceEquals(other, target) || !((bool?)other["customTitle"] ?? false)) continue; if (string.Equals((string)other["title"], title, StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage("That title already exists."); return false; } } var oldTitle = (string)target["title"] ?? ""; target["title"] = title; target["customTitle"] = true; Save(data); CPH.SetArgument("replayNumber", index); CPH.SetArgument("replayTitle", title); EnqueueReplayRenamed(target, index, oldTitle, title); return true; }
+    private void EnqueueReplayRenamed(JObject replay, int number, string oldTitle, string newTitle)
+    {
+        var creator = replay["creator"] as JObject;
+        CPH.SetArgument("messageEvent", "Replay Renamed");
+        CPH.SetArgument("replayId", (string)replay["id"] ?? "");
+        CPH.SetArgument("replayNumber", number);
+        CPH.SetArgument("replayTitle", newTitle);
+        CPH.SetArgument("oldTitle", oldTitle ?? "");
+        CPH.SetArgument("newTitle", newTitle ?? "");
+        CPH.SetArgument("replayUserId", (string)creator?["id"] ?? "");
+        CPH.SetArgument("replayUser", (string)creator?["name"] ?? "");
+        CPH.SetArgument("replayPlatform", (string)creator?["platform"] ?? "");
+        CPH.SetArgument("replaySourcePlatform", (string)replay["sourceType"] ?? "OBS");
+        CPH.SetArgument("requesterId", Get("userId"));
+        CPH.SetArgument("requesterName", Get("userName"));
+        CPH.SetArgument("requesterPlatform", NormalizePlatform(Get("userType")));
+        CPH.SetArgument("requesterBroadcastId", Get("broadcast.id"));
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Messaging", "Enqueue");
+    }
+
     public bool ListPlaylist() { var list = GetCatalog(Load()); var message = list.Count == 0 ? "The replay playlist is empty." : string.Join(" | ", list.OfType<JObject>().Select((x, i) => "#" + (i + 1) + " " + (string)x["title"])); CPH.SetArgument("replayPlaylist", message); SendStoreMessage("playlist"); return true; }
-    private void SendStoreMessage(string type) { var key = "rts.actionreplay.message." + type; var text = CPH.GetGlobalVar<string>(key + ".text", true); if (string.IsNullOrWhiteSpace(text)) return; text = CPH.Parse(text); if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) CPH.SendMessage(text); if (CPH.GetGlobalVar<bool?>(key + ".overlay", true) ?? false) { CPH.SetArgument("replayCommand", "message"); CPH.SetArgument("replayMessage", text); SetMessageStyleArguments(); CPH.TriggerEvent("RTS-Action Replay", true); } }
+    private void SendStoreMessage(string type) { var key = "rts.actionreplay.message." + type; var text = CPH.GetGlobalVar<string>(key + ".text", true); if (string.IsNullOrWhiteSpace(text)) return; text = CPH.Parse(text); if (CPH.GetGlobalVar<bool?>(key + ".chat", true) ?? true) SendStoreOriginMessage(text); }
+    private void SendStoreOriginMessage(string text) { var platform = Get("userType"); if (platform.Equals("Kick", StringComparison.OrdinalIgnoreCase)) { CPH.SendKickMessage(text); return; } if (platform.Equals("YouTube", StringComparison.OrdinalIgnoreCase)) { var broadcastId = Get("broadcast.id"); if (!string.IsNullOrWhiteSpace(broadcastId)) CPH.SendYouTubeMessage(text, true, true, broadcastId); else CPH.SendYouTubeMessageToLatestMonitored(text); return; } if (platform.Equals("Twitch", StringComparison.OrdinalIgnoreCase)) { CPH.SendMessage(text); return; } CPH.LogWarn("RTS Action Replay: unable to route store chat response because the originating platform is unknown."); }
     public bool ShowClapperboard()
     {
-        var title = CPH.GetGlobalVar<string>("rts.actionreplay.newReplayTitle", true) ?? "";
-        if (CPH.TryGetArg("replayTitle", out string replayTitle) && !string.IsNullOrWhiteSpace(replayTitle)) title = replayTitle;
-        CPH.SetArgument("replayCommand", "clapperboard");
-        CPH.SetArgument("replayMessage", title);
-        CPH.SetArgument("replayLogoUrl", CPH.GetGlobalVar<string>("rts.actionreplay.brandLogoUrl", true) ?? "");
-        CPH.SetArgument("replayClapperPosition", "Centered");
-        CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "GetClapperboardPositions");
-        CPH.SetArgument("replayClapperPositions", CPH.GetGlobalVar<string>("rts.actionreplay.handoff.clapperPositions", false) ?? "{}");
-        CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveClapperboardBranding");
-        CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveClapperAnimation");
-        CPH.TriggerEvent("RTS-Action Replay", true);
+        CPH.LogInfo("RTS Action Replay: legacy ShowClapperboard action ignored; Replay Created clapperboard is owned by Playlist.");
         return true;
     }
 
     private void SetMessageStyleArguments() { CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver", "ResolveMessagePresentation"); }
     private bool IsReplayFile(string path) { var extension = Path.GetExtension(path); if (string.IsNullOrWhiteSpace(extension)) return false; var configured = CPH.GetGlobalVar<string>(FileTypesKey, true) ?? ".mp4, .mkv"; foreach (var raw in configured.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)) { var type = raw.Trim(); if (!type.StartsWith(".")) type = "." + type; if (extension.Equals(type, StringComparison.OrdinalIgnoreCase)) return true; } return false; }
-    private bool Stable(string path) { try { var a = new FileInfo(path).Length; System.Threading.Thread.Sleep(250); return new FileInfo(path).Length == a; } catch { return false; } }
+    private bool Stable(string path) { try { long previous = -1; var stableReads = 0; for (var attempt = 0; attempt < 40; attempt++) { var length = new FileInfo(path).Length; if (length == previous) { stableReads++; if (stableReads >= 2) return true; } else { previous = length; stableReads = 0; } System.Threading.Thread.Sleep(250); } return false; } catch { return false; } }
+    private bool PlaylistHasItems() { var persist = CPH.GetGlobalVar<bool?>("rts.actionreplay.playlistPersist", true) ?? false; var raw = CPH.GetGlobalVar<string>(PlaylistKey, persist); if (string.IsNullOrWhiteSpace(raw)) return false; try { return JArray.Parse(raw).Count > 0; } catch { return false; } }
     private string Get(string name) { CPH.TryGetArg(name, out string value); return value ?? ""; }
     private string NormalizePlatform(string userType) { if (string.Equals(userType, "YouTube", StringComparison.OrdinalIgnoreCase)) return "YouTube"; if (string.Equals(userType, "Kick", StringComparison.OrdinalIgnoreCase)) return "Kick"; return "Twitch"; }
-    private void ApplyPendingCreator(ref string platform, ref string id, ref string name) { var raw = CPH.GetGlobalVar<string>(PendingKey, false); if (string.IsNullOrWhiteSpace(raw)) return; try { var pending = JObject.Parse(raw); if (!string.IsNullOrWhiteSpace((string)pending["platform"])) platform = NormalizePlatform((string)pending["platform"]); if (!string.IsNullOrWhiteSpace((string)pending["id"])) id = (string)pending["id"]; if (!string.IsNullOrWhiteSpace((string)pending["name"])) name = (string)pending["name"]; } catch { } }
+    private void ApplyPendingCreator(ref string platform, ref string id, ref string name)
+    {
+        var raw = CPH.GetGlobalVar<string>(PendingKey, false);
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            CPH.LogInfo("RTS Action Replay: no pending replay creator handoff found.");
+            return;
+        }
+
+        try
+        {
+            var pending = JObject.Parse(raw);
+            var pendingPlatform = (string)pending["platform"] ?? "";
+            var pendingId = (string)pending["id"] ?? "";
+            var pendingName = (string)pending["name"] ?? "";
+
+            if (string.IsNullOrWhiteSpace(pendingPlatform) ||
+                string.IsNullOrWhiteSpace(pendingId))
+            {
+                CPH.LogWarn($"RTS Action Replay: pending replay creator handoff is incomplete; id={pendingId}; name={pendingName}; platform={pendingPlatform}.");
+                CPH.UnsetGlobalVar(PendingKey, false);
+                return;
+            }
+
+            platform = NormalizePlatform(pendingPlatform);
+            id = pendingId;
+            name = pendingName;
+
+            CPH.UnsetGlobalVar(PendingKey, false);
+            CPH.LogInfo($"RTS Action Replay: applied pending replay creator; platform={platform}; id={id}; name={name}.");
+        }
+        catch (Exception ex)
+        {
+            CPH.LogWarn("RTS Action Replay: pending replay creator handoff could not be read: " + ex.Message);
+            CPH.UnsetGlobalVar(PendingKey, false);
+        }
+    }
     private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); try { return string.IsNullOrWhiteSpace(raw) ? new JObject() : JObject.Parse(raw); } catch { return new JObject(); } }
     private void Save(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
     private void Save(string key, JObject value) => CPH.SetGlobalVar(key, value.ToString(Newtonsoft.Json.Formatting.None), true);
@@ -206,7 +273,6 @@ public class CPHInline
         AddSnapshotGlobal(globals, "maxHistory", "rts.actionreplay.maxHistory");
         AddSnapshotGlobal(globals, "autoAdd", "rts.actionreplay.autoAdd");
         AddSnapshotGlobal(globals, "autoPlay", "rts.actionreplay.autoPlay");
-        AddSnapshotGlobal(globals, "clapperShowOnNewClip", "rts.actionreplay.clapper.showOnNewClip");
         AddSnapshotGlobal(globals, "clapperUseSourcePlatformBranding", "rts.actionreplay.clapper.useSourcePlatformBranding");
         AddSnapshotGlobal(globals, "playlistPersist", "rts.actionreplay.playlistPersist");
         AddSnapshotGlobal(globals, "twitchPlaybackMode", "rts.actionreplay.twitch.playbackMode");
@@ -238,12 +304,19 @@ public class CPHInline
         AddSnapshotGlobal(globals, "clapperDuration", "rts.actionreplay.clapper.duration");
         AddSnapshotGlobal(globals, "brandLogoUrl", "rts.actionreplay.brandLogoUrl");
 
-        foreach (var prefix in new[] { "save", "name", "play", "recent", "playlist" })
+        foreach (var prefix in new[] { "created", "queued", "renamed", "removed", "rated", "cleared", "clearedall" })
         {
             AddSnapshotGlobal(globals, "message" + Cap(prefix) + "Text", "rts.actionreplay.message." + prefix + ".text");
             AddSnapshotGlobal(globals, "message" + Cap(prefix) + "Chat", "rts.actionreplay.message." + prefix + ".chat");
             AddSnapshotGlobal(globals, "message" + Cap(prefix) + "Overlay", "rts.actionreplay.message." + prefix + ".overlay");
         }
+        AddSnapshotGlobal(globals, "messageRecentChat", "rts.actionreplay.message.recent.chat");
+        AddSnapshotGlobal(globals, "messagePlaylistChat", "rts.actionreplay.message.playlist.chat");
+        AddSnapshotGlobal(globals, "messageListFormat", "rts.actionreplay.message.list.format");
+        AddSnapshotGlobal(globals, "messageListMaxLength", "rts.actionreplay.message.list.maxLength");
+        AddSnapshotGlobal(globals, "messageUseSourcePlatformBranding", "rts.actionreplay.message.useSourcePlatformBranding");
+        AddSnapshotGlobal(globals, "messageWidth", "rts.actionreplay.message.width");
+        AddSnapshotGlobal(globals, "messageHeight", "rts.actionreplay.message.height");
 
         CPH.SetGlobalVar(ConfigurationSnapshotKey, config.ToString(Newtonsoft.Json.Formatting.None), false);
         CPH.LogInfo("RTS Action Replay: configuration snapshot prepared.");
@@ -271,7 +344,7 @@ public class CPHInline
 
     public bool EnsureEntryPoints() { EnsureDefaults(); var player = Read(PlayerKey, CreatePlayerDefaults()); var panel = Read(PanelKey, CreatePanelDefaults()); var clapper = Read(ClapperKey, CreateClapperDefaults()); if (!(player["entryPoints"] is JObject)) player["entryPoints"] = CreatePlayerEntryPoints(); if (!(panel["entryPoints"] is JObject)) panel["entryPoints"] = CreatePanelEntryPoints(); if (!(clapper["entryPoint"] is JObject)) clapper["entryPoint"] = CreateClapperEntryPoint(); var message = Read(MessageKey, CreateMessageDefaults()); if (!(message["entryPoint"] is JObject)) message["entryPoint"] = CreateMessageEntryPoint(); Save(PlayerKey, player); Save(PanelKey, panel); Save(ClapperKey, clapper); Save(MessageKey, message); return true; }
 
-    private JObject CreatePlayerEntryPoints() { return new JObject { ["obs"] = CreateEntryPoint(), ["twitch"] = CreateEntryPoint(), ["youtube"] = CreateEntryPoint(), ["kick"] = CreateEntryPoint(), ["play"] = new JObject { ["animationProfile"] = "default", ["designPreset"] = "broadcast", ["titlePreset"] = "default", ["brandingPreset"] = "default", ["useSourcePlatformBranding"] = false } }; }
+    private JObject CreatePlayerEntryPoints() { return new JObject { ["obs"] = CreateEntryPoint(), ["twitch"] = CreateEntryPoint(), ["youtube"] = CreateEntryPoint(), ["kick"] = CreateEntryPoint(), ["play"] = new JObject { ["animationProfile"] = "default", ["designPreset"] = "broadcast", ["titlePreset"] = "default", ["brandingPreset"] = "default", ["useSourcePlatformBranding"] = false, ["changePlayerBrandingToClipSource"] = false } }; }
     private JObject CreatePanelEntryPoints() { return new JObject { ["recent"] = CreateEntryPoint(), ["playlist"] = CreateEntryPoint(), ["creatorLeaderboard"] = CreateEntryPoint() }; }
     private JObject CreateEntryPoint() { return new JObject { ["animationProfile"] = "default", ["designPreset"] = "broadcast", ["titlePreset"] = "default", ["brandingPreset"] = "default" }; }
     private JObject CreateMessageEntryPoint() { return new JObject { ["animationProfile"] = "default", ["designPreset"] = "broadcast", ["brandingPreset"] = "default" }; }
@@ -292,7 +365,7 @@ public class CPHInline
 
 
 
-    JObject Resolve(JObject c, string ep, string[] valid) { var a = c["entryPoints"] as JObject ?? new JObject(); var id = string.IsNullOrWhiteSpace(ep) ? valid[0] : ep.Trim().ToLowerInvariant(); if (Array.IndexOf(valid, id) < 0) id = valid[0]; var e = a[id] as JObject ?? new JObject(); return new JObject { { "animationProfile", (string)e["animationProfile"] ?? "default" }, { "designPreset", ResolveId(Visuals(), (string)e["designPreset"] ?? (string)e["visualPreset"] ?? "broadcast") ?? "broadcast" }, { "titlePreset", ResolveId(Titles(), (string)e["titlePreset"] ?? "default") ?? "default" }, { "brandingPreset", ResolveId(Branding(), (string)e["brandingPreset"] ?? "default") ?? "default" }, { "useSourcePlatformBranding", (bool?)e["useSourcePlatformBranding"] ?? false } }; }
+    JObject Resolve(JObject c, string ep, string[] valid) { var a = c["entryPoints"] as JObject ?? new JObject(); var id = string.IsNullOrWhiteSpace(ep) ? valid[0] : ep.Trim().ToLowerInvariant(); if (Array.IndexOf(valid, id) < 0) id = valid[0]; var e = a[id] as JObject ?? new JObject(); return new JObject { { "animationProfile", (string)e["animationProfile"] ?? "default" }, { "designPreset", ResolveId(Visuals(), (string)e["designPreset"] ?? (string)e["visualPreset"] ?? "broadcast") ?? "broadcast" }, { "titlePreset", ResolveId(Titles(), (string)e["titlePreset"] ?? "default") ?? "default" }, { "brandingPreset", ResolveId(Branding(), (string)e["brandingPreset"] ?? "default") ?? "default" }, { "useSourcePlatformBranding", (bool?)e["useSourcePlatformBranding"] ?? false }, { "changePlayerBrandingToClipSource", (bool?)e["changePlayerBrandingToClipSource"] ?? false } }; }
 
 
 

@@ -1,7 +1,38 @@
+#clapper-card {
+  --board-color: #101416;
+  --stripe-light: #eeeeee;
+  --stripe-dark: #111111;
+  --accent-color: #0384cb;
+  --message-color: #0384cb;
+  --message-font: Arial, sans-serif;
+  --message-scale: 1;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 55;
+}
+
+#clapper-card.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.clapper-position {
+  position: absolute;
+  width: 700.2px;
+  height: 506.7px;
+  pointer-events: none;
+}
+
 .clapper {
-  position: relative;
-  width: min(680px, 78vw);
-  transform: rotate(-1deg) translateY(12px);
+  position: absolute;
+  left: 20.2px;
+  top: 176.6px;
+  width: 680px;
   filter: drop-shadow(0 22px 28px #000b);
 }
 

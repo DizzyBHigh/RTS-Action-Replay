@@ -1,51 +1,60 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Reflection;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Data;
+using System.Windows.Media;
 using Newtonsoft.Json.Linq;
 
 // Settings UI for Branding Presets, Design Presets, Title Presets, Animation Profiles, Positions and entry points.
 public class CPHInline
 {
  const string PresetsKey="rts.actionreplay.config.presets",PlayerKey="rts.actionreplay.config.player",PanelKey="rts.actionreplay.config.panel",MessageKey="rts.actionreplay.config.message",ClapperKey="rts.actionreplay.config.clapper",AnimationKey="rts.actionreplay.config.animation",UiPrefix="rts.actionreplay.ui.presetSettings.",AnimationUiPrefix="rts.actionreplay.ui.animation.";
- public bool Execute(){CPH.ExecuteMethod("RTS - Action Replay - Core - Store","EnsureData");CPH.ExecuteMethod("RTS - Action Replay - Core - Store","EnsureDefaults");CPH.ExecuteMethod("RTS - Action Replay - Core - Store","EnsureEntryPoints");CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver","EnsureProfiles");var ui=new RtsUI("RTS Action Replay Settings","1.0.0",ReadBool,ReadInt,(key,p)=>ReadUi(key),(key,p)=>(object)CPH.GetGlobalVar<string>(key,p),(key,v,p)=>SaveUi(key,v,p),message=>CPH.LogInfo(message));Build(ui);ui.SetWindowSize(1000,800);ui.ShowUI();return true;}
- void Build(RtsUI ui){AddGeneralSettings(ui);AddTwitchSettings(ui);AddYouTubeSettings(ui);AddKickSettings(ui);AddPlayerSettings(ui);AddCatalogSettings(ui);AddBranding(ui);AddDesigns(ui);AddTitles(ui);AddPositions(ui);AddPlayerAnimationProfiles(ui);AddPanelAnimationProfiles(ui);AddMessageAnimationProfiles(ui);AddClapperAnimationProfiles(ui);AddEntries(ui,PlayerKey,"Player Behaviour",new[]{"obs","twitch","youtube","kick","play"},new[]{"Create — OBS","Create — Twitch","Create — YouTube","Create — Kick","Play — Replay"});AddEntries(ui,PanelKey,"Panel Behaviour",new[]{"recent","playlist","creatorLeaderboard"},new[]{"Recent / Search","Playlist","Leaderboards"});AddMessageBehaviour(ui);AddClapperboardSettings(ui);AddMessageSettings(ui);}
+ public bool Execute(){EnsureMessageSettings();CPH.ExecuteMethod("RTS - Action Replay - Core - Store","EnsureData");CPH.ExecuteMethod("RTS - Action Replay - Core - Store","EnsureDefaults");CPH.ExecuteMethod("RTS - Action Replay - Core - Store","EnsureEntryPoints");CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver","EnsureProfiles");CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver","EnsurePositions");var ui=new RtsUI("RTS Action Replay Settings","1.0.0",ReadBool,ReadInt,(key,p)=>ReadUi(key),(key,p)=>(object)CPH.GetGlobalVar<string>(key,p),(key,v,p)=>SaveUi(key,v,p),message=>CPH.LogInfo(message));Build(ui);ui.SetWindowSize(1000,800);RtsActionReplaySettingsWindow.Show(ui,CPH.GetGlobalVar<string>("rts.actionreplay.uiTheme",true));return true;} void Build(RtsUI ui){AddGeneralSettings(ui);AddTwitchSettings(ui);AddYouTubeSettings(ui);AddKickSettings(ui);AddPlayerSettings(ui);AddCatalogSettings(ui);AddBranding(ui);AddDesigns(ui);AddTitles(ui);AddPositions(ui);AddPlayerAnimationProfiles(ui);AddPanelAnimationProfiles(ui);AddMessageAnimationProfiles(ui);AddClapperAnimationProfiles(ui);AddEntries(ui,PlayerKey,"Player Behaviour",new[]{"obs","twitch","youtube","kick","play"},new[]{"Create - OBS","Create - Twitch","Create - YouTube","Create - Kick","Play - Replay"});AddEntries(ui,PanelKey,"Panel Behaviour",new[]{"recent","playlist","creatorLeaderboard"},new[]{"Recent / Search","Playlist","Leaderboards"});AddMessageBehaviour(ui);AddClapperboardSettings(ui);AddMessageSettings(ui);AddImportExportSettings(ui);AddTestSettings(ui);}
  void AddGeneralSettings(RtsUI ui){ui.AddThemeSelector("Settings Theme","Choose the RtsUI theme.","Local Capture","rts.actionreplay.uiTheme","Dark");ui.BeginSection("Local Capture / OBS","Local Capture");ui.AddFolderPicker("Replay Folder","Folder containing local OBS Replay Buffer files. Downloaded Twitch and Kick clips use their own separate folders and are not stored here.","Local Capture","rts.actionreplay.replayFolder","");ui.AddTextbox("Replay File Types","File extensions accepted when scanning the Replay Folder. Separate multiple extensions with commas, for example .mp4, .mkv.","Local Capture","rts.actionreplay.replayFileTypes",".mp4, .mkv",false);ui.AddTextbox("HTTP Mapping","URL path used by Streamer.bot's HTTP server to serve files from the Replay Folder. For example, replays creates the /replays/ path.","Local Capture","rts.actionreplay.httpMapping","replays",false);ui.AddNumericTextbox("HTTP Port","Port used by Streamer.bot's HTTP server to serve replay media. This must match the port configured for Streamer.bot's HTTP server or replay playback will not work.","Local Capture","rts.actionreplay.httpPort",7474,1,65535);ui.EndSection();ui.BeginSection("Replay Defaults","Local Capture");ui.AddTextbox("Replay Title Template","Template used to generate the title of newly saved replays. Streamer.bot variables can be used.","Local Capture","rts.actionreplay.replayTitle","%replayName%",false);ui.AddTextbox("New Replay Display Title","Temporary title displayed when a newly saved replay is automatically played. This does not rename the Catalog item.","Local Capture","rts.actionreplay.newReplayTitle","New Replay",false);ui.EndSection();ui.BeginSection("Local Capture Handling","Local Capture");ui.AddToggleSwitch("Auto-add Saved Replays (OBS Capture)","Automatically add each newly saved OBS replay to the Catalog and Recent Clips list. When disabled, newly saved replays are not added automatically. Use Add Replay or Scan Replays to register them manually.","Local Capture","rts.actionreplay.autoAdd",true);ui.AddToggleSwitch("Auto-play OBS Captures","Automatically load and play a newly saved OBS replay.","Local Capture","rts.actionreplay.autoPlay",false);ui.EndSection();}
  void AddCatalogSettings(RtsUI ui){ui.BeginSection("Recent Clips","Catalog");ui.AddSlider("Maximum Recent Clips","Maximum number of entries shown in Recent Clips and retained in Last Played history. Older entries remain available in the Catalog.","Catalog","rts.actionreplay.maxHistory",1,100,20);ui.EndSection();ui.BeginSection("Live Playlist","Catalog");ui.AddToggleSwitch("Persist Playlist Across Restarts","Keep the current Playlist when Streamer.bot restarts. When disabled, the queue is cleared on restart.","Catalog","rts.actionreplay.playlistPersist",false);ui.EndSection();}
 
  void AddTwitchSettings(RtsUI ui){ui.BeginSection("Twitch Clips","Twitch");ui.AddDropdown("Twitch Clip Playback","Choose how Twitch clips are made available for playback: use the Twitch URL, download the clip locally, or support both methods.","Twitch","rts.actionreplay.twitch.playbackMode",new[]{"Twitch URL","Download Locally","Both"},"Download Locally");ui.AddFolderPicker("Twitch Clip Folder","Folder where downloaded Twitch clips are stored. Only needs setting up if you are Downloading locally. Do not use the OBS Replay Folder for Twitch Clips.","Twitch","rts.actionreplay.twitch.folder","");ui.AddTextbox("Twitch HTTP Mapping","URL path used by Streamer.bot's HTTP server to serve downloaded Twitch clips. This mapping must point to the Twitch Clip Folder.","Twitch","rts.actionreplay.twitch.httpMapping","twitch",false);ui.AddNumericTextbox("Clip Duration","Default duration used by !twitchclip, in seconds.","Twitch","rts.actionreplay.twitch.clipDuration",30,5,60);ui.EndSection();}
  void AddKickSettings(RtsUI ui){ui.BeginSection("Kick Clips","Kick");ui.AddDropdown("Kick Clip Playback","Choose how Kick clips are made available for playback: play directly from Kick, download clips locally, or support both methods.","Kick","rts.actionreplay.kick.playbackMode",new[]{"Kick URL","Download Locally","Both"},"Kick URL");ui.AddFolderPicker("Kick Clip Folder","Folder where downloaded Kick clips are stored. Only needs setting up if you are Downloading locally. Do not use the OBS Replay Folder for Kick Clips.","Kick","rts.actionreplay.kick.folder","");ui.AddTextbox("Kick HTTP Mapping","URL path used by Streamer.bot's HTTP server to serve downloaded Kick clips. For example, entering kick creates the http://localhost:7474/kick/ path used to access local Kick clips. This mapping must point to the Kick Clip Folder in Streamer.bot's HTTP server configuration.","Kick","rts.actionreplay.kick.httpMapping","kick",false);ui.EndSection();}
  void AddYouTubeSettings(RtsUI ui){ui.BeginSection("YouTube Clips","YouTube");ui.AddNumericTextbox("Clip Duration","Default YouTube clip duration used by !Create-clip when no duration is supplied, in seconds.","YouTube","rts.actionreplay.youtube.clipDuration",30,5,60);ui.EndSection();}
- void AddPlayerSettings(RtsUI ui){ui.AddClickableButton("Send Configuration to Overlay","Send the complete current Action Replay configuration to the overlay for testing.","Testing","blue","Player",()=>CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver","SendConfigurationToOverlay"));ui.BeginSection("Playback","Player");ui.BeginRow();ui.AddToggleSwitch("Show Controls","Display the Play/Pause control and interactive playback progress bar.","Player","rts.actionreplay.showControls",false);ui.AddToggleSwitch("Show Progress Bar","Display the interactive playback progress bar. Click or drag it to seek.","Player","rts.actionreplay.showProgress",true);ui.EndRow();ui.BeginRow();ui.AddDecimalTextbox("Default Playback Speed","Playback speed used when a replay is loaded. `1.0` is normal speed. The range is `0.25` to `2.0`.","Player","rts.actionreplay.playbackSpeed",1.0,0.25,2.0,0.25);ui.AddDropdown("Show Visibility","Choose when the playback speed indicator is displayed.","Player","rts.actionreplay.playbackSpeedVisibility",new[]{"Always","Only when greater or less than 1","Never"},"Only when greater or less than 1");ui.EndRow();ui.EndSection();ui.BeginSection("Player Appearance","Player");ui.BeginRow();ui.AddDropdown("Frame Colour Source","Choose whether the player frame uses a custom colour or the active Branding Preset primary or secondary colour.","Player","rts.actionreplay.frameColorSource",new[]{"Custom","Branding Primary","Branding Secondary"},CPH.GetGlobalVar<string>("rts.actionreplay.frameColorSource",true)??"Custom");ui.AddColorPicker("Frame Colour","Custom colour used when Frame Colour Source is set to Custom.","Player","rts.actionreplay.frameColor","#0384CBFF");ui.EndRow();ui.BeginRow();ui.AddDropdown("Control Colour Source","Choose whether the Play/Pause control and progress bar use a custom colour or the active Branding Preset primary or secondary colour.","Player","rts.actionreplay.controlColorSource",new[]{"Custom","Branding Primary","Branding Secondary"},CPH.GetGlobalVar<string>("rts.actionreplay.controlColorSource",true)??"Branding Primary");ui.AddColorPicker("Control Colour","Custom colour used when Control Colour Source is set to Custom.","Player","rts.actionreplay.controlColor","#0384CBFF");ui.EndRow();ui.BeginRow();ui.AddToggleSwitch("Border Glow","Add a branded glow around the player border using the active frame styling.","Player","rts.actionreplay.borderGlow",true);ui.EndRow();ui.BeginRow();ui.AddSlider("Border Width","Width of the player border in pixels.","Player","rts.actionreplay.borderWidth",0,12,4);ui.AddSlider("Corner Radius","Set how rounded the player corners are, in pixels.","Player","rts.actionreplay.cornerRadius",0,48,0);ui.EndRow();ui.EndSection();}
- void AddMessageSettings(RtsUI ui){ui.BeginSection("Message Outputs","Messages");AddMessageOutput(ui,"Save Replay","Replay saved: %replayTitle%.","rts.actionreplay.message.save","Message sent when a replay is successfully saved.");AddMessageOutput(ui,"Name Replay","Replay #%replayNumber% renamed to %replayTitle%.","rts.actionreplay.message.name","Message sent when a replay is successfully renamed.");AddMessageOutput(ui,"Play Replay","Playing replay #%replayNumber%: %replayTitle%.","rts.actionreplay.message.play","Message sent when a replay starts playing.");AddMessageOutput(ui,"Recent","%replayRecent%","rts.actionreplay.message.recent","Message sent when the Recent Clips command completes.");AddMessageOutput(ui,"Playlist","%replayPlaylist%","rts.actionreplay.message.playlist","Message sent when a Playlist command completes.");ui.EndSection();}
- void AddMessageOutput(RtsUI ui,string name,string message,string key,string help){ui.BeginRow();ui.AddTextbox(name+" Message",help,"Messages",key+".text",message,false);ui.EndRow();ui.BeginRow();ui.AddToggleSwitch(name+" - Chat","Send this message to the requesting platform's chat.","Messages",key+".chat",true);ui.AddToggleSwitch(name+" - Overlay","Send this message to the Action Replay overlay.","Messages",key+".overlay",false);ui.EndRow();}
- void AddBranding(RtsUI ui){ui.AddTitle("Reusable identity, colours and typography.","Branding Presets");foreach(var p in Presets("branding"))AddBrandingPreset(ui,p as JObject);ui.AddClickableButton("Add Branding Preset","Create a new reusable Branding Preset.","Add Branding Preset","blue","Branding Presets",()=>{AddPreset("branding");ui.RebuildUI(Build);});}
- void AddBrandingPreset(RtsUI ui,JObject p){var id=(string)p?["id"];if(string.IsNullOrWhiteSpace(id))return;ui.BeginSection((string)p["name"]??id,"Branding Presets");ui.AddTextbox("Preset Name","Display name used for this Branding Preset in the settings and selection lists.","Branding Presets",K("branding",id,"name"),(string)p["name"]??"Branding",false);Dropdown(ui,"Source Platform","Optional Twitch, Kick or YouTube association. When Use Source Platform Branding is enabled for Play — Replay, this preset is automatically selected for replays from the matching platform.","Branding Presets",K("branding",id,"platform"),new[]{"","Twitch","Kick","YouTube"},(string)p["platform"]??"");ui.BeginRow();Colour(ui,"Primary Colour","primaryColor",p,"#0384CBFF");Colour(ui,"Secondary Colour","secondaryColor",p,"#101416FF");ui.EndRow();ui.BeginRow();Colour(ui,"Player Title Colour","titleColor",p,"#FFFFFFFF");Colour(ui,"Player Prefix / Suffix Colour","titlePrefixSuffixColor",p,"#0384CBFF");ui.EndRow();ui.BeginRow();Colour(ui,"Panel Text Colour","textColor",p,"#FFFFFFFF");Colour(ui,"Panel List Shadow Colour","shadowColor",p,"#000000FF");ui.EndRow();ui.BeginRow();ui.AddGoogleFontSelector("Font","Google Font used by the player title, panel title and branding.","Branding Presets",K("branding",id,"font"),(string)p["font"]??"Inter");ui.AddNumericTextbox("Font Size","Font size used for player and panel titles, in pixels.","Branding Presets",K("branding",id,"fontSize"),(int?)p["fontSize"]??34,12,96);ui.EndRow();ui.AddTextbox("Logo URL","HTTPS URL of the branding logo displayed by the player. If the logo cannot be loaded, Fallback Text is used instead.","Branding Presets",K("branding",id,"logo"),(string)p["logo"]??"",false);ui.BeginRow();ui.AddTextbox("Fallback Text","Text displayed by the player when no branding logo is available.","Branding Presets",K("branding",id,"fallbackText"),(string)p["fallbackText"]??"RTS",false);ui.AddTextbox("Brand Label","Label displayed beside the branding logo or fallback text.","Branding Presets",K("branding",id,"brandLabel"),(string)p["brandLabel"]??"ACTION REPLAY",false);ui.EndRow();if(!IsBuiltInBranding(id))ui.AddClickableButton("Remove Preset","Delete this Branding Preset.","Remove Preset","red","Branding Presets",()=>{RemovePreset("branding",id);ui.RebuildUI(Build);});ui.EndSection();}
+ void AddPlayerSettings(RtsUI ui){ui.AddClickableButton("Send Configuration to Overlay","Send the complete current Action Replay configuration to the overlay for testing.","Testing","blue","Player",()=>CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver","SendConfigurationToOverlay"));ui.BeginSection("Playback","Player");ui.BeginRow();ui.AddToggleSwitch("Show Controls","Display the Play/Pause control and interactive playback progress bar.","Player","rts.actionreplay.showControls",false);ui.AddToggleSwitch("Show Progress Bar","Display the interactive playback progress bar. Click or drag it to seek.","Player","rts.actionreplay.showProgress",true);ui.EndRow();ui.BeginRow();ui.AddDecimalTextbox("Default Playback Speed","Playback speed used when a replay is loaded. `1.0` is normal speed. The range is `0.25` to `2.0`.","Player","rts.actionreplay.playbackSpeed",1.0,0.25,2.0,0.25);ui.AddDropdown("Show Visibility","Choose when the playback speed indicator is displayed.","Player","rts.actionreplay.playbackSpeedVisibility",new[]{"Always","Only when greater or less than 1","Never"},"Only when greater or less than 1");ui.EndRow();ui.EndSection();ui.BeginSection("Player Appearance","Player");ui.BeginRow();ui.AddDropdown("Frame Colour Source","Choose whether the player frame uses a custom colour or the active Branding Preset primary or secondary colour. Change Player Branding to Clip Source overrides this with the active clip branding primary colour.","Player","rts.actionreplay.frameColorSource",new[]{"Custom","Branding Primary","Branding Secondary"},CPH.GetGlobalVar<string>("rts.actionreplay.frameColorSource",true)??"Custom");ui.AddColorPicker("Frame Colour","Custom colour used when Frame Colour Source is set to Custom.","Player","rts.actionreplay.frameColor","#0384CBFF");ui.EndRow();ui.BeginRow();ui.AddDropdown("Control Colour Source","Choose whether the Play/Pause control and progress bar use a custom colour or the active Branding Preset primary or secondary colour. Change Player Branding to Clip Source overrides this with the active clip branding primary colour.","Player","rts.actionreplay.controlColorSource",new[]{"Custom","Branding Primary","Branding Secondary"},CPH.GetGlobalVar<string>("rts.actionreplay.controlColorSource",true)??"Branding Primary");ui.AddColorPicker("Control Colour","Custom colour used when Control Colour Source is set to Custom.","Player","rts.actionreplay.controlColor","#0384CBFF");ui.EndRow();ui.BeginRow();ui.AddToggleSwitch("Border Glow","Add a branded glow around the player border using the active frame styling.","Player","rts.actionreplay.borderGlow",true);ui.EndRow();ui.BeginRow();ui.AddSlider("Border Width","Width of the player border in pixels.","Player","rts.actionreplay.borderWidth",0,12,4);ui.AddSlider("Corner Radius","Set how rounded the player corners are, in pixels.","Player","rts.actionreplay.cornerRadius",0,48,0);ui.EndRow();ui.EndSection();}
+ void AddTestSettings(RtsUI ui){ui.BeginSection("Test Harness","Testing");ui.AddTitle("Save the settings after changing dropdown values, before running any test. Test buttons use the saved Test Origin, Replay Origin and Message Type values.","Testing");ui.AddDropdown("Test Origin","Where the simulated request originated. This controls requester platform and chat routing.","Testing","rts.actionreplay.test.origin",new[]{"Twitch","YouTube","Kick","OBS / Local Capture"},CPH.GetGlobalVar<string>("rts.actionreplay.test.origin",true)??"Twitch");ui.AddDropdown("Replay Origin","Where the test replay originated. This is independent from Test Origin and controls replay source platform.","Testing","rts.actionreplay.test.replayOrigin",new[]{"Twitch","YouTube","Kick","OBS / Local Capture"},CPH.GetGlobalVar<string>("rts.actionreplay.test.replayOrigin",true)??"Twitch");ui.AddDropdown("Message Type","Lifecycle message to simulate when Test Message is pressed.","Testing","rts.actionreplay.test.messageType",new[]{"Replay Created","Replay Queued","Replay Renamed","Replay Removed","Replay Rated","Playlist Cleared","Playlist Completely Cleared"},CPH.GetGlobalVar<string>("rts.actionreplay.test.messageType",true)??"Replay Created");ui.BeginRow();ui.AddClickableButton("Test Message","Show the selected message using the first Catalog replay and current message presentation settings. Chat output follows the selected Test Origin.","Test Message","blue","Testing",()=>CPH.ExecuteMethod("RTS - Action Replay - Core - Test","TestMessage"));ui.AddClickableButton("Test Panel","Show a representative panel using the first Catalog replay and current panel presentation settings.","Test Panel","blue","Testing",()=>CPH.ExecuteMethod("RTS - Action Replay - Core - Test","TestPanel"));ui.EndRow();ui.BeginRow();ui.AddClickableButton("Test Video","Play the first Catalog replay using current Player presentation settings without adding it to the Playlist or play history.","Test Video","blue","Testing",()=>CPH.ExecuteMethod("RTS - Action Replay - Core - Test","TestVideo"));ui.AddClickableButton("Test Clapperboard","Show the clapperboard for the first Catalog replay using current clapperboard presentation settings.","Test Clapperboard","blue","Testing",()=>CPH.ExecuteMethod("RTS - Action Replay - Core - Test","TestClapperboard"));ui.EndRow();ui.EndSection();}
+ void AddMessageSettings(RtsUI ui){ui.BeginSection("Message Outputs","Messages");AddMessageOutput(ui,"Replay Created","Replay saved: %replayTitle%.","rts.actionreplay.message.created","Notification when a replay is created. Variables: %replayTitle%, %replayUser%, %replayPlatform%, %replaySourcePlatform%, %requesterName%, %requesterPlatform%.");AddMessageOutput(ui,"Replay Queued","Replay queued: %replayTitle%.","rts.actionreplay.message.queued","Notification when a replay is added while the Playlist already contains an item. Variables: %replayTitle%, %replayUser%, %replayPlatform%, %replaySourcePlatform%, %requesterName%, %requesterPlatform%.");AddMessageOutput(ui,"Replay Renamed","Replay #%replayNumber% renamed from %oldTitle% to %newTitle%.","rts.actionreplay.message.renamed","Notification when a replay is successfully renamed. Variables: %replayNumber%, %oldTitle%, %newTitle%, %requesterName%, %requesterPlatform%.");AddMessageOutput(ui,"Replay Removed","Replay removed: %replayTitle%.","rts.actionreplay.message.removed","Notification when a replay is removed from the Playlist. Variables: %replayTitle%, %requesterName%, %requesterPlatform%.");AddMessageOutput(ui,"Replay Rated","Rated %replayTitle% %replayRating%/5 (average %averageRating%/5).","rts.actionreplay.message.rated","Notification when a replay is rated. Variables: %replayTitle%, %replayRating%, %averageRating%, %requesterName%, %requesterPlatform%.");AddMessageOutput(ui,"Playlist Cleared","Playlist cleared: %clearedCount% waiting item(s) removed.","rts.actionreplay.message.cleared","Notification when waiting Playlist items are cleared while the active replay is retained. Variables: %clearedCount%, %requesterName%, %requesterPlatform%.");AddMessageOutput(ui,"Playlist Completely Cleared","Playlist completely cleared: %clearedCount% item(s) removed.","rts.actionreplay.message.clearedall","Notification when the entire Playlist is cleared. Variables: %clearedCount%, %requesterName%, %requesterPlatform%.");ui.EndSection();ui.BeginSection("List Chat Output","Messages");ui.AddToggleSwitch("Recent - Chat","Send one formatted chat message for each Recent Clips entry.","Messages","rts.actionreplay.message.recent.chat",true);ui.AddToggleSwitch("Playlist - Chat","Send one formatted chat message for each Playlist entry.","Messages","rts.actionreplay.message.playlist.chat",true);ui.AddTextbox("List Entry Format","Format used for each Recent Clips and Playlist chat entry. Variables: %listNumber%, %title%, %creator%, %rating%, %platform%, %plays%. Each entry is sent as one chat message.","Messages","rts.actionreplay.message.list.format","#%listNumber% %title% — %creator% | %rating%/5 | %platform% | %plays% plays",false);ui.AddNumericTextbox("Maximum Message Length","Maximum length applied to each individual list entry/message. A longer entry is truncated rather than split into multiple chat messages.","Messages","rts.actionreplay.message.list.maxLength",500,1,500);ui.EndSection();}
+ void AddImportExportSettings(RtsUI ui){ui.BeginSection("Import Settings","Settings");ui.AddTitle("Import is selective. Choose the settings and profiles to import, along with Catalog scope and duplicate handling, in the Import dialog.","Settings");ui.AddClickableButton("Import Settings","Open the Import dialog and choose what to import.","Import Settings","blue","Settings",()=>CPH.ExecuteMethod("RTS - Action Replay - Core - Settings Transfer","Import"));ui.EndSection();ui.BeginSection("Export Settings","Settings");ui.AddTitle("Export always includes the complete RTS Action Replay configuration.","Settings");ui.AddClickableButton("Export Settings","Save a complete RTS Action Replay settings file.","Export Settings","blue","Settings",()=>CPH.ExecuteMethod("RTS - Action Replay - Core - Settings Transfer","Export"));ui.EndSection();ui.BeginSection("Factory Reset","Settings");ui.AddTitle("Restore built-in defaults. Catalog and play history are preserved.","Settings");ui.AddClickableButton("Factory Reset","Restore built-in defaults without deleting Catalog or play history.","Factory Reset","red","Settings",()=>CPH.ExecuteMethod("RTS - Action Replay - Core - Factory Reset","FactoryReset"));ui.EndSection();}
+ void AddMessageOutput(RtsUI ui,string name,string message,string key,string help){ui.BeginRow();ui.AddTextbox(name+" Message",help,"Messages",key+".text",message,false);ui.EndRow();ui.BeginRow();ui.AddToggleSwitch(name+" - Chat","Send this message to the requesting platform's chat.","Messages",key+".chat",true);if(name!="Recent" && name!="Playlist") ui.AddToggleSwitch(name+" - Overlay","Send this message to the Action Replay overlay.","Messages",key+".overlay",name=="Replay Created");ui.EndRow();}
+ void AddBranding(RtsUI ui){ui.BeginSection("Branding Presets","Branding Presets");ui.AddTitle("Reusable identity, colours and typography.","Branding Presets");foreach(var p in Presets("branding"))AddBrandingPreset(ui,p as JObject);ui.AddClickableButton("Add Branding Preset","Create a new reusable Branding Preset.","Add Branding Preset","blue","Branding Presets",()=>{AddPreset("branding");ui.RebuildUI(Build);});ui.EndSection();}
+ void AddBrandingPreset(RtsUI ui,JObject p){var id=(string)p?["id"];if(string.IsNullOrWhiteSpace(id))return;ui.BeginSection((string)p["name"]??id,"Branding Presets");ui.AddTextbox("Preset Name","Display name used for this Branding Preset in the settings and selection lists.","Branding Presets",K("branding",id,"name"),(string)p["name"]??"Branding",false);Dropdown(ui,"Source Platform","Optional Twitch, Kick or YouTube association. When Change Player Branding to Clip Source is enabled for Play - Replay, this preset is automatically selected for replays from the matching platform.","Branding Presets",K("branding",id,"platform"),new[]{"","Twitch","Kick","YouTube"},(string)p["platform"]??"");ui.BeginRow();Colour(ui,"Primary Colour","primaryColor",p,"#0384CBFF");Colour(ui,"Secondary Colour","secondaryColor",p,"#101416FF");ui.EndRow();ui.BeginRow();Colour(ui,"Player Title Colour","titleColor",p,"#FFFFFFFF");Colour(ui,"Player Prefix / Suffix Colour","titlePrefixSuffixColor",p,"#0384CBFF");ui.EndRow();ui.BeginRow();Colour(ui,"Panel Text Colour","textColor",p,"#FFFFFFFF");Colour(ui,"Panel List Shadow Colour","shadowColor",p,"#000000FF");ui.EndRow();ui.BeginRow();ui.AddGoogleFontSelector("Font","Google Font used by the player title, panel title and branding.","Branding Presets",K("branding",id,"font"),(string)p["font"]??"Inter");ui.AddNumericTextbox("Font Size","Font size used for player and panel titles, in pixels.","Branding Presets",K("branding",id,"fontSize"),(int?)p["fontSize"]??34,12,96);ui.EndRow();ui.AddTextbox("Logo URL","HTTPS URL of the branding logo displayed by the player. If the logo cannot be loaded, Fallback Text is used instead.","Branding Presets",K("branding",id,"logo"),(string)p["logo"]??"",false);ui.BeginRow();ui.AddTextbox("Fallback Text","Text displayed by the player when no branding logo is available.","Branding Presets",K("branding",id,"fallbackText"),(string)p["fallbackText"]??"RTS",false);ui.AddTextbox("Brand Label","Label displayed beside the branding logo or fallback text.","Branding Presets",K("branding",id,"brandLabel"),(string)p["brandLabel"]??"ACTION REPLAY",false);ui.EndRow();if(!IsBuiltInBranding(id))ui.AddClickableButton("Remove Preset","Delete this Branding Preset.","Remove Preset","red","Branding Presets",()=>{RemovePreset("branding",id);ui.RebuildUI(Build);});ui.EndSection();}
  bool IsBuiltInBranding(string id)=>id=="default"||id=="rts"||id=="twitch"||id=="youtube"||id=="kick";
- void AddDesigns(RtsUI ui){ui.AddTitle("Design Presets define the visual treatment: Broadcast, Cut, Cinematic and Minimal.","Design Presets");foreach(var id in new[]{"broadcast","cut","cinematic","minimal"}){var p=Find("visual",id);if(p!=null)AddDesign(ui,p);}}
- void AddDesign(RtsUI ui,JObject p){var id=(string)p?["id"];if(string.IsNullOrWhiteSpace(id))return;var name=(string)p["name"]??id;if(id=="broadcast"){ui.BeginSection(name,"Design Presets");Broadcast(ui,p);ui.EndSection();}else if(id=="cut"){ui.BeginSection(name,"Design Presets");Cut(ui,p);ui.EndSection();}else ui.AddTitle(name+" — No configuration options available.","Design Presets");}
+ void AddDesigns(RtsUI ui){ui.BeginSection("Design Presets","Design Presets");ui.AddTitle("Design Presets define the visual treatment: Broadcast, Cut, Cinematic and Minimal.","Design Presets");foreach(var id in new[]{"broadcast","cut","cinematic","minimal"}){var p=Find("visual",id);if(p!=null)AddDesign(ui,p);}ui.EndSection();}
+ void AddDesign(RtsUI ui,JObject p){var id=(string)p?["id"];if(string.IsNullOrWhiteSpace(id))return;var name=(string)p["name"]??id;if(id=="broadcast"){ui.BeginSection(name,"Design Presets");Broadcast(ui,p);ui.EndSection();}else if(id=="cut"){ui.BeginSection(name,"Design Presets");Cut(ui,p);ui.EndSection();}else ui.AddTitle(name+"  No configuration options available.","Design Presets");}
  void Broadcast(RtsUI ui,JObject p){ui.BeginRow();Dropdown(ui,"Background Source","Choose the Broadcast panel background: RTS Dark Blue, the active Branding Secondary Colour, or a custom colour.","Design Presets",K("visual",(string)p["id"],"backgroundSource"),new[]{"RTS Dark Blue","Branding Secondary","Custom"},(string)p["backgroundSource"]??"RTS Dark Blue");ui.EndRow();ui.BeginRow();DesignColour(ui,"Background Colour","backgroundColor",p,"#101416FF");ui.EndRow();ui.BeginRow();DesignInt(ui,"Chevron Height","chevronHeight",p,42,1,89,"Height of the animated Broadcast chevrons, in pixels.");DesignBool(ui,"Randomize Height","randomHeight",p,false,"Randomize the height of each Broadcast chevron.");ui.EndRow();ui.BeginRow();DesignInt(ui,"Chevron Width","chevronWidth",p,42,1,300,"Width of the animated Broadcast chevrons, in pixels.");DesignBool(ui,"Randomize Width","randomWidth",p,false,"Randomize the width of each Broadcast chevron.");ui.EndRow();ui.BeginRow();DesignInt(ui,"Chevron Spacing","chevronSpacing",p,0,0,200,"Spacing between the animated Broadcast chevrons, in pixels.");DesignBool(ui,"Randomize Spacing","randomSpacing",p,false,"Randomize the spacing between Broadcast chevrons.");ui.EndRow();ui.BeginRow();DesignInt(ui,"Chevron Speed","chevronSpeed",p,95,10,500,"Speed of the animated Broadcast chevrons.");ui.EndRow();}
  void Cut(RtsUI ui,JObject p){ui.BeginRow();Dropdown(ui,"Background Source","Choose the Cut panel background: RTS Dark Blue, the active Branding Secondary Colour, or a custom colour.","Design Presets",K("visual",(string)p["id"],"backgroundSource"),new[]{"RTS Dark Blue","Branding Secondary","Custom"},(string)p["backgroundSource"]??"Custom");ui.EndRow();ui.BeginRow();DesignColour(ui,"Background Colour","backgroundColor",p,"#101416FF");ui.EndRow();ui.BeginRow();DesignInt(ui,"Block Width","blockWidth",p,170,1,600,"Width of the moving Cut blocks, in pixels.");DesignBool(ui,"Randomize Width","randomWidth",p,true,"Randomize the width of each moving Cut block.");ui.EndRow();ui.BeginRow();DesignInt(ui,"Bar Height","barHeight",p,5,1,50,"Height of the animated Cut bar, in pixels.");ui.EndRow();}
  void DesignColour(RtsUI ui,string l,string f,JObject p,string d)=>ui.AddColorPicker(l,"Custom background colour used when Background Source is set to Custom.","Design Presets",K("visual",(string)p["id"],f),(string)p[f]??d);
  void DesignInt(RtsUI ui,string l,string f,JObject p,int d,int min,int max,string h)=>ui.AddNumericTextbox(l,h,"Design Presets",K("visual",(string)p["id"],f),(int?)p[f]??d,min,max);
- void DesignBool(RtsUI ui,string l,string f,JObject p,bool d,string h)=>ui.AddToggleSwitch(l,h,"Design Presets",K("visual",(string)p["id"],f),(bool?)p[f]??d); void AddTitles(RtsUI ui){ui.AddTitle("Title Presets define reusable Title Behaviour.","Title Presets");foreach(var p in Presets("title"))AddTitle(ui,p as JObject);ui.AddClickableButton("Add Title Preset","Create a new reusable Title Behaviour preset.","Add Title Preset","blue","Title Presets",()=>{AddPreset("title");ui.RebuildUI(Build);});}
+ void DesignBool(RtsUI ui,string l,string f,JObject p,bool d,string h)=>ui.AddToggleSwitch(l,h,"Design Presets",K("visual",(string)p["id"],f),(bool?)p[f]??d); void AddTitles(RtsUI ui){ui.BeginSection("Title Presets","Title Presets");ui.AddTitle("Title Presets define reusable Title Behaviour.","Title Presets");foreach(var p in Presets("title"))AddTitle(ui,p as JObject);ui.AddClickableButton("Add Title Preset","Create a new reusable Title Behaviour preset.","Add Title Preset","blue","Title Presets",()=>{AddPreset("title");ui.RebuildUI(Build);});ui.EndSection();}
  void AddTitle(RtsUI ui,JObject p){var id=(string)p?["id"];if(string.IsNullOrWhiteSpace(id))return;ui.BeginSection((string)p["name"]??id,"Title Presets");ui.AddTextbox("Preset Name","Display name for this Title Preset.","Title Presets",K("title",id,"name"),(string)p["name"]??"Title Behaviour",false);ui.BeginRow();Dropdown(ui,"Decoration Position","Position of the title prefix or suffix decoration.","Title Presets",K("title",id,"decorationPosition"),new[]{"Prefix","Suffix"},(string)p["decorationPosition"]??"Prefix");Dropdown(ui,"Title Position","Place the replay title at the top or bottom of the video.","Title Presets",K("title",id,"position"),new[]{"Top","Bottom"},(string)p["position"]??"Bottom");ui.EndRow();ui.AddTextbox("Decoration","Text added before or after the replay title.","Title Presets",K("title",id,"decoration"),(string)p["decoration"]??"Action Replay -",false);ui.BeginRow();Dropdown(ui,"Animation","Animation used when the title enters and leaves the player.","Title Presets",K("title",id,"animation"),new[]{"Left to right","Right to left","Slide up/down"},(string)p["animation"]??"Left to right");TitleInt(ui,"Show Delay","delay",p,2000,0,60000,"Amount of time in ms before the title appears");TitleInt(ui,"Display Duration","duration",p,10000,0,120000,"Length of time the title displays for");TitleInt(ui,"Animation Duration","animationDuration",p,1000,0,10000,"Length of time for the title animation to complete");ui.EndRow();if(id!="default")ui.AddClickableButton("Remove Preset","Delete this Title Preset.","Remove Preset","red","Title Presets",()=>{RemovePreset("title",id);ui.RebuildUI(Build);});ui.EndSection();}
- void AddClapperboardSettings(RtsUI ui){ui.AddTitle("Clapperboard shown when a new clip is created. Its appearance comes from the selected Branding Preset.","Clapperboard Behaviour");ui.AddToggleSwitch("Show Clapperboard on New Clips","Show the Clapperboard automatically when a new Twitch, Kick or YouTube clip is created.","Clapperboard Behaviour","rts.actionreplay.clapper.showOnNewClip",true);ui.AddToggleSwitch("Use Source Platform Branding","When enabled, use the Branding Preset associated with the platform that created the clip. If no matching platform preset exists, the Branding Preset selected under Clapperboard Behaviour is used.","Clapperboard Behaviour","rts.actionreplay.clapper.useSourcePlatformBranding",false);ui.BeginRow();Dropdown(ui,"Animation Profile","Animation profile used by the Clapperboard when it appears or disappears.","Clapperboard Behaviour",UiPrefix+"clapper.animation",AnimationNames(ClapperKey),AnimationName(ClapperKey,(string)Read(ClapperKey)["entryPoint"]?["animationProfile"]??"default"));Dropdown(ui,"Branding Preset","Branding preset used by the Clapperboard when Source Platform Branding is disabled or no matching platform preset exists.","Clapperboard Behaviour",UiPrefix+"clapper.branding",Names("branding"),Name("branding",(string)Read(ClapperKey)["entryPoint"]?["brandingPreset"]??"default"));ui.EndRow();ui.AddNumericTextbox("Display Time","How long the Clapperboard remains visible before its end animation begins, in milliseconds.","Clapperboard Behaviour","rts.actionreplay.clapper.duration",5000,0,120000);} void AddPlayerAnimationProfiles(RtsUI ui){ui.AddTitle("Reusable Player animation sequences using saved Player Positions.","Player Animation");ui.AddClickableButton("Add Profile","Create a new Player animation profile.","Add Profile","blue","Player Animation",()=>{if(CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver","AddProfile"))ui.RebuildUI(Build);});foreach(var p in ReadProfiles(PlayerKey)){var id=(string)p["id"];if(!string.IsNullOrWhiteSpace(id))AddAnimationProfile(ui,(string)p["name"]??"Default",id,PlayerKey,"Full Screen","Player Animation");}}
- void AddPanelAnimationProfiles(RtsUI ui){ui.AddTitle("Reusable Panel animation sequences using saved Panel Positions.","Panel Animation");ui.AddClickableButton("Add Profile","Create a new Panel animation profile.","Add Profile","blue","Panel Animation",()=>{if(CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver","AddPanelProfile"))ui.RebuildUI(Build);});foreach(var p in ReadProfiles(PanelKey)){var id=(string)p["id"];if(!string.IsNullOrWhiteSpace(id))AddAnimationProfile(ui,(string)p["name"]??"Default",id,PanelKey,"Centered","Panel Animation");}}
- void AddMessageAnimationProfiles(RtsUI ui){ui.AddTitle("Reusable Message animation sequences using saved Message Positions.","Message Animation");ui.AddClickableButton("Add Profile","Create a new Message animation profile.","Add Profile","blue","Message Animation",()=>{if(CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver","AddMessageProfile"))ui.RebuildUI(Build);});foreach(var p in ReadProfiles(MessageKey)){var id=(string)p["id"];if(!string.IsNullOrWhiteSpace(id))AddAnimationProfile(ui,(string)p["name"]??"Default",id,MessageKey,"Centered","Message Animation");}}
- void AddClapperAnimationProfiles(RtsUI ui){ui.AddTitle("Reusable Clapperboard animation sequences using saved Clapperboard Positions.","Clapperboard Animation");ui.AddClickableButton("Add Profile","Create a new Clapperboard animation profile.","Add Profile","blue","Clapperboard Animation",()=>{if(CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver","AddClapperProfile"))ui.RebuildUI(Build);});foreach(var p in ReadProfiles(ClapperKey)){var id=(string)p["id"];if(!string.IsNullOrWhiteSpace(id))AddAnimationProfile(ui,(string)p["name"]??"Default",id,ClapperKey,"Centered","Clapperboard Animation");}}
+ void AddClapperboardSettings(RtsUI ui){ui.BeginSection("Clapperboard Behaviour","Clapperboard Behaviour");ui.AddTitle("When Replay Created Overlay is enabled, choose whether a newly created clip uses the Clapperboard or the Message system.","Clapperboard Behaviour");ui.AddToggleSwitch("Use Clapperboard","When enabled, a Replay Created event uses the Clapperboard and bypasses the Message system. When disabled, Replay Created uses the Message system instead. This only has an effect when Replay Created Overlay is enabled under Message Outputs.","Clapperboard Behaviour","rts.actionreplay.clapper.useOnReplayCreated",true);ui.AddToggleSwitch("Use Source Platform Branding","When enabled, use the Branding Preset associated with the platform that created the clip. If no matching platform preset exists, the Branding Preset selected under Clapperboard Behaviour is used.","Clapperboard Behaviour","rts.actionreplay.clapper.useSourcePlatformBranding",false);ui.BeginRow();Dropdown(ui,"Animation Profile","Animation profile used by the Clapperboard when it appears or disappears.","Clapperboard Behaviour",UiPrefix+"clapper.animation",AnimationNames(ClapperKey),AnimationName(ClapperKey,(string)Read(ClapperKey)["entryPoint"]?["animationProfile"]??"default"));Dropdown(ui,"Branding Preset","Branding preset used by the Clapperboard when Source Platform Branding is disabled or no matching platform preset exists.","Clapperboard Behaviour",UiPrefix+"clapper.branding",Names("branding"),Name("branding",(string)Read(ClapperKey)["entryPoint"]?["brandingPreset"]??"default"));ui.EndRow();ui.AddNumericTextbox("Display Time","How long the Clapperboard remains visible before its end animation begins, in milliseconds.","Clapperboard Behaviour","rts.actionreplay.clapper.duration",5000,0,120000);ui.EndSection();} void AddPlayerAnimationProfiles(RtsUI ui){ui.BeginSection("Player Animation Profiles","Player Animation");ui.AddTitle("Reusable Player animation sequences using saved Player Positions.","Player Animation");ui.AddClickableButton("Add Profile","Create a new Player animation profile.","Add Profile","blue","Player Animation",()=>{if(CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver","AddProfile"))ui.RebuildUI(Build);});foreach(var p in ReadProfiles(PlayerKey)){var id=(string)p["id"];if(!string.IsNullOrWhiteSpace(id))AddAnimationProfile(ui,(string)p["name"]??"Default",id,PlayerKey,"Full Screen","Player Animation");}ui.EndSection();}
+ void AddPanelAnimationProfiles(RtsUI ui){ui.BeginSection("Panel Animation Profiles","Panel Animation");ui.AddTitle("Reusable Panel animation sequences using saved Panel Positions.","Panel Animation");ui.AddClickableButton("Add Profile","Create a new Panel animation profile.","Add Profile","blue","Panel Animation",()=>{if(CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver","AddPanelProfile"))ui.RebuildUI(Build);});foreach(var p in ReadProfiles(PanelKey)){var id=(string)p["id"];if(!string.IsNullOrWhiteSpace(id))AddAnimationProfile(ui,(string)p["name"]??"Default",id,PanelKey,"Centered","Panel Animation");}ui.EndSection();}
+ void AddMessageAnimationProfiles(RtsUI ui){ui.BeginSection("Message Animation Profiles","Message Animation");ui.AddTitle("Reusable Message animation sequences using saved Message Positions.","Message Animation");ui.AddClickableButton("Add Profile","Create a new Message animation profile.","Add Profile","blue","Message Animation",()=>{if(CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver","AddMessageProfile"))ui.RebuildUI(Build);});foreach(var p in ReadProfiles(MessageKey)){var id=(string)p["id"];if(!string.IsNullOrWhiteSpace(id))AddAnimationProfile(ui,(string)p["name"]??"Default",id,MessageKey,"Centered","Message Animation");}ui.EndSection();}
+ void AddClapperAnimationProfiles(RtsUI ui){ui.BeginSection("Clapperboard Animation Profiles","Clapperboard Animation");ui.AddTitle("Reusable Clapperboard animation sequences using saved Clapperboard Positions.","Clapperboard Animation");ui.AddClickableButton("Add Profile","Create a new Clapperboard animation profile.","Add Profile","blue","Clapperboard Animation",()=>{if(CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver","AddClapperProfile"))ui.RebuildUI(Build);});foreach(var p in ReadProfiles(ClapperKey)){var id=(string)p["id"];if(!string.IsNullOrWhiteSpace(id))AddAnimationProfile(ui,(string)p["name"]??"Default",id,ClapperKey,"Centered","Clapperboard Animation");}ui.EndSection();}
  void AddAnimationProfile(RtsUI ui,string title,string id,string key,string builtIn,string category){ui.BeginSection(title,category);if(id=="default")ui.AddTitle("Default profile is permanent. Its animation sequences can be edited.",category);else{ui.AddTextbox("Profile Name","Display name for this animation profile.",category,AnimationUiPrefix+Target(key)+".profile."+id+".name",title,false);var remove=key==PlayerKey?"RemoveProfile":key==PanelKey?"RemovePanelProfile":key==MessageKey?"RemoveMessageProfile":"RemoveClapperProfile";var arg=key==PlayerKey?"profileId":key==PanelKey?"panelProfileId":key==MessageKey?"messageProfileId":"clapperProfileId";ui.AddClickableButton("Remove Profile","Delete this animation profile.","Remove Profile","red",category,()=>{CPH.SetArgument(arg,id);if(CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver",remove))ui.RebuildUI(Build);});}ui.BeginRow();AddAnimationRows(ui,"Start Sequence","The positions and transitions used when this element appears.",key,id,"startSequence",builtIn,category);AddAnimationRows(ui,"End Sequence","The positions and transitions used when this element disappears.",key,id,"endSequence",builtIn,category);ui.EndRow();ui.EndSection();}
  void AddAnimationRows(RtsUI ui,string title,string description,string configKey,string profile,string sequence,string defaultPosition,string category){var target=Target(configKey);var key=AnimationUiPrefix+target+".profile."+profile+"."+sequence;var positions=AnimationPositionOptions(configKey);ui.AddDynamicRows(title,description,category,key,rows=>{rows.AddDropdown("Position","position",positions,defaultPosition);rows.AddNumericTextbox("Duration","duration",600,0,60000);rows.AddDropdown("Easing","easing",new[]{"linear","ease","ease-in","ease-out","ease-in-out"},"ease-in-out");rows.AddNumericTextbox("Delay","delay",0,0,60000);},json=>SaveSequence(Target(configKey),profile,sequence,json));}
- void AddPositions(RtsUI ui){ui.AddTitle("Reusable 3D positions shared by animation profiles and runtime playback.","Positions");AddPositionEditor(ui,"Player Positions","Saved Player positions used by Player Animation and playback.","player","Full Screen");ui.BeginSection("Panel Positions","Positions");ui.BeginRow();ui.AddNumericTextbox("Width","Information panel width in 1920×1080 output pixels.","Positions","rts.actionreplay.panel.width",500,100,1920);ui.AddNumericTextbox("Height","Information panel height in 1920×1080 output pixels.","Positions","rts.actionreplay.panel.height",700,100,1080);ui.EndRow();ui.AddSlider("Corner Radius","Information panel corner radius in pixels.","Positions","rts.actionreplay.panel.cornerRadius",0,100,0);ui.EndSection();AddPositionEditor(ui,"Panel Position Editor","Saved Panel positions used by Panel Animation and panel playback.","panel","Centered");ui.BeginSection("Message Positions","Positions");ui.BeginRow();ui.AddNumericTextbox("Minimum Width","Minimum message width in 1920×1080 output pixels. The message grows vertically when the text needs more space.","Positions","rts.actionreplay.message.minWidth",500,100,1920);ui.AddNumericTextbox("Minimum Height","Minimum message height in 1920×1080 output pixels. Longer messages grow beyond this height as needed.","Positions","rts.actionreplay.message.minHeight",120,60,1080);ui.EndRow();ui.AddSlider("Corner Radius","Message panel corner radius in pixels.","Positions","rts.actionreplay.message.cornerRadius",0,100,0);ui.EndSection();AddPositionEditor(ui,"Message Positions","Saved Message positions used by Message Animation and playback.","message","Centered");}
- void AddPositionEditor(RtsUI ui,string title,string description,string target,string fallback){var key=UiPrefix+"positions."+target;var positions=PositionSet(target);var json=positions.ToString(Newtonsoft.Json.Formatting.None);CPH.SetGlobalVar(key,json,false);if(target=="panel"){ui.AddPositionEditor(title,description,"Positions",key,json,"Edit Panel Positions","Preview Panel",null,"scale,scaleX,scaleY,x,y,z,rotateX,rotateY,rotateZ,fov",edited=>SavePositions(target,key,edited),(position,data)=>PreviewPanelPosition(position,data),BuildPanelPreviewSizes());}else if(target=="message"){ui.AddPositionEditor(title,description,"Positions",key,json,"Edit Message Positions","Preview Message",null,"scale,scaleX,scaleY,x,y,z,rotateX,rotateY,rotateZ,fov",edited=>SavePositions(target,key,edited),(position,data)=>PreviewMessagePosition(position,data),BuildMessagePreviewSizes());}
-else if(target=="clapperboard"){ui.AddPositionEditor(title,description,"Positions",key,json,"Edit Clapperboard Positions","Preview Clapperboard",null,"scale,scaleX,scaleY,x,y,z,rotateX,rotateY,rotateZ,fov",edited=>SavePositions(target,key,edited),(position,data)=>PreviewClapperboardPosition(position,data),BuildClapperPreviewSizes());}else{ui.AddPositionEditor(title,description,"Positions",key,json,"Edit Positions","Preview Position",null,"scale,scaleX,scaleY,x,y,z,rotateX,rotateY,rotateZ,fov",edited=>SavePositions(target,key,edited),(position,data)=>PreviewVideoPosition(position,data),null);}}
+ void AddPositions(RtsUI ui){ui.BeginSection("Positions","Positions");ui.AddTitle("Reusable 3D positions shared by animation profiles and runtime playback.","Positions");AddPositionEditor(ui,"Player Positions","Saved Player positions used by Player Animation and playback.","player","Full Screen");ui.BeginSection("Panel Positions","Positions");ui.BeginRow();ui.AddNumericTextbox("Width","Information panel width in 19201080 output pixels.","Positions","rts.actionreplay.panel.width",500,100,1920);ui.AddNumericTextbox("Height","Information panel height in 19201080 output pixels.","Positions","rts.actionreplay.panel.height",700,100,1080);ui.EndRow();ui.AddSlider("Corner Radius","Information panel corner radius in pixels.","Positions","rts.actionreplay.panel.cornerRadius",0,100,0);ui.EndSection();AddPositionEditor(ui,"Panel Position Editor","Saved Panel positions used by Panel Animation and panel playback.","panel","Centered");ui.BeginSection("Message Positions","Positions");ui.BeginRow();ui.AddNumericTextbox("Width","Message width in 19201080 output pixels. The message remains this fixed width and text scales to fit.","Positions","rts.actionreplay.message.width",500,100,1920);ui.AddNumericTextbox("Height","Message height in 19201080 output pixels. The message remains this fixed height and text scales to fit.","Positions","rts.actionreplay.message.height",120,60,1080);ui.EndRow();ui.AddSlider("Corner Radius","Message panel corner radius in pixels.","Positions","rts.actionreplay.message.cornerRadius",0,100,0);ui.EndSection();AddPositionEditor(ui,"Message Positions","Saved Message positions used by Message Animation and playback.","message","Centered");AddPositionEditor(ui,"Clapperboard Positions","Saved Clapperboard positions used by Clapperboard Animation and playback.","clapperboard","Centered");ui.EndSection();}
+ void AddPositionEditor(RtsUI ui,string title,string description,string target,string fallback){var key=UiPrefix+"positions."+target;var positions=PositionSet(target);var json=positions.ToString(Newtonsoft.Json.Formatting.None);CPH.SetGlobalVar(key,json,false);if(target=="panel"){ui.AddPositionEditor(title,description,"Positions",key,json,"Edit Panel Positions","Preview Panel",null,"scale,scaleX,scaleY,x,y,z,rotateX,rotateY,rotateZ",edited=>SavePositions(target,key,edited),(position,data)=>PreviewPanelPosition(position,data),BuildPanelPreviewSizes());}else if(target=="message"){ui.AddPositionEditor(title,description,"Positions",key,json,"Edit Message Positions","Preview Message",null,"scale,scaleX,scaleY,x,y,z,rotateX,rotateY,rotateZ",edited=>SavePositions(target,key,edited),(position,data)=>PreviewMessagePosition(position,data),BuildMessagePreviewSizes());}
+else if(target=="clapperboard"){ui.AddPositionEditor(title,description,"Positions",key,json,"Edit Clapperboard Positions","Preview Clapperboard",null,"scale,scaleX,scaleY,x,y,z,rotateX,rotateY,rotateZ",edited=>SavePositions(target,key,edited),(position,data)=>PreviewClapperboardPosition(position,data),BuildClapperPreviewSizes());}else{ui.AddPositionEditor(title,description,"Positions",key,json,"Edit Positions","Preview Position",null,"scale,scaleX,scaleY,x,y,z,rotateX,rotateY,rotateZ",edited=>SavePositions(target,key,edited),(position,data)=>PreviewVideoPosition(position,data),BuildPlayerPreviewSizes());}}
  JObject PositionSet(string target){var p=Read(PresetsKey)["positions"] as JObject;var value=p?[target] as JObject;return value??new JObject();}
  void SavePositions(string target,string uiKey,string json){try{var config=Read(PresetsKey);var positions=config["positions"] as JObject??new JObject();var value=string.IsNullOrWhiteSpace(json)?new JObject():JObject.Parse(json);positions[target]=value;config["positions"]=positions;Save(PresetsKey,config);CPH.SetGlobalVar(uiKey,value.ToString(Newtonsoft.Json.Formatting.None),false);CPH.LogInfo("RTS Action Replay: saved " + target + " positions; count="+value.Count+".");}catch(Exception ex){CPH.LogWarn("RTS Action Replay: position save failed: "+ex.Message);}}
  void PreviewVideoPosition(string position,string json){CPH.SetArgument("replayCommand",string.IsNullOrWhiteSpace(position)?"position-preview-hide":"position-preview");if(!string.IsNullOrWhiteSpace(position)){CPH.SetArgument("replayPosition",position);CPH.SetArgument("replayPlayerPositions",json??"{}");}CPH.TriggerEvent("RTS-Action Replay",true);}
  void PreviewPanelPosition(string position,string json){CPH.SetArgument("replayCommand",string.IsNullOrWhiteSpace(position)?"panel-position-preview-hide":"panel-position-preview");if(!string.IsNullOrWhiteSpace(position)){CPH.SetArgument("replayPanelPosition",position);CPH.SetArgument("replayPanelPositions",json??"{}");CPH.SetArgument("replayPanelWidth",CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width",true)??500);CPH.SetArgument("replayPanelHeight",CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height",true)??700);}CPH.TriggerEvent("RTS-Action Replay",true);}
  void PreviewMessagePosition(string position,string json){CPH.SetArgument("replayCommand",string.IsNullOrWhiteSpace(position)?"message-position-preview-hide":"message-position-preview");if(!string.IsNullOrWhiteSpace(position)){CPH.SetArgument("replayMessagePosition",position);CPH.SetArgument("replayMessagePositions",json??"{}");CPH.SetArgument("replayMessage","MESSAGE PREVIEW");CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver","ResolveMessagePresentation");}CPH.TriggerEvent("RTS-Action Replay",true);}
  void PreviewClapperboardPosition(string position,string json){CPH.SetArgument("replayCommand",string.IsNullOrWhiteSpace(position)?"clapper-position-preview-hide":"clapper-position-preview");if(!string.IsNullOrWhiteSpace(position)){CPH.SetArgument("replayClapperPosition",position);CPH.SetArgument("replayClapperPositions",json??"{}");CPH.SetArgument("replayMessage","CLAPPERBOARD PREVIEW");CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver","ResolveClapperboardBranding");CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver","ResolveClapperAnimation");}CPH.TriggerEvent("RTS-Action Replay",true);}
+ Dictionary<string,RtsUIPreviewSize> BuildPlayerPreviewSizes(){return new Dictionary<string,RtsUIPreviewSize>{{"Full Screen",new RtsUIPreviewSize(640,360)}};}
  Dictionary<string,RtsUIPreviewSize> BuildPanelPreviewSizes(){var size=new RtsUIPreviewSize((CPH.GetGlobalVar<int?>("rts.actionreplay.panel.width",true)??500)*640.0/1920.0,(CPH.GetGlobalVar<int?>("rts.actionreplay.panel.height",true)??700)*360.0/1080.0);return new Dictionary<string,RtsUIPreviewSize>{{"Centered",size}};}
- Dictionary<string,RtsUIPreviewSize> BuildMessagePreviewSizes(){var w=CPH.GetGlobalVar<int?>("rts.actionreplay.message.minWidth",true)??500;var h=CPH.GetGlobalVar<int?>("rts.actionreplay.message.minHeight",true)??120;return new Dictionary<string,RtsUIPreviewSize>{{"Centered",new RtsUIPreviewSize(w*640.0/1920.0,h*360.0/1080.0)}};}
- Dictionary<string,RtsUIPreviewSize> BuildClapperPreviewSizes(){return new Dictionary<string,RtsUIPreviewSize>{{"Centered",new RtsUIPreviewSize(227,127)}};}
+ Dictionary<string,RtsUIPreviewSize> BuildMessagePreviewSizes(){var w=CPH.GetGlobalVar<int?>("rts.actionreplay.message.width",true)??500;var h=CPH.GetGlobalVar<int?>("rts.actionreplay.message.height",true)??120;return new Dictionary<string,RtsUIPreviewSize>{{"Centered",new RtsUIPreviewSize(w*640.0/1920.0,h*360.0/1080.0)}};}
+ Dictionary<string,RtsUIPreviewSize> BuildClapperPreviewSizes(){return new Dictionary<string,RtsUIPreviewSize>{{"Centered",new RtsUIPreviewSize(233.4,168.9)}};}
  string Target(string key)=>key==PlayerKey?"player":key==PanelKey?"panel":key==MessageKey?"message":"clapperboard";
  string[] AnimationPositionOptions(string key){var positions=(Read(PresetsKey)["positions"] as JObject)?[Target(key)] as JObject;var list=new List<string>{key==PlayerKey?"Full Screen":"Centered"};foreach(var item in positions??new JObject())if(!list.Contains(item.Key))list.Add(item.Key);return list.ToArray();}
  JArray ReadProfiles(string key){var profiles=Read(key)["animationProfiles"] as JArray;return profiles??new JArray(new JObject{{"id","default"},{"name","Default"},{"startSequence",new JArray()},{"endSequence",new JArray()}});}
@@ -53,8 +62,11 @@ else if(target=="clapperboard"){ui.AddPositionEditor(title,description,"Position
 
 
 
- void AddEntries(RtsUI ui,string key,string category,string[] ids,string[] labels){var c=Read(key);var es=c["entryPoints"] as JObject??new JObject();ui.AddTitle("Each entry point selects an Animation Profile, Design Preset, Title Preset and Branding Preset.",category);if(key==PlayerKey)ui.AddToggleSwitch("Use Source Platform Branding","If enabled, use a Branding Preset assigned to the replay's source platform. If none exists, the Play — Replay Branding Preset is used.",category,EK(key,"play","useSourcePlatformBranding"),ReadBool(EK(key,"play","useSourcePlatformBranding"),false)??false);for(var i=0;i<ids.Length;i++){var id=ids[i];var e=es[id] as JObject??new JObject();ui.BeginSection(labels[i],category);ui.BeginRow();Dropdown(ui,"Branding Preset","Branding preset used by this entry point.",category,EK(key,id,"brandingPreset"),Names("branding"),Name("branding",(string)e["brandingPreset"]??"default"));Dropdown(ui,"Design Preset","Visual design used by this entry point.",category,EK(key,id,"designPreset"),Names("visual"),Name("visual",(string)e["designPreset"]??(string)e["visualPreset"]??"broadcast"));ui.EndRow();ui.BeginRow();Dropdown(ui,"Title Preset","Title Behaviour used by this entry point.",category,EK(key,id,"titlePreset"),Names("title"),Name("title",(string)e["titlePreset"]??"default"));Dropdown(ui,"Animation Profile","Animation profile used by this entry point.",category,EK(key,id,"animationProfile"),AnimationNames(key),AnimationName(key,(string)e["animationProfile"]??"default"));ui.EndRow();ui.EndSection();}}
- void AddMessageBehaviour(RtsUI ui){ui.AddTitle("Messages use the same heading-area design as information panels. The message keeps its minimum size and grows vertically when the text wraps.","Message Behaviour");ui.BeginRow();Dropdown(ui,"Branding Preset","Branding preset used by messages.","Message Behaviour",UiPrefix+"message.branding",Names("branding"),Name("branding",(string)Read(MessageKey)["entryPoint"]?["brandingPreset"]??"default"));Dropdown(ui,"Design Preset","Visual design used by messages, using the same panel heading treatment.","Message Behaviour",UiPrefix+"message.design",Names("visual"),Name("visual",(string)Read(MessageKey)["entryPoint"]?["designPreset"]??"broadcast"));ui.EndRow();ui.BeginRow();Dropdown(ui,"Animation Profile","Animation profile used when a message appears or disappears.","Message Behaviour",UiPrefix+"message.animation",AnimationNames(MessageKey),AnimationName(MessageKey,(string)Read(MessageKey)["entryPoint"]?["animationProfile"]??"default"));ui.EndRow();ui.AddNumericTextbox("Display Time","How long the message remains visible before its end animation begins, in milliseconds.","Message Behaviour","rts.actionreplay.message.duration",5000,0,120000);}
+ void AddEntries(RtsUI ui,string key,string category,string[] ids,string[] labels){var c=Read(key);ui.BeginSection(category,category);var es=c["entryPoints"] as JObject??new JObject();ui.AddTitle("Each entry point selects an Animation Profile, Design Preset, Title Preset and Branding Preset.",category);if(key==PanelKey)ui.AddToggleSwitch("Use Source Platform Branding","When enabled, all panel entry points use the Branding Preset assigned to the platform that initiated the panel command. If no matching platform preset exists, the Branding Preset configured for each panel entry point is used.","Panel Behaviour",UiPrefix+"panel.useSourcePlatformBranding",ReadBool(UiPrefix+"panel.useSourcePlatformBranding",false)??false);if(key==PlayerKey)ui.AddToggleSwitch("Use Source Platform Branding","If enabled, newly created clips use the Branding Preset assigned to their source platform. If no matching platform branding preset exists, the Play - Replay Branding Preset is used.","Player Behaviour",EK(key,"play","useSourcePlatformBranding"),ReadBool(EK(key,"play","useSourcePlatformBranding"),false)??false);for(var i=0;i<ids.Length;i++){var id=ids[i];var e=es[id] as JObject??new JObject();ui.BeginSection(labels[i],category);if(key==PlayerKey&&id=="play")ui.AddToggleSwitch("Change Player Branding to Clip Source","When enabled, each replay uses the Branding Preset assigned to the clip creator's platform. The player frame, design colours, buttons and progress bar follow that branding. When disabled, the Play - Replay Branding Preset is always used.","Player Behaviour",EK(key,"play","changePlayerBrandingToClipSource"),ReadBool(EK(key,"play","changePlayerBrandingToClipSource"),false)??false);ui.BeginRow();var brandingHelp=key==PanelKey?"Branding Preset used by this entry point when Use Source Platform Branding is disabled or no matching platform preset exists.":"Fallback branding used by this entry point when Change Player Branding to Clip Source is disabled or no matching platform branding preset exists.";Dropdown(ui,"Branding Preset",brandingHelp,category,EK(key,id,"brandingPreset"),Names("branding"),Name("branding",(string)e["brandingPreset"]??"default"));Dropdown(ui,"Design Preset","Visual design used by this entry point.",category,EK(key,id,"designPreset"),Names("visual"),Name("visual",(string)e["designPreset"]??(string)e["visualPreset"]??"broadcast"));ui.EndRow();ui.BeginRow();Dropdown(ui,"Title Preset","Title Behaviour used by this entry point.",category,EK(key,id,"titlePreset"),Names("title"),Name("title",(string)e["titlePreset"]??"default"));Dropdown(ui,"Animation Profile","Animation profile used by this entry point.",category,EK(key,id,"animationProfile"),AnimationNames(key),AnimationName(key,(string)e["animationProfile"]??"default"));ui.EndRow();ui.EndSection();}ui.EndSection();}
+ void EnsureMessageSettings(){EnsureMessageDimensions();EnsureMessageOutput("created",true);EnsureMessageOutput("queued",false);EnsureMessageOutput("renamed",false);EnsureMessageOutput("removed",false);EnsureMessageOutput("rated",false);EnsureMessageOutput("cleared",false);EnsureMessageOutput("clearedall",false);if(string.IsNullOrWhiteSpace(CPH.GetGlobalVar<string>("rts.actionreplay.message.list.format",true)))CPH.SetGlobalVar("rts.actionreplay.message.list.format","#%listNumber% %title% — %creator% | %rating%/5 | %platform% | %plays% plays",true);if(!CPH.GetGlobalVar<bool?>("rts.actionreplay.message.recent.chat",true).HasValue)CPH.SetGlobalVar("rts.actionreplay.message.recent.chat",true,true);if(!CPH.GetGlobalVar<bool?>("rts.actionreplay.message.playlist.chat",true).HasValue)CPH.SetGlobalVar("rts.actionreplay.message.playlist.chat",true,true);if(!CPH.GetGlobalVar<int?>("rts.actionreplay.message.list.maxLength",true).HasValue)CPH.SetGlobalVar("rts.actionreplay.message.list.maxLength",500,true);}
+ void EnsureMessageDimensions(){var width=CPH.GetGlobalVar<int?>("rts.actionreplay.message.width",true);var height=CPH.GetGlobalVar<int?>("rts.actionreplay.message.height",true);if(!width.HasValue)CPH.SetGlobalVar("rts.actionreplay.message.width",CPH.GetGlobalVar<int?>("rts.actionreplay.message.minWidth",true)??500,true);if(!height.HasValue)CPH.SetGlobalVar("rts.actionreplay.message.height",CPH.GetGlobalVar<int?>("rts.actionreplay.message.minHeight",true)??120,true);}
+ void EnsureMessageOutput(string key,bool overlay){var prefix="rts.actionreplay.message."+key;if(string.IsNullOrWhiteSpace(CPH.GetGlobalVar<string>(prefix+".text",true)))CPH.SetGlobalVar(prefix+".text",key=="created"?"Replay saved: %replayTitle%.":key=="queued"?"Replay queued: %replayTitle%.":key=="renamed"?"Replay #%replayNumber% renamed from %oldTitle% to %newTitle%.":key=="removed"?"Replay removed: %replayTitle%.":key=="rated"?"Rated %replayTitle% %replayRating%/5 (average %averageRating%/5).":key=="cleared"?"Playlist cleared: %clearedCount% waiting item(s) removed.":key=="clearedall"?"Playlist completely cleared: %clearedCount% item(s) removed.":"",true);if(!CPH.GetGlobalVar<bool?>(prefix+".chat",true).HasValue)CPH.SetGlobalVar(prefix+".chat",true,true);if(!CPH.GetGlobalVar<bool?>(prefix+".overlay",true).HasValue)CPH.SetGlobalVar(prefix+".overlay",overlay,true);}
+ void AddMessageBehaviour(RtsUI ui){ui.BeginSection("Message Behaviour","Message Behaviour");ui.AddTitle("Messages use the same heading-area design as information panels. The message uses fixed dimensions and scales text to fit.","Message Behaviour");ui.BeginRow();Dropdown(ui,"Branding Preset","Branding preset used by messages.","Message Behaviour",UiPrefix+"message.branding",Names("branding"),Name("branding",(string)Read(MessageKey)["entryPoint"]?["brandingPreset"]??"default"));Dropdown(ui,"Design Preset","Visual design used by messages, using the same panel heading treatment.","Message Behaviour",UiPrefix+"message.design",Names("visual"),Name("visual",(string)Read(MessageKey)["entryPoint"]?["designPreset"]??"broadcast"));ui.EndRow();ui.BeginRow();Dropdown(ui,"Animation Profile","Animation profile used when a message appears or disappears.","Message Behaviour",UiPrefix+"message.animation",AnimationNames(MessageKey),AnimationName(MessageKey,(string)Read(MessageKey)["entryPoint"]?["animationProfile"]??"default"));ui.EndRow();ui.AddToggleSwitch("Use Source Platform Branding","Use the platform that initiated the message's Branding Preset. Falls back to the Message Behaviour Branding Preset when no matching platform preset exists.","Message Behaviour","rts.actionreplay.message.useSourcePlatformBranding",false);ui.AddNumericTextbox("Display Time","How long the message remains visible before its end animation begins, in milliseconds.","Message Behaviour","rts.actionreplay.message.duration",5000,0,120000);ui.EndSection();}
  void Colour(RtsUI ui,string l,string f,JObject p,string d)=>ui.AddColorPicker(l,"Branding colour.","Branding Presets",K("branding",(string)p["id"],f),(string)p[f]??d);
 
  void TitleInt(RtsUI ui,string l,string f,JObject p,int d,int min,int max,string h)=>ui.AddNumericTextbox(l,h,"Title Presets",K("title",(string)p["id"],f),(int?)p[f]??d,min,max);
@@ -65,20 +77,460 @@ else if(target=="clapperboard"){ui.AddPositionEditor(title,description,"Position
  string Name(string t,string id){var p=Find(t,id);return p==null?(t=="visual"?"Broadcast":"Default"):(string)p["name"]??id;}
  JArray Animations(string k)=>Read(k)["animationProfiles"] as JArray??new JArray();string[] AnimationNames(string k){var a=new List<string>();foreach(var p in Animations(k)){var n=(string)p["name"];if(!string.IsNullOrWhiteSpace(n))a.Add(n);}return a.Count>0?a.ToArray():new[]{"Default"};}
  string AnimationName(string k,string id){foreach(var p in Animations(k))if(string.Equals((string)p["id"],id,StringComparison.OrdinalIgnoreCase))return(string)p["name"]??id;return id=="default"?"Default":id;}
- string ReadUi(string key){if(key.StartsWith(AnimationUiPrefix,StringComparison.Ordinal)){var p=key.Substring(AnimationUiPrefix.Length).Split('.');if(p.Length>=4){var config=p[0]=="player"?PlayerKey:p[0]=="panel"?PanelKey:p[0]=="message"?MessageKey:ClapperKey;var profile=p[2];if(p[3]=="name")return ProfileName(config,profile);if(p[3]=="startSequence"||p[3]=="endSequence")return GetSequence(Target(config),profile,p[3]).ToString(Newtonsoft.Json.Formatting.None);}return"";}if(!key.StartsWith(UiPrefix,StringComparison.Ordinal))return CPH.GetGlobalVar<string>(key,true);var q=key.Substring(UiPrefix.Length).Split('.');try{if(q[0]=="positions")return PositionSet(q[1]).ToString(Newtonsoft.Json.Formatting.None);if(q[0]=="branding"||q[0]=="visual"||q[0]=="title")return Find(q[0],q[1])?[q[2]]?.ToString()??"";if(q[0]=="entry")return EntryValue(q[1],q[2],q[3]);if(q[0]=="clapper")return q[1]=="animation"?AnimationName(ClapperKey,(string)Read(ClapperKey)["entryPoint"]?["animationProfile"]??"default"):Name("branding",(string)Read(ClapperKey)["entryPoint"]?["brandingPreset"]??"default");if(q[0]=="message")return q[1]=="animation"?AnimationName(MessageKey,(string)Read(MessageKey)["entryPoint"]?["animationProfile"]??"default"):q[1]=="design"?Name("visual",(string)Read(MessageKey)["entryPoint"]?["designPreset"]??"broadcast"):Name("branding",(string)Read(MessageKey)["entryPoint"]?["brandingPreset"]??"default");}catch{}return"";}
- string EntryValue(string c,string id,string field){c=EntryKey(c);var e=(Read(c)["entryPoints"] as JObject)?[id] as JObject??new JObject();if(field=="animationProfile")return AnimationName(c,(string)e[field]??"default");if(field=="useSourcePlatformBranding")return ((bool?)e[field]??false).ToString();return field=="designPreset"?Name("visual",(string)e["designPreset"]??(string)e["visualPreset"]??"broadcast"):field=="titlePreset"?Name("title",(string)e["titlePreset"]??"default"):Name("branding",(string)e["brandingPreset"]??"default");}
+ string ReadUi(string key){if(key.StartsWith(AnimationUiPrefix,StringComparison.Ordinal)){var p=key.Substring(AnimationUiPrefix.Length).Split('.');if(p.Length>=4){var config=p[0]=="player"?PlayerKey:p[0]=="panel"?PanelKey:p[0]=="message"?MessageKey:ClapperKey;var profile=p[2];if(p[3]=="name")return ProfileName(config,profile);if(p[3]=="startSequence"||p[3]=="endSequence")return GetSequence(Target(config),profile,p[3]).ToString(Newtonsoft.Json.Formatting.None);}return"";}if(!key.StartsWith(UiPrefix,StringComparison.Ordinal))return CPH.GetGlobalVar<string>(key,true);var q=key.Substring(UiPrefix.Length).Split('.');try{if(q[0]=="positions")return PositionSet(q[1]).ToString(Newtonsoft.Json.Formatting.None);if(q[0]=="panel"&&q.Length>1&&q[1]=="useSourcePlatformBranding")return ((bool?)Read(PanelKey)["useSourcePlatformBranding"]??false).ToString();if(q[0]=="branding"||q[0]=="visual"||q[0]=="title")return Find(q[0],q[1])?[q[2]]?.ToString()??"";if(q[0]=="entry")return EntryValue(q[1],q[2],q[3]);if(q[0]=="clapper")return q[1]=="animation"?AnimationName(ClapperKey,(string)Read(ClapperKey)["entryPoint"]?["animationProfile"]??"default"):Name("branding",(string)Read(ClapperKey)["entryPoint"]?["brandingPreset"]??"default");if(q[0]=="message")return q[1]=="animation"?AnimationName(MessageKey,(string)Read(MessageKey)["entryPoint"]?["animationProfile"]??"default"):q[1]=="design"?Name("visual",(string)Read(MessageKey)["entryPoint"]?["designPreset"]??"broadcast"):Name("branding",(string)Read(MessageKey)["entryPoint"]?["brandingPreset"]??"default");}catch{}return"";}
+ string EntryValue(string c,string id,string field){c=EntryKey(c);var e=(Read(c)["entryPoints"] as JObject)?[id] as JObject??new JObject();if(field=="animationProfile")return AnimationName(c,(string)e[field]??"default");if(field=="useSourcePlatformBranding"||field=="changePlayerBrandingToClipSource")return ((bool?)e[field]??false).ToString();return field=="designPreset"?Name("visual",(string)e["designPreset"]??(string)e["visualPreset"]??"broadcast"):field=="titlePreset"?Name("title",(string)e["titlePreset"]??"default"):Name("branding",(string)e["brandingPreset"]??"default");}
  string EntryKey(string c)=>c=="player"?PlayerKey:c=="panel"?PanelKey:c;
  bool? ReadBool(string key,bool fallback){try{if(key.StartsWith(UiPrefix,StringComparison.Ordinal)){bool value;if(bool.TryParse(ReadUi(key),out value))return value;return fallback;}var raw=CPH.GetGlobalVar<string>(key,true);bool parsed;if(bool.TryParse(raw,out parsed))return parsed;return fallback;}catch{return fallback;}}
  int? ReadInt(string key,bool fallback){try{if(key.StartsWith(UiPrefix,StringComparison.Ordinal)){int value;if(int.TryParse(ReadUi(key),out value))return value;return 0;}var raw=CPH.GetGlobalVar<string>(key,true);int parsed;if(int.TryParse(raw,out parsed))return parsed;return 0;}catch{return 0;}}
- void SaveUi(string key,object value,bool persisted){if(!key.StartsWith(UiPrefix,StringComparison.Ordinal)&&!key.StartsWith(AnimationUiPrefix,StringComparison.Ordinal)){CPH.SetGlobalVar(key,value,persisted);return;}var v=value?.ToString()??"";try{if(key.StartsWith(AnimationUiPrefix,StringComparison.Ordinal)){var p=key.Substring(AnimationUiPrefix.Length).Split('.');var config=p[0]=="player"?PlayerKey:p[0]=="panel"?PanelKey:p[0]=="message"?MessageKey:ClapperKey;if(p.Length>=4){if(p[3]=="name")SaveAnimationName(config,p[2],v);else if(p[3]=="startSequence"||p[3]=="endSequence")SaveSequence(Target(config),p[2],p[3],v);}return;}var p2=key.Substring(UiPrefix.Length).Split('.');if(p2[0]=="positions"){SavePositions(p2[1],key,v);return;}if(p2[0]=="branding"||p2[0]=="visual"||p2[0]=="title")SavePreset(p2[0],p2[1],p2[2],v);else if(p2[0]=="entry")SaveEntry(p2[1],p2[2],p2[3],v);else if(p2[0]=="clapper")SaveClapper(p2[1],v);else if(p2[0]=="message")SaveMessage(p2[1],v);}catch(Exception ex){CPH.LogWarn("RTS Action Replay preset settings save failed: "+ex.Message);}}
+ void SaveUi(string key,object value,bool persisted){if(!key.StartsWith(UiPrefix,StringComparison.Ordinal)&&!key.StartsWith(AnimationUiPrefix,StringComparison.Ordinal)){CPH.SetGlobalVar(key,value,persisted);return;}var v=value?.ToString()??"";try{if(key.StartsWith(AnimationUiPrefix,StringComparison.Ordinal)){var p=key.Substring(AnimationUiPrefix.Length).Split('.');var config=p[0]=="player"?PlayerKey:p[0]=="panel"?PanelKey:p[0]=="message"?MessageKey:ClapperKey;if(p.Length>=4){if(p[3]=="name")SaveAnimationName(config,p[2],v);else if(p[3]=="startSequence"||p[3]=="endSequence")SaveSequence(Target(config),p[2],p[3],v);}return;}var p2=key.Substring(UiPrefix.Length).Split('.');if(p2[0]=="positions"){SavePositions(p2[1],key,v);return;}if(p2[0]=="panel"&&p2.Length>1&&p2[1]=="useSourcePlatformBranding"){var panel=Read(PanelKey);panel["useSourcePlatformBranding"]=bool.TryParse(v,out var enabled)&&enabled;Save(PanelKey,panel);return;}if(p2[0]=="branding"||p2[0]=="visual"||p2[0]=="title")SavePreset(p2[0],p2[1],p2[2],v);else if(p2[0]=="entry")SaveEntry(p2[1],p2[2],p2[3],v);else if(p2[0]=="clapper")SaveClapper(p2[1],v);else if(p2[0]=="message")SaveMessage(p2[1],v);}catch(Exception ex){CPH.LogWarn("RTS Action Replay preset settings save failed: "+ex.Message);}}
  void SaveSequence(string target,string id,string sequence,string json){try{var store=Read(AnimationKey);var element=store[target] as JObject??new JObject();var rows=ToStoredSequence(target,string.IsNullOrWhiteSpace(json)?new JArray():JArray.Parse(json));element[id]=element[id] as JObject??new JObject();element[id][sequence]=rows;store[target]=element;Save(AnimationKey,store);CPH.LogInfo("RTS Action Replay: saved "+target+" animation profile "+id+" "+sequence+"; steps="+rows.Count+".");}catch(Exception ex){CPH.LogWarn("RTS Action Replay: animation sequence save failed: "+ex.Message);}}
  JObject FindProfile(JArray profiles,string id){foreach(var p in profiles??new JArray())if(string.Equals((string)p["id"],id,StringComparison.Ordinal))return p as JObject;return null;}
  JArray GetSequence(string target,string id,string sequence){var store=Read(AnimationKey);var element=store[target] as JObject;var profile=element?[id] as JObject;var rows=ToDisplaySequence(target,profile?[sequence] as JArray??new JArray());CPH.LogInfo("RTS Action Replay: loaded "+target+" animation profile "+id+" "+sequence+"; steps="+rows.Count+".");return rows;}
  void SaveAnimationName(string key,string id,string value){var c=Read(key);var p=FindProfile(c["animationProfiles"] as JArray,id);if(p==null)return;p["name"]=value;Save(key,c);} JArray ToStoredSequence(string target,JArray input){var rows=new JArray();var positions=(Read(PresetsKey)["positions"] as JObject)?[target] as JObject??new JObject();foreach(var token in input??new JArray()){var row=token as JObject??new JObject();var value=(string)row["position"]??"";var position=positions[value] as JObject;var tag=(string)position?["tag"]??value;rows.Add(new JObject{{"position",tag},{"duration",Parse((string)row["duration"]??"0")},{"delay",Parse((string)row["delay"]??"0")},{"easing",(string)row["easing"]??"ease-in-out"}});}return rows;} JArray ToDisplaySequence(string target,JArray input){var rows=new JArray();var positions=(Read(PresetsKey)["positions"] as JObject)?[target] as JObject??new JObject();foreach(var token in input??new JArray()){var row=token as JObject??new JObject();var value=(string)row["position"]??"";var name=value;foreach(var p in positions.Properties()){if(string.Equals(p.Name,value,StringComparison.OrdinalIgnoreCase)||string.Equals((string)p.Value?["tag"],value,StringComparison.OrdinalIgnoreCase)){name=p.Name;break;}}rows.Add(new JObject{{"position",name},{"duration",(int?)row["duration"]??0},{"delay",(int?)row["delay"]??0},{"easing",(string)row["easing"]??"ease-in-out"}});}return rows;} JArray NormalizeSequenceRows(JArray input){var rows=new JArray();foreach(var token in input??new JArray()){var row=token as JObject??new JObject();var position=(string)row["Saved position used by this animation step."]??(string)row["position"]??"";var duration=(string)row["Duration of the movement to this position, in milliseconds."]??(string)row["duration"]??"0";var easing=(string)row["Timing curve used for the movement to this position."]??(string)row["easing"]??"ease-in-out";var delay=(string)row["Delay before the next animation step starts, in milliseconds."]??(string)row["delay"]??"0";rows.Add(new JObject{{"position",position},{"duration",Parse(duration)},{"delay",Parse(delay)},{"easing",easing}});}return rows;}
 void SavePreset(string t,string id,string f,string v){var config=Read(PresetsKey);var presets=config[t] as JArray??new JArray();JObject preset=null;foreach(var item in presets)if(string.Equals((string)item["id"],id,StringComparison.OrdinalIgnoreCase)){preset=item as JObject;break;}if(preset==null){CPH.LogWarn("RTS Action Replay preset settings: preset not found for save: "+t+"/"+id);return;}preset[f]=Parse(v);Save(PresetsKey,config);}
- void SaveEntry(string c,string id,string f,string v){c=EntryKey(c);var x=Read(c);var es=x["entryPoints"] as JObject??new JObject();var e=es[id] as JObject??new JObject();if(f=="animationProfile")e[f]=ResolveAnimation(c,v);else if(f=="designPreset")e["designPreset"]=ResolveId("visual",v);else if(f=="titlePreset")e["titlePreset"]=ResolveId("title",v);else if(f=="useSourcePlatformBranding")e[f]=bool.TryParse(v,out var enabled)&&enabled;else e["brandingPreset"]=ResolveId("branding",v);es[id]=e;x["entryPoints"]=es;Save(c,x);}
+ void SaveEntry(string c,string id,string f,string v){c=EntryKey(c);var x=Read(c);var es=x["entryPoints"] as JObject??new JObject();var e=es[id] as JObject??new JObject();if(f=="animationProfile")e[f]=ResolveAnimation(c,v);else if(f=="designPreset")e["designPreset"]=ResolveId("visual",v);else if(f=="titlePreset")e["titlePreset"]=ResolveId("title",v);else if(f=="useSourcePlatformBranding"||f=="changePlayerBrandingToClipSource")e[f]=bool.TryParse(v,out var enabled)&&enabled;else e["brandingPreset"]=ResolveId("branding",v);es[id]=e;x["entryPoints"]=es;Save(c,x);}
  void SaveClapper(string f,string v){var x=Read(ClapperKey);var e=x["entryPoint"] as JObject??new JObject();if(f=="animation")e["animationProfile"]=ResolveAnimation(ClapperKey,v);else e["brandingPreset"]=ResolveId("branding",v);x["entryPoint"]=e;Save(ClapperKey,x);}
  void SaveMessage(string f,string v){var x=Read(MessageKey);var e=x["entryPoint"] as JObject??new JObject();if(f=="animation")e["animationProfile"]=ResolveAnimation(MessageKey,v);else if(f=="design")e["designPreset"]=ResolveId("visual",v);else e["brandingPreset"]=ResolveId("branding",v);x["entryPoint"]=e;Save(MessageKey,x);}
  string ResolveAnimation(string k,string n){foreach(var p in Animations(k))if(string.Equals((string)p["name"],n,StringComparison.OrdinalIgnoreCase))return(string)p["id"]??"default";return"default";}string ResolveId(string t,string n){foreach(var p in Presets(t))if(string.Equals((string)p["name"],n,StringComparison.OrdinalIgnoreCase))return(string)p["id"]??"default";return"default";}
  JToken Parse(string v){if(int.TryParse(v,out var i))return i;if(bool.TryParse(v,out var b))return b;return v;}JObject Read(string k){return Read(k,new JObject());}JObject Read(string k,JObject f){var s=CPH.GetGlobalVar<string>(k,true);try{return string.IsNullOrWhiteSpace(s)?f:JObject.Parse(s);}catch{return f;}}void Save(string k,JObject v)=>CPH.SetGlobalVar(k,v.ToString(Newtonsoft.Json.Formatting.None),true);void AddPreset(string t){var config=Read(PresetsKey);var a=config[t] as JArray??new JArray();var source=FindInArray(a,"default");var n="New "+(t=="visual"?"Design":"Preset");var id=Guid.NewGuid().ToString("N");JObject preset;if(source!=null){preset=(JObject)source.DeepClone();preset["id"]=id;preset["name"]=n;}else{preset=new JObject{{"id",id},{"name",n}};}a.Add(preset);config[t]=a;Save(PresetsKey,config);}JObject FindInArray(JArray a,string id){foreach(var p in a??new JArray())if(string.Equals((string)p["id"],id,StringComparison.OrdinalIgnoreCase))return p as JObject;return null;}void RemovePreset(string t,string id){var config=Read(PresetsKey);var a=config[t] as JArray??new JArray();JObject p=null;foreach(var item in a){if(string.Equals((string)item["id"],id,StringComparison.OrdinalIgnoreCase)){p=item as JObject;break;}}if(p!=null)a.Remove(p);config[t]=a;Save(PresetsKey,config);}
+}
+
+
+
+public static class RtsActionReplaySettingsWindow
+{
+    public static void Show(RtsUI ui, string theme)
+    {
+        Exception error = null;
+
+        var t = new Thread(() =>
+        {
+            try
+            {
+                var type = typeof(RtsUI);
+                var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+
+                var buildHeader = type.GetMethod("BuildHeader", flags);
+                var registerRoot = type.GetMethod("RegisterActiveRoot", flags);
+                var buildCategory = type.GetMethod("BuildCategory", flags);
+                var save = type.GetMethod("Save", flags);
+                var categoriesField = type.GetField("_categories", flags);
+
+                if (buildHeader == null || registerRoot == null || buildCategory == null ||
+                    save == null || categoriesField == null)
+                    throw new MissingMethodException("RtsUI settings construction methods");
+
+                RtsUICheckBoxStyler.Initialize();
+
+                var window = new Window
+                {
+                    Title = "RTS Action Replay Settings - Settings",
+                    Width = 1000,
+                    Height = 800,
+                    MinWidth = 600,
+                    MinHeight = 650,
+                    WindowStartupLocation = WindowStartupLocation.CenterScreen
+                };
+
+                var root = new DockPanel();
+                registerRoot.Invoke(ui, new object[] { root });
+                window.Content = root;
+
+                // Use the same theme/resource construction order as the Transfer UI.
+                // The ComboBox style is installed before any RtsUI category is built.
+                ApplyTransferTheme(window, theme);
+
+                var header = buildHeader.Invoke(ui, new object[] { theme }) as StackPanel;
+                if (header != null)
+                {
+                    DockPanel.SetDock(header, Dock.Top);
+                    root.Children.Add(header);
+                }
+
+                var footer = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    HorizontalAlignment = HorizontalAlignment.Right,
+                    Margin = new Thickness(12)
+                };
+
+                var saveButton = new Button
+                {
+                    Content = "Save",
+                    Padding = new Thickness(18, 7, 18, 7),
+                    Margin = new Thickness(0, 0, 8, 0),
+                    Background = new SolidColorBrush(Color.FromRgb(40, 167, 69)),
+                    Foreground = Brushes.White
+                };
+                var saveExitButton = new Button
+                {
+                    Content = "Save & Exit",
+                    Padding = new Thickness(18, 7, 18, 7),
+                    Margin = new Thickness(0, 0, 8, 0),
+                    Background = new SolidColorBrush(Color.FromRgb(40, 167, 69)),
+                    Foreground = Brushes.White
+                };
+                var cancelButton = new Button
+                {
+                    Content = "Cancel",
+                    Padding = new Thickness(18, 7, 18, 7),
+                    Background = new SolidColorBrush(Color.FromRgb(220, 53, 69)),
+                    Foreground = Brushes.White
+                };
+
+                saveButton.Click += delegate { save.Invoke(ui, new object[] { root }); };
+                saveExitButton.Click += delegate
+                {
+                    save.Invoke(ui, new object[] { root });
+                    window.Close();
+                };
+                cancelButton.Click += delegate { window.Close(); };
+
+                footer.Children.Add(saveButton);
+                footer.Children.Add(saveExitButton);
+                footer.Children.Add(cancelButton);
+                DockPanel.SetDock(footer, Dock.Bottom);
+                root.Children.Add(footer);
+
+                var tabs = new TabControl
+                {
+                    Margin = new Thickness(8)
+                };
+
+                ApplyVerticalTabs(tabs, theme);
+
+                var categories = categoriesField.GetValue(ui) as System.Collections.IEnumerable;
+                if (categories != null)
+                {
+                    foreach (var value in categories)
+                    {
+                        var category = Convert.ToString(value);
+                        if (category == "__header")
+                            continue;
+
+                        var panel = new StackPanel
+                        {
+                            Margin = new Thickness(18)
+                        };
+
+                        // Build the category through RtsUI exactly as the existing
+                        // settings system does. Do not rebuild rows or controls here.
+                        buildCategory.Invoke(ui, new object[] { panel, category, theme });
+
+                        // Transfer explicitly assigns the themed ComboBox Style when
+                        // it creates ComboBoxes. RtsUI creates ours internally, so do
+                        // the equivalent immediately after construction while the
+                        // logical tree is still available.
+
+
+                        tabs.Items.Add(new TabItem
+                        {
+                            Header = category,
+                            Content = new ScrollViewer
+                            {
+                                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                                Content = panel
+                            }
+                        });
+                    }
+                }
+
+                root.Children.Add(tabs);
+
+                // Match Transfer's final theme pass after the complete visual tree
+                // has been assembled. This preserves the RtsUI row/group construction
+                // and then applies our Action Replay section presentation.
+                ApplyTransferTheme(window, theme);
+
+                // Transfer.cs explicitly assigns the themed ComboBox style to each
+                // ComboBox it creates. RtsUI creates the controls internally, so do
+                // the equivalent after the complete category tree exists.
+                // Also assign the themed ComboBoxItem style explicitly. The popup is
+                // hosted separately by WPF, so relying on an implicit resource lookup
+                // is not equivalent to Transfer's explicit ComboBox construction.
+                var comboStyle = window.Resources[typeof(ComboBox)] as Style;
+                var comboItemStyle = window.Resources[typeof(ComboBoxItem)] as Style;
+                ApplyTransferComboBoxStylesRecursive(window, comboStyle, comboItemStyle);
+
+                window.Loaded += delegate
+                {
+                    ApplyMainSectionStyle(window);
+
+                    // RtsUITheme reapplies its resources during Loaded. Refresh the
+                    // explicit styles from the now-current resource dictionary so the
+                    // controls remain identical to the themed Transfer controls.
+                    ApplyTransferTheme(window, theme);
+                    comboStyle = window.Resources[typeof(ComboBox)] as Style;
+                    comboItemStyle = window.Resources[typeof(ComboBoxItem)] as Style;
+                    ApplyTransferComboBoxStylesRecursive(window, comboStyle, comboItemStyle);
+                };
+
+                window.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                error = ex.InnerException ?? ex;
+            }
+        });
+
+        t.SetApartmentState(ApartmentState.STA);
+        t.IsBackground = false;
+        t.Start();
+        t.Join();
+
+        if (error != null)
+            throw error;
+    }
+
+    static void ApplyVerticalTabs(TabControl tabs, string theme)
+    {
+        var type = typeof(RtsUI).Assembly.GetType("RtsUIVerticalTabs");
+        if (type == null)
+            throw new MissingMethodException("RtsUIVerticalTabs");
+
+        var apply = type.GetMethod(
+            "Apply",
+            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic,
+            null,
+            new[] { typeof(TabControl), typeof(string) },
+            null);
+
+        if (apply == null)
+            throw new MissingMethodException("RtsUIVerticalTabs.Apply");
+
+        apply.Invoke(null, new object[] { tabs, theme });
+    }
+
+    static Style CreateTransferComboBoxItemStyle(Style themeStyle)
+    {
+        // The stock WPF ComboBoxItem template paints its own mouse-over/selection
+        // backgrounds. That can override the themed Background supplied by
+        // RtsUITheme. Transfer's ComboBoxes are visually driven by the themed
+        // item colours, so give the Settings window an equivalent simple template
+        // which actually renders ComboBoxItem.Background.
+        Style style = themeStyle != null
+            ? new Style(typeof(ComboBoxItem), themeStyle)
+            : new Style(typeof(ComboBoxItem));
+
+        ControlTemplate template = new ControlTemplate(typeof(ComboBoxItem));
+        FrameworkElementFactory border = new FrameworkElementFactory(typeof(Border));
+        border.SetBinding(Border.BackgroundProperty, new Binding("Background")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent)
+        });
+        border.SetBinding(Border.BorderBrushProperty, new Binding("BorderBrush")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent)
+        });
+        border.SetBinding(Border.BorderThicknessProperty, new Binding("BorderThickness")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent)
+        });
+        border.SetBinding(Border.PaddingProperty, new Binding("Padding")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent)
+        });
+
+        FrameworkElementFactory content = new FrameworkElementFactory(typeof(ContentPresenter));
+        content.SetBinding(ContentPresenter.ContentProperty, new Binding("Content")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent)
+        });
+        content.SetBinding(ContentPresenter.ContentTemplateProperty, new Binding("ContentTemplate")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent)
+        });
+        content.SetBinding(ContentPresenter.ContentStringFormatProperty, new Binding("ContentStringFormat")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent)
+        });
+        content.SetBinding(ContentPresenter.HorizontalAlignmentProperty, new Binding("HorizontalContentAlignment")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent)
+        });
+        content.SetBinding(ContentPresenter.VerticalAlignmentProperty, new Binding("VerticalContentAlignment")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent)
+        });
+
+        border.AppendChild(content);
+        template.VisualTree = border;
+        style.Setters.Add(new Setter(Control.TemplateProperty, template));
+        return style;
+    }
+
+    static void ApplyTransferComboBoxStylesRecursive(
+        DependencyObject root,
+        Style comboStyle,
+        Style comboItemStyle)
+    {
+        if (root == null)
+            return;
+
+        var combo = root as ComboBox;
+        if (combo != null)
+        {
+            if (comboStyle != null)
+                combo.Style = comboStyle;
+
+            Style effectiveItemStyle = CreateTransferComboBoxItemStyle(comboItemStyle);
+            combo.ItemContainerStyle = effectiveItemStyle;
+
+            combo.ItemContainerGenerator.StatusChanged += delegate
+            {
+                if (combo.ItemContainerGenerator.Status != GeneratorStatus.ContainersGenerated)
+                    return;
+
+                for (int i = 0; i < combo.Items.Count; i++)
+                {
+                    var item = combo.ItemContainerGenerator.ContainerFromIndex(i) as ComboBoxItem;
+                    if (item != null)
+                        item.Style = effectiveItemStyle;
+                }
+            };
+
+            for (int i = 0; i < combo.Items.Count; i++)
+            {
+                var item = combo.ItemContainerGenerator.ContainerFromIndex(i) as ComboBoxItem;
+                if (item != null)
+                    item.Style = effectiveItemStyle;
+            }
+        }
+
+        // Use the logical tree first because BuildCategory has just constructed
+        // the controls and they may not yet have a WPF visual tree.
+        foreach (var childObject in LogicalTreeHelper.GetChildren(root))
+        {
+            var child = childObject as DependencyObject;
+            if (child != null)
+                ApplyTransferComboBoxStylesRecursive(child, comboStyle, comboItemStyle);
+        }
+
+        // Do not walk the WPF visual tree here. RtsUI's layout contains
+        // ColumnDefinition/RowDefinition objects, which are DependencyObjects
+        // but not Visuals; VisualTreeHelper rejects them. The logical tree is
+        // sufficient for the controls created by BuildCategory.
+    }
+
+    static void ApplyMainSectionStyle(Window window)
+    {
+        var sections = new List<GroupBox>();
+        CollectMainSections(window, sections);
+
+        foreach (var section in sections)
+        {
+            var header = section.Header as TextBlock;
+            if (header != null)
+            {
+                var textBrush = window.Resources["duhBuhSectionText"] as Brush;
+                if (textBrush != null)
+                    header.Foreground = textBrush;
+
+                header.FontSize = 14;
+                header.FontWeight = FontWeights.SemiBold;
+                header.Margin = new Thickness(10, 7, 10, 7);
+            }
+
+            section.Template = CreateMainSectionTemplate(window);
+            section.Padding = new Thickness(14, 8, 14, 10);
+            section.Margin = new Thickness(0, 0, 0, 14);
+        }
+    }
+
+    static void CollectMainSections(DependencyObject root, List<GroupBox> result)
+    {
+        foreach (var childObject in LogicalTreeHelper.GetChildren(root))
+        {
+            var child = childObject as DependencyObject;
+            if (child == null)
+                continue;
+
+            var section = child as GroupBox;
+            if (section != null &&
+                Convert.ToString(section.Tag).StartsWith(
+                    "__rts_section:",
+                    StringComparison.Ordinal))
+            {
+                result.Add(section);
+                continue;
+            }
+
+            CollectMainSections(child, result);
+        }
+    }
+
+    static ControlTemplate CreateMainSectionTemplate(Window window)
+    {
+        var sectionBg = window.Resources["duhBuhSectionBackground"] as Brush;
+        var sectionBorder = window.Resources["duhBuhSectionBorder"] as Brush;
+        var accent = window.Resources["duhBuhAccent"] as Brush;
+
+        var outer = new FrameworkElementFactory(typeof(Border));
+        outer.SetValue(Border.BackgroundProperty, sectionBg);
+        outer.SetValue(Border.BorderBrushProperty, sectionBorder);
+        outer.SetValue(Border.BorderThicknessProperty, new Thickness(1));
+        outer.SetValue(Border.CornerRadiusProperty, new CornerRadius(10));
+        outer.SetValue(
+            Border.PaddingProperty,
+            new TemplateBindingExtension(Control.PaddingProperty));
+
+        var content = new FrameworkElementFactory(typeof(StackPanel));
+
+        var accentBar = new FrameworkElementFactory(typeof(Border));
+        accentBar.SetValue(Border.HeightProperty, 3.0);
+        accentBar.SetValue(Border.BackgroundProperty, accent);
+        accentBar.SetValue(
+            Border.HorizontalAlignmentProperty,
+            HorizontalAlignment.Stretch);
+        accentBar.SetValue(
+            Border.MarginProperty,
+            new Thickness(0, 0, 0, 8));
+        content.AppendChild(accentBar);
+
+        var header = new FrameworkElementFactory(typeof(ContentPresenter));
+        header.SetValue(
+            ContentPresenter.ContentSourceProperty,
+            "Header");
+        header.SetValue(
+            ContentPresenter.HorizontalAlignmentProperty,
+            HorizontalAlignment.Stretch);
+        content.AppendChild(header);
+
+        var body = new FrameworkElementFactory(typeof(ContentPresenter));
+        body.SetValue(
+            ContentPresenter.ContentSourceProperty,
+            "Content");
+        body.SetValue(
+            ContentPresenter.MarginProperty,
+            new Thickness(0));
+        content.AppendChild(body);
+
+        outer.AppendChild(content);
+
+        var template = new ControlTemplate(typeof(GroupBox));
+        template.VisualTree = outer;
+        return template;
+    }
+
+    static void ApplyTransferTheme(Window window, string theme)
+    {
+        var light = !string.Equals(
+            theme,
+            "Dark",
+            StringComparison.OrdinalIgnoreCase);
+
+        var bg = new SolidColorBrush(
+            (Color)ColorConverter.ConvertFromString(
+                light ? "#FFFFFF" : "#1E1E1E"));
+
+        window.Background = bg;
+
+        var root = window.Content as Panel;
+        if (root != null)
+            root.Background = bg;
+
+        // This is the same theme initialization used by the Transfer window.
+        RtsUITheme.Initialize();
+        RtsUITheme.Apply(window, light);
+    }
 }

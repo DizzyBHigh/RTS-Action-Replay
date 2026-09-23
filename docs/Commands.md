@@ -261,6 +261,22 @@ Rate the replay that is currently playing.
 
 Ratings are stored per user, so rating the same replay again updates that user's rating rather than creating another rating from the same account.
 
+### Purge
+
+Remove Catalog entries whose replay media can no longer be resolved.
+
+**Commands**
+
+`!purge`
+`!catalog-purge`
+`!catalogpurge`
+
+For each Catalog entry, Action Replay first checks for a usable local file. If no local file exists, it checks the Catalog's stored URL values and the standard Twitch/YouTube source URL where applicable.
+
+An entry is removed only when no local file and no reachable URL can be resolved.
+
+The purge does not delete any physical files. It only removes unavailable entries from the Catalog.
+
 ### Search
 
 Search the Catalog by text.

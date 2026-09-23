@@ -30,10 +30,43 @@ public class CPHInline
 
     public bool SaveReplay()
     {
-        CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName);
-        var pending = CPH.GetGlobalVar<string>(PendingKey, false); var queue = string.IsNullOrWhiteSpace(pending) ? new JArray() : JArray.Parse(pending);
-        if (!string.IsNullOrWhiteSpace(userId)) queue.Add(new JObject { ["id"] = userId, ["name"] = userName ?? "", ["queued"] = DateTime.UtcNow.ToString("o") });
-        CPH.SetGlobalVar(PendingKey, queue.ToString(Newtonsoft.Json.Formatting.None), false); CPH.ObsReplayBufferSave(); CPH.LogInfo("RTS Action Replay: requested OBS Replay Buffer save."); return true;
+        CPH.TryGetArg("userId", out string userId);
+        CPH.TryGetArg("userName", out string userName);
+        CPH.TryGetArg("userType", out string userType);
+
+        var handoff = new JObject {
+            ["id"] = userId ?? "",
+            ["name"] = userName ?? "",
+            ["platform"] = userType ?? ""
+        };
+
+        CPH.SetGlobalVar(PendingKey, handoff.ToString(Newtonsoft.Json.Formatting.None), false);
+        CPH.LogInfo($"RTS Action Replay: stored replay creator handoff; id={userId}; name={userName}; platform={userType}.");
+        CPH.ObsReplayBufferSave();
+        CPH.LogInfo($"RTS Action Replay: requested OBS Replay Buffer save; creator={userName}; platform={userType}.");
+        return true;
+    }
+    public bool PrepareTestVideo()
+    {
+        var data = Load();
+        var replay = GetCatalog(data).OfType<JObject>().FirstOrDefault();
+        if (replay == null) return false;
+        var source = (string)replay["sourceType"] ?? "OBS";
+        var url = ResolveReplayUrl(replay);
+        if (string.Equals(source, "Kick", StringComparison.OrdinalIgnoreCase)) url = ResolveKickUrl(replay);
+        if (string.IsNullOrWhiteSpace(url)) { CPH.LogWarn("RTS Action Replay: test video could not resolve media for the first Catalog replay."); return false; }
+        var operation = new JObject {
+            ["replayCommand"] = "load", ["replayId"] = (string)replay["id"] ?? "", ["replayUrl"] = url,
+            ["replayAutoplay"] = true, ["replayQueueEntryId"] = "", ["replayUserId"] = "rts-test-user",
+            ["replayUserName"] = "Test User", ["replayDirector"] = (string)replay["creator"]?["name"] ?? "",
+            ["replayNumber"] = Array.IndexOf(GetCatalog(data).ToArray(), replay) + 1, ["replayTitle"] = (string)replay["title"] ?? "Test Replay",
+            ["replayPlayedCount"] = (int?)replay["plays"] ?? 0, ["replaySource"] = source, ["replaySourceId"] = (string)replay["sourceId"] ?? "",
+            ["replaySourcePlatform"] = CPH.GetGlobalVar<string>("rts.actionreplay.test.replayOrigin", true) ?? source,
+            ["replayCreated"] = true
+        };
+        if (string.Equals(source, "YouTube", StringComparison.OrdinalIgnoreCase)) { operation["replayStartTime"] = (long?)replay["startTime"] ?? 0; operation["replayDuration"] = (int?)replay["duration"] ?? 0; }
+        CPH.SetGlobalVar(PlayerOperationKey, operation.ToString(Newtonsoft.Json.Formatting.None), false);
+        return true;
     }
 
     public bool PlayReplay()
@@ -271,7 +304,7 @@ public class CPHInline
     private string GetTwitchMediaUrl(string clipId) { for (var attempt = 1; attempt <= 10; attempt++) { try { var urls = CPH.TwitchGetClipDownloadUrls(clipId); var url = urls == null ? null : urls.LandscapeDownloadUrl; if (string.IsNullOrWhiteSpace(url)) url = urls == null ? null : urls.PortraitDownloadUrl; if (!string.IsNullOrWhiteSpace(url)) return url; } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: Twitch media URL attempt " + attempt + " failed for " + clipId + ": " + ex.Message); } if (attempt < 10) CPH.Wait(2000); } return null; }
     private string DownloadTwitchClip(string clipId) { var folder = CPH.GetGlobalVar<string>(TwitchFolderKey, true); var replayFolder = CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true); if (string.IsNullOrWhiteSpace(folder)) return null; if (!string.IsNullOrWhiteSpace(replayFolder) && PathsEqual(folder, replayFolder)) { CPH.LogError("RTS Action Replay: Twitch Clip Folder must be different from the OBS Replay Folder."); return null; } Directory.CreateDirectory(folder); var destination = Path.Combine(folder, "twitch-" + Sanitize(clipId) + ".mp4"); if (File.Exists(destination) && new FileInfo(destination).Length > 0) return destination; var url = GetTwitchMediaUrl(clipId); if (string.IsNullOrWhiteSpace(url)) return null; try { using (var client = new WebClient()) client.DownloadFile(url, destination + ".tmp"); if (File.Exists(destination + ".tmp") && new FileInfo(destination + ".tmp").Length > 0) { if (File.Exists(destination)) File.Delete(destination); File.Move(destination + ".tmp", destination); return destination; } } catch (Exception ex) { CPH.LogWarn("RTS Action Replay: Twitch clip download failed for " + clipId + ": " + ex.Message); } try { if (File.Exists(destination + ".tmp")) File.Delete(destination + ".tmp"); } catch { } return null; }
 
-    public bool SetPlayerPosition() { if (!CPH.TryGetArg("rawInput", out string input) || string.IsNullOrWhiteSpace(input)) return false; var parts = input.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); if (parts.Length == 0) return false; var duration = 1000; if (parts.Length > 1 && int.TryParse(parts[1], out var requested) && requested >= 0) duration = requested; CPH.SetArgument("replayCommand", "move"); CPH.SetArgument("replayPosition", parts[0]); CPH.SetArgument("replayAnimationDuration", duration); CPH.SetArgument("replayAnimationEasing", CPH.GetGlobalVar<string>("rts.actionreplay.animation.default.easing", true) ?? "ease-in-out"); CPH.SetArgument("replayPositions", CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, true) ?? "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0}}"); CPH.TriggerEvent(EventName, true); return true; }
+    public bool SetPlayerPosition() { if (!CPH.TryGetArg("rawInput", out string input) || string.IsNullOrWhiteSpace(input)) return false; var parts = input.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); if (parts.Length == 0) return false; var duration = 1000; if (parts.Length > 1 && int.TryParse(parts[1], out var requested) && requested >= 0) duration = requested; CPH.ExecuteMethod(ResolverAction, "GetPlayerPositions"); var positions = CPH.GetGlobalVar<string>(PlayerPositionsHandoffKey, false); CPH.SetArgument("replayCommand", "move"); CPH.SetArgument("replayPosition", parts[0]); CPH.SetArgument("replayAnimationDuration", duration); CPH.SetArgument("replayAnimationEasing", CPH.GetGlobalVar<string>("rts.actionreplay.animation.default.easing", true) ?? "ease-in-out"); CPH.SetArgument("replayPositions", positions ?? "{\"Full Screen\":{\"scale\":100,\"x\":0,\"y\":0,\"rotateX\":0,\"rotateY\":0,\"rotateZ\":0,\"fov\":90}}"); CPH.TriggerEvent(EventName, true); return true; }
     public bool HidePlayer() { CPH.SetArgument("replayCommand", "hide"); CPH.TriggerEvent(EventName, true); return true; }
         private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); if (string.IsNullOrWhiteSpace(raw)) return CreateDataDefaults(); try { return JObject.Parse(raw); } catch { return CreateDataDefaults(); } }
     private JObject CreateDataDefaults() { return new JObject { ["version"] = "1.0", ["catalog"] = new JArray(), ["playHistory"] = new JArray() }; }

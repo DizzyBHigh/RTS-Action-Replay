@@ -1,0 +1,8 @@
+using System;
+using System.Windows;
+public class CPHInline
+{
+ const string D="rts.actionreplay.data",S="rts.actionreplay.handoff.configurationSnapshot";
+ public bool Execute()=>FactoryReset();
+ public bool FactoryReset(){if(MessageBox.Show("Factory Reset will restore all RTS Action Replay configuration to its built-in defaults.\n\nYour Catalog and play history will NOT be deleted.\n\nContinue?","RTS Action Replay — Factory Reset",MessageBoxButton.YesNo,MessageBoxImage.Warning)!=MessageBoxResult.Yes)return false;try{foreach(var g in CPH.GetGlobalVarValues(true)){var n=g.VariableName;if(n.StartsWith("rts.actionreplay.",StringComparison.OrdinalIgnoreCase)&&!n.Equals(D,StringComparison.OrdinalIgnoreCase)&&!n.Equals(S,StringComparison.OrdinalIgnoreCase)&&!n.StartsWith("rts.actionreplay.handoff.",StringComparison.OrdinalIgnoreCase))CPH.UnsetGlobalVar(n,true);}CPH.ExecuteMethod("RTS - Action Replay - Core - Store","EnsureData");CPH.ExecuteMethod("RTS - Action Replay - Core - Store","EnsureDefaults");CPH.ExecuteMethod("RTS - Action Replay - Core - Store","EnsureEntryPoints");MessageBox.Show("Factory Reset completed. Catalog and play history were preserved.","RTS Action Replay",MessageBoxButton.OK,MessageBoxImage.Information);return true;}catch(Exception e){CPH.LogError("RTS Action Replay factory reset failed: "+e.Message);MessageBox.Show("Factory Reset failed: "+e.Message,"RTS Action Replay",MessageBoxButton.OK,MessageBoxImage.Error);return false;}}
+}

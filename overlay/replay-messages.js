@@ -4,7 +4,7 @@ let clapperRunner = null;
 
 const getClapperRunner = command => {
   if (!clapperRunner) clapperRunner = RTSAnimationEngine.createRunner({
-    target: RTSReplayMessages.clapperCard,
+    target: RTSReplayMessages.clapperCard?.querySelector('.clapper-position'),
     defaultPosition: { scale: 50, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, fov: 90 }
   });
   clapperRunner.configure(command?.replayClapperPositions);
@@ -26,6 +26,18 @@ const messagePanelCommand = command => ({
   replayPanelPosition: command?.replayMessagePosition || 'Centered'
 });
 
+const fitMessageText = () => {
+  const text = RTSReplayMessages.messageText;
+  if (!text) return;
+  let size = Number.parseFloat(getComputedStyle(text).fontSize) || 14;
+  const minimum = 8;
+  text.style.fontSize = size + 'px';
+  while (size > minimum && (text.scrollWidth > text.clientWidth || text.scrollHeight > text.clientHeight)) {
+    size -= 0.5;
+    text.style.fontSize = size + 'px';
+  }
+};
+
 RTSReplayMessages.showMessage = command => {
   const text = String(command?.replayMessage || '').trim();
   if (!text || !RTSReplayMessages.messageCard) return;
@@ -40,6 +52,7 @@ RTSReplayMessages.showMessage = command => {
     panelCommand,
     panelCommand.replayPanelPosition
   );
+  requestAnimationFrame(fitMessageText);
   RTSReplayMessages.messageTimer = setTimeout(
     () => RTSReplayMessages.hideMessage(command),
     Number.isFinite(Number(command?.replayMessageDuration)) ? Number(command.replayMessageDuration) : RTSReplayMessages.config.messageDuration
@@ -49,7 +62,9 @@ RTSReplayMessages.showMessage = command => {
 RTSReplayMessages.hideMessage = command => {
   clearTimeout(RTSReplayMessages.messageTimer);
   if (!RTSReplayMessages.messageCard) return;
-  RTSInformationPanels.hide(RTSReplayMessages.messageCard, messagePanelCommand(command || {}));
+  RTSInformationPanels.hide(RTSReplayMessages.messageCard, messagePanelCommand(command || {}), () => {
+    RTSReplayWebSocket.acknowledgeMessage(command?.messageQueueId);
+  });
 };
 
 RTSReplayMessages.showClapperboard = command => {
@@ -61,7 +76,19 @@ RTSReplayMessages.showClapperboard = command => {
   RTSReplayMessages.clapperMessageText.textContent = text;
   const showBranding = command.replayShowClapperBranding !== false;
   card.querySelector('.brand').style.display = showBranding ? '' : 'none';
-  const logoUrl = command.replayLogoUrl || '';
+  const logoUrl = command.replayBrandLogoUrl || command.replayLogoUrl || '';
+  card.style.setProperty('--stripe-light', command.replayBrandPrimaryColor || '#eeeeee');
+  card.style.setProperty('--stripe-dark', command.replayBrandSecondaryColor || '#111111');
+  card.style.setProperty('--accent-color', command.replayBrandPrimaryColor || '#0384cb');
+  card.style.setProperty('--message-color', command.replayMessageTextColor || '#0384cb');
+  card.style.setProperty('--message-font', command.replayMessageFont || 'Arial, sans-serif');
+  const fallbackText = command.replayBrandFallbackText || 'RTS';
+  const brandLabel = command.replayBrandLabel || 'ACTION REPLAY';
+  RTSReplayMessages.brandFallback.textContent = fallbackText;
+  const label = card.querySelector('.brand small');
+  if (label) label.textContent = brandLabel;
+  RTSReplayMessages.brandFallback.style.color = command.replayBrandFallbackTextColor || command.replayBrandPrimaryColor || '#0384cb';
+  if (label) label.style.color = command.replayBrandLabelColor || '#ddd';
 
   if (logoUrl) {
     RTSReplayMessages.brandLogo.onload = () => {
@@ -79,10 +106,13 @@ RTSReplayMessages.showClapperboard = command => {
     RTSReplayMessages.brandFallback.style.display = 'block';
   }
 
-  clearTimeout(RTSReplayMessages.messageTimer);
+  clearTimeout(RTSReplayMessages.clapperboardTimer);
   const profile = RTSAnimationEngine.readProfile(command.replayClapperAnimation);
   const start = profile?.start;
   card.classList.remove('show');
+  card.style.opacity = '1';
+  card.style.visibility = 'visible';
+  card.style.zIndex = '55';
   void card.offsetWidth;
   card.classList.add('show');
   card.setAttribute('aria-hidden', 'false');
@@ -97,16 +127,22 @@ RTSReplayMessages.showClapperboard = command => {
     if (stick) { stick.classList.remove('clap'); void stick.offsetWidth; stick.classList.add('clap'); }
   }
 
-  RTSReplayMessages.messageTimer = setTimeout(() => {
+  RTSReplayMessages.clapperboardTimer = setTimeout(() => {
     const end = RTSAnimationEngine.readProfile(command.replayClapperAnimation)?.end;
     if (Array.isArray(end) && end.length) {
       runClapper(command, end, () => {
         card.classList.remove('show');
+        card.style.opacity = '';
+        card.style.visibility = '';
+        card.style.zIndex = '';
         card.setAttribute('aria-hidden', 'true');
       }, true);
     } else {
       getClapperRunner(command).cancel();
       card.classList.remove('show');
+      card.style.opacity = '';
+      card.style.visibility = '';
+      card.style.zIndex = '';
       card.setAttribute('aria-hidden', 'true');
     }
   }, Number.isFinite(Number(command?.replayClapperDuration)) ? Number(command.replayClapperDuration) : RTSReplayMessages.config.messageDuration);
