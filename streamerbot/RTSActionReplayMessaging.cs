@@ -47,8 +47,14 @@ public class CPHInline
 
     public bool Enqueue()
     {
+        CPH.LogInfo($"RTS Action Replay TRACE: Messaging.Enqueue entered; event={Arg("messageEvent")}; requester={Arg("requesterName")}; requesterPlatform={Arg("requesterPlatform")}.");
         var item = BuildItem();
-        if (item == null) return false;
+        if (item == null)
+        {
+            CPH.LogWarn($"RTS Action Replay TRACE: Messaging.Enqueue BuildItem returned null; event={Arg("messageEvent")}.");
+            return false;
+        }
+        CPH.LogInfo($"RTS Action Replay TRACE: Messaging.Enqueue built item; chat={(bool?)item["chat"] == true}; overlay={(bool?)item["overlay"] == true}; text={(string)item["message"] ?? ""}.");
 
         SendChat(item);
         item["chatSent"] = true;
