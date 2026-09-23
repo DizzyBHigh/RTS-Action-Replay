@@ -288,10 +288,7 @@ RTSReplayVideo.loadReplay = command => {
     RTSReplayVideo.visiblePosition = endPosition;
     RTSReplayVideo.player.classList.add('show');
     if (alreadyVisible) {
-      playerRunner.cancel();
-      RTSReplayVideo.applyPosition(endPosition, true);
-      RTSReplayVideo.activePosition = endPosition;
-      replayDevLog('YouTube replay loaded while player already visible', { replayId: command.replayId, position: endPosition.name || endName });
+      replayDevLog('YouTube replay loaded while player already visible; preserving current position', { replayId: command.replayId });
     } else if (startSequence.length) {
       playerRunner.run(startSequence);
     } else {
@@ -309,8 +306,9 @@ RTSReplayVideo.loadReplay = command => {
   host?.setAttribute('aria-hidden', 'true');
   RTSReplayVideo.video.style.display = 'block';
   RTSReplayVideo.visiblePosition = endPosition;
-  if (alreadyVisible) { playerRunner.cancel(); RTSReplayVideo.applyPosition(endPosition, true); RTSReplayVideo.activePosition = endPosition; }
-  else if (startSequence.length) { playerRunner.run(startSequence); RTSReplayVideo.player.classList.add('show'); }
+  if (alreadyVisible) {
+    replayDevLog('Replay loaded while player already visible; preserving current position', { replayId: command.replayId });
+  } else if (startSequence.length) { playerRunner.run(startSequence); RTSReplayVideo.player.classList.add('show'); }
   else RTSReplayVideo.animateIn(startPosition, endPosition);
   if (isHlsUrl(command.replayUrl)) loadHlsReplay(command.replayUrl, command); else loadNativeReplay(command.replayUrl, command);
 };
