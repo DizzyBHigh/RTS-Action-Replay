@@ -260,13 +260,10 @@ public static class RtsActionReplaySettingsWindow
                 ApplyTransferComboBoxStylesRecursive(child, comboStyle);
         }
 
-        // Once loaded, templates/visual children can contain additional ComboBoxes.
-        if (PresentationSource.FromDependencyObject(root) != null)
-        {
-            var count = VisualTreeHelper.GetChildrenCount(root);
-            for (var i = 0; i < count; i++)
-                ApplyTransferComboBoxStylesRecursive(VisualTreeHelper.GetChild(root, i), comboStyle);
-        }
+        // Do not walk the WPF visual tree here. RtsUI's layout contains
+        // ColumnDefinition/RowDefinition objects, which are DependencyObjects
+        // but not Visuals; VisualTreeHelper rejects them. The logical tree is
+        // sufficient for the controls created by BuildCategory.
     }
 
     static void ApplyMainSectionStyle(Window window)
