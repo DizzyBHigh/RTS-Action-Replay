@@ -515,8 +515,8 @@ public class CPHInline
     {
         var clapper = ReadConfig(ClapperKey, CreateClapperDefaults());
         var profiles = NormalizeProfiles(clapper["animationProfiles"] as JArray);
-        var animation = clapper["animation"] as JObject ?? new JObject();
-        var selected = ResolveProfileId(profiles, (string)animation["selectedProfile"]) ?? "default";
+        var entry = clapper["entryPoint"] as JObject ?? new JObject();
+        var selected = ResolveProfileId(profiles, (string)entry["animationProfile"]) ?? "default";
         var store = ReadConfig(AnimationKey, new JObject());
         var target = store["clapperboard"] as JObject;
         var sequence = target?[selected] as JObject ?? new JObject();
