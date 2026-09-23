@@ -694,7 +694,7 @@ public class CPHInline
         return true;
     }
 
-    public bool GetPlayerPositions(){EnsurePositions();var presets=ReadPositionStore(PresetsKey);var positions=(presets["positions"] as JObject)?["player"] as JObject??new JObject();CPH.SetGlobalVar(HandoffKey,positions.ToString(Newtonsoft.Json.Formatting.None),false);return true;}
+    public bool GetPlayerPositions(){EnsurePositions();var presets=ReadPositionStore(PresetsKey);var positions=(presets["positions"] as JObject)?["player"] as JObject??new JObject();CPH.LogInfo("RTS Action Replay TRACE: GetPlayerPositions count="+positions.Count+" names="+string.Join(", ",positions.Properties().Select(p=>p.Name)));CPH.SetGlobalVar(HandoffKey,positions.ToString(Newtonsoft.Json.Formatting.None),false);return true;}
     public bool GetPanelPositions(){EnsurePositions();var presets=ReadPositionStore(PresetsKey);var positions=(presets["positions"] as JObject)?["panel"] as JObject??new JObject();CPH.SetGlobalVar("rts.actionreplay.handoff.panelPositions",positions.ToString(Newtonsoft.Json.Formatting.None),false);return true;}
     public bool GetClapperboardPositions(){EnsurePositions();var presets=ReadPositionStore(PresetsKey);var positions=(presets["positions"] as JObject)?["clapperboard"] as JObject??new JObject();CPH.SetGlobalVar("rts.actionreplay.handoff.clapperPositions",positions.ToString(Newtonsoft.Json.Formatting.None),false);return true;}
 
