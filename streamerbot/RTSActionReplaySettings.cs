@@ -189,7 +189,7 @@ public static class RtsActionReplaySettingsWindow
                     Margin = new Thickness(8)
                 };
 
-                RtsUIVerticalTabs.Apply(tabs, theme);
+                ApplyVerticalTabs(tabs, theme);
 
                 var categories = categoriesField.GetValue(ui) as System.Collections.IEnumerable;
                 if (categories != null)
@@ -256,6 +256,25 @@ public static class RtsActionReplaySettingsWindow
 
         if (error != null)
             throw error;
+    }
+
+    static void ApplyVerticalTabs(TabControl tabs, string theme)
+    {
+        var type = typeof(RtsUI).Assembly.GetType("RtsUIVerticalTabs");
+        if (type == null)
+            throw new MissingMethodException("RtsUIVerticalTabs");
+
+        var apply = type.GetMethod(
+            "Apply",
+            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic,
+            null,
+            new[] { typeof(TabControl), typeof(string) },
+            null
+        );
+        if (apply == null)
+            throw new MissingMethodException("RtsUIVerticalTabs.Apply");
+
+        apply.Invoke(null, new object[] { tabs, theme });
     }
 
     static void ApplyMainSectionStyle(Window window)
