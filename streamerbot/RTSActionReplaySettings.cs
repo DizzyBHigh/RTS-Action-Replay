@@ -254,6 +254,64 @@ public static class RtsActionReplaySettingsWindow
         apply.Invoke(null, new object[] { tabs, theme });
     }
 
+    static Style CreateTransferComboBoxItemStyle(Style themeStyle)
+    {
+        // The stock WPF ComboBoxItem template paints its own mouse-over/selection
+        // backgrounds. That can override the themed Background supplied by
+        // RtsUITheme. Transfer's ComboBoxes are visually driven by the themed
+        // item colours, so give the Settings window an equivalent simple template
+        // which actually renders ComboBoxItem.Background.
+        Style style = themeStyle != null
+            ? new Style(typeof(ComboBoxItem), themeStyle)
+            : new Style(typeof(ComboBoxItem));
+
+        ControlTemplate template = new ControlTemplate(typeof(ComboBoxItem));
+        FrameworkElementFactory border = new FrameworkElementFactory(typeof(Border));
+        border.SetBinding(Border.BackgroundProperty, new Binding("Background")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent)
+        });
+        border.SetBinding(Border.BorderBrushProperty, new Binding("BorderBrush")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent)
+        });
+        border.SetBinding(Border.BorderThicknessProperty, new Binding("BorderThickness")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent)
+        });
+        border.SetBinding(Border.PaddingProperty, new Binding("Padding")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent)
+        });
+
+        FrameworkElementFactory content = new FrameworkElementFactory(typeof(ContentPresenter));
+        content.SetBinding(ContentPresenter.ContentProperty, new Binding("Content")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent)
+        });
+        content.SetBinding(ContentPresenter.ContentTemplateProperty, new Binding("ContentTemplate")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent)
+        });
+        content.SetBinding(ContentPresenter.ContentStringFormatProperty, new Binding("ContentStringFormat")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent)
+        });
+        content.SetBinding(ContentPresenter.HorizontalAlignmentProperty, new Binding("HorizontalContentAlignment")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent)
+        });
+        content.SetBinding(ContentPresenter.VerticalAlignmentProperty, new Binding("VerticalContentAlignment")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.TemplatedParent)
+        });
+
+        border.AppendChild(content);
+        template.VisualTree = border;
+        style.Setters.Add(new Setter(Control.TemplateProperty, template));
+        return style;
+    }
+
     static void ApplyTransferComboBoxStylesRecursive(
         DependencyObject root,
         Style comboStyle,
@@ -268,33 +326,27 @@ public static class RtsActionReplaySettingsWindow
             if (comboStyle != null)
                 combo.Style = comboStyle;
 
-            if (comboItemStyle != null)
+            Style effectiveItemStyle = CreateTransferComboBoxItemStyle(comboItemStyle);
+            combo.ItemContainerStyle = effectiveItemStyle;
+
+            combo.ItemContainerGenerator.StatusChanged += delegate
             {
-                combo.ItemContainerStyle = comboItemStyle;
-
-                // The ComboBox popup is a separate WPF visual tree. Transfer creates
-                // its ComboBox directly, so its generated items resolve the theme
-                // resource normally. RtsUI creates this ComboBox internally, so
-                // explicitly apply the same item style to generated containers too.
-                combo.ItemContainerGenerator.StatusChanged += delegate
-                {
-                    if (combo.ItemContainerGenerator.Status != GeneratorStatus.ContainersGenerated)
-                        return;
-
-                    for (int i = 0; i < combo.Items.Count; i++)
-                    {
-                        var item = combo.ItemContainerGenerator.ContainerFromIndex(i) as ComboBoxItem;
-                        if (item != null)
-                            item.Style = comboItemStyle;
-                    }
-                };
+                if (combo.ItemContainerGenerator.Status != GeneratorStatus.ContainersGenerated)
+                    return;
 
                 for (int i = 0; i < combo.Items.Count; i++)
                 {
                     var item = combo.ItemContainerGenerator.ContainerFromIndex(i) as ComboBoxItem;
                     if (item != null)
-                        item.Style = comboItemStyle;
+                        item.Style = effectiveItemStyle;
                 }
+            };
+
+            for (int i = 0; i < combo.Items.Count; i++)
+            {
+                var item = combo.ItemContainerGenerator.ContainerFromIndex(i) as ComboBoxItem;
+                if (item != null)
+                    item.Style = effectiveItemStyle;
             }
         }
 
