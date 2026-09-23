@@ -268,27 +268,18 @@ public static class RtsActionReplaySettingsWindow
         var combo = root as ComboBox;
         if (combo != null)
         {
+            // Same mechanism as RTSActionReplaySettingsTransfer.cs:
+            // the Transfer window assigns the RtsUI ComboBox Style directly
+            // when each ComboBox is created.
             combo.Style = comboStyle;
             if (itemStyle != null)
-                combo.Resources[typeof(ComboBoxItem)] = itemStyle;
+                combo.ItemContainerStyle = itemStyle;
             return;
         }
 
-        if (root is Visual)
-        {
-            var visualCount = VisualTreeHelper.GetChildrenCount(root);
-            for (var i = 0; i < visualCount; i++)
-                ApplyComboBoxStyle(VisualTreeHelper.GetChild(root, i), comboStyle, itemStyle);
-        }
-
-        foreach (var childObject in LogicalTreeHelper.GetChildren(root))
-        {
-            var child = childObject as DependencyObject;
-            if (child == null)
-                continue;
-
-            ApplyComboBoxStyle(child, comboStyle, itemStyle);
-        }
+        var count = VisualTreeHelper.GetChildrenCount(root);
+        for (var i = 0; i < count; i++)
+            ApplyComboBoxStyle(VisualTreeHelper.GetChild(root, i), comboStyle, itemStyle);
     }
 
 
