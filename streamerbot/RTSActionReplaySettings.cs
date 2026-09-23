@@ -274,7 +274,7 @@ public static class RtsActionReplaySettingsWindow
             return;
         }
 
-        if (root is Visual || root is Visual3D)
+        if (root is Visual)
         {
             var visualCount = VisualTreeHelper.GetChildrenCount(root);
             for (var i = 0; i < visualCount; i++)
