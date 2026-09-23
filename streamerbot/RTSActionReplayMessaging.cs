@@ -70,6 +70,7 @@ public class CPHInline
             shouldProcess = string.IsNullOrWhiteSpace(CPH.GetGlobalVar<string>(ActiveKey, false));
         }
 
+        CPH.LogInfo($"RTS Action Replay TRACE: Messaging.Enqueue overlay queued; queueCount={LoadQueue().Count}; shouldProcess={shouldProcess}; active={CPH.GetGlobalVar<string>(ActiveKey, false) ?? "<none>"}.");
         if (shouldProcess) ProcessQueue();
         return true;
     }
@@ -245,8 +246,9 @@ public class CPHInline
     private void TriggerOverlay(JObject item)
     {
         WriteMessageOperation(item);
-        CPH.LogInfo("RTS Action Replay: message operation handed to Resolver.");
-        CPH.ExecuteMethod(ResolverAction, "ResolveMessagePresentation");
+        CPH.LogInfo($"RTS Action Replay TRACE: Messaging.TriggerOverlay operation written; queueId={(string)item["id"] ?? "<none>"}; event={(string)item["event"] ?? "<none>"}; text={(string)item["message"] ?? ""}.");
+        var resolved = CPH.ExecuteMethod(ResolverAction, "ResolveMessagePresentation");
+        CPH.LogInfo($"RTS Action Replay TRACE: Messaging.TriggerOverlay Resolver result={resolved}; queueId={(string)item["id"] ?? "<none>"}.");
     }
 
     private void WriteMessageOperation(JObject item)
