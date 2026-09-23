@@ -137,9 +137,23 @@ const loadHlsReplay = (url, command) => {
 
 const loadNativeReplay = (url, command) => {
   destroyHls();
+  RTSReplayVideo.video.pause();
+  if (command.replayAutoplay) {
+    let started = false;
+    const start = () => {
+      if (started) return;
+      started = true;
+      RTSReplayVideo.video.removeEventListener('canplay', start);
+      RTSReplayVideo.playReplay(command);
+    };
+    RTSReplayVideo.video.addEventListener('canplay', start);
+    RTSReplayVideo.video.src = url;
+    RTSReplayVideo.video.load();
+    if (RTSReplayVideo.video.readyState >= 3) start();
+    return;
+  }
   RTSReplayVideo.video.src = url;
   RTSReplayVideo.video.load();
-  if (command.replayAutoplay) RTSReplayVideo.video.addEventListener('canplay', () => RTSReplayVideo.playReplay(command), { once: true });
 };
 
 const loadYouTubePlayer = async command => {
@@ -309,8 +323,9 @@ RTSReplayVideo.loadReplay = command => {
   host?.setAttribute('aria-hidden', 'true');
   RTSReplayVideo.video.style.display = 'block';
   RTSReplayVideo.visiblePosition = endPosition;
-  if (alreadyVisible) { playerRunner.cancel(); RTSReplayVideo.applyPosition(endPosition, true); RTSReplayVideo.activePosition = endPosition; }
-  else if (startSequence.length) { playerRunner.run(startSequence); RTSReplayVideo.player.classList.add('show'); }
+  if (alreadyVisible) {
+    replayDevLog('Replay loaded while player already visible; preserving current position', { replayId: command.replayId, position: RTSReplayVideo.activePosition?.name || '<live>' });
+  } else if (startSequence.length) { playerRunner.run(startSequence); RTSReplayVideo.player.classList.add('show'); }
   else RTSReplayVideo.animateIn(startPosition, endPosition);
   if (isHlsUrl(command.replayUrl)) loadHlsReplay(command.replayUrl, command); else loadNativeReplay(command.replayUrl, command);
 };
@@ -323,10 +338,18 @@ RTSReplayVideo.testTitle = command => {
 RTSReplayVideo.moveReplay = command => {
   RTSReplayVideo.currentCommand = { ...(RTSReplayVideo.currentCommand || {}), ...command };
   if (command.replayPositions) playerRunner.configure(command.replayPositions);
-  const position = RTSReplayVideo.getPosition(command.replayPosition || 'Full Screen'); const current = RTSReplayVideo.activePosition;
-  if (current && RTSReplayVideo.positionsEqual?.(current, position)) return;
+  const position = RTSReplayVideo.getPosition(command.replayPosition || 'Full Screen');
+  const current = playerRunner.getActive?.() || RTSReplayVideo.activePosition;
+  if (current && RTSReplayVideo.positionsEqual?.(current, position)) {
+    RTSReplayVideo.activePosition = current;
+    return;
+  }
   RTSReplayVideo.player.classList.add('show');
-  if (!current) { RTSReplayVideo.applyPosition(position, true); RTSReplayVideo.activePosition = position; return; }
+  if (!current) {
+    RTSReplayVideo.applyPosition(position, true);
+    RTSReplayVideo.activePosition = position;
+    return;
+  }
   RTSReplayVideo.animatePosition(current, position, () => { RTSReplayVideo.activePosition = position; });
 };
 
@@ -370,11 +393,15 @@ RTSReplayVideo.handleReplayCommand = command => {
 RTSReplayVideo.video.addEventListener('ended', () => {
   const command = RTSReplayVideo.currentCommand;
   if (command?.replaySource?.toLowerCase() === 'youtube') return;
-  if (command) {
+  if (!command) return;
+
+  // Let the browser finish the native ended event before Streamer.bot can
+  // synchronously load the next playlist item into this same video element.
+  RTSReplayWatchdog?.stop?.();
+  setTimeout(() => {
+    if (RTSReplayVideo.currentCommand !== command) return;
     RTSReplayVideo.notifyPlaybackEnded(command);
-    RTSReplayVideo.hideReplay();
-    RTSReplayWatchdog?.stop?.();
-  }
+  }, 0);
 });
 
 RTSReplayVideo.youtubeState = () => youtubePlayer?.getPlayerState?.();
