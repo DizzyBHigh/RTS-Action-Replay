@@ -110,7 +110,6 @@ public static class RtsActionReplaySettingsWindow
                 var registerRoot = type.GetMethod("RegisterActiveRoot", flags);
                 var buildCategory = type.GetMethod("BuildCategory", flags);
                 var save = type.GetMethod("Save", flags);
-                var applySections = type.GetMethod("ApplySections", flags);
                 var categoriesField = type.GetField("_categories", flags);
 
                 if (buildHeader == null || registerRoot == null || buildCategory == null ||
@@ -232,12 +231,16 @@ public static class RtsActionReplaySettingsWindow
 
                 // Match the Transfer window's second ApplyTheme call after the
                 // complete visual tree has been built.
-                ApplyTransferTheme(window, theme);
-
-                if (applySections != null)
-                    applySections.Invoke(ui, new object[] { window });
-
-                ApplyMainSectionStyle(window);
+                // RtsUI applies horizontal rows and its section structure from the
+                // Window.Loaded class handler. Do not invoke ApplySections early:
+                // doing so bypasses the normal construction order and breaks rows.
+                // Once RtsUI has finished its Loaded work, apply only the Action Replay
+                // presentation layer and the explicit Transfer ComboBox styles.
+                window.Loaded += delegate
+                {
+                    ApplyMainSectionStyle(window);
+                    ApplyTransferComboBoxStyles(window);
+                };
 
                 window.ShowDialog();
             }
@@ -273,6 +276,26 @@ public static class RtsActionReplaySettingsWindow
             throw new MissingMethodException("RtsUIVerticalTabs.Apply");
 
         apply.Invoke(null, new object[] { tabs, theme });
+    }
+
+    static void ApplyTransferComboBoxStyles(Window window)
+    {
+        var comboStyle = window.Resources[typeof(ComboBox)] as Style;
+        if (comboStyle == null)
+            return;
+
+        ApplyTransferComboBoxStylesRecursive(window, comboStyle);
+    }
+
+    static void ApplyTransferComboBoxStylesRecursive(DependencyObject root, Style comboStyle)
+    {
+        var combo = root as ComboBox;
+        if (combo != null)
+            combo.Style = comboStyle;
+
+        int count = VisualTreeHelper.GetChildrenCount(root);
+        for (int i = 0; i < count; i++)
+            ApplyTransferComboBoxStylesRecursive(VisualTreeHelper.GetChild(root, i), comboStyle);
     }
 
     static void ApplyMainSectionStyle(Window window)
