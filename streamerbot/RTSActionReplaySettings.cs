@@ -276,7 +276,7 @@ public static class RtsActionReplaySettingsWindow
         {
             var child = childObject as DependencyObject;
             if (child != null)
-                ApplyTransferComboBoxStylesRecursive(child, comboStyle);
+                ApplyTransferComboBoxStylesRecursive(child, comboStyle, comboItemStyle);
         }
 
         // Do not walk the WPF visual tree here. RtsUI's layout contains
