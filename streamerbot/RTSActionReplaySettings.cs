@@ -188,7 +188,11 @@ public static class RtsActionReplaySettingsWindow
         });
 
         var body = box.Content as UIElement;
-        if (body != null) content.Children.Add(body);
+        if (body != null)
+        {
+            box.Content = null;
+            content.Children.Add(body);
+        }
 
         var card = new Border
         {
