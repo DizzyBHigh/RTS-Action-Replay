@@ -4,6 +4,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using Newtonsoft.Json.Linq;
 
 // Settings UI for Branding Presets, Design Presets, Title Presets, Animation Profiles, Positions and entry points.
