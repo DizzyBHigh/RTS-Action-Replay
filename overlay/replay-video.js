@@ -137,9 +137,23 @@ const loadHlsReplay = (url, command) => {
 
 const loadNativeReplay = (url, command) => {
   destroyHls();
+  RTSReplayVideo.video.pause();
+  if (command.replayAutoplay) {
+    let started = false;
+    const start = () => {
+      if (started) return;
+      started = true;
+      RTSReplayVideo.video.removeEventListener('canplay', start);
+      RTSReplayVideo.playReplay(command);
+    };
+    RTSReplayVideo.video.addEventListener('canplay', start);
+    RTSReplayVideo.video.src = url;
+    RTSReplayVideo.video.load();
+    if (RTSReplayVideo.video.readyState >= 3) start();
+    return;
+  }
   RTSReplayVideo.video.src = url;
   RTSReplayVideo.video.load();
-  if (command.replayAutoplay) RTSReplayVideo.video.addEventListener('canplay', () => RTSReplayVideo.playReplay(command), { once: true });
 };
 
 const loadYouTubePlayer = async command => {
@@ -324,10 +338,18 @@ RTSReplayVideo.testTitle = command => {
 RTSReplayVideo.moveReplay = command => {
   RTSReplayVideo.currentCommand = { ...(RTSReplayVideo.currentCommand || {}), ...command };
   if (command.replayPositions) playerRunner.configure(command.replayPositions);
-  const position = RTSReplayVideo.getPosition(command.replayPosition || 'Full Screen'); const current = RTSReplayVideo.activePosition;
-  if (current && RTSReplayVideo.positionsEqual?.(current, position)) return;
+  const position = RTSReplayVideo.getPosition(command.replayPosition || 'Full Screen');
+  const current = playerRunner.getActive?.() || RTSReplayVideo.activePosition;
+  if (current && RTSReplayVideo.positionsEqual?.(current, position)) {
+    RTSReplayVideo.activePosition = current;
+    return;
+  }
   RTSReplayVideo.player.classList.add('show');
-  if (!current) { RTSReplayVideo.applyPosition(position, true); RTSReplayVideo.activePosition = position; return; }
+  if (!current) {
+    RTSReplayVideo.applyPosition(position, true);
+    RTSReplayVideo.activePosition = position;
+    return;
+  }
   RTSReplayVideo.animatePosition(current, position, () => { RTSReplayVideo.activePosition = position; });
 };
 
