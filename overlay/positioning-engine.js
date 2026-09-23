@@ -1,5 +1,5 @@
 const RTSPositioningEngine = {
-  version: '20260922-2',
+  version: '20260923-1',
   diagnostics: new WeakMap(),
   referenceWidth: 1920,
   referenceHeight: 1080,
@@ -17,23 +17,23 @@ const RTSPositioningEngine = {
     const rotateX = -number(p.rotateX, 0);
     const rotateY = number(p.rotateY, 0);
     const rotateZ = -number(p.rotateZ, 0);
-    const fov = Math.max(30, Math.min(120, number(p.fov, 90)));
+    const zoom = this.zoomFor(z);
     const dev = Boolean(document.getElementById('rts-dev-stage'));
     const viewportWidth = dev ? this.referenceWidth : Math.max(1, window.innerWidth || this.referenceWidth);
     const viewportHeight = dev ? this.referenceHeight : Math.max(1, window.innerHeight || this.referenceHeight);
+    const width = Math.max(0, element?.offsetWidth || 0);
+    const height = Math.max(0, element?.offsetHeight || 0);
+    const visibleWidth = width * scaleX * zoom;
+    const visibleHeight = height * scaleY * zoom;
+    const xValue = x / 100 * (viewportWidth - visibleWidth) / 2;
+    const yValue = y / 100 * (viewportHeight - visibleHeight) / 2;
 
-    const tanHalfFov = Math.tan((fov * Math.PI / 180) / 2);
+    return `translate3d(${xValue}px, ${yValue}px, ${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX * zoom}, ${scaleY * zoom}, 1)`;
+  },
 
-    // Match the deployed RtsUI.dll position preview. The DLL preview uses a
-    // 640x360 position canvas and a camera distance of 360*tan(FOV/2).
-    // WPF projection therefore scales screen-space translation by
-    // (640/2/tan(FOV/2)) / (360*tan(FOV/2)).
-    const perspective = Math.max(1, 360.0 * tanHalfFov);
-    const projectionScale = (320.0 / tanHalfFov) / perspective;
-    const depthFactor = (perspective - z) / perspective;
-    const xValue = `${x * viewportWidth / 100 * projectionScale * depthFactor}px`;
-    const yValue = `${-y * viewportHeight / 100 * projectionScale * depthFactor}px`;
-    return `perspective(${perspective}px) translate3d(${xValue}, ${yValue}, ${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX}, ${scaleY}, 1)`;
+  zoomFor(z) {
+    const denominator = Math.max(36, 360 - z);
+    return Math.max(0.05, Math.min(10, 360 / denominator));
   },
 
   apply(element, position) {
