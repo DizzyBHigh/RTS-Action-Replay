@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 public class CPHInline
 {
     const string PlayerKey="rts.actionreplay.config.player", PanelKey="rts.actionreplay.config.panel", MessageKey="rts.actionreplay.config.message", PresetsKey="rts.actionreplay.config.presets", AnimationKey="rts.actionreplay.config.animation";
+    const int PositionModelVersion = 2;
     const string PlayerOperationKey="rts.actionreplay.operation.player", PanelOperationKey="rts.actionreplay.operation.panel", MessageOperationKey="rts.actionreplay.operation.message", EventName="RTS-Action Replay";
 
     private const string ClapperKey = "rts.actionreplay.config.clapper";
@@ -551,7 +552,7 @@ public class CPHInline
     {
         var positions = config["positions"] as JObject ?? new JObject();
         var builtIn = panel
-            ? new JObject { ["name"] = "Centered", ["tag"] = "centered", ["scale"] = 100, ["scaleX"] = 100, ["scaleY"] = 100, ["x"] = 0, ["y"] = 0, ["z"] = 0, ["rotateX"] = 0, ["rotateY"] = 0, ["rotateZ"] = 0, ["fov"] = 90 }
+            ? new JObject { ["name"] = "Centered", ["tag"] = "centered", ["scale"] = 100, ["scaleX"] = 100, ["scaleY"] = 100, ["x"] = 0, ["y"] = 0, ["z"] = 0, ["rotateX"] = 0, ["rotateY"] = 0, ["rotateZ"] = 0 }
             : new JObject { ["name"] = "Full Screen", ["tag"] = "full-screen", ["scale"] = 100, ["scaleX"] = 100, ["scaleY"] = 100, ["x"] = 0, ["y"] = 0, ["z"] = 0, ["rotateX"] = 0, ["rotateY"] = 0, ["rotateZ"] = 0, ["fov"] = 90 };
         if (!positions.ContainsKey(panel ? "Centered" : "Full Screen"))
             positions[panel ? "Centered" : "Full Screen"] = builtIn;
@@ -685,6 +686,12 @@ public class CPHInline
     {
         var presets=ReadPositionStore(PresetsKey);
         var positions=presets["positions"] as JObject ?? new JObject();
+        if ((int?)presets["positionModelVersion"] != PositionModelVersion)
+        {
+            positions=new JObject();
+            presets["positionModelVersion"]=PositionModelVersion;
+            CPH.LogInfo("RTS Action Replay: position model reset to v2 (screen-space X/Y, deterministic Z zoom).");
+        }
         positions["player"]=EnsurePositionSet(positions["player"] as JObject,"Full Screen","full-screen",100);
         positions["panel"]=EnsurePositionSet(positions["panel"] as JObject,"Centered","centered",100);
         positions["clapperboard"]=EnsurePositionSet(positions["clapperboard"] as JObject,"Centered","centered",50);
@@ -705,7 +712,7 @@ public class CPHInline
     }
     JObject ReadPositionStore(string key){var raw=CPH.GetGlobalVar<string>(key,true);try{return string.IsNullOrWhiteSpace(raw)?new JObject():JObject.Parse(raw);}catch{return new JObject();}}
     void SavePositionStore(string key,JObject value)=>CPH.SetGlobalVar(key,value.ToString(Newtonsoft.Json.Formatting.None),true);
-    JObject CreatePositionSet(string name,string tag,int scale)=>new JObject{[name]=new JObject{["name"]=name,["tag"]=tag,["scale"]=scale,["scaleX"]=scale,["scaleY"]=scale,["x"]=0,["y"]=0,["z"]=0,["rotateX"]=0,["rotateY"]=0,["rotateZ"]=0,["fov"]=90}};
+    JObject CreatePositionSet(string name,string tag,int scale)=>new JObject{[name]=new JObject{["name"]=name,["tag"]=tag,["scale"]=scale,["scaleX"]=scale,["scaleY"]=scale,["x"]=0,["y"]=0,["z"]=0,["rotateX"]=0,["rotateY"]=0,["rotateZ"]=0}};
 
     public bool ApplyPanelPreset()
     {
