@@ -61,7 +61,8 @@ public class CPHInline
 
   if(branding)
   {
-   var body=new StackPanel();
+   var body=new Grid();
+   for(var i=0;i<4;i++)body.ColumnDefinitions.Add(new ColumnDefinition{Width=new GridLength(1,GridUnitType.Star)});
    foreach(var p in (r["presets"]?["branding"] as JArray??new JArray()).OfType<JObject>())
    {
     var id=(string)p["id"];if(!string.IsNullOrWhiteSpace(id))AddProfile(body,(string)p["name"]??id,id,false,checks,w);
@@ -74,7 +75,8 @@ public class CPHInline
    foreach(var component in new[]{"player","panel","message","clapperboard"})
    {
     var src=r[component] as JObject;var ps=src?["animationProfiles"] as JArray??new JArray();if(ps.Count==0)continue;
-    var body=new StackPanel();
+    var body=new Grid();
+    for(var i=0;i<4;i++)body.ColumnDefinitions.Add(new ColumnDefinition{Width=new GridLength(1,GridUnitType.Star)});
     foreach(var p in ps.OfType<JObject>())
     {
      var id=(string)p["id"];if(!string.IsNullOrWhiteSpace(id))AddProfile(body,(string)p["name"]??id,component+":"+id,true,checks,w);
@@ -122,13 +124,17 @@ public class CPHInline
   list.Children.Add(card);
  }
 
- void AddProfile(StackPanel body,string label,string id,bool isAnimation,List<RtsUICustomToggle> checks,Window w)
+ void AddProfile(Grid body,string label,string id,bool isAnimation,List<RtsUICustomToggle> checks,Window w)
  {
-  var row=new StackPanel{Margin=new Thickness(0,2,0,7)};
+  var index=body.Children.Count;
+  var row=index/4;
+  var column=index%4;
+  while(body.RowDefinitions.Count<=row)body.RowDefinitions.Add(new RowDefinition{Height=GridLength.Auto});
+  var cell=new StackPanel{Margin=new Thickness(0,2,8,7)};
   var cb=new RtsUICustomToggle{Content=label,IsChecked=true,Tag=(isAnimation?"a:":"b:")+id,Margin=new Thickness(0,2,0,0)};
-  row.Children.Add(cb);
-  row.Children.Add(new TextBlock{Text="ID: "+id,Margin=new Thickness(37,0,0,0),FontSize=12,Foreground=w.Resources["duhBuhDescriptionText"] as Brush});
-  body.Children.Add(row);checks.Add(cb);
+  cell.Children.Add(cb);
+  cell.Children.Add(new TextBlock{Text="ID: "+id,Margin=new Thickness(37,0,0,0),FontSize=12,Foreground=w.Resources["duhBuhDescriptionText"] as Brush});
+  Grid.SetRow(cell,row);Grid.SetColumn(cell,column);body.Children.Add(cell);checks.Add(cb);
  }
  void ApplyTheme(Window w,Panel root){var light=!string.Equals(CPH.GetGlobalVar<string>("rts.actionreplay.uiTheme",true),"Dark",StringComparison.OrdinalIgnoreCase);var bg=new SolidColorBrush((Color)ColorConverter.ConvertFromString(light?"#FFFFFF":"#1E1E1E"));var fg=new SolidColorBrush((Color)ColorConverter.ConvertFromString(light?"#111111":"#F2F2F2"));var sub=new SolidColorBrush((Color)ColorConverter.ConvertFromString(light?"#666666":"#B8B8B8"));w.Background=bg;root.Background=bg;RtsUITheme.Initialize();RtsUITheme.Apply(w,light);foreach(var x in Find(root)){if(x is TextBlock t)t.Foreground=t.FontWeight==FontWeights.SemiBold?fg:sub;if(x is RtsUICustomToggle toggle)toggle.Foreground=fg;}} IEnumerable<DependencyObject> Find(DependencyObject p){if(p==null)yield break;foreach(var c in LogicalTreeHelper.GetChildren(p)){if(c is DependencyObject d){yield return d;foreach(var x in Find(d))yield return x;}}}
  int Preset(string t,JArray src,HashSet<string> ids,bool enabled){if(!enabled||src==null)return 0;var c=Read(P);var a=c[t] as JArray??new JArray();var count=0;foreach(var p in src.OfType<JObject>()){var id=(string)p["id"];if(ids!=null&&!ids.Contains(id))continue;var old=a.OfType<JObject>().FirstOrDefault(x=>string.Equals((string)x["id"],id,StringComparison.OrdinalIgnoreCase));if(old!=null){if(Get("import.duplicates","Skip")=="Skip")continue;old.Replace(p.DeepClone());count++;}else{a.Add(p.DeepClone());count++;}}c[t]=a;Save(P,c);return count;}
