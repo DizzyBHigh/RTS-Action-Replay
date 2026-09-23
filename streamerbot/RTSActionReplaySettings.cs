@@ -424,6 +424,9 @@ public static class RtsActionReplaySettingsWindow
         outer.SetValue(Border.BorderBrushProperty, sectionBorder);
         outer.SetValue(Border.BorderThicknessProperty, new Thickness(1));
         outer.SetValue(Border.CornerRadiusProperty, new CornerRadius(10));
+        outer.SetValue(
+            Border.PaddingProperty,
+            new TemplateBindingExtension(Control.PaddingProperty));
 
         var content = new FrameworkElementFactory(typeof(StackPanel));
 
