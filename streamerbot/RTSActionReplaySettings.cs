@@ -122,6 +122,13 @@ public static class RtsActionReplaySettingsWindow
                     applySections.Invoke(ui, new object[] { window });
 
                 ApplyMainSectionStyle(window);
+                window.Loaded += delegate
+                {
+                    window.Dispatcher.BeginInvoke(new Action(delegate
+                    {
+                        ApplyTransferComboBoxStyle(window);
+                    }));
+                };
 
                 window.ShowDialog();
             }
