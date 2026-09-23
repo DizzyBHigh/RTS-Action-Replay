@@ -120,7 +120,7 @@ public static class RtsActionReplaySettingsWindow
 
                 var window = new Window
                 {
-                    Title = "RTS Action Replay Settings",
+                    Title = "RTS Action Replay Settings - Settings",
                     Width = 1000,
                     Height = 800,
                     MinWidth = 600,
