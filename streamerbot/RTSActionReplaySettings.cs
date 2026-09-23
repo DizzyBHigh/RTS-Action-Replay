@@ -9,7 +9,68 @@ using Newtonsoft.Json.Linq;
 public class CPHInline
 {
  const string PresetsKey="rts.actionreplay.config.presets",PlayerKey="rts.actionreplay.config.player",PanelKey="rts.actionreplay.config.panel",MessageKey="rts.actionreplay.config.message",ClapperKey="rts.actionreplay.config.clapper",AnimationKey="rts.actionreplay.config.animation",UiPrefix="rts.actionreplay.ui.presetSettings.",AnimationUiPrefix="rts.actionreplay.ui.animation.";
- public bool Execute(){EnsureMessageSettings();CPH.ExecuteMethod("RTS - Action Replay - Core - Store","EnsureData");CPH.ExecuteMethod("RTS - Action Replay - Core - Store","EnsureDefaults");CPH.ExecuteMethod("RTS - Action Replay - Core - Store","EnsureEntryPoints");CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver","EnsureProfiles");var ui=new RtsUI("RTS Action Replay Settings","1.0.0",ReadBool,ReadInt,(key,p)=>ReadUi(key),(key,p)=>(object)CPH.GetGlobalVar<string>(key,p),(key,v,p)=>SaveUi(key,v,p),message=>CPH.LogInfo(message));Build(ui);ui.SetWindowSize(1000,800);var t=new Thread(()=>{var light=!string.Equals(CPH.GetGlobalVar<string>("rts.actionreplay.uiTheme",true),"Dark",StringComparison.OrdinalIgnoreCase);var bg=new SolidColorBrush((Color)ColorConverter.ConvertFromString(light?"#FFFFFF":"#1E1E1E"));var w=new Window{Title="RTS Action Replay Settings",Width=1000,Height=800,MinWidth=600,MinHeight=650,WindowStartupLocation=WindowStartupLocation.CenterScreen,Background=bg,Tag=light?"Light":"Dark"};RtsUITheme.Initialize();RtsUITheme.Apply(w,light);ui.ShowUI(w);});t.SetApartmentState(ApartmentState.STA);t.IsBackground=false;t.Start();t.Join();return true;}
+ public bool Execute(){EnsureMessageSettings();CPH.ExecuteMethod("RTS - Action Replay - Core - Store","EnsureData");CPH.ExecuteMethod("RTS - Action Replay - Core - Store","EnsureDefaults");CPH.ExecuteMethod("RTS - Action Replay - Core - Store","EnsureEntryPoints");CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver","EnsureProfiles");var ui=new RtsUI("RTS Action Replay Settings","1.0.0",ReadBool,ReadInt,(key,p)=>ReadUi(key),(key,p)=>(object)CPH.GetGlobalVar<string>(key,p),(key,v,p)=>SaveUi(key,v,p),message=>CPH.LogInfo(message));Build(ui);ui.SetWindowSize(1000,800);var t=new Thread(()=>{var light=!string.Equals(CPH.GetGlobalVar<string>("rts.actionreplay.uiTheme",true),"Dark",StringComparison.OrdinalIgnoreCase);var bg=new SolidColorBrush((Color)ColorConverter.ConvertFromString(light?"#FFFFFF":"#1E1E1E"));var w=new Window{Title="RTS Action Replay Settings",Width=1000,Height=800,MinWidth=600,MinHeight=650,WindowStartupLocation=WindowStartupLocation.CenterScreen,Background=bg,Tag=light?"Light":"Dark"};RtsUITheme.Initialize();RtsUITheme.Apply(w,light);w.Loaded+=delegate{ApplyTransferCardStyle(w);};ui.ShowUI(w);});t.SetApartmentState(ApartmentState.STA);t.IsBackground=false;t.Start();t.Join();return true;}
+ void ApplyTransferCardStyle(Window window)
+ {
+  var sections=new List<GroupBox>();CollectSectionBoxes(window,sections);
+  foreach(var box in sections)ApplyTransferCardTemplate(box,window);
+ }
+ void CollectSectionBoxes(DependencyObject root,List<GroupBox> result)
+ {
+  foreach(object child in LogicalTreeHelper.GetChildren(root))
+  {
+   var d=child as DependencyObject;if(d==null)continue;
+   var box=d as GroupBox;
+   if(box!=null&&IsRtsSection(box))result.Add(box);
+   CollectSectionBoxes(d,result);
+  }
+ }
+ bool IsRtsSection(DependencyObject o)
+ {
+  var box=o as GroupBox;
+  return box!=null&&Convert.ToString(box.Tag).StartsWith("__rts_section:",StringComparison.Ordinal);
+ }
+ void ApplyTransferCardTemplate(GroupBox box,Window window)
+ {
+  var bg=window.Resources["duhBuhSectionBackground"] as Brush;
+  var border=window.Resources["duhBuhSectionBorder"] as Brush;
+  var text=window.Resources["duhBuhSectionText"] as Brush;
+  var accent=window.Resources["duhBuhAccent"] as Brush;
+  box.Background=bg;box.BorderBrush=border;box.Foreground=text;
+  box.Padding=new Thickness(14,8,14,10);
+  var template=new ControlTemplate(typeof(GroupBox));
+  var outer=new FrameworkElementFactory(typeof(Border));
+  outer.SetValue(Border.BackgroundProperty,bg);
+  outer.SetValue(Border.BorderBrushProperty,border);
+  outer.SetValue(Border.BorderThicknessProperty,new Thickness(1));
+  outer.SetValue(Border.CornerRadiusProperty,new CornerRadius(10));
+  outer.SetValue(Border.PaddingProperty,new Thickness(14,8,14,10));
+  var body=new FrameworkElementFactory(typeof(StackPanel));
+  var line=new FrameworkElementFactory(typeof(Border));
+  line.SetValue(Border.HeightProperty,3.0);
+  line.SetValue(Border.BackgroundProperty,accent);
+  line.SetValue(Border.MarginProperty,new Thickness(0,0,0,8));
+  body.AppendChild(line);
+  var header=new FrameworkElementFactory(typeof(Border));
+  header.SetValue(Border.BackgroundProperty,bg);
+  header.SetValue(Border.PaddingProperty,new Thickness(10,7,10,7));
+  header.SetValue(Border.MarginProperty,new Thickness(0,0,0,10));
+  var headerText=new FrameworkElementFactory(typeof(ContentPresenter));
+  headerText.SetValue(ContentPresenter.ContentSourceProperty,"Header");
+  headerText.SetValue(TextElement.FontSizeProperty,14.0);
+  headerText.SetValue(TextElement.FontWeightProperty,FontWeights.SemiBold);
+  headerText.SetValue(TextElement.ForegroundProperty,text);
+  headerText.SetValue(ContentPresenter.HorizontalAlignmentProperty,HorizontalAlignment.Stretch);
+  header.AppendChild(headerText);
+  body.AppendChild(header);
+  var content=new FrameworkElementFactory(typeof(ContentPresenter));
+  content.SetValue(ContentPresenter.ContentSourceProperty,"Content");
+  content.SetValue(ContentPresenter.HorizontalAlignmentProperty,HorizontalAlignment.Stretch);
+  body.AppendChild(content);
+  outer.AppendChild(body);
+  template.VisualTree=outer;
+  box.Template=template;
+ }
  void Build(RtsUI ui){AddGeneralSettings(ui);AddTwitchSettings(ui);AddYouTubeSettings(ui);AddKickSettings(ui);AddPlayerSettings(ui);AddCatalogSettings(ui);AddBranding(ui);AddDesigns(ui);AddTitles(ui);AddPositions(ui);AddPlayerAnimationProfiles(ui);AddPanelAnimationProfiles(ui);AddMessageAnimationProfiles(ui);AddClapperAnimationProfiles(ui);AddEntries(ui,PlayerKey,"Player Behaviour",new[]{"obs","twitch","youtube","kick","play"},new[]{"Create - OBS","Create - Twitch","Create - YouTube","Create - Kick","Play - Replay"});AddEntries(ui,PanelKey,"Panel Behaviour",new[]{"recent","playlist","creatorLeaderboard"},new[]{"Recent / Search","Playlist","Leaderboards"});AddMessageBehaviour(ui);AddClapperboardSettings(ui);AddMessageSettings(ui);AddImportExportSettings(ui);AddTestSettings(ui);}
  void AddGeneralSettings(RtsUI ui){ui.AddThemeSelector("Settings Theme","Choose the RtsUI theme.","Local Capture","rts.actionreplay.uiTheme","Dark");ui.BeginSection("Local Capture / OBS","Local Capture");ui.AddFolderPicker("Replay Folder","Folder containing local OBS Replay Buffer files. Downloaded Twitch and Kick clips use their own separate folders and are not stored here.","Local Capture","rts.actionreplay.replayFolder","");ui.AddTextbox("Replay File Types","File extensions accepted when scanning the Replay Folder. Separate multiple extensions with commas, for example .mp4, .mkv.","Local Capture","rts.actionreplay.replayFileTypes",".mp4, .mkv",false);ui.AddTextbox("HTTP Mapping","URL path used by Streamer.bot's HTTP server to serve files from the Replay Folder. For example, replays creates the /replays/ path.","Local Capture","rts.actionreplay.httpMapping","replays",false);ui.AddNumericTextbox("HTTP Port","Port used by Streamer.bot's HTTP server to serve replay media. This must match the port configured for Streamer.bot's HTTP server or replay playback will not work.","Local Capture","rts.actionreplay.httpPort",7474,1,65535);ui.EndSection();ui.BeginSection("Replay Defaults","Local Capture");ui.AddTextbox("Replay Title Template","Template used to generate the title of newly saved replays. Streamer.bot variables can be used.","Local Capture","rts.actionreplay.replayTitle","%replayName%",false);ui.AddTextbox("New Replay Display Title","Temporary title displayed when a newly saved replay is automatically played. This does not rename the Catalog item.","Local Capture","rts.actionreplay.newReplayTitle","New Replay",false);ui.EndSection();ui.BeginSection("Local Capture Handling","Local Capture");ui.AddToggleSwitch("Auto-add Saved Replays (OBS Capture)","Automatically add each newly saved OBS replay to the Catalog and Recent Clips list. When disabled, newly saved replays are not added automatically. Use Add Replay or Scan Replays to register them manually.","Local Capture","rts.actionreplay.autoAdd",true);ui.AddToggleSwitch("Auto-play OBS Captures","Automatically load and play a newly saved OBS replay.","Local Capture","rts.actionreplay.autoPlay",false);ui.EndSection();}
  void AddCatalogSettings(RtsUI ui){ui.BeginSection("Recent Clips","Catalog");ui.AddSlider("Maximum Recent Clips","Maximum number of entries shown in Recent Clips and retained in Last Played history. Older entries remain available in the Catalog.","Catalog","rts.actionreplay.maxHistory",1,100,20);ui.EndSection();ui.BeginSection("Live Playlist","Catalog");ui.AddToggleSwitch("Persist Playlist Across Restarts","Keep the current Playlist when Streamer.bot restarts. When disabled, the queue is cleared on restart.","Catalog","rts.actionreplay.playlistPersist",false);ui.EndSection();}
