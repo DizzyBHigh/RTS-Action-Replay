@@ -1,5 +1,5 @@
 const RTSPositioningEngine = {
-  version: '20260923-3',
+  version: '20260923-4',
   diagnostics: new WeakMap(),
   referenceWidth: 1920,
   referenceHeight: 1080,
@@ -23,7 +23,7 @@ const RTSPositioningEngine = {
     const width = Math.max(0, element?.offsetWidth || 0);
     const height = Math.max(0, element?.offsetHeight || 0);
     const xValue = this.positionOffset(x, viewportWidth);
-    const yValue = this.positionOffset(y, viewportHeight);
+    const yValue = -this.positionOffset(y, viewportHeight);
 
     return `perspective(960px) translate3d(${xValue}px, ${yValue}px, ${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX}, ${scaleY}, 1)`;
   },
