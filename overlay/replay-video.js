@@ -373,7 +373,6 @@ RTSReplayVideo.video.addEventListener('ended', () => {
   if (command?.replaySource?.toLowerCase() === 'youtube') return;
   if (command) {
     RTSReplayVideo.notifyPlaybackEnded(command);
-    RTSReplayVideo.hideReplay();
     RTSReplayWatchdog?.stop?.();
   }
 });
