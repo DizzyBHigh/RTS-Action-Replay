@@ -553,7 +553,7 @@ public class CPHInline
         var positions = config["positions"] as JObject ?? new JObject();
         var builtIn = panel
             ? new JObject { ["name"] = "Centered", ["tag"] = "centered", ["scale"] = 100, ["scaleX"] = 100, ["scaleY"] = 100, ["x"] = 0, ["y"] = 0, ["z"] = 0, ["rotateX"] = 0, ["rotateY"] = 0, ["rotateZ"] = 0 }
-            : new JObject { ["name"] = "Full Screen", ["tag"] = "full-screen", ["scale"] = 100, ["scaleX"] = 100, ["scaleY"] = 100, ["x"] = 0, ["y"] = 0, ["z"] = 0, ["rotateX"] = 0, ["rotateY"] = 0, ["rotateZ"] = 0, ["fov"] = 90 };
+            : new JObject { ["name"] = "Full Screen", ["tag"] = "full-screen", ["scale"] = 100, ["scaleX"] = 100, ["scaleY"] = 100, ["x"] = 0, ["y"] = 0, ["z"] = 0, ["rotateX"] = 0, ["rotateY"] = 0, ["rotateZ"] = 0 };
         if (!positions.ContainsKey(panel ? "Centered" : "Full Screen"))
             positions[panel ? "Centered" : "Full Screen"] = builtIn;
         config["positions"] = positions;
