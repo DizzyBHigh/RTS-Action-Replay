@@ -10,7 +10,6 @@ let youtubeEndedNotified = false;
 let youtubeReplayToken = 0;
 let hlsPlayer = null;
 let endedCommand = null;
-let nativeReplayToken = 0;
 const playerRunner = RTSAnimationEngine.createRunner({
   target: RTSReplayVideo.player,
   defaultPosition: { scale: 100, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, fov: 90 }
@@ -116,7 +115,6 @@ const isHlsUrl = url => /\.m3u8(?:\?|$)/i.test(url || '');
 
 const loadHlsReplay = (url, command) => {
   destroyHls();
-  bindNativeEndedHandler(command);
   if (window.Hls?.isSupported?.()) {
     hlsPlayer = new Hls({ enableWorker: true });
     hlsPlayer.loadSource(url);
@@ -137,19 +135,8 @@ const loadHlsReplay = (url, command) => {
   replayDevLog('Kick HLS playback unsupported by browser', { replayId: command.replayId });
 };
 
-const bindNativeEndedHandler = command => {
-  const token = ++nativeReplayToken;
-  RTSReplayVideo.video.addEventListener('ended', () => {
-    if (token !== nativeReplayToken) return;
-    RTSReplayVideo.notifyPlaybackEnded(command);
-    RTSReplayVideo.hideReplay();
-    RTSReplayWatchdog?.stop?.();
-  }, { once: true });
-};
-
 const loadNativeReplay = (url, command) => {
   destroyHls();
-  bindNativeEndedHandler(command);
   RTSReplayVideo.video.src = url;
   RTSReplayVideo.video.load();
   if (command.replayAutoplay) RTSReplayVideo.video.addEventListener('canplay', () => RTSReplayVideo.playReplay(command), { once: true });
@@ -301,7 +288,10 @@ RTSReplayVideo.loadReplay = command => {
     RTSReplayVideo.visiblePosition = endPosition;
     RTSReplayVideo.player.classList.add('show');
     if (alreadyVisible) {
-      replayDevLog('YouTube replay loaded while player already visible; preserving current position', { replayId: command.replayId });
+      playerRunner.cancel();
+      RTSReplayVideo.applyPosition(endPosition, true);
+      RTSReplayVideo.activePosition = endPosition;
+      replayDevLog('YouTube replay loaded while player already visible', { replayId: command.replayId, position: endPosition.name || endName });
     } else if (startSequence.length) {
       playerRunner.run(startSequence);
     } else {
@@ -319,9 +309,8 @@ RTSReplayVideo.loadReplay = command => {
   host?.setAttribute('aria-hidden', 'true');
   RTSReplayVideo.video.style.display = 'block';
   RTSReplayVideo.visiblePosition = endPosition;
-  if (alreadyVisible) {
-    replayDevLog('Replay loaded while player already visible; preserving current position', { replayId: command.replayId });
-  } else if (startSequence.length) { playerRunner.run(startSequence); RTSReplayVideo.player.classList.add('show'); }
+  if (alreadyVisible) { playerRunner.cancel(); RTSReplayVideo.applyPosition(endPosition, true); RTSReplayVideo.activePosition = endPosition; }
+  else if (startSequence.length) { playerRunner.run(startSequence); RTSReplayVideo.player.classList.add('show'); }
   else RTSReplayVideo.animateIn(startPosition, endPosition);
   if (isHlsUrl(command.replayUrl)) loadHlsReplay(command.replayUrl, command); else loadNativeReplay(command.replayUrl, command);
 };
@@ -377,6 +366,16 @@ RTSReplayVideo.handleReplayCommand = command => {
   if (command.replayCommand === 'stop') { RTSReplayVideo.expectedPlaying = false; RTSReplayWatchdog?.stop?.(); if (activeCommand.replaySource?.toLowerCase() === 'youtube') youtubePlayer?.stopVideo?.(); else { RTSReplayVideo.video.pause(); RTSReplayVideo.video.currentTime = 0; } }
   if (command.replayCommand === 'replay') { if (activeCommand.replaySource?.toLowerCase() === 'youtube') { youtubeEndedNotified = false; youtubePlayer?.seekTo?.(Number(activeCommand.replayStartTime || 0), true); RTSReplayVideo.playReplay(activeCommand); } else { RTSReplayVideo.video.currentTime = 0; RTSReplayVideo.playReplay(activeCommand); } }
 };
+
+RTSReplayVideo.video.addEventListener('ended', () => {
+  const command = RTSReplayVideo.currentCommand;
+  if (command?.replaySource?.toLowerCase() === 'youtube') return;
+  if (command) {
+    RTSReplayVideo.notifyPlaybackEnded(command);
+    RTSReplayVideo.hideReplay();
+    RTSReplayWatchdog?.stop?.();
+  }
+});
 
 RTSReplayVideo.youtubeState = () => youtubePlayer?.getPlayerState?.();
 window.RTSReplayYouTubeState = () => {
