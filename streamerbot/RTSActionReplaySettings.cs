@@ -93,6 +93,7 @@ void SavePreset(string t,string id,string f,string v){var config=Read(PresetsKey
 }
 
 
+
 public static class RtsActionReplaySettingsWindow
 {
     public static void Show(RtsUI ui, string theme)
@@ -102,34 +103,143 @@ public static class RtsActionReplaySettingsWindow
         {
             try
             {
-                var build = typeof(RtsUI).GetMethod(
-                    "BuildWindow",
-                    BindingFlags.Instance | BindingFlags.NonPublic,
-                    null,
-                    Type.EmptyTypes,
-                    null
-                );
-                if (build == null)
-                    throw new MissingMethodException("RtsUI.BuildWindow");
+                var type = typeof(RtsUI);
+                var flags = BindingFlags.Instance | BindingFlags.NonPublic;
 
-                var window = (Window)build.Invoke(ui, null);
+                var buildHeader = type.GetMethod("BuildHeader", flags);
+                var registerRoot = type.GetMethod("RegisterActiveRoot", flags);
+                var buildCategory = type.GetMethod("BuildCategory", flags);
+                var save = type.GetMethod("Save", flags);
+                var applySections = type.GetMethod("ApplySections", flags);
+                var categoriesField = type.GetField("_categories", flags);
 
-                var applySections = typeof(RtsUI).GetMethod(
-                    "ApplySections",
-                    BindingFlags.Instance | BindingFlags.NonPublic
-                );
+                if (buildHeader == null || registerRoot == null || buildCategory == null ||
+                    save == null || categoriesField == null)
+                    throw new MissingMethodException("RtsUI settings construction methods");
+
+                RtsUICheckBoxStyler.Initialize();
+
+                var window = new Window
+                {
+                    Title = "RTS Action Replay Settings",
+                    Width = 1000,
+                    Height = 800,
+                    MinWidth = 600,
+                    MinHeight = 650,
+                    WindowStartupLocation = WindowStartupLocation.CenterScreen
+                };
+
+                var root = new DockPanel();
+                registerRoot.Invoke(ui, new object[] { root });
+
+                var header = buildHeader.Invoke(ui, new object[] { theme }) as StackPanel;
+                if (header != null)
+                {
+                    DockPanel.SetDock(header, Dock.Top);
+                    root.Children.Add(header);
+                }
+
+                var footer = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    HorizontalAlignment = HorizontalAlignment.Right,
+                    Margin = new Thickness(12)
+                };
+
+                var saveButton = new Button
+                {
+                    Content = "Save",
+                    Padding = new Thickness(18, 7, 18, 7),
+                    Margin = new Thickness(0, 0, 8, 0),
+                    Background = new SolidColorBrush(Color.FromRgb(40, 167, 69)),
+                    Foreground = Brushes.White
+                };
+                var closeButton = new Button
+                {
+                    Content = "Save & Exit",
+                    Padding = new Thickness(18, 7, 18, 7),
+                    Margin = new Thickness(0, 0, 8, 0),
+                    Background = new SolidColorBrush(Color.FromRgb(40, 167, 69)),
+                    Foreground = Brushes.White
+                };
+                var cancelButton = new Button
+                {
+                    Content = "Cancel",
+                    Padding = new Thickness(18, 7, 18, 7),
+                    Background = new SolidColorBrush(Color.FromRgb(220, 53, 69)),
+                    Foreground = Brushes.White
+                };
+
+                saveButton.Click += delegate { save.Invoke(ui, new object[] { root }); };
+                closeButton.Click += delegate
+                {
+                    save.Invoke(ui, new object[] { root });
+                    window.Close();
+                };
+                cancelButton.Click += delegate { window.Close(); };
+
+                footer.Children.Add(saveButton);
+                footer.Children.Add(closeButton);
+                footer.Children.Add(cancelButton);
+                DockPanel.SetDock(footer, Dock.Bottom);
+                root.Children.Add(footer);
+
+                var tabs = new TabControl
+                {
+                    Margin = new Thickness(8)
+                };
+
+                RtsUIVerticalTabs.Apply(tabs, theme);
+
+                var categories = categoriesField.GetValue(ui) as System.Collections.IEnumerable;
+                if (categories != null)
+                {
+                    foreach (var value in categories)
+                    {
+                        var category = Convert.ToString(value);
+                        if (category == "__header")
+                            continue;
+
+                        var panel = new StackPanel
+                        {
+                            Margin = new Thickness(18)
+                        };
+
+                        // Apply the RtsUI theme BEFORE BuildCategory creates controls.
+                        // This is the same construction order used by
+                        // RTSActionReplaySettingsTransfer.cs.
+                        buildCategory.Invoke(ui, new object[] { panel, category, theme });
+
+                        tabs.Items.Add(new TabItem
+                        {
+                            Header = category,
+                            Content = new ScrollViewer
+                            {
+                                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                                Content = panel
+                            }
+                        });
+                    }
+                }
+
+                root.Children.Add(tabs);
+                window.Content = root;
+
+                // The Transfer window applies its theme before controls are
+                // created and once again after the complete visual tree exists.
+                ApplyTransferTheme(window, theme);
+
+                // Apply the same ComboBox resource style directly to the
+                // controls RtsUI created for the main settings.
+                ApplyTransferComboBoxStyle(window);
+
                 if (applySections != null)
                     applySections.Invoke(ui, new object[] { window });
 
-                ApplyTransferTheme(window, theme);
                 ApplyMainSectionStyle(window);
-                window.Loaded += delegate
-                {
-                    window.Dispatcher.BeginInvoke(new Action(delegate
-                    {
-                        ApplyTransferComboBoxStyle(window);
-                    }));
-                };
+
+                // Match the Transfer window's second ApplyTheme call.
+                ApplyTransferTheme(window, theme);
 
                 window.ShowDialog();
             }
@@ -147,7 +257,7 @@ public static class RtsActionReplaySettingsWindow
         if (error != null)
             throw error;
     }
-    
+
     static void ApplyMainSectionStyle(Window window)
     {
         var sections = new List<GroupBox>();
@@ -231,7 +341,6 @@ public static class RtsActionReplaySettingsWindow
         return template;
     }
 
-
     static void ApplyTransferTheme(Window window, string theme)
     {
         var light = !string.Equals(theme, "Dark", StringComparison.OrdinalIgnoreCase);
@@ -268,9 +377,6 @@ public static class RtsActionReplaySettingsWindow
         var combo = root as ComboBox;
         if (combo != null)
         {
-            // Same mechanism as RTSActionReplaySettingsTransfer.cs:
-            // the Transfer window assigns the RtsUI ComboBox Style directly
-            // when each ComboBox is created.
             combo.Style = comboStyle;
             if (itemStyle != null)
                 combo.ItemContainerStyle = itemStyle;
@@ -281,6 +387,4 @@ public static class RtsActionReplaySettingsWindow
         for (var i = 0; i < count; i++)
             ApplyComboBoxStyle(VisualTreeHelper.GetChild(root, i), comboStyle, itemStyle);
     }
-
-
 }
