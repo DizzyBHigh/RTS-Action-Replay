@@ -393,10 +393,15 @@ RTSReplayVideo.handleReplayCommand = command => {
 RTSReplayVideo.video.addEventListener('ended', () => {
   const command = RTSReplayVideo.currentCommand;
   if (command?.replaySource?.toLowerCase() === 'youtube') return;
-  if (command) {
+  if (!command) return;
+
+  // Let the browser finish the native ended event before Streamer.bot can
+  // synchronously load the next playlist item into this same video element.
+  RTSReplayWatchdog?.stop?.();
+  setTimeout(() => {
+    if (RTSReplayVideo.currentCommand !== command) return;
     RTSReplayVideo.notifyPlaybackEnded(command);
-    RTSReplayWatchdog?.stop?.();
-  }
+  }, 0);
 });
 
 RTSReplayVideo.youtubeState = () => youtubePlayer?.getPlayerState?.();
