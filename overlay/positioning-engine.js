@@ -1,5 +1,5 @@
 const RTSPositioningEngine = {
-  version: '20260923-1',
+  version: '20260923-2',
   diagnostics: new WeakMap(),
   referenceWidth: 1920,
   referenceHeight: 1080,
@@ -25,16 +25,14 @@ const RTSPositioningEngine = {
     const height = Math.max(0, element?.offsetHeight || 0);
     const visibleWidth = width * scaleX * zoom;
     const visibleHeight = height * scaleY * zoom;
-    const xValue = this.positionOffset(x, (viewportWidth - visibleWidth) / 2, viewportWidth);
-    const yValue = this.positionOffset(y, (viewportHeight - visibleHeight) / 2, viewportHeight);
+    const xValue = this.positionOffset(x, viewportWidth);
+    const yValue = this.positionOffset(y, viewportHeight);
 
     return `translate3d(${xValue}px, ${yValue}px, ${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX * zoom}, ${scaleY * zoom}, 1)`;
   },
 
-  positionOffset(value, edgeRange, canvasSize) {
-    const edge = Math.abs(edgeRange);
-    if (Math.abs(value) <= 100) return value / 100 * edge;
-    return Math.sign(value) * (edge + (Math.abs(value) - 100) / 100 * canvasSize);
+  positionOffset(value, canvasSize) {
+    return value / 100 * canvasSize;
   },
 
   zoomFor(z) {
