@@ -121,7 +121,7 @@ public static class RtsActionReplaySettingsWindow
                 if (applySections != null)
                     applySections.Invoke(ui, new object[] { window });
 
-                ApplyTransferTheme(window);
+                ApplyTransferTheme(window, theme);
                 ApplyMainSectionStyle(window);
                 window.Loaded += delegate
                 {
@@ -232,12 +232,9 @@ public static class RtsActionReplaySettingsWindow
     }
 
 
-    static void ApplyTransferTheme(Window window)
+    static void ApplyTransferTheme(Window window, string theme)
     {
-        var light = !string.Equals(
-            CPH.GetGlobalVar<string>("rts.actionreplay.uiTheme", true),
-            "Dark",
-            StringComparison.OrdinalIgnoreCase);
+        var light = !string.Equals(theme, "Dark", StringComparison.OrdinalIgnoreCase);
 
         var bg = new SolidColorBrush(
             (Color)ColorConverter.ConvertFromString(
