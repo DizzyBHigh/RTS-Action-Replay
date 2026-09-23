@@ -64,7 +64,7 @@ const RTSPositioningEngine = {
             name,
             position: {
               x: position?.x, y: position?.y, z: position?.z,
-              scaleX: position?.scaleX, scaleY: position?.scaleY, fov: position?.fov
+              scaleX: position?.scaleX, scaleY: position?.scaleY
             },
             transform,
             rectCenter: {
