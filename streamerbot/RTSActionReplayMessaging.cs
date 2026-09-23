@@ -47,8 +47,14 @@ public class CPHInline
 
     public bool Enqueue()
     {
+        CPH.LogInfo($"RTS Action Replay TRACE: Messaging.Enqueue entered; event={Arg("messageEvent")}; requester={Arg("requesterName")}; requesterPlatform={Arg("requesterPlatform")}.");
         var item = BuildItem();
-        if (item == null) return false;
+        if (item == null)
+        {
+            CPH.LogWarn($"RTS Action Replay TRACE: Messaging.Enqueue BuildItem returned null; event={Arg("messageEvent")}.");
+            return false;
+        }
+        CPH.LogInfo($"RTS Action Replay TRACE: Messaging.Enqueue built item; chat={(bool?)item["chat"] == true}; overlay={(bool?)item["overlay"] == true}; text={(string)item["message"] ?? ""}.");
 
         SendChat(item);
         item["chatSent"] = true;
@@ -64,6 +70,7 @@ public class CPHInline
             shouldProcess = string.IsNullOrWhiteSpace(CPH.GetGlobalVar<string>(ActiveKey, false));
         }
 
+        CPH.LogInfo($"RTS Action Replay TRACE: Messaging.Enqueue overlay queued; queueCount={LoadQueue().Count}; shouldProcess={shouldProcess}; active={CPH.GetGlobalVar<string>(ActiveKey, false) ?? "<none>"}.");
         if (shouldProcess) ProcessQueue();
         return true;
     }
@@ -139,13 +146,23 @@ public class CPHInline
     public bool OverlayCompleted()
     {
         var completedId = Arg("messageQueueId");
-        if (string.IsNullOrWhiteSpace(completedId)) return false;
+        CPH.LogInfo($"RTS Action Replay TRACE: Messaging.OverlayCompleted entered; queueId={completedId ?? "<none>"}; messageComplete={Arg("messageComplete")}.");
+        if (string.IsNullOrWhiteSpace(completedId))
+        {
+            CPH.LogWarn("RTS Action Replay TRACE: Messaging.OverlayCompleted ignored - no messageQueueId.");
+            return false;
+        }
 
         var shouldProcess = false;
         lock (typeof(CPHInline))
         {
             var activeId = CPH.GetGlobalVar<string>(ActiveKey, false);
-            if (!string.Equals(activeId, completedId, StringComparison.OrdinalIgnoreCase)) return false;
+            CPH.LogInfo($"RTS Action Replay TRACE: Messaging.OverlayCompleted active={activeId ?? "<none>"}; completed={completedId}.");
+            if (!string.Equals(activeId, completedId, StringComparison.OrdinalIgnoreCase))
+            {
+                CPH.LogWarn("RTS Action Replay TRACE: Messaging.OverlayCompleted ignored - queueId does not match active message.");
+                return false;
+            }
 
             var queue = LoadQueue();
             if (queue.Count > 0 && string.Equals((string)queue[0]?["id"], completedId, StringComparison.OrdinalIgnoreCase))
@@ -158,34 +175,51 @@ public class CPHInline
             shouldProcess = true;
         }
 
+        CPH.LogInfo($"RTS Action Replay TRACE: Messaging.OverlayCompleted cleared active; shouldProcess={shouldProcess}; queueCount={LoadQueue().Count}.");
         if (shouldProcess) ProcessQueue();
         return true;
     }
 
     private void ProcessQueue()
     {
+        CPH.LogInfo($"RTS Action Replay TRACE: Messaging.ProcessQueue entered; active={CPH.GetGlobalVar<string>(ActiveKey, false) ?? "<none>"}; queueCount={LoadQueue().Count}.");
         JObject item = null;
 
         lock (typeof(CPHInline))
         {
             var activeId = CPH.GetGlobalVar<string>(ActiveKey, false);
-            if (!string.IsNullOrWhiteSpace(activeId)) return;
+            if (!string.IsNullOrWhiteSpace(activeId))
+            {
+                CPH.LogInfo($"RTS Action Replay TRACE: Messaging.ProcessQueue blocked by active={activeId}.");
+                return;
+            }
 
             var queue = LoadQueue();
-            if (queue.Count == 0) return;
+            if (queue.Count == 0)
+            {
+                CPH.LogInfo("RTS Action Replay TRACE: Messaging.ProcessQueue nothing queued.");
+                return;
+            }
 
             item = queue[0] as JObject;
-            if (item == null) return;
+            if (item == null)
+            {
+                CPH.LogWarn("RTS Action Replay TRACE: Messaging.ProcessQueue first queue item was not an object.");
+                return;
+            }
 
             CPH.SetGlobalVar(ActiveKey, (string)item["id"] ?? "", false);
+            CPH.LogInfo($"RTS Action Replay TRACE: Messaging.ProcessQueue activated queueId={(string)item["id"] ?? "<none>"}; event={(string)item["event"] ?? "<none>"}; queueCount={queue.Count}.");
         }
 
         if ((bool?)item["overlay"] != true)
         {
+            CPH.LogInfo($"RTS Action Replay TRACE: Messaging.ProcessQueue completing non-overlay item queueId={(string)item["id"] ?? "<none>"}.");
             CompleteWithoutOverlay((string)item["id"]);
             return;
         }
 
+        CPH.LogInfo($"RTS Action Replay TRACE: Messaging.ProcessQueue calling TriggerOverlay queueId={(string)item["id"] ?? "<none>"}.");
         TriggerOverlay(item);
     }
 
@@ -239,8 +273,9 @@ public class CPHInline
     private void TriggerOverlay(JObject item)
     {
         WriteMessageOperation(item);
-        CPH.LogInfo("RTS Action Replay: message operation handed to Resolver.");
-        CPH.ExecuteMethod(ResolverAction, "ResolveMessagePresentation");
+        CPH.LogInfo($"RTS Action Replay TRACE: Messaging.TriggerOverlay operation written; queueId={(string)item["id"] ?? "<none>"}; event={(string)item["event"] ?? "<none>"}; text={(string)item["message"] ?? ""}.");
+        var resolved = CPH.ExecuteMethod(ResolverAction, "ResolveMessagePresentation");
+        CPH.LogInfo($"RTS Action Replay TRACE: Messaging.TriggerOverlay Resolver result={resolved}; queueId={(string)item["id"] ?? "<none>"}.");
     }
 
     private void WriteMessageOperation(JObject item)
