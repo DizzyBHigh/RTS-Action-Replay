@@ -136,7 +136,6 @@ public static class RtsActionReplaySettingsWindow
                 // Use the same theme/resource construction order as the Transfer UI.
                 // The ComboBox style is installed before any RtsUI category is built.
                 ApplyTransferTheme(window, theme);
-                var comboStyle = window.Resources[typeof(ComboBox)] as Style;
 
                 var header = buildHeader.Invoke(ui, new object[] { theme }) as StackPanel;
                 if (header != null)
@@ -174,8 +173,7 @@ public static class RtsActionReplaySettingsWindow
                         // it creates ComboBoxes. RtsUI creates ours internally, so do
                         // the equivalent immediately after construction while the
                         // logical tree is still available.
-                        if (comboStyle != null)
-                            ApplyTransferComboBoxStylesRecursive(panel, comboStyle);
+
 
                         tabs.Items.Add(new TabItem
                         {
@@ -196,14 +194,27 @@ public static class RtsActionReplaySettingsWindow
                 // and then applies our Action Replay section presentation.
                 ApplyTransferTheme(window, theme);
 
+                // Transfer.cs explicitly assigns the themed ComboBox style to each
+                // ComboBox it creates. RtsUI creates the controls internally, so do
+                // the equivalent after the complete category tree exists.
+                // Also assign the themed ComboBoxItem style explicitly. The popup is
+                // hosted separately by WPF, so relying on an implicit resource lookup
+                // is not equivalent to Transfer's explicit ComboBox construction.
+                var comboStyle = window.Resources[typeof(ComboBox)] as Style;
+                var comboItemStyle = window.Resources[typeof(ComboBoxItem)] as Style;
+                ApplyTransferComboBoxStylesRecursive(window, comboStyle, comboItemStyle);
+
                 window.Loaded += delegate
                 {
                     ApplyMainSectionStyle(window);
 
-                    // A final pass catches controls created by any deferred RtsUI
-                    // construction without changing the base DLL.
-                    if (comboStyle != null)
-                        ApplyTransferComboBoxStylesRecursive(window, comboStyle);
+                    // RtsUITheme reapplies its resources during Loaded. Refresh the
+                    // explicit styles from the now-current resource dictionary so the
+                    // controls remain identical to the themed Transfer controls.
+                    ApplyTransferTheme(window, theme);
+                    comboStyle = window.Resources[typeof(ComboBox)] as Style;
+                    comboItemStyle = window.Resources[typeof(ComboBoxItem)] as Style;
+                    ApplyTransferComboBoxStylesRecursive(window, comboStyle, comboItemStyle);
                 };
 
                 window.ShowDialog();
@@ -242,14 +253,22 @@ public static class RtsActionReplaySettingsWindow
         apply.Invoke(null, new object[] { tabs, theme });
     }
 
-    static void ApplyTransferComboBoxStylesRecursive(DependencyObject root, Style comboStyle)
+    static void ApplyTransferComboBoxStylesRecursive(
+        DependencyObject root,
+        Style comboStyle,
+        Style comboItemStyle)
     {
-        if (root == null || comboStyle == null)
+        if (root == null)
             return;
 
         var combo = root as ComboBox;
         if (combo != null)
-            combo.Style = comboStyle;
+        {
+            if (comboStyle != null)
+                combo.Style = comboStyle;
+            if (comboItemStyle != null)
+                combo.ItemContainerStyle = comboItemStyle;
+        }
 
         // Use the logical tree first because BuildCategory has just constructed
         // the controls and they may not yet have a WPF visual tree.
