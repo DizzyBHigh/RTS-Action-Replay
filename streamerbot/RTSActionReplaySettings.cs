@@ -131,6 +131,12 @@ public static class RtsActionReplaySettingsWindow
 
                 var root = new DockPanel();
                 registerRoot.Invoke(ui, new object[] { root });
+                window.Content = root;
+
+                // Match the Transfer window: install the theme before RtsUI creates
+                // any ComboBox controls so the implicit ComboBox and ComboBoxItem
+                // styles are present during control construction.
+                ApplyTransferTheme(window, theme);
 
                 var header = buildHeader.Invoke(ui, new object[] { theme }) as StackPanel;
                 if (header != null)
@@ -223,23 +229,15 @@ public static class RtsActionReplaySettingsWindow
                 }
 
                 root.Children.Add(tabs);
-                window.Content = root;
 
-                // The Transfer window applies its theme before controls are
-                // created and once again after the complete visual tree exists.
+                // Match the Transfer window's second ApplyTheme call after the
+                // complete visual tree has been built.
                 ApplyTransferTheme(window, theme);
-
-                // Apply the same ComboBox resource style directly to the
-                // controls RtsUI created for the main settings.
-                ApplyTransferComboBoxStyle(window);
 
                 if (applySections != null)
                     applySections.Invoke(ui, new object[] { window });
 
                 ApplyMainSectionStyle(window);
-
-                // Match the Transfer window's second ApplyTheme call.
-                ApplyTransferTheme(window, theme);
 
                 window.ShowDialog();
             }
@@ -378,32 +376,4 @@ public static class RtsActionReplaySettingsWindow
         RtsUITheme.Apply(window, light);
     }
 
-    static void ApplyTransferComboBoxStyle(Window window)
-    {
-        var comboStyle = window.Resources[typeof(ComboBox)] as Style;
-        var itemStyle = window.Resources[typeof(ComboBoxItem)] as Style;
-        if (comboStyle == null)
-            return;
-
-        ApplyComboBoxStyle(window, comboStyle, itemStyle);
-    }
-
-    static void ApplyComboBoxStyle(DependencyObject root, Style comboStyle, Style itemStyle)
-    {
-        if (root == null)
-            return;
-
-        var combo = root as ComboBox;
-        if (combo != null)
-        {
-            combo.Style = comboStyle;
-            if (itemStyle != null)
-                combo.ItemContainerStyle = itemStyle;
-            return;
-        }
-
-        var count = VisualTreeHelper.GetChildrenCount(root);
-        for (var i = 0; i < count; i++)
-            ApplyComboBoxStyle(VisualTreeHelper.GetChild(root, i), comboStyle, itemStyle);
-    }
-}
+}}
