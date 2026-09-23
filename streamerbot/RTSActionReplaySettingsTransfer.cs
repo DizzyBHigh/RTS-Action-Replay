@@ -35,14 +35,14 @@ public class CPHInline
   var checks=new List<RtsUICustomToggle>();
   var catalog=new RtsUICustomToggle{Content="Catalog",IsChecked=B("import.catalog",true),Margin=new Thickness(0,2,0,6)};
   var platforms=new List<RtsUICustomToggle>();
-  var scope=new ComboBox{MinWidth=180,Tag="catalogScope"};
+  var comboStyle=w.Resources[typeof(ComboBox)] as Style;\n  var scope=new ComboBox{Tag="catalogScope",MinWidth=180,Margin=new Thickness(0,4,0,0),Style=comboStyle};
   scope.Items.Add("All");scope.Items.Add("Selected");scope.SelectedItem=Get("import.catalog.mode","All");
   foreach(var p in new[]{new[]{"Twitch","twitch"},new[]{"YouTube","youtube"},new[]{"Kick","kick"},new[]{"Local / OBS","local"}})
   {
    var cb=new RtsUICustomToggle{Content=p[0],IsChecked=B("import.catalog."+p[1],true),Tag=p[1],Margin=new Thickness(0,3,0,3)};
    platforms.Add(cb);
   }
-  var duplicates=new ComboBox{MinWidth=180};
+  var duplicates=new ComboBox{MinWidth=180,Margin=new Thickness(0,4,0,0),Style=comboStyle};
   duplicates.Items.Add("Skip");duplicates.Items.Add("Overwrite");duplicates.SelectedItem=Get("import.duplicates","Skip");
 
   var catalogBody=new StackPanel();
