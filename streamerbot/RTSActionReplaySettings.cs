@@ -146,6 +146,51 @@ public static class RtsActionReplaySettingsWindow
                     root.Children.Add(header);
                 }
 
+                var footer = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    HorizontalAlignment = HorizontalAlignment.Right,
+                    Margin = new Thickness(12)
+                };
+
+                var saveButton = new Button
+                {
+                    Content = "Save",
+                    Padding = new Thickness(18, 7, 18, 7),
+                    Margin = new Thickness(0, 0, 8, 0),
+                    Background = new SolidColorBrush(Color.FromRgb(40, 167, 69)),
+                    Foreground = Brushes.White
+                };
+                var saveExitButton = new Button
+                {
+                    Content = "Save & Exit",
+                    Padding = new Thickness(18, 7, 18, 7),
+                    Margin = new Thickness(0, 0, 8, 0),
+                    Background = new SolidColorBrush(Color.FromRgb(40, 167, 69)),
+                    Foreground = Brushes.White
+                };
+                var cancelButton = new Button
+                {
+                    Content = "Cancel",
+                    Padding = new Thickness(18, 7, 18, 7),
+                    Background = new SolidColorBrush(Color.FromRgb(220, 53, 69)),
+                    Foreground = Brushes.White
+                };
+
+                saveButton.Click += delegate { save.Invoke(ui, new object[] { root }); };
+                saveExitButton.Click += delegate
+                {
+                    save.Invoke(ui, new object[] { root });
+                    window.Close();
+                };
+                cancelButton.Click += delegate { window.Close(); };
+
+                footer.Children.Add(saveButton);
+                footer.Children.Add(saveExitButton);
+                footer.Children.Add(cancelButton);
+                DockPanel.SetDock(footer, Dock.Bottom);
+                root.Children.Add(footer);
+
                 var tabs = new TabControl
                 {
                     Margin = new Thickness(8)
