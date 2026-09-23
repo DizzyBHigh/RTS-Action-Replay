@@ -25,10 +25,16 @@ const RTSPositioningEngine = {
     const height = Math.max(0, element?.offsetHeight || 0);
     const visibleWidth = width * scaleX * zoom;
     const visibleHeight = height * scaleY * zoom;
-    const xValue = x / 100 * (viewportWidth - visibleWidth) / 2;
-    const yValue = y / 100 * (viewportHeight - visibleHeight) / 2;
+    const xValue = this.positionOffset(x, (viewportWidth - visibleWidth) / 2, viewportWidth);
+    const yValue = this.positionOffset(y, (viewportHeight - visibleHeight) / 2, viewportHeight);
 
     return `translate3d(${xValue}px, ${yValue}px, ${z}px) rotateZ(${rotateZ}deg) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale3d(${scaleX * zoom}, ${scaleY * zoom}, 1)`;
+  },
+
+  positionOffset(value, edgeRange, canvasSize) {
+    const edge = Math.abs(edgeRange) || canvasSize / 2;
+    if (Math.abs(value) <= 100) return value / 100 * edge;
+    return Math.sign(value) * (edge + (Math.abs(value) - 100) / 100 * canvasSize);
   },
 
   zoomFor(z) {
