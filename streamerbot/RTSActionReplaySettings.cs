@@ -14,7 +14,7 @@ public class CPHInline
  public bool Execute(){EnsureMessageSettings();CPH.ExecuteMethod("RTS - Action Replay - Core - Store","EnsureData");CPH.ExecuteMethod("RTS - Action Replay - Core - Store","EnsureDefaults");CPH.ExecuteMethod("RTS - Action Replay - Core - Store","EnsureEntryPoints");CPH.ExecuteMethod("RTS - Action Replay - Core - Resolver","EnsureProfiles");var ui=new RtsUI("RTS Action Replay Settings","1.0.0",ReadBool,ReadInt,(key,p)=>ReadUi(key),(key,p)=>(object)CPH.GetGlobalVar<string>(key,p),(key,v,p)=>SaveUi(key,v,p),message=>CPH.LogInfo(message));Build(ui);ui.SetWindowSize(1000,800);var t=new Thread(()=>{var light=!string.Equals(CPH.GetGlobalVar<string>("rts.actionreplay.uiTheme",true),"Dark",StringComparison.OrdinalIgnoreCase);var bg=new SolidColorBrush((Color)ColorConverter.ConvertFromString(light?"#FFFFFF":"#1E1E1E"));var w=new Window{Title="RTS Action Replay Settings",Width=1000,Height=800,MinWidth=600,MinHeight=650,WindowStartupLocation=WindowStartupLocation.CenterScreen,Background=bg,Tag=light?"Light":"Dark"};RtsUITheme.Initialize();RtsUITheme.Apply(w,light);BuildHostedWindow(ui,w);w.ShowDialog();});t.SetApartmentState(ApartmentState.STA);t.IsBackground=false;t.Start();t.Join();return true;}
  void BuildHostedWindow(RtsUI ui,Window w)
  {
-  var build=typeof(RtsUI).GetMethod("BuildWindow",BindingFlags.Instance|BindingFlags.NonPublic,new Type[]{typeof(Window)});
+  var build=typeof(RtsUI).GetMethod("BuildWindow",BindingFlags.Instance|BindingFlags.NonPublic,null,new Type[]{typeof(Window)},null);
   if(build==null)throw new MissingMethodException("RtsUI.BuildWindow(Window)");
   build.Invoke(ui,new object[]{w});
   ConvertSectionsToTransferCards(w);
