@@ -18,9 +18,9 @@ const RTSPositioningEngine = {
     const rotateY = number(p.rotateY, 0);
     const rotateZ = -number(p.rotateZ, 0);
     const zoom = this.zoomFor(z);
-    const dev = Boolean(document.getElementById('rts-dev-stage'));
-    const viewportWidth = dev ? this.referenceWidth : Math.max(1, window.innerWidth || this.referenceWidth);
-    const viewportHeight = dev ? this.referenceHeight : Math.max(1, window.innerHeight || this.referenceHeight);
+    const canvas = element.offsetParent || document.getElementById('rts-overlay') || document.body;
+    const viewportWidth = Math.max(1, canvas.clientWidth || this.referenceWidth);
+    const viewportHeight = Math.max(1, canvas.clientHeight || this.referenceHeight);
     const width = Math.max(0, element?.offsetWidth || 0);
     const height = Math.max(0, element?.offsetHeight || 0);
     const visibleWidth = width * scaleX * zoom;
@@ -53,7 +53,7 @@ const RTSPositioningEngine = {
       const name = String(position?.name || position?.tag || '');
       const z = Number(position?.z);
       if (/center.?hidden/i.test(name) || (Number.isFinite(z) && z <= -2500)) {
-        const signature = [name, position?.x, position?.y, position?.z, position?.scaleX, position?.scaleY, position?.fov].join('|');
+        const signature = [name, position?.x, position?.y, position?.z, position?.scaleX, position?.scaleY].join('|');
         if (this.diagnostics.get(element) !== signature) {
           this.diagnostics.set(element, signature);
           const screen = document.getElementById('rts-dev-screen');
