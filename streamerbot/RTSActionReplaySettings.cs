@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Media;
 using Newtonsoft.Json.Linq;
@@ -90,12 +91,6 @@ void SavePreset(string t,string id,string f,string v){var config=Read(PresetsKey
  JToken Parse(string v){if(int.TryParse(v,out var i))return i;if(bool.TryParse(v,out var b))return b;return v;}JObject Read(string k){return Read(k,new JObject());}JObject Read(string k,JObject f){var s=CPH.GetGlobalVar<string>(k,true);try{return string.IsNullOrWhiteSpace(s)?f:JObject.Parse(s);}catch{return f;}}void Save(string k,JObject v)=>CPH.SetGlobalVar(k,v.ToString(Newtonsoft.Json.Formatting.None),true);void AddPreset(string t){var config=Read(PresetsKey);var a=config[t] as JArray??new JArray();var source=FindInArray(a,"default");var n="New "+(t=="visual"?"Design":"Preset");var id=Guid.NewGuid().ToString("N");JObject preset;if(source!=null){preset=(JObject)source.DeepClone();preset["id"]=id;preset["name"]=n;}else{preset=new JObject{{"id",id},{"name",n}};}a.Add(preset);config[t]=a;Save(PresetsKey,config);}JObject FindInArray(JArray a,string id){foreach(var p in a??new JArray())if(string.Equals((string)p["id"],id,StringComparison.OrdinalIgnoreCase))return p as JObject;return null;}void RemovePreset(string t,string id){var config=Read(PresetsKey);var a=config[t] as JArray??new JArray();JObject p=null;foreach(var item in a){if(string.Equals((string)item["id"],id,StringComparison.OrdinalIgnoreCase)){p=item as JObject;break;}}if(p!=null)a.Remove(p);config[t]=a;Save(PresetsKey,config);}
 }
 
-
-using System;
-using System.Reflection;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
 
 public static class RtsActionReplaySettingsWindow
 {
