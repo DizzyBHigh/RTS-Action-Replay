@@ -349,7 +349,16 @@ public class CPHInline
         var raw = CPH.GetGlobalVar<string>(KickReadyHandoffKey, false);
         if (string.IsNullOrWhiteSpace(raw)) return false;
         JArray queue; try { queue = JArray.Parse(raw); } catch { return false; }
-        var item = queue.OfType<JObject>().FirstOrDefault(x => !string.IsNullOrWhiteSpace((string)x["replayId"]));
+        JObject item = null;
+        for (var i = 0; i < queue.Count; i++)
+        {
+            var candidate = queue[i] as JObject;
+            if (candidate != null && !string.IsNullOrWhiteSpace((string)candidate["replayId"]))
+            {
+                item = candidate;
+                break;
+            }
+        }
         if (item == null) return false;
         replayId = (string)item["replayId"];
         resolvedUrl = (string)item["url"];
