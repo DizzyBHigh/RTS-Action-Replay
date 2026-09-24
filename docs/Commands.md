@@ -219,6 +219,16 @@ Show recently captured/added replays.
 
 This uses the Catalog's recent ordering. It is different from Last Played: a replay can be recent without ever having been played.
 
+### Show Current Search Page
+
+Show the current page of the current Catalog/search results in chat without starting a new search or changing the current page.
+
+**Command**
+
+`!search-show`
+
+The displayed numbers are the positions on the current page and can be used with commands such as `!delete-catalog-item <number>`.
+
 ### Next Page
 
 Move to the next page of the current Catalog/search results.
