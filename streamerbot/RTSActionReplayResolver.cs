@@ -313,7 +313,7 @@ public class CPHInline
 
     JObject PlatformBranding(string platform){foreach(var x in Read(PresetsKey)["branding"] as JArray??new JArray()){var b=x as JObject;if(b!=null&&string.Equals((string)b["platform"],platform,StringComparison.OrdinalIgnoreCase))return b;}return null;}
     void ApplyObject(JObject value){foreach(var p in value.Properties()){var v=p.Value;object o=v.Type==JTokenType.Boolean?(object)(bool)v:v.Type==JTokenType.Integer?(object)(int)v:v.Type==JTokenType.Float?(object)(double)v:v.ToString();CPH.SetArgument(p.Name,o);}}
-    JObject Find(JArray values,string id){foreach(var x in values??new JArray())if(string.Equals((string)x["id"],id,StringComparison.OrdinalIgnoreCase))return x as JObject;return null;}
+    JObject Find(JArray values,string id){foreach(var x in values??new JArray())if(string.Equals((string)x["id"],id,StringComparison.OrdinalIgnoreCase)||string.Equals((string)x["name"],id,StringComparison.OrdinalIgnoreCase))return x as JObject;return null;}
     JObject Read(string key){var raw=key==PlayerOperationKey||key==PanelOperationKey?CPH.GetGlobalVar<string>(key,false):CPH.GetGlobalVar<string>(key,true);try{return string.IsNullOrWhiteSpace(raw)?new JObject():JObject.Parse(raw);}catch{return new JObject();}}
 
     public bool EnsureProfiles()
