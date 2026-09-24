@@ -7,7 +7,7 @@ Stage 1 keeps the replay library and statistics local to Streamer.bot. Replay vi
 ## Replay library
 
 - Persistent replay Catalog in `rts.actionreplay.data`.
-- Recent Clips stored separately from the Catalog.
+- Persistent replay Catalog with Recent Clips and Last Played views/history.
 - File/Folder Watcher support for new OBS replay files.
 - Stable replay IDs independent of playlist position.
 - Configurable replay title templates using Streamer.bot variables.
@@ -44,13 +44,13 @@ The Playlist is a current queue, separate from Catalog and Recent Clips.
 - `HidePlayer` — pauses the current video before hiding it without resetting its position.
 - `ShowPlayer` — shows the existing player and resumes the current video.
 
-`RTSActionReplayPlayback.cs` also exposes `SetPlayerPosition`, which is intended for `!set-pos <name> [duration]`. The default transition is 1000ms; supplying a duration overrides it for that command only. Position changes do not alter Playlist state or replay identity.
+`RTSActionReplayPlayback.cs` also exposes `SetPlayerPosition`, used by the player-position command. The default transition is 1000ms; supplying a duration overrides it for that command only. Position changes do not alter Playlist state or replay identity.
 
 ## Animation profiles
 
 Animation Profiles are presentation presets, separate from the Playlist. Positions remain reusable layouts; profiles describe how the player moves through those positions.
 
-The initial presets are `Mini Player`, `Full Screen` and `Half Screen`. Their display names can be changed without changing their internal IDs.
+Player, Panel, Message and Clapperboard Animation Profiles use saved positions and have separate Start and End sequences. The built-in `Default` profile is permanent and editable; additional profiles can be created and removed.
 
 Each profile has independent `Start Sequence` and `End Sequence` JSON arrays. A sequence step contains:
 
