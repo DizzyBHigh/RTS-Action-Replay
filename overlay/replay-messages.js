@@ -26,6 +26,24 @@ const messagePanelCommand = command => ({
   replayPanelPosition: command?.replayMessagePosition || 'Centered'
 });
 
+const applyMessageBranding = command => {
+  const kicker = RTSReplayMessages.messageCard?.querySelector('.rts-panel-kicker');
+  if (!kicker) return;
+
+  const presets = window.rtsOverlayConfig?.presets?.branding;
+  const configuredId = command?.replayBrandingPresetId
+    || window.rtsOverlayConfig?.message?.entryPoint?.brandingPreset
+    || 'default';
+  const brand = Array.isArray(presets)
+    ? presets.find(item => String(item?.id || '') === String(configuredId))
+      || presets.find(item => String(item?.id || '') === 'default')
+    : null;
+
+  const fallback = String(brand?.fallbackText || 'RTS').trim();
+  const label = String(brand?.brandLabel || 'ACTION REPLAY').trim();
+  kicker.textContent = [fallback, label].filter(Boolean).join(' ');
+};
+
 const fitMessageText = () => {
   const text = RTSReplayMessages.messageText;
   if (!text) return;
@@ -43,6 +61,7 @@ RTSReplayMessages.showMessage = command => {
   if (!text || !RTSReplayMessages.messageCard) return;
 
   RTSReplayMessages.messageText.textContent = text;
+  applyMessageBranding(command);
   const panelCommand = messagePanelCommand(command);
   clearTimeout(RTSReplayMessages.messageTimer);
   RTSReplayMessages.messageCard.classList.remove('show');
