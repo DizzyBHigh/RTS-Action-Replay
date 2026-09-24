@@ -24,14 +24,20 @@ Commands: !search-recent [Parameters: optional --amount <N>]
 RTS - Action Replay - Catalog - Next Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogNext) 
 Commands: !search-next
 
+RTS - Action Replay - Catalog - Show Current Search Page : Execute Method(RTS - Action Replay - Core - Catalog, ShowSearchPage) 
+Commands: !search-show
+
 RTS - Action Replay - Catalog - Prev Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogPrevious) 
 Commands: !search-prev
 
 RTS - Action Replay - Catalog - Rate Replay : Execute Method(RTS - Action Replay - Core - Catalog, RateReplay) 
 Commands: !rate-clip, !rate-replay, !rate-video [Parameters: <rating> 1-5]
 
-RTS - Action Replay - Catalog - Purge Missing Items : Execute Method(RTS - Action Replay - Core - Catalog Maintenance, Purge) 
+RTS - Action Replay - Catalog - Purge Missing Items : Execute Method(RTS - Action Replay - Core - Catalog, Purge) 
 Commands: !purge, !catalog-purge, !catalogpurge
+
+RTS - Action Replay - Catalog - Delete Item : Execute Method(RTS - Action Replay - Core - Catalog, DeleteCatalogItem) 
+Commands: !delete-from-catalog [Parameters: <search result number(s), comma separated>]
 
 RTS - Action Replay - Catalog - Search : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalog) 
 Commands: !search [Parameters: <search text> and optional --amount <N>]
@@ -63,14 +69,16 @@ Commands: !scan-replay-folder !scanreplayfolder
 
 RTS - Action Replay - Core
 RTS - Action Replay - Core - Messaging : Execute Code (RTS - Action Replay - Core - Messaging) - streamerbot/RTSActionReplayMessaging.cs 
-Methods: Enqueue, OverlayCompleted, Resume, ClearQueue, Reset
+Methods: Enqueue, SendOverlayMessage, OverlayCompleted, Resume, ClearQueue, Reset
+
+RTS - Action Replay - Overlay Message : Execute Method (RTS - Action Replay - Core - Messaging, SendOverlayMessage)
+Commands: !overlay-message, !send-message [Parameters: <message>]
 
 RTS - Action Replay - Core - Test : Execute Code (RTS - Action Replay - Core - Test) - streamerbot/RTSActionReplayTest.cs
 Methods: TestMessage, TestPanel, TestVideo, TestClapperboard
 
 RTS - Action Replay - Core - Catalog : Execute Code (RTS - Action Replay - Core - Catalog) - streamerbot/RTSActionReplayCatalog.cs
 
-RTS - Action Replay - Core - Catalog Maintenance : Execute Code (RTS - Action Replay - Core - Catalog Maintenance) - streamerbot/RTSActionReplayCatalogMaintenance.cs
 
 RTS - Action Replay - Core - Playback : Execute Code (RTS - Action Replay - Core - Playback) - streamerbot/RTSActionReplayPlayback.cs
 

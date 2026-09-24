@@ -181,9 +181,19 @@ public class CPHInline
         var entry = message["entryPoint"] as JObject ?? new JObject();
         var design = (string)entry["designPreset"] ?? "broadcast";
         var brand = (string)entry["brandingPreset"] ?? "default";
-        var source = (string)op["messageSourcePlatform"] ?? "";
+        var source = (string)op["replaySourcePlatform"] ?? "";
+        if (string.IsNullOrWhiteSpace(source)) source = (string)op["messageSourcePlatform"] ?? "";
+        var presentationSource = (string)op["messagePresentationSource"] ?? "Current Settings";
+        CPH.LogInfo($"RTS Action Replay TRACE: Message presentation input source={presentationSource}, design={(string)op["messageDesign"]}, branding={(string)op["messageBranding"]}, configuredDesign={design}, configuredBrand={brand}.");
+        if (string.Equals(presentationSource, "Override", StringComparison.OrdinalIgnoreCase))
+        {
+            var overrideDesign = (string)op["messageDesign"];
+            var overrideBrand = (string)op["messageBranding"];
+            if (!string.IsNullOrWhiteSpace(overrideDesign)) design = overrideDesign;
+            if (!string.IsNullOrWhiteSpace(overrideBrand)) brand = overrideBrand;
+        }
 
-        if (CPH.GetGlobalVar<bool?>("rts.actionreplay.message.useSourcePlatformBranding", true) == true)
+        if (!string.Equals(presentationSource, "Override", StringComparison.OrdinalIgnoreCase) && CPH.GetGlobalVar<bool?>("rts.actionreplay.message.useSourcePlatformBranding", true) == true)
         {
             var sourceBrand = PlatformBranding(source);
             if (sourceBrand != null) brand = (string)sourceBrand["id"] ?? brand;
@@ -197,6 +207,7 @@ public class CPHInline
             .FirstOrDefault(p => string.Equals(p.Name, (string)op["messagePosition"] ?? "Centered", StringComparison.OrdinalIgnoreCase)
                 || string.Equals((string)p.Value["tag"], (string)op["messagePosition"] ?? "Centered", StringComparison.OrdinalIgnoreCase));
         CPH.LogInfo($"RTS Action Replay TRACE: message position source={(selectedMessagePosition == null ? "missing" : selectedMessagePosition.Name)}, data={(selectedMessagePosition?.Value ?? new JObject()).ToString(Newtonsoft.Json.Formatting.None)}.");
+        CPH.LogInfo($"RTS Action Replay TRACE: Message presentation resolved design={design}, brand={brand}.");
         ApplyMessagePresentation(design, brand, animation);
         CPH.LogInfo("RTS Action Replay TRACE: message presentation applied.");
 
@@ -245,6 +256,12 @@ public class CPHInline
         CPH.SetArgument("replayPanelListColor",(string)b["textColor"]??"#FFFFFFFF");
         CPH.SetArgument("replayPanelListShadowColor",(string)b["shadowColor"]??"#000000FF");
         CPH.SetArgument("replayPanelBackgroundColor",PanelBackgroundColor(d,b));
+        CPH.SetArgument("replayBrandLogoUrl",(string)b["logo"]??"");
+        CPH.SetArgument("replayBrandFallbackText",(string)b["fallbackText"]??"RTS");
+        CPH.SetArgument("replayBrandLabel",(string)b["brandLabel"]??"ACTION REPLAY");
+        CPH.SetArgument("replayBrandFallbackTextColor",(string)b["primaryColor"]??"#0384CBFF");
+        CPH.SetArgument("replayBrandLabelColor",(string)b["textColor"]??"#FFFFFFFF");
+        CPH.SetArgument("replayBrandingPresetId",(string)b["id"]??"default");
         Props("replayBroadcast",Broadcast(d,b));
         Props("replayCut",Cut(d,b));
         CPH.SetArgument("replayDesignPresetId",(string)d["id"]??"broadcast");

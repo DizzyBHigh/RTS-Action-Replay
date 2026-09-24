@@ -83,7 +83,7 @@ public class CPHInline
             CPH.SetArgument("replaySearchRequestId", (string)request["requestId"] ?? "");
             shown = CPH.ExecuteMethod(CatalogAction, "RenderSearchRequest");
         }
-        if (!shown)
+        if (!shown || !(CPH.GetGlobalVar<bool?>("rts.actionreplay.search.panel", true) ?? true))
         {
             queue.RemoveAt(0);
             SaveQueue(queue);

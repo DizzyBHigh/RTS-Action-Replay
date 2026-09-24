@@ -13,7 +13,7 @@
   height: 100%;
   min-height: 0;
   box-sizing: border-box;
-  padding: 10px 20px 38px;
+  padding: 18px 20px 46px;
   justify-content: center;
 }
 
@@ -30,9 +30,40 @@
   text-align: center;
 }
 
-#message-card .rts-panel-kicker {
-  font-size: 10px;
-  letter-spacing: .14em;
+#message-card .rts-message-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 24px;
+  color: var(--message-brand-label, #fff);
+  font: 800 16px/1 system-ui, sans-serif;
+  letter-spacing: .08em;
+}
+
+#message-card .rts-message-brand img {
+  display: none;
+  max-width: 140px;
+  max-height: 30px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+#message-card .rts-message-brand img.loaded {
+  display: block;
+}
+
+#message-card .rts-message-brand b {
+  color: var(--message-brand-fallback, #0384CB);
+  font-size: 20px;
+}
+
+#message-card .rts-message-brand small {
+  color: var(--message-brand-label, #fff);
+  font-size: 9px;
+  letter-spacing: .2em;
+  opacity: .72;
 }
 
 #message-card.panel-broadcast .panel-broadcast-chevron-track {
@@ -53,10 +84,18 @@
 
 @media(max-width:700px) {
   #message-card .rts-message-header {
-    padding: 9px 16px 34px;
+    padding: 16px 16px 42px;
   }
 
-  #message-card .rts-panel-kicker {
+  #message-card .rts-message-brand {
+    font-size: 13px;
+  }
+
+  #message-card .rts-message-brand b {
+    font-size: 17px;
+  }
+
+  #message-card .rts-message-brand small {
     font-size: 8px;
   }
 

@@ -26,6 +26,46 @@ const messagePanelCommand = command => ({
   replayPanelPosition: command?.replayMessagePosition || 'Centered'
 });
 
+const applyMessageBranding = command => {
+  const card = RTSReplayMessages.messageCard;
+  if (!card) return;
+
+  const presets = window.rtsOverlayConfig?.presets?.branding;
+  const configuredId = command?.replayBrandingPresetId
+    || window.rtsOverlayConfig?.message?.entryPoint?.brandingPreset
+    || 'default';
+  const brand = Array.isArray(presets)
+    ? presets.find(item => String(item?.id || '') === String(configuredId))
+      || presets.find(item => String(item?.id || '') === 'default')
+    : null;
+
+  const fallback = String(command?.replayBrandFallbackText || brand?.fallbackText || 'RTS').trim();
+  const label = String(command?.replayBrandLabel || brand?.brandLabel || 'ACTION REPLAY').trim();
+  const logoUrl = String(command?.replayBrandLogoUrl || brand?.logo || '').trim();
+  const logo = card.querySelector('#message-brand-logo');
+  const fallbackNode = card.querySelector('#message-brand-fallback');
+  const labelNode = card.querySelector('#message-brand-label');
+  if (!logo || !fallbackNode || !labelNode) return;
+
+  fallbackNode.textContent = fallback;
+  labelNode.textContent = label;
+  card.style.setProperty('--message-brand-fallback', command?.replayBrandFallbackTextColor || brand?.primaryColor || '#0384CBFF');
+  card.style.setProperty('--message-brand-label', command?.replayBrandLabelColor || brand?.textColor || '#FFFFFFFF');
+  logo.classList.remove('loaded');
+  logo.removeAttribute('src');
+  fallbackNode.style.display = '';
+  if (!logoUrl) return;
+
+  fallbackNode.style.display = 'none';
+  logo.onload = () => logo.classList.add('loaded');
+  logo.onerror = () => {
+    logo.classList.remove('loaded');
+    logo.removeAttribute('src');
+    fallbackNode.style.display = '';
+  };
+  logo.src = logoUrl;
+};
+
 const fitMessageText = () => {
   const text = RTSReplayMessages.messageText;
   if (!text) return;
@@ -43,6 +83,7 @@ RTSReplayMessages.showMessage = command => {
   if (!text || !RTSReplayMessages.messageCard) return;
 
   RTSReplayMessages.messageText.textContent = text;
+  applyMessageBranding(command);
   const panelCommand = messagePanelCommand(command);
   clearTimeout(RTSReplayMessages.messageTimer);
   RTSReplayMessages.messageCard.classList.remove('show');

@@ -270,7 +270,8 @@ public class CPHInline
         AddSnapshotGlobal(globals, "httpPort", "rts.actionreplay.httpPort");
         AddSnapshotGlobal(globals, "replayTitle", "rts.actionreplay.replayTitle");
         AddSnapshotGlobal(globals, "newReplayTitle", "rts.actionreplay.newReplayTitle");
-        AddSnapshotGlobal(globals, "maxHistory", "rts.actionreplay.maxHistory");
+        AddSnapshotGlobal(globals, "maxRecent", "rts.actionreplay.maxRecent");
+        AddSnapshotGlobal(globals, "maxCatalog", "rts.actionreplay.maxCatalog");
         AddSnapshotGlobal(globals, "autoAdd", "rts.actionreplay.autoAdd");
         AddSnapshotGlobal(globals, "autoPlay", "rts.actionreplay.autoPlay");
         AddSnapshotGlobal(globals, "clapperUseSourcePlatformBranding", "rts.actionreplay.clapper.useSourcePlatformBranding");

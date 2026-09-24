@@ -32,6 +32,12 @@ public class CPHInline
         CPH.SetArgument("remainingCount", 0);
 
         var testEvent = CPH.GetGlobalVar<string>(MessageTypeKey, true) ?? "Replay Created";
+        var testSource = CPH.GetGlobalVar<string>("rts.actionreplay.test.messagePresentationSource", true) ?? "Current Settings";
+        var testDesign = CPH.GetGlobalVar<string>("rts.actionreplay.test.messageDesign", true) ?? "Broadcast";
+        var testBranding = CPH.GetGlobalVar<string>("rts.actionreplay.test.messageBranding", true) ?? "Default";
+        var resolvedDesign = PresetId("visual", testDesign, "broadcast");
+        var resolvedBranding = PresetId("branding", testBranding, "default");
+        CPH.LogInfo($"RTS Action Replay TRACE: TestMessage presentation source={testSource}, design={testDesign}->{resolvedDesign}, branding={testBranding}->{resolvedBranding}.");
         CPH.SetGlobalVar(
             "rts.actionreplay.operation.message.test",
             new JObject
@@ -55,7 +61,10 @@ public class CPHInline
                 ["averageRating"] = rating,
                 ["replayRating"] = rating,
                 ["clearedCount"] = 3,
-                ["remainingCount"] = 0
+                ["remainingCount"] = 0,
+                ["messagePresentationSource"] = testSource,
+                ["messageDesign"] = resolvedDesign,
+                ["messageBranding"] = resolvedBranding
             }.ToString(Newtonsoft.Json.Formatting.None),
             false
         );
@@ -171,6 +180,21 @@ public class CPHInline
         }
         catch { }
         return 1;
+    }
+
+    private string PresetId(string group, string friendlyName, string fallback)
+    {
+        var raw = CPH.GetGlobalVar<string>("rts.actionreplay.config.presets", true);
+        try
+        {
+            var presets = JObject.Parse(raw ?? "{}");
+            var values = presets[group] as JArray ?? new JArray();
+            var match = values.OfType<JObject>().FirstOrDefault(x =>
+                string.Equals((string)x["id"], friendlyName, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals((string)x["name"], friendlyName, StringComparison.OrdinalIgnoreCase));
+            return (string)match?["id"] ?? fallback;
+        }
+        catch { return fallback; }
     }
 
     private string TestOrigin() => CPH.GetGlobalVar<string>(TestOriginKey, true) ?? "Twitch";

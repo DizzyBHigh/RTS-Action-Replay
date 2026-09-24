@@ -21,6 +21,21 @@ public class CPHInline
 
     public bool Reset() => ClearQueue();
 
+    public bool SendOverlayMessage()
+    {
+        if (!CPH.TryGetArg("rawInput", out string message) || string.IsNullOrWhiteSpace(message)) return false;
+
+        CPH.SetArgument("messageEvent", "Overlay Message");
+        CPH.SetArgument("messageOverride", message.Trim());
+        CPH.SetArgument("requesterId", "rts-overlay-message");
+        CPH.SetArgument("requesterName", "Streamer");
+        var sourcePlatform = Arg("commandSource");
+        if (string.IsNullOrWhiteSpace(sourcePlatform)) sourcePlatform = SourcePlatform();
+        CPH.SetArgument("requesterPlatform", sourcePlatform);
+        CPH.SetArgument("requesterBroadcastId", "");
+        return Enqueue();
+    }
+
     public bool ClearQueue()
     {
         lock (typeof(CPHInline))
@@ -103,6 +118,9 @@ public class CPHInline
         }
 
         item["test"] = true;
+        item["messagePresentationSource"] = testOperation["messagePresentationSource"]?.ToString() ?? "Current Settings";
+        item["messageDesign"] = testOperation["messageDesign"]?.ToString() ?? "";
+        item["messageBranding"] = testOperation["messageBranding"]?.ToString() ?? "";
         WriteMessageOperation(item);
 
         CPH.LogInfo("RTS Action Replay: test message operation handed to Resolver.");
@@ -136,7 +154,7 @@ public class CPHInline
             "replayUser", "replayPlatform", "replaySourcePlatform", "requesterId",
             "requesterName", "requesterPlatform", "requesterBroadcastId", "replaySource",
             "oldTitle", "newTitle", "oldRating", "averageRating", "replayRating",
-            "clearedCount", "remainingCount"
+            "clearedCount", "remainingCount", "messagePresentationSource", "messageDesign", "messageBranding"
         };
 
         foreach (var field in fields)
@@ -288,7 +306,10 @@ public class CPHInline
             ["messageTest"] = (bool?)item["test"] == true,
             ["messagePosition"] = "Centered",
             ["messageSourcePlatform"] = (string)item["requester"]?["platform"] ?? "",
-            ["replaySourcePlatform"] = (string)replay["sourcePlatform"] ?? ""
+            ["replaySourcePlatform"] = (string)replay["sourcePlatform"] ?? "",
+            ["messagePresentationSource"] = (string)item["messagePresentationSource"] ?? "Current Settings",
+            ["messageDesign"] = (string)item["messageDesign"] ?? "",
+            ["messageBranding"] = (string)item["messageBranding"] ?? ""
         };
 
         CPH.SetGlobalVar(
@@ -309,8 +330,10 @@ public class CPHInline
         var configKey = "rts.actionreplay.message." + EventKey(eventName);
         var textTemplate = CPH.GetGlobalVar<string>(configKey + ".text", true);
         if (string.IsNullOrWhiteSpace(textTemplate)) textTemplate = DefaultMessage(eventName);
-        var chat = CPH.GetGlobalVar<bool?>(configKey + ".chat", true) ?? true;
-        var defaultOverlay = eventName.Equals("Replay Created", StringComparison.OrdinalIgnoreCase);
+        var messageOverride = Arg("messageOverride");
+        var isOverlayMessage = eventName.Equals("Overlay Message", StringComparison.OrdinalIgnoreCase);
+        var chat = CPH.GetGlobalVar<bool?>(configKey + ".chat", true) ?? !isOverlayMessage;
+        var defaultOverlay = eventName.Equals("Replay Created", StringComparison.OrdinalIgnoreCase) || eventName.Equals("Replay Played", StringComparison.OrdinalIgnoreCase) || isOverlayMessage;
         var configuredOverlay = CPH.GetGlobalVar<bool?>(configKey + ".overlay", true);
         var overlay = configuredOverlay ?? defaultOverlay;
 
@@ -332,7 +355,9 @@ public class CPHInline
             ["remainingCount"] = Arg("remainingCount")
         };
 
-        var message = string.IsNullOrWhiteSpace(textTemplate) ? "" : CPH.Parse(textTemplate, values);
+        var message = !string.IsNullOrWhiteSpace(messageOverride)
+            ? messageOverride
+            : (string.IsNullOrWhiteSpace(textTemplate) ? "" : CPH.Parse(textTemplate, values));
         var presentation = "message";
 
         return new JObject
@@ -370,9 +395,11 @@ public class CPHInline
         switch ((eventName ?? "").Trim().ToLowerInvariant())
         {
             case "replay created": return "Replay saved: %replayTitle%.";
+            case "replay played": return "Play";
             case "replay queued": return "Replay queued: %replayTitle%.";
             case "replay renamed": return "Replay #%replayNumber% renamed from %oldTitle% to %newTitle%.";
             case "replay removed": return "Replay removed: %replayTitle%.";
+            case "replay deleted": return "Replay deleted: %replayTitle%.";
             case "replay rated": return "Rated %replayTitle% %replayRating%/5 (average %averageRating%/5).";
             case "playlist cleared": return "Playlist cleared: %clearedCount% waiting item(s) removed.";
             case "playlist completely cleared": return "Playlist completely cleared: %clearedCount% item(s) removed.";
@@ -418,12 +445,15 @@ public class CPHInline
         switch ((eventName ?? "").Trim().ToLowerInvariant())
         {
             case "replay created": return "created";
+            case "replay played": return "played";
             case "replay queued": return "queued";
             case "replay renamed": return "renamed";
             case "replay removed": return "removed";
+            case "replay deleted": return "deleted";
             case "replay rated": return "rated";
             case "playlist cleared": return "cleared";
             case "playlist completely cleared": return "clearedall";
+            case "overlay message": return "custom";
             default: return "";
         }
     }

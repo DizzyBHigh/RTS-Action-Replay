@@ -219,6 +219,18 @@ Show recently captured/added replays.
 
 This uses the Catalog's recent ordering. It is different from Last Played: a replay can be recent without ever having been played.
 
+### Show Current Search Page
+
+Show the current page of the current Catalog/search results without starting a new search or changing the current page.
+
+**Command**
+
+`!search-show`
+
+The command follows the configured **Search Presentation** settings. **Search - Panel** shows the current results in the Search Panel. **Search - Chat** sends the current header and result entries to chat. Both can be enabled at the same time.
+
+The displayed numbers are the positions on the current page and can be used with `!delete-from-catalog <number(s)>`. Multiple current-page results can be supplied as comma-separated numbers, e.g. `!delete-from-catalog 1, 2, 3`. A single number works the same way.
+
 ### Next Page
 
 Move to the next page of the current Catalog/search results.
@@ -276,6 +288,16 @@ For each Catalog entry, Action Replay first checks for a usable local file. If n
 An entry is removed only when no local file and no reachable URL can be resolved.
 
 The purge does not delete any physical files. It only removes unavailable entries from the Catalog.
+
+### Delete Catalog Item
+
+Delete one replay from the Catalog using the number shown in the current Catalog/search result set.
+
+**Command:** `!delete-catalog-item <number>`
+
+The number refers to the current page of the user's current Catalog/search results. It can be used after text, date, creator, rating, views, Recent Clips, Last Played, and paginated searches. Leaderboard results cannot be used for Catalog deletion.
+
+The command removes the Catalog entry and its associated Last Played history. It does not delete the underlying media file. A replay that is currently playing or still in the Playlist cannot be deleted.
 
 ### Search
 
@@ -694,7 +716,7 @@ This is internal plumbing. You should not normally need to call it yourself.
 
 **Action:** `RTS - Action Replay - Core - Search Queue`
 
-Queues search-panel requests and hands them to the overlay/search rendering path.
+Queues search presentation requests and hands them to the configured Search Panel/chat rendering path.
 
 It also handles the internal search-panel lifecycle.
 
