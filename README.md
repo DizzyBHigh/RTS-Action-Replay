@@ -41,8 +41,8 @@ The Playlist is a current queue, separate from Catalog and Recent Clips.
 - `PauseVideo`
 - `PlayVideo`
 - `SetVideoSpeed`
-- `HidePlayer` — pauses the current video before hiding it without resetting its position.
-- `ShowPlayer` — shows the existing player and resumes the current video.
+- `HidePlayer`  -  pauses the current video before hiding it without resetting its position.
+- `ShowPlayer`  -  shows the existing player and resumes the current video.
 
 `RTSActionReplayPlayback.cs` also exposes `SetPlayerPosition`, used by the player-position command. The default transition is 1000ms; supplying a duration overrides it for that command only. Position changes do not alter Playlist state or replay identity.
 
@@ -54,10 +54,10 @@ Player, Panel, Message and Clapperboard Animation Profiles use saved positions a
 
 Each profile has independent `Start Sequence` and `End Sequence` JSON arrays. A sequence step contains:
 
-- `position` — saved position name or tag.
-- `duration` — transition time into this position, in milliseconds.
-- `delay` — time to wait after arriving before the next step, in milliseconds.
-- `easing` — `linear`, `ease`, `ease-in`, `ease-out` or `ease-in-out`.
+- `position`  -  saved position name or tag.
+- `duration`  -  transition time into this position, in milliseconds.
+- `delay`  -  time to wait after arriving before the next step, in milliseconds.
+- `easing`  -  `linear`, `ease`, `ease-in`, `ease-out` or `ease-in-out`.
 
 For example:
 
@@ -114,7 +114,7 @@ The browser player has no user controls. Its status bar is visual-only; playback
 
 The user-facing documentation lives in `docs/`.
 
-- [Commands](docs/Commands.md) — chat commands, aliases, parameters and command behaviour.
-- [Settings](docs/Settings.md) — the full settings reference, following the order of the Action Replay settings window.
+- [Commands](docs/Commands.md)  -  chat commands, aliases, parameters and command behaviour.
+- [Settings](docs/Settings.md)  -  the full settings reference, following the order of the Action Replay settings window.
 
 The command reference follows the Streamer.bot action groups. Internal Core actions are kept in an appendix rather than mixed into the normal chat command reference.
