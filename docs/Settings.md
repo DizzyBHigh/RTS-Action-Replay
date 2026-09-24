@@ -51,13 +51,13 @@ Configure how Twitch clips are acquired and made available to the player.
 | **Twitch HTTP Mapping** | URL path used by Streamer.bot to serve downloaded Twitch clips. The shared HTTP Port is configured under Local Capture / OBS. | `twitch` |
 | **Clip Duration** | Default duration used by `!twitchclip`, `!create-clip` and `!createclip` when no duration is supplied. | `30` seconds |
 
-The allowed Twitch clip duration is 5–60 seconds. A duration supplied with the command overrides the setting within that range.
+The allowed Twitch clip duration is 5-60 seconds. A duration supplied with the command overrides the setting within that range.
 
 ### Twitch Clip Playback
 
-- **Twitch URL** — play directly from Twitch.
-- **Download Locally** — download and play a local copy through Streamer.bot's HTTP server.
-- **Both** — use the local copy when available and fall back to Twitch playback when it is unavailable.
+- **Twitch URL**  -  play directly from Twitch.
+- **Download Locally**  -  download and play a local copy through Streamer.bot's HTTP server.
+- **Both**  -  use the local copy when available and fall back to Twitch playback when it is unavailable.
 
 ## YouTube
 
@@ -69,7 +69,7 @@ Configure the default duration for timestamp-based clips from the current monito
 |---|---|---|
 | **Clip Duration** | Default duration used by `!create-clip` and `!createclip` when no duration is supplied. | `30` seconds |
 
-The allowed duration is 5–60 seconds. Action Replay uses the current broadcast and its monitored start time to calculate the clip timestamp.
+The allowed duration is 5-60 seconds. Action Replay uses the current broadcast and its monitored start time to calculate the clip timestamp.
 
 ## Kick
 
@@ -85,9 +85,9 @@ Configure how Kick clips are acquired and made available to the player.
 
 ### Kick Clip Playback
 
-- **Kick URL** — play directly from Kick.
-- **Download Locally** — download and play a local copy through Streamer.bot's HTTP server.
-- **Both** — use the local copy when available and fall back to direct Kick playback when necessary.
+- **Kick URL**  -  play directly from Kick.
+- **Download Locally**  -  download and play a local copy through Streamer.bot's HTTP server.
+- **Both**  -  use the local copy when available and fall back to direct Kick playback when necessary.
 
 ## Playback
 
@@ -99,7 +99,7 @@ Control how replays start and how playback controls are displayed in the player.
 |---|---|---|
 | **Show Controls** | Displays the Play/Pause control and interactive playback progress bar. | Off |
 | **Show Progress Bar** | Displays the interactive playback progress bar. | On |
-| **Default Playback Speed** | Playback speed used when a replay is loaded. Range 0.25–2.0. | `1.0` |
+| **Default Playback Speed** | Playback speed used when a replay is loaded. Range 0.25-2.0. | `1.0` |
 | **Show Visibility** | Controls when the playback speed indicator is displayed. | Only when greater or less than 1 |
 
 ### Player Appearance
@@ -211,7 +211,7 @@ The built-in **Default** Title Preset is permanent. Additional Title Presets can
 
 ## Positions
 
-Define reusable Player, Panel, Message and Clapperboard positions in the shared 1920×1080 overlay coordinate space.
+Define reusable Player, Panel, Message and Clapperboard positions in the shared 1920x1080 overlay coordinate space.
 
 Animation Profiles reference these saved positions. Changing a saved position therefore affects every animation profile that uses it.
 
@@ -227,8 +227,8 @@ Additional Panel settings:
 
 | Setting | Purpose | Default |
 |---|---|---|
-| **Width** | Information panel width in 1920×1080 output pixels. | `500` |
-| **Height** | Information panel height in 1920×1080 output pixels. | `700` |
+| **Width** | Information panel width in 1920x1080 output pixels. | `500` |
+| **Height** | Information panel height in 1920x1080 output pixels. | `700` |
 | **Corner Radius** | Information panel corner radius in pixels. | `0` |
 
 ### Message Positions
@@ -239,8 +239,8 @@ Additional Message settings:
 
 | Setting | Purpose | Default |
 |---|---|---|
-| **Width** | Fixed message width in 1920×1080 output pixels. | `500` |
-| **Height** | Fixed message height in 1920×1080 output pixels. | `120` |
+| **Width** | Fixed message width in 1920x1080 output pixels. | `500` |
+| **Height** | Fixed message height in 1920x1080 output pixels. | `120` |
 | **Corner Radius** | Message panel corner radius in pixels. | `0` |
 
 Message text scales to fit the configured message dimensions.
@@ -257,12 +257,12 @@ Define reusable Player animation profiles with separate Start and End sequences.
 
 Each sequence contains steps with:
 
-- **Position** — a saved Player Position.
-- **Duration** — movement duration in milliseconds.
-- **Easing** — `linear`, `ease`, `ease-in`, `ease-out` or `ease-in-out`.
-- **Delay** — delay before the next step, in milliseconds.
+- **Position**  -  a saved Player Position.
+- **Duration**  -  movement duration in milliseconds.
+- **Easing**  -  `linear`, `ease`, `ease-in`, `ease-out` or `ease-in-out`.
+- **Delay**  -  delay before the next step, in milliseconds.
 
-Duration and delay support 0–60,000 milliseconds.
+Duration and delay support 0-60,000 milliseconds.
 
 The built-in **Default** profile is permanent and editable. Additional profiles can be created and removed.
 
@@ -380,7 +380,7 @@ Control how Recent Clips and Playlist entries are presented in chat.
 |---|---|---|
 | **Recent - Chat** | Sends one formatted chat message for each Recent Clips entry. | On |
 | **Playlist - Chat** | Sends one formatted chat message for each Playlist entry. | On |
-| **List Entry Format** | Format used for each list entry. | `#%listNumber% %title% — %creator% | %rating%/5 | %platform% | %plays% plays` |
+| **List Entry Format** | Format used for each list entry. | `#%listNumber% %title%  -  %creator% | %rating%/5 | %platform% | %plays% plays` |
 | **Maximum Message Length** | Maximum length of each individual list entry/message. Longer entries are truncated rather than split. | `500` |
 
 List entry variables are `%listNumber%`, `%title%`, `%creator%`, `%rating%`, `%platform%` and `%plays%`.
