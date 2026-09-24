@@ -29,7 +29,9 @@ public class CPHInline
         CPH.SetArgument("messageOverride", message.Trim());
         CPH.SetArgument("requesterId", "rts-overlay-message");
         CPH.SetArgument("requesterName", "Streamer");
-        CPH.SetArgument("requesterPlatform", "RTS");
+        var sourcePlatform = Arg("commandSource");
+        if (string.IsNullOrWhiteSpace(sourcePlatform)) sourcePlatform = SourcePlatform();
+        CPH.SetArgument("requesterPlatform", sourcePlatform);
         CPH.SetArgument("requesterBroadcastId", "");
         return Enqueue();
     }
