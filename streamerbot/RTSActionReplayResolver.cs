@@ -181,7 +181,8 @@ public class CPHInline
         var entry = message["entryPoint"] as JObject ?? new JObject();
         var design = (string)entry["designPreset"] ?? "broadcast";
         var brand = (string)entry["brandingPreset"] ?? "default";
-        var source = (string)op["messageSourcePlatform"] ?? "";
+        var source = (string)op["replaySourcePlatform"] ?? "";
+        if (string.IsNullOrWhiteSpace(source)) source = (string)op["messageSourcePlatform"] ?? "";
         var presentationSource = (string)op["messagePresentationSource"] ?? "Current Settings";
         CPH.LogInfo($"RTS Action Replay TRACE: Message presentation input source={presentationSource}, design={(string)op["messageDesign"]}, branding={(string)op["messageBranding"]}, configuredDesign={design}, configuredBrand={brand}.");
         if (string.Equals(presentationSource, "Override", StringComparison.OrdinalIgnoreCase))
