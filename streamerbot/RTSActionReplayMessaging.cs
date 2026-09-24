@@ -103,6 +103,9 @@ public class CPHInline
         }
 
         item["test"] = true;
+        item["messagePresentationSource"] = testOperation["messagePresentationSource"]?.ToString() ?? "Current Settings";
+        item["messageDesign"] = testOperation["messageDesign"]?.ToString() ?? "";
+        item["messageBranding"] = testOperation["messageBranding"]?.ToString() ?? "";
         WriteMessageOperation(item);
 
         CPH.LogInfo("RTS Action Replay: test message operation handed to Resolver.");
@@ -136,7 +139,7 @@ public class CPHInline
             "replayUser", "replayPlatform", "replaySourcePlatform", "requesterId",
             "requesterName", "requesterPlatform", "requesterBroadcastId", "replaySource",
             "oldTitle", "newTitle", "oldRating", "averageRating", "replayRating",
-            "clearedCount", "remainingCount"
+            "clearedCount", "remainingCount", "messagePresentationSource", "messageDesign", "messageBranding"
         };
 
         foreach (var field in fields)
@@ -288,7 +291,10 @@ public class CPHInline
             ["messageTest"] = (bool?)item["test"] == true,
             ["messagePosition"] = "Centered",
             ["messageSourcePlatform"] = (string)item["requester"]?["platform"] ?? "",
-            ["replaySourcePlatform"] = (string)replay["sourcePlatform"] ?? ""
+            ["replaySourcePlatform"] = (string)replay["sourcePlatform"] ?? "",
+            ["messagePresentationSource"] = (string)item["messagePresentationSource"] ?? "Current Settings",
+            ["messageDesign"] = (string)item["messageDesign"] ?? "",
+            ["messageBranding"] = (string)item["messageBranding"] ?? ""
         };
 
         CPH.SetGlobalVar(
