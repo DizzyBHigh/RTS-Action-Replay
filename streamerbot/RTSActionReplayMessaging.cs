@@ -399,6 +399,7 @@ public class CPHInline
             case "replay queued": return "Replay queued: %replayTitle%.";
             case "replay renamed": return "Replay #%replayNumber% renamed from %oldTitle% to %newTitle%.";
             case "replay removed": return "Replay removed: %replayTitle%.";
+            case "replay deleted": return "Replay deleted: %replayTitle%.";
             case "replay rated": return "Rated %replayTitle% %replayRating%/5 (average %averageRating%/5).";
             case "playlist cleared": return "Playlist cleared: %clearedCount% waiting item(s) removed.";
             case "playlist completely cleared": return "Playlist completely cleared: %clearedCount% item(s) removed.";
@@ -448,6 +449,7 @@ public class CPHInline
             case "replay queued": return "queued";
             case "replay renamed": return "renamed";
             case "replay removed": return "removed";
+            case "replay deleted": return "deleted";
             case "replay rated": return "rated";
             case "playlist cleared": return "cleared";
             case "playlist completely cleared": return "clearedall";
