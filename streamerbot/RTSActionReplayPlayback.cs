@@ -342,7 +342,13 @@ public class CPHInline
         private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); if (string.IsNullOrWhiteSpace(raw)) return CreateDataDefaults(); try { return JObject.Parse(raw); } catch { return CreateDataDefaults(); } }
     private JObject CreateDataDefaults() { return new JObject { ["version"] = "1.0", ["catalog"] = new JArray(), ["playHistory"] = new JArray() }; }
     private JArray GetCatalog(JObject data) => data["catalog"] as JArray ?? new JArray();
-    private int GetReplayNumber(JArray list, JObject replay)\n    {\n        for (var i = 0; i < list.Count; i++)\n            if (ReferenceEquals(list[i], replay)) return i + 1;\n        return 0;\n    }\n    private string Arg(string name) { try { CPH.TryGetArg(name, out string value); return value ?? ""; } catch { return ""; } }
+    private int GetReplayNumber(JArray list, JObject replay)
+    {
+        for (var i = 0; i < list.Count; i++)
+            if (ReferenceEquals(list[i], replay)) return i + 1;
+        return 0;
+    }
+    private string Arg(string name) { try { CPH.TryGetArg(name, out string value); return value ?? ""; } catch { return ""; } }
     private void SaveData(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
     private void SendMessage(string text)
     {
