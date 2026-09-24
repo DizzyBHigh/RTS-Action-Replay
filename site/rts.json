@@ -1341,5 +1341,12 @@
         ]
       }
     ]
+  },
+  "dependencies": {
+    "rtsUiDll": {
+      "id": "rts-ui-dll",
+      "name": "RTS UI DLL",
+      "minimumVersion": "1.0.0"
+    }
   }
 }
