@@ -277,6 +277,16 @@ An entry is removed only when no local file and no reachable URL can be resolved
 
 The purge does not delete any physical files. It only removes unavailable entries from the Catalog.
 
+### Delete Catalog Item
+
+Delete one replay from the Catalog using the number shown in the current Catalog/search result set.
+
+**Command:** `!delete-catalog-item <number>`
+
+The number refers to the current page of the user's current Catalog/search results. It can be used after text, date, creator, rating, views, Recent Clips, Last Played, and paginated searches. Leaderboard results cannot be used for Catalog deletion.
+
+The command removes the Catalog entry and its associated Last Played history. It does not delete the underlying media file. A replay that is currently playing or still in the Playlist cannot be deleted.
+
 ### Search
 
 Search the Catalog by text.
