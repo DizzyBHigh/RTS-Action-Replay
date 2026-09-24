@@ -18,6 +18,7 @@ public class CPHInline
     private const string ReplayIdHandoffKey = "rts.actionreplay.handoff.replayId";
     private const string PlaybackProfileHandoffKey = "rts.actionreplay.handoff.playbackProfile";
     private const string PlaybackQueueEntryHandoffKey = "rts.actionreplay.handoff.playbackQueueEntryId";
+    private const string KickReadyHandoffKey = "rts.actionreplay.handoff.kickReady";
 
     public bool Execute() => View();
 
@@ -25,6 +26,9 @@ public class CPHInline
     {
         CPH.LogInfo("RTS Action Replay TRACE: EnqueueCurrentReplay entered.");
         var replayId = ReadArgumentOrGlobal("replayId", ReplayIdHandoffKey);
+        string kickResolvedUrl = null;
+        if (string.IsNullOrWhiteSpace(replayId))
+            TryTakeKickReadyHandoff(out replayId, out kickResolvedUrl);
         if (string.IsNullOrWhiteSpace(replayId)) { CPH.LogWarn("RTS Action Replay TRACE: EnqueueCurrentReplay failed - replayId argument/handoff missing or empty."); return false; }
         var replay = FindReplay(Catalog(Load()), replayId);
         if (replay == null) { CPH.LogWarn($"RTS Action Replay TRACE: EnqueueCurrentReplay failed - replay {replayId} not found in catalog."); CPH.UnsetGlobalVar(ReplayIdHandoffKey, false); return false; }
@@ -60,6 +64,7 @@ public class CPHInline
                 ["designPresetId"] = designProfile,
                 ["titlePresetId"] = titleProfile,
                 ["brandingPresetId"] = brandingProfile,
+                ["resolvedUrl"] = kickResolvedUrl ?? "",
                 ["replayCreated"] = replayCreated,
                 ["queued"] = DateTime.Now.ToString("o")
             };
@@ -338,6 +343,22 @@ public class CPHInline
 
     private string GetRequestPlatform() { if (CPH.TryGetArg("userType", out string userType) && !string.IsNullOrWhiteSpace(userType)) return NormalizePlatform(userType); try { return NormalizePlatform(CPH.GetSource().ToString()); } catch { return null; } }
     private string NormalizePlatform(string platform) { if (string.Equals(platform, "Kick", StringComparison.OrdinalIgnoreCase)) return "Kick"; if (string.Equals(platform, "YouTube", StringComparison.OrdinalIgnoreCase)) return "YouTube"; if (string.Equals(platform, "Twitch", StringComparison.OrdinalIgnoreCase)) return "Twitch"; return null; }
+    private bool TryTakeKickReadyHandoff(out string replayId, out string resolvedUrl)
+    {
+        replayId = null; resolvedUrl = null;
+        var raw = CPH.GetGlobalVar<string>(KickReadyHandoffKey, false);
+        if (string.IsNullOrWhiteSpace(raw)) return false;
+        JArray queue; try { queue = JArray.Parse(raw); } catch { return false; }
+        var item = queue.OfType<JObject>().FirstOrDefault(x => !string.IsNullOrWhiteSpace((string)x["replayId"]));
+        if (item == null) return false;
+        replayId = (string)item["replayId"];
+        resolvedUrl = (string)item["url"];
+        queue.Remove(item);
+        CPH.SetGlobalVar(KickReadyHandoffKey, queue.ToString(Newtonsoft.Json.Formatting.None), false);
+        CPH.LogInfo($"RTS Action Replay TRACE: consumed Kick ready handoff; replayId={replayId}; resolvedUrl={(string.IsNullOrWhiteSpace(resolvedUrl) ? "<none>" : resolvedUrl)}.");
+        return true;
+    }
+
     private string ReadArgumentOrGlobal(string argument, string globalKey) { if (CPH.TryGetArg(argument, out string value) && !string.IsNullOrWhiteSpace(value)) return value.Trim(); return CPH.GetGlobalVar<string>(globalKey, false); }
     private string Arg(string name, string fallback) { return CPH.TryGetArg(name, out string value) && !string.IsNullOrWhiteSpace(value) ? value.Trim() : fallback; }
     private string ArgItem(JObject item,string name,string fallback) { var value=(string)item[name]; return string.IsNullOrWhiteSpace(value)?fallback:value; }
