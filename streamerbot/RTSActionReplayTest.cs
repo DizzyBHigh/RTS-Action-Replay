@@ -55,7 +55,10 @@ public class CPHInline
                 ["averageRating"] = rating,
                 ["replayRating"] = rating,
                 ["clearedCount"] = 3,
-                ["remainingCount"] = 0
+                ["remainingCount"] = 0,
+                ["messagePresentationSource"] = CPH.GetGlobalVar<string>("rts.actionreplay.test.messagePresentationSource", true) ?? "Current Settings",
+                ["messageDesign"] = CPH.GetGlobalVar<string>("rts.actionreplay.test.messageDesign", true) ?? "Broadcast",
+                ["messageBranding"] = CPH.GetGlobalVar<string>("rts.actionreplay.test.messageBranding", true) ?? "Default"
             }.ToString(Newtonsoft.Json.Formatting.None),
             false
         );
