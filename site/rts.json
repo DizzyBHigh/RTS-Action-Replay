@@ -38,14 +38,91 @@
     "RtsUI.dll for the extension settings interface."
   ],
   "setup": {
-    "title": "Connect Action Replay.",
-    "intro": "Install the Streamer.bot import and configure the local replay mapping before using the overlay.",
+    "title": "Get Action Replay running.",
+    "intro": "Import the Streamer.bot actions, enable the required services, configure OBS Replay Buffer and the local HTTP file mapping, then add the overlay to OBS.",
     "steps": [
-      {"number": 1, "title": "Import the extension", "description": "Import the published Streamer.bot actions from this page."},
-      {"number": 2, "title": "Enable OBS Replay Buffer", "description": "Enable Replay Buffer in OBS and choose the folder where replay files are saved."},
-      {"number": 3, "title": "Enable Streamer.bot HTTP Server", "description": "Map a URL path such as <strong>replays</strong> to your OBS replay-buffer folder."},
-      {"number": 4, "title": "Enable Streamer.bot WebSocket", "description": "Use the local WebSocket server so the remote overlay can receive extension events."},
-      {"number": 5, "title": "Configure the extension", "description": "Open the RTS Action Replay settings and enter the replay folder and HTTP mapping details."}
+      {
+        "number": "01",
+        "title": "Import the extension into Streamer.bot",
+        "description": "Open Streamer.bot and use Import to paste the supplied import string, or download the latest import file and import it into Streamer.bot.",
+        "substeps": [
+          {"number": ".1", "title": "Copy the import string", "text": "Look above for Action Import and click [[code:Copy Import]]. Paste the import code into Streamer.bot's Import dialog."},
+          {"number": ".2", "title": "Open Import", "text": "Select Import from the Streamer.bot toolbar."},
+          {"number": ".3", "title": "Paste the import code", "text": "Paste the supplied import string into the Import String box, then select Import."},
+          {"number": ".4", "title": "Confirm the import", "text": "Review the actions being imported, then select Import to continue."}
+        ]
+      },
+      {
+        "number": "02",
+        "title": "Enable the imported actions",
+        "description": "Enable the imported RTS Action Replay actions and commands so the extension can respond to events and chat commands.",
+        "substeps": [
+          {"number": ".1", "title": "Enable the extension actions", "text": "Enable the imported RTS Action Replay actions in Streamer.bot."},
+          {"number": ".2", "title": "Check the commands", "text": "Confirm the imported RTS Action Replay commands are present and enabled where required."}
+        ]
+      },
+      {
+        "number": "03",
+        "title": "Enable OBS Replay Buffer",
+        "description": "Enable Replay Buffer in OBS and choose the folder where the replay files are saved.",
+        "substeps": [
+          {"number": ".1", "title": "Enable Replay Buffer", "text": "In OBS, open Settings > Output and enable Replay Buffer."},
+          {"number": ".2", "title": "Choose the replay folder", "text": "Configure OBS to save replay files to a folder that Streamer.bot can access. You will use this same folder when configuring the HTTP Server mapping and RTS Action Replay settings."}
+        ]
+      },
+      {
+        "number": "04",
+        "title": "Configure the Streamer.bot HTTP Server",
+        "description": "The hosted RTS overlay cannot read files directly from your computer. Streamer.bot's HTTP Server provides the local URL that the overlay uses to load replay video files.",
+        "substeps": [
+          {"number": ".1", "title": "Enable the HTTP Server", "text": "In Streamer.bot, open the Servers or Web Server settings and enable the HTTP Server. Keep note of the HTTP port."},
+          {"number": ".2", "title": "Add a file mapping", "text": "Create a file or directory mapping for the OBS Replay Buffer folder. Use a simple URL path such as [[code:replays]] and point it to the same local folder where OBS saves replay files."},
+          {"number": ".3", "title": "Check the mapping", "text": "The mapping should expose the replay folder through the Streamer.bot HTTP Server. For example, a replay file named [[code:Replay 001.mp4]] in the mapped folder should be available below the [[code:/replays/]] path."},
+          {"number": ".4", "title": "Keep the HTTP server available", "text": "Leave the Streamer.bot HTTP Server running while using Action Replay. The overlay uses this service to request the local replay video."}
+        ]
+      },
+      {
+        "number": "05",
+        "title": "Enable the Streamer.bot WebSocket",
+        "description": "The hosted overlay uses the Streamer.bot WebSocket to receive Action Replay events and commands.",
+        "substeps": [
+          {"number": ".1", "title": "Enable the WebSocket Server", "text": "In Streamer.bot, open the WebSocket Server settings and enable the server. Keep the configured port available to the overlay."},
+          {"number": ".2", "title": "Keep WebSocket access available", "text": "The Streamer.bot WebSocket Server must remain running while the Action Replay overlay is in use."}
+        ]
+      },
+      {
+        "number": "06",
+        "title": "Configure RTS Action Replay",
+        "description": "Open the RTS Action Replay settings and configure the replay source and local HTTP mapping.",
+        "substeps": [
+          {"number": ".1", "title": "Open the settings dialog", "text": "In the Streamer.bot Actions panel, run the RTS Action Replay settings action to open the extension settings."},
+          {"number": ".2", "title": "Configure the OBS replay folder", "text": "Set the replay folder to the same directory used by OBS Replay Buffer."},
+          {"number": ".3", "title": "Configure the HTTP mapping", "text": "Set the HTTP path and related local serving settings to match the Streamer.bot HTTP Server mapping you created in the previous step."},
+          {"number": ".4", "title": "Save the settings", "text": "Save the extension settings before testing replay creation and playback."},
+          {"number": "*", "title": "Automatic installation of RtsUI.dll", "text": "If you do not have the DLL installed, the extension can download and place it in your Streamer.bot installation directory."},
+          {"number": "*", "title": "Automatic updating of RtsUI.dll", "text": "If the extension requires an updated version, it can ask whether you want to download and install the latest version."}
+        ]
+      },
+      {
+        "number": "07",
+        "title": "Add the Action Replay overlay to OBS",
+        "description": "Add the hosted Action Replay overlay as an OBS Browser Source.",
+        "substeps": [
+          {"number": ".1", "title": "Copy the Overlay URL", "text": "Look above in the Quick Access section and click [[code:Copy Overlay URL]]. This copies the overlay URL to your clipboard for use in OBS."},
+          {"number": ".2", "title": "Create a browser source", "text": "Add a Browser Source to the scene where you want Action Replay to appear."},
+          {"number": ".3", "title": "Configure the browser source", "text": "Paste the overlay URL into the URL field and set the Browser Source dimensions to 1920x1080, or another 16:9 size. The Action Replay overlay uses a 1920x1080 coordinate system. Enable Refresh browser when scene becomes active if required by your scene setup."}
+        ]
+      },
+      {
+        "number": "08",
+        "title": "Test Action Replay",
+        "description": "Create a replay and confirm that the complete local-to-overlay path is working.",
+        "substeps": [
+          {"number": ".1", "title": "Save a replay", "text": "Use the Action Replay Save Replay command or the configured OBS Replay Buffer action to create a replay file."},
+          {"number": ".2", "title": "Confirm the replay is available", "text": "Check that the replay file appears in the configured replay folder and is reachable through the Streamer.bot HTTP mapping."},
+          {"number": ".3", "title": "Play the replay", "text": "Use the Action Replay playback command or Playlist controls and confirm the video appears in the OBS overlay."}
+        ]
+      }
     ]
   },
   "notes": [
