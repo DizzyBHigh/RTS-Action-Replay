@@ -27,6 +27,8 @@ public class CPHInline
     private const string PlayerPositionsHandoffKey = "rts.actionreplay.handoff.playerPositions";
     private const string KickPendingHandoffKey = "rts.actionreplay.handoff.kickPending";
     private const string KickReadyHandoffKey = "rts.actionreplay.handoff.kickReady";
+    private const string PlaylistKey = "rts.actionreplay.playlist";
+    private const string PlaylistPersistKey = "rts.actionreplay.playlistPersist";
 
     public bool Execute() => PlayReplay();
 
@@ -389,7 +391,8 @@ public class CPHInline
     private string GetKickResolvedUrl(string queueEntryId)
     {
         if (string.IsNullOrWhiteSpace(queueEntryId)) return null;
-        var raw = CPH.GetGlobalVar<string>("rts.actionreplay.playlist", false);
+        var persist = CPH.GetGlobalVar<bool?>(PlaylistPersistKey, true) ?? false;
+        var raw = CPH.GetGlobalVar<string>(PlaylistKey, persist);
         if (string.IsNullOrWhiteSpace(raw)) return null;
         try
         {
