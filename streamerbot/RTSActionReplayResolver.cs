@@ -182,8 +182,16 @@ public class CPHInline
         var design = (string)entry["designPreset"] ?? "broadcast";
         var brand = (string)entry["brandingPreset"] ?? "default";
         var source = (string)op["messageSourcePlatform"] ?? "";
+        var presentationSource = (string)op["messagePresentationSource"] ?? "Current Settings";
+        if (string.Equals(presentationSource, "Override", StringComparison.OrdinalIgnoreCase))
+        {
+            var overrideDesign = (string)op["messageDesign"];
+            var overrideBrand = (string)op["messageBranding"];
+            if (!string.IsNullOrWhiteSpace(overrideDesign)) design = overrideDesign;
+            if (!string.IsNullOrWhiteSpace(overrideBrand)) brand = overrideBrand;
+        }
 
-        if (CPH.GetGlobalVar<bool?>("rts.actionreplay.message.useSourcePlatformBranding", true) == true)
+        if (!string.Equals(presentationSource, "Override", StringComparison.OrdinalIgnoreCase) && CPH.GetGlobalVar<bool?>("rts.actionreplay.message.useSourcePlatformBranding", true) == true)
         {
             var sourceBrand = PlatformBranding(source);
             if (sourceBrand != null) brand = (string)sourceBrand["id"] ?? brand;
