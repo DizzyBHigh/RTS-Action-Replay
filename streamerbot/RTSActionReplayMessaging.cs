@@ -21,6 +21,19 @@ public class CPHInline
 
     public bool Reset() => ClearQueue();
 
+    public bool SendOverlayMessage()
+    {
+        if (!CPH.TryGetArg("rawInput", out string message) || string.IsNullOrWhiteSpace(message)) return false;
+
+        CPH.SetArgument("messageEvent", "Overlay Message");
+        CPH.SetArgument("messageOverride", message.Trim());
+        CPH.SetArgument("requesterId", "rts-overlay-message");
+        CPH.SetArgument("requesterName", "Streamer");
+        CPH.SetArgument("requesterPlatform", "RTS");
+        CPH.SetArgument("requesterBroadcastId", "");
+        return Enqueue();
+    }
+
     public bool ClearQueue()
     {
         lock (typeof(CPHInline))
@@ -315,8 +328,10 @@ public class CPHInline
         var configKey = "rts.actionreplay.message." + EventKey(eventName);
         var textTemplate = CPH.GetGlobalVar<string>(configKey + ".text", true);
         if (string.IsNullOrWhiteSpace(textTemplate)) textTemplate = DefaultMessage(eventName);
-        var chat = CPH.GetGlobalVar<bool?>(configKey + ".chat", true) ?? true;
-        var defaultOverlay = eventName.Equals("Replay Created", StringComparison.OrdinalIgnoreCase);
+        var messageOverride = Arg("messageOverride");
+        var isOverlayMessage = eventName.Equals("Overlay Message", StringComparison.OrdinalIgnoreCase);
+        var chat = CPH.GetGlobalVar<bool?>(configKey + ".chat", true) ?? !isOverlayMessage;
+        var defaultOverlay = eventName.Equals("Replay Created", StringComparison.OrdinalIgnoreCase) || isOverlayMessage;
         var configuredOverlay = CPH.GetGlobalVar<bool?>(configKey + ".overlay", true);
         var overlay = configuredOverlay ?? defaultOverlay;
 
@@ -338,7 +353,9 @@ public class CPHInline
             ["remainingCount"] = Arg("remainingCount")
         };
 
-        var message = string.IsNullOrWhiteSpace(textTemplate) ? "" : CPH.Parse(textTemplate, values);
+        var message = !string.IsNullOrWhiteSpace(messageOverride)
+            ? messageOverride
+            : (string.IsNullOrWhiteSpace(textTemplate) ? "" : CPH.Parse(textTemplate, values));
         var presentation = "message";
 
         return new JObject
@@ -430,6 +447,7 @@ public class CPHInline
             case "replay rated": return "rated";
             case "playlist cleared": return "cleared";
             case "playlist completely cleared": return "clearedall";
+            case "overlay message": return "custom";
             default: return "";
         }
     }
