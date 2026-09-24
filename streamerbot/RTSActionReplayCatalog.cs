@@ -276,7 +276,7 @@ public class CPHInline
         var json = Arg("replaySearchRequest"); if (string.IsNullOrWhiteSpace(json)) return false;
         JObject request; try { request = JObject.Parse(json); } catch { return false; }
         var isLeaderboard = string.Equals((string)request["filterType"], "leaderboard", StringComparison.OrdinalIgnoreCase);
-        var results = Query(request); var amount = Math.Max(1, (int?)request["amount"] ?? MaxAmount());
+        var results = Query(request); var amount = Math.Max(1, (int?)request["amount"] ?? MaxCatalogAmount());
         var page = Math.Max(1, (int?)request["page"] ?? 1); var pages = Math.Max(1, (int)Math.Ceiling(results.Count / (double)amount));
         page = Math.Min(page, pages); var start = (page - 1) * amount;
         var showChat = CPH.GetGlobalVar<bool?>("rts.actionreplay.search.chat", true) ?? false;
