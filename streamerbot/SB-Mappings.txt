@@ -1,94 +1,151 @@
 RTS - Action Replay
-RTS - Action Replay - Play History Item : Execute Method(RTS - Action Replay - Core - Catalog, PlayHistory) 
-Commands: !play-history [Parameters: <history item>]
-
-RTS - Action Replay - Play Replay : Execute Method(RTS - Action Replay - Core - Playback, PlayReplay) 
-Commands: !play-clip, !playclip, !play-replay, !playreplay [Parameters: <replay number>, <custom title>, or <platform:user number>]
-
-RTS - Action Replay - OBS - Save Replay : Execute Method(RTS - Action Replay - Core - Playback, SaveReplay) 
-Commands: !savereplay, !save-replay, !save-clip, !saveclip, !clip-local, !cliplocal
+Current chat-command mappings from the Streamer.bot action list.
 
 RTS - Action Replay - Catalog
-RTS - Action Replay - Catalog - First Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogFirst) 
-Commands: !search-first
+RTS - Action Replay - Add Existing - Replay : Execute Method(RTS - Action Replay - Core - Store, AddExistingReplay)
+Commands: !add-existing-replay [Parameters: "<filename>" <title>]
 
-RTS - Action Replay - Catalog - Last Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogLast) 
-Commands: !search-last
-
-RTS - Action Replay - Catalog - List Last Played : Execute Method(RTS - Action Replay - Core - Catalog, ListLastPlayed) 
-Commands: !last-played, !recently-played [Parameters: optional --amount <N>]
-
-RTS - Action Replay - Catalog - List Recent : Execute Method(RTS - Action Replay - Core - Catalog, ListRecent) 
-Commands: !search-recent [Parameters: optional --amount <N>]
-
-RTS - Action Replay - Catalog - Next Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogNext) 
-Commands: !search-next
-
-RTS - Action Replay - Catalog - Show Current Search Page : Execute Method(RTS - Action Replay - Core - Catalog, ShowSearchPage) 
-Commands: !search-show
-
-RTS - Action Replay - Catalog - Prev Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogPrevious) 
-Commands: !search-prev
-
-RTS - Action Replay - Catalog - Rate Replay : Execute Method(RTS - Action Replay - Core - Catalog, RateReplay) 
-Commands: !rate-clip, !rate-replay, !rate-video [Parameters: <rating> 1-5]
-
-RTS - Action Replay - Catalog - Purge Missing Items : Execute Method(RTS - Action Replay - Core - Catalog, Purge) 
-Commands: !purge, !catalog-purge, !catalogpurge
-
-RTS - Action Replay - Catalog - Delete Item : Execute Method(RTS - Action Replay - Core - Catalog, DeleteCatalogItem) 
-Commands: !delete-from-catalog [Parameters: <search result number(s), comma separated>]
-
-RTS - Action Replay - Catalog - Search : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalog) 
-Commands: !search [Parameters: <search text> and optional --amount <N>]
-
-RTS - Action Replay - Catalog - Search By Creator : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalogCreator) 
+RTS - Action Replay - Catalog - Creator Search : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalogCreator)
 Commands: !search-creator, !creator-search [Parameters: <creator> and optional --amount <N>]
 
-RTS - Action Replay - Catalog - Search By Date : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalogDate) 
+RTS - Action Replay - Catalog - Date Search : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalogDate)
 Commands: !search-date, !date-search [Parameters: <date period> and optional --amount <N>]
 
-RTS - Action Replay - Catalog - Search By Views : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalogMostViews) 
+RTS - Action Replay - Catalog - Delete Clip : Execute Method(RTS - Action Replay - Core - Catalog, DeleteCatalogItem)
+Commands: !delete-from-catalog [Parameters: <search result number(s), comma separated>]
+
+RTS - Action Replay - Catalog - First Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogFirst)
+Commands: !search-first
+
+RTS - Action Replay - Catalog - Last Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogLast)
+Commands: !search-last
+
+RTS - Action Replay - Catalog - Most Views : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalogMostViews)
 Commands: !search-views, !most-views [Parameters: optional --amount <N>]
 
-RTS - Action Replay - Catalog - Search Top Rated : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalogTopRated) 
+RTS - Action Replay - Catalog - Next Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogNext)
+Commands: !search-next
+
+RTS - Action Replay - Catalog - Prev Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogPrevious)
+Commands: !search-prev
+
+RTS - Action Replay - Catalog - Purge : Execute Method(RTS - Action Replay - Core - Catalog, Purge)
+Commands: !catalog-purge
+
+RTS - Action Replay - Catalog - Rate Replay : Execute Method(RTS - Action Replay - Core - Catalog, RateReplay)
+Commands: !rate-replay, !rate-clip, !rate-video [Parameters: <rating> 1-5]
+
+RTS - Action Replay - Catalog - Search : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalog)
+Commands: !search [Parameters: <search text> and optional --amount <N>]
+
+RTS - Action Replay - Catalog - Show Search : Execute Method(RTS - Action Replay - Core - Catalog, ShowSearchPage)
+Commands: !search-show
+
+RTS - Action Replay - Catalog - Top Rated : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalogTopRated)
 Commands: !search-rating [Parameters: optional <rating> 0-5 and/or --amount <N>]
 
-RTS - Action Replay - Catalog - Top Creators: Execute Method(RTS - Action Replay - Core - Catalog, ListLeaderboard) 
-Commands: !creator-leaderboard, !top-clippers, !top-creators [Parameters: optional <period> and/or --amount <N>]
+RTS - Action Replay - Leaderboard - Creator : Execute Method(RTS - Action Replay - Core - Catalog, ListLeaderboard)
+Commands: !creator-leaderboard [Parameters: optional <period> and/or --amount <N>]
 
-RTS - Action Replay - Catalog - Search Panel Clear : Execute Method(RTS - Action Replay - Core - Search Queue, Clear)  
+RTS - Action Replay - Name Replay : Execute Method(RTS - Action Replay - Core - Store, NameReplay)
+Commands: !name-clip, !rename-clip [Parameters: <replay number>, <replay title>]
 
-RTS - Action Replay - Catalog - Search Panel Ended : Execute Method(RTS - Action Replay - Core - Search Queue, SearchPanelEnded)
+RTS - Action Replay - Play History : Execute Method(RTS - Action Replay - Core - Catalog, PlayHistory)
+Commands: !play-history [Parameters: <history item>]
 
-RTS - Action Replay - OBS - Add Existing Replay: Execute Method(RTS - Action Replay - Core - Store, AddExistingReplay) 
-Commands: !add-existing-replay "<filename>" <title>
+RTS - Action Replay - Recent - List Recent : Execute Method(RTS - Action Replay - Core - Catalog, ListRecent)
+Commands: !search-recent [Parameters: optional --amount <N>]
 
-RTS - Action Replay - OBS - Scan Replay Folder : Execute Method(RTS - Action Replay - Core - Store, ScanReplays) 
-Commands: !scan-replay-folder !scanreplayfolder
+RTS - Action Replay - Scan Replay Folder : Execute Method(RTS - Action Replay - Core - Store, ScanReplays)
+Commands: !scan-replay-folder
+
+RTS - Action Replay - Show Replay Leaderboard : Execute Method(RTS - Action Replay - Core - Store, PlaybackLeaderboard)
+Commands: !clip-leaderboard
+
+RTS - Action Replay - Leaderboard - Playback : Execute Method(RTS - Action Replay - Core - Store, PlaybackLeaderboard)
+Commands: !playback-leaderboard
+
+RTS - Action Replay - Create Clip
+RTS - Action Replay - Create Kick Clip : Execute Method(RTS - Action Replay - Core - Platforms, RequestKickBotClip)
+Commands: (Kick chat only) !create-clip, !createclip [Parameters: optional <duration> and <title>]
+
+RTS - Action Replay - Create Twitch Clip : Execute Method(RTS - Action Replay - Core - Platforms, CreateTwitchClip)
+Commands: (Twitch chat only) !twitch-clip, !twitchclip, !create-clip, !createclip [Parameters: optional <duration> 5-60 and <title>]
+
+RTS - Action Replay - Create YouTube Clip : Execute Method(RTS - Action Replay - Core - Platforms, CreateYouTubeClip)
+Commands: (YouTube chat only) !create-clip, !createclip [Parameters: optional 5-60 second duration and title]
+
+RTS - Action Replay - Save Replay : Execute Method(RTS - Action Replay - Core - Playback, SaveReplay)
+Commands: !savereplay, !save-replay, !clip-local, !cliplocal
+
+RTS - Action Replay - Message
+RTS - Action Replay - Overlay Message : Execute Method(RTS - Action Replay - Core - Messaging, SendOverlayMessage)
+Commands: !overlay-message, !rts-message [Parameters: <message>]
+
+RTS - Action Replay - Playback
+RTS - Action Replay - Playback History : Execute Method(RTS - Action Replay - Core - Catalog, ListLastPlayed)
+Commands: !recently-played, !last-played [Parameters: optional --amount <N>]
+
+RTS - Action Replay - Screen Position : Execute Method(RTS - Action Replay - Core - Playback, SetPlayerPosition)
+Commands: !player-pos, !player-position [Parameters: <position tag> and optional <duration ms>]
+
+RTS - Action Replay - Video - Hide Player : Execute Method(RTS - Action Replay - Core - Video Controls, HidePlayer)
+Commands: !hide-player, !player-hide
+
+RTS - Action Replay - Video - Pause : Execute Method(RTS - Action Replay - Core - Video Controls, PauseVideo)
+Commands: !video-pause, !player-pause
+
+RTS - Action Replay - Video - Play : Execute Method(RTS - Action Replay - Core - Video Controls, PlayVideo)
+Commands: !video-play, !player-play
+
+RTS - Action Replay - Video - Set Speed : Execute Method(RTS - Action Replay - Core - Video Controls, SetVideoSpeed)
+Commands: !set-speed, !player-speed, !clip-speed [Parameters: <playback speed> 0.25-4.0]
+
+RTS - Action Replay - Video - Show Player : Execute Method(RTS - Action Replay - Core - Video Controls, ShowPlayer)
+Commands: !show-player, !player-show
+
+RTS - Action Replay - Playlist
+RTS - Action Replay - List Playlist : Execute Method(RTS - Action Replay - Core - Playlist, View)
+Commands: !playlist
+
+RTS - Action Replay - Play Replay : Execute Method(RTS - Action Replay - Core - Playback, PlayReplay)
+Commands: !play-clip, !play-replay [Parameters: <replay number>, <custom title>, or <platform:user number>]
+
+RTS - Action Replay - Playlist - Clear : Execute Method(RTS - Action Replay - Core - Playlist, Clear)
+Commands: !playlist-clear, !playlistclear
+
+RTS - Action Replay - Playlist - ClearAll : Execute Method(RTS - Action Replay - Core - Playlist, ClearAll)
+Commands: !playlist-clearall, !playlistclearall
+
+RTS - Action Replay - Playlist - Pause : Execute Method(RTS - Action Replay - Core - Playlist, Pause)
+Commands: !playlistpause, !playlist-pause
+
+RTS - Action Replay - Playlist - Remove : Execute Method(RTS - Action Replay - Core - Playlist, Remove)
+Commands: !playlistremove, !playlist-remove [Parameters: <playlist item>]
+
+RTS - Action Replay - Playlist - Resume : Execute Method(RTS - Action Replay - Core - Playlist, Resume)
+Commands: !playlistresume, !playlist-resume
+
+RTS - Action Replay - Playlist - Playback Ended : Execute Method(RTS - Action Replay - Core - Playlist, PlaybackEnded)
 
 RTS - Action Replay - Core
-RTS - Action Replay - Core - Messaging : Execute Code (RTS - Action Replay - Core - Messaging) - streamerbot/RTSActionReplayMessaging.cs 
+RTS - Action Replay - Core - Messaging : Execute Code (RTS - Action Replay - Core - Messaging) - streamerbot/RTSActionReplayMessaging.cs
 Methods: Enqueue, SendOverlayMessage, OverlayCompleted, Resume, ClearQueue, Reset
-
-RTS - Action Replay - Overlay Message : Execute Method (RTS - Action Replay - Core - Messaging, SendOverlayMessage)
-Commands: !overlay-message, !send-message [Parameters: <message>]
 
 RTS - Action Replay - Core - Test : Execute Code (RTS - Action Replay - Core - Test) - streamerbot/RTSActionReplayTest.cs
 Methods: TestMessage, TestPanel, TestVideo, TestClapperboard
 
 RTS - Action Replay - Core - Catalog : Execute Code (RTS - Action Replay - Core - Catalog) - streamerbot/RTSActionReplayCatalog.cs
 
-
 RTS - Action Replay - Core - Playback : Execute Code (RTS - Action Replay - Core - Playback) - streamerbot/RTSActionReplayPlayback.cs
 
 RTS - Action Replay - Core - Playlist : Execute Code (RTS - Action Replay - Core - Playlist) - streamerbot/RTSActionReplayPlaylist.cs
 
-RTS - Action Replay - Core - Settings  : Execute Code (RTS - Action Replay - Core - Settings) - streamerbot/RTSActionReplaySettings.cs
+RTS - Action Replay - Core - Settings : Execute Code (RTS - Action Replay - Core - Settings) - streamerbot/RTSActionReplaySettings.cs
 
 RTS - Action Replay - Core - Resolver : Execute Code (RTS - Action Replay - Core - Resolver) - streamerbot/RTSActionReplayResolver.cs
 
-RTS - Action Replay - Core - Search Queue: Execute Code (RTS - Action Replay - Core - Search Queue) - streamerbot/RTSActionReplaySearchQueue.cs
+RTS - Action Replay - Core - Search Queue : Execute Code (RTS - Action Replay - Core - Search Queue) - streamerbot/RTSActionReplaySearchQueue.cs
 
 RTS - Action Replay - Core - Store : Execute Code (RTS - Action Replay - Core - Store) - streamerbot/RTSActionReplayStore.cs
 
@@ -97,89 +154,27 @@ RTS - Action Replay - Core - Video Controls : Execute Code (RTS - Action Replay 
 RTS - Action Replay - Core - Event Trigger : CUSTOM TRIGGER (RTS-Action Replay)
 
 RTS - Action Replay - Init Store : Execute Method (RTS - Action Replay - Core - Store, Initialize)
+
 RTS - Action Replay - Core - Platforms : Execute Code (RTS - Action Replay - Core - Platforms) - streamerbot/RTSActionReplayPlatforms.cs
 
-RTS - Action Replay Kick
+Platform support
 RTS - Action Replay - Kick - Capture KickBot Clip : Execute Method (RTS - Action Replay - Core - Platforms, CaptureKickBotClip)
 RTS - Action Replay - Kick - Capture Native Kick Clip : Execute Method (RTS - Action Replay - Core - Platforms, CaptureKickClip)
-
-RTS - Action Replay - Kick - Create Kick Clip : Execute Method (RTS - Action Replay - Core - Platforms, RequestKickBotClip) 
-Commands: (kick chat only) !create-clip, !createclip [Parameters: optional <duration> 5-60 and <title>]
-
-RTS - Action Replay - Playlist : 
-RTS - Action Replay - List Playlist : Execute Method (RTS - Action Replay - Core - Playlist, View) 
-Commands: !playlist [Parameters: none]
-
-RTS - Action Replay - Playlist - Clear : Execute Method (RTS - Action Replay - Core - Playlist, Clear) 
-Commands: !playlist-clear, !playlist-clear
-
-RTS - Action Replay - Playlist - Clear All : Execute Method (RTS - Action Replay - Core - Playlist, ClearAll) 
-Commands: !playlist-clearall, !playlistclearall
-
-RTS - Action Replay - Playlist - Pause : Execute Method (RTS - Action Replay - Core - Playlist, Pause) 
-Commands: !playlist-pause, !playlistpause
-
-RTS - Action Replay - Playlist - Playback Ended : Execute Method (RTS - Action Replay - Core - Playlist, PlaybackEnded) 
-
-RTS - Action Replay - Playlist - Remove : Execute Method (RTS - Action Replay - Core - Playlist, Remove) 
-Commands: !playlist-remove, !playlistremove [Parameters: <playlist item>]
-
-RTS - Action Replay - Playlist - Resume : Execute Method (RTS - Action Replay - Core - Playlist, Resume) 
-Commands: !playlist-resume, !playlistresume
-
-RTS - Action Replay - Store
-RTS - Action Replay - Store - Name Replay : Execute Method (RTS - Action Replay - Core - Store, NameReplay) 
-Commands: !name-clip, !nameclip, !renameclip, !rename-clip [Parameters: <replay number>, <replay title>]
-
-RTS - Action Replay - Store - Show Creator Leaderboard : Execute Method (RTS - Action Replay - Core - Store, CreatorLeaderboard) 
-Commands: !creator-leaderboard, !top-creators, !top-clippers
-
-RTS - Action Replay - Store - Show Playback Leaderboard : Execute Method (RTS - Action Replay - Core - Store, PlaybackLeaderboard) 
-Commands: !clip-leaderboard, !clipleaderboard
-
-RTS - Action Replay - Twitch
-RTS - Action Replay - Twitch - Create Twitch Clip : Execute Method (RTS - Action Replay - Core - Platforms, CreateTwitchClip) 
-Commands: (twitch chat only) !twitchclip, !create-clip, !createclip [Parameters: optional <duration> 5-60 and <title>]
-
 RTS - Action Replay - Twitch - Twitch Sync : Execute Method (RTS - Action Replay - Core - Platforms, SyncTwitchClips)
-
-RTS - Action Replay - Video
-RTS - Action Replay - Video - Hide Player : Execute Method (RTS - Action Replay - Core - Video Controls, HidePlayer) 
-Commands: !player-hide, !playerhide, !hide-player, !hideplayer
-
-RTS - Action Replay - Video - Pause : Execute Method (RTS - Action Replay - Core - Video Controls, PauseVideo) 
-Commands: !video-pause, !videopause, !player-pause, !playerpause
-
-RTS - Action Replay - Video - Play : Execute Method (RTS - Action Replay - Core - Video Controls, PlayVideo) 
-Commands: !video-play, !videoplay, !player-play, !playerplay
-
-RTS - Action Replay - Video - Screen Position : Execute Method (RTS - Action Replay - Core - Playback, SetPlayerPosition) 
-Commands: !player-pos, !player-position [Parameters: <position name> [<duration ms>]]
-
-RTS - Action Replay - Video - Set Speed : Execute Method (RTS - Action Replay - Core - Video Controls, SetVideoSpeed) 
-Commands: !set-speed, !setspeed, !player-speed, !playerspeed, !clip-speed, !clipspeed [Parameters: <playback speed> 0.25-4.0]
-
-RTS - Action Replay - Video - Show Player : Execute Method (RTS - Action Replay - Core - Video Controls, ShowPlayer) 
-Commands: !show-player, !showplayer, !playershow, !player-show
-
-RTS - Action Replay - YouTube : 
-RTS - Action Replay - YouTube - Create YouTube Clip : Execute Method (RTS - Action Replay - Core - Platforms, CreateYouTubeClip) 
-Commands: (Youtube chat only) !create-clip, !createclip [Parameters: %rawInput% = optional 5-60 second duration and title]
-
 RTS - Action Replay - YouTube - Broadcast Started : Execute Method (RTS - Action Replay - Core - Platforms, BroadcastStarted)
 
+Deleted or legacy mappings
 Deleted - RTS - Action Replay - Core - Position Store : Execute Code (RTS - Action Replay - Core - Position Store) - streamerbot/RTSActionReplayPositionStore.cs - Deleted
-Deleted - RTS - Action Replay - Core - Preset Store: Execute Code (RTS - Action Replay - Core - Preset Store) - streamerbot/RTSActionReplayPresetStore.cs - Deleted
+Deleted - RTS - Action Replay - Core - Preset Store : Execute Code (RTS - Action Replay - Core - Preset Store) - streamerbot/RTSActionReplayPresetStore.cs - Deleted
 Deleted - RTS - Action Replay - Core - Animation : Execute Code (RTS - Action Replay - Core - Animation) - streamerbot/RTSActionReplayAnimationProfiles.cs - Deleted
-Deleted - RTS - Action Replay - Core - Identity : Execute Code (RTS - Action Replay - Core - Identity) - streamerbot/RTSActionReplayIdentity.cs Deleted
+Deleted - RTS - Action Replay - Core - Identity : Execute Code (RTS - Action Replay - Core - Identity) - streamerbot/RTSActionReplayIdentity.cs - Deleted
 Deleted - RTS - Action Replay - Core - Kick : Execute Code (RTS - Action Replay - Core - Kick) - streamerbot/RTSActionReplayKick.cs - Deleted
 Deleted - RTS - Action Replay - Core - Panel Presets : Execute Code (RTS - Action Replay - Core - Panel Presets) - streamerbot/RTSActionReplayPanelPresets.cs - Deleted
-Deleted - RTS - Action Replay - Core - Title : Execute Code (RTS - Action Replay - Core - Title) - no longer in repo; probably legacy and removed - Deleted
-Deleted - RTS - Action Replay - Core - Twitch : Execute Code (RTS - Action Replay - Core - Twitch) - streamerbot/RTSActionReplayTwitch.cs - Deleted
-Deleted - RTS - Action Replay - Core - YouTube : Execute Code (RTS - Action Replay - Core - YouTube) - streamerbot/RTSActionReplayYouTube.cs - Deleted
-Deleted - RTS - Action Replay - Test - Clip Test : Execute Code (RTS - Action Replay - Test - Clip Test) - no longer in repo, probably legacy and removed - Deleted
-Deleted - RTS - Action Replay - Test - Positions : Execute Code (RTS - Action Replay - Test - Positions) - no longer in repo, probably legacy and removed - Deleted
-Deleted - RTS - Action Replay - Store - Show Playback Leaderboard: Execute Method (RTS - Action Replay - Core - Store, PlaybackLeaderboard) - Deleted
+Deleted - RTS - Action Replay - Core - Title : Execute Code (RTS - Action Replay - Core - Title) - Deleted
+Deleted - RTS - Action Replay - Core - Twitch : Execute Code (RTS - Action Replay - Core - Twitch) - Deleted
+Deleted - RTS - Action Replay - Core - YouTube : Execute Code (RTS - Action Replay - Core - YouTube) - Deleted
+Deleted - RTS - Action Replay - Test - Clip Test : Execute Code (RTS - Action Replay - Test - Clip Test) - Deleted
+Deleted - RTS - Action Replay - Test - Positions : Execute Code (RTS - Action Replay - Test - Positions) - Deleted
+Deleted - RTS - Action Replay - Store - Show Playback Leaderboard : Execute Method (RTS - Action Replay - Core - Store, PlaybackLeaderboard) - Deleted
 Deleted - RTS - Action Replay - Store - Show Creator Leaderboard : Execute Method (RTS - Action Replay - Core - Store, CreatorLeaderboard) - Deleted
 Deleted - RTS - Action Replay - Confirm Playback : Execute Method (RTS - Action Replay - Core - Playback, ConfirmPlayback) - Deleted
-
