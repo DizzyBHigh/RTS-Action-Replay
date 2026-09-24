@@ -32,6 +32,12 @@ public class CPHInline
         CPH.SetArgument("remainingCount", 0);
 
         var testEvent = CPH.GetGlobalVar<string>(MessageTypeKey, true) ?? "Replay Created";
+        var testSource = CPH.GetGlobalVar<string>("rts.actionreplay.test.messagePresentationSource", true) ?? "Current Settings";
+        var testDesign = CPH.GetGlobalVar<string>("rts.actionreplay.test.messageDesign", true) ?? "Broadcast";
+        var testBranding = CPH.GetGlobalVar<string>("rts.actionreplay.test.messageBranding", true) ?? "Default";
+        var resolvedDesign = PresetId("visual", testDesign, "broadcast");
+        var resolvedBranding = PresetId("branding", testBranding, "default");
+        CPH.LogInfo($"RTS Action Replay TRACE: TestMessage presentation source={testSource}, design={testDesign}->{resolvedDesign}, branding={testBranding}->{resolvedBranding}.");
         CPH.SetGlobalVar(
             "rts.actionreplay.operation.message.test",
             new JObject
@@ -56,9 +62,9 @@ public class CPHInline
                 ["replayRating"] = rating,
                 ["clearedCount"] = 3,
                 ["remainingCount"] = 0,
-                ["messagePresentationSource"] = CPH.GetGlobalVar<string>("rts.actionreplay.test.messagePresentationSource", true) ?? "Current Settings",
-                ["messageDesign"] = PresetId("visual", CPH.GetGlobalVar<string>("rts.actionreplay.test.messageDesign", true) ?? "Broadcast", "broadcast"),
-                ["messageBranding"] = PresetId("branding", CPH.GetGlobalVar<string>("rts.actionreplay.test.messageBranding", true) ?? "Default", "default")
+                ["messagePresentationSource"] = testSource,
+                ["messageDesign"] = resolvedDesign,
+                ["messageBranding"] = resolvedBranding
             }.ToString(Newtonsoft.Json.Formatting.None),
             false
         );
