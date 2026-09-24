@@ -19,7 +19,51 @@ body {
   position: relative;
 }
 
-#status { display: none; }
+#status {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 999px;
+  background: rgba(16,20,22,.92);
+  color: #fff;
+  font: 600 11px/1 system-ui, sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  box-shadow: 0 6px 18px rgba(0,0,0,.35);
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+}
+
+#status::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: #0384cb;
+  box-shadow: 0 0 10px rgba(3,132,203,.7);
+  animation: rts-status-pulse 1.2s ease-in-out infinite;
+}
+
+#status.connected {
+  display: none;
+}
+
+#status.error::before {
+  background: #f0c400;
+  box-shadow: 0 0 10px rgba(240,196,0,.7);
+}
+
+@keyframes rts-status-pulse {
+  0%, 100% { opacity: .45; transform: scale(.85); }
+  50% { opacity: 1; transform: scale(1); }
+}
 
 /* Information panels always render above the replay player. */
 #recent-list,
