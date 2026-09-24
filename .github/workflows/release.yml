@@ -37,7 +37,13 @@ jobs:
           test -f "${IMPORT_SOURCE}"
           mkdir -p dist
           cp "${IMPORT_SOURCE}" "dist/${IMPORT_NAME}"
+
+          OVERLAY_NAME="${NAME} v${VERSION} - Overlay.zip"
+          test -d overlay
+          zip -r "dist/${OVERLAY_NAME}" overlay
+
           echo "IMPORT_PATH=dist/${IMPORT_NAME}" >> "$GITHUB_ENV"
+          echo "OVERLAY_PATH=dist/${OVERLAY_NAME}" >> "$GITHUB_ENV"
 
       - name: Check placeholder was replaced
         shell: bash
@@ -53,5 +59,6 @@ jobs:
         run: |
           gh release create "${GITHUB_REF_NAME}" \
             "$IMPORT_PATH" \
+            "$OVERLAY_PATH" \
             --title "${GITHUB_REF_NAME}" \
             --generate-notes
