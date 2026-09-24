@@ -4,7 +4,12 @@
   "name": "RTS Action Replay",
   "type": "extension",
   "description": "Capture OBS replay-buffer clips and play them through a Streamer.bot-controlled browser overlay.",
-  "tags": ["Streamer.bot", "OBS", "Replay Buffer", "Overlay"],
+  "tags": [
+    "Streamer.bot",
+    "OBS",
+    "Replay Buffer",
+    "Overlay"
+  ],
   "publish": {
     "importFile": "RTS Extension - Import Code.txt",
     "overlay": "overlay",
@@ -25,10 +30,22 @@
       "title": "Turn OBS replay clips into an interactive on-stream replay player.",
       "text": "RTS Action Replay connects OBS Replay Buffer captures, Streamer.bot and a remote browser overlay so saved clips can be loaded and controlled without a separate web server.",
       "features": [
-        {"title": "OBS replay buffer", "text": "Trigger OBS to save the current replay buffer from Streamer.bot."},
-        {"title": "Local replay serving", "text": "Use Streamer.bot's HTTP server to expose replay files to the overlay."},
-        {"title": "Playlist ready", "text": "Keep saved replays available for previous and next playback control."},
-        {"title": "Remote overlay", "text": "Host the player on The Road to Somewhere while the video files remain local."}
+        {
+          "title": "OBS replay buffer",
+          "text": "Trigger OBS to save the current replay buffer from Streamer.bot."
+        },
+        {
+          "title": "Local replay serving",
+          "text": "Use Streamer.bot's HTTP server to expose replay files to the overlay."
+        },
+        {
+          "title": "Playlist ready",
+          "text": "Keep saved replays available for previous and next playback control."
+        },
+        {
+          "title": "Remote overlay",
+          "text": "Host the player on The Road to Somewhere while the video files remain local."
+        }
       ]
     }
   },
@@ -46,10 +63,26 @@
         "title": "Import the extension into Streamer.bot",
         "description": "Open Streamer.bot and use Import to paste the supplied import string, or download the latest import file and import it into Streamer.bot.",
         "substeps": [
-          {"number": ".1", "title": "Copy the import string", "text": "Look above for Action Import and click [[code:Copy Import]]. Paste the import code into Streamer.bot's Import dialog."},
-          {"number": ".2", "title": "Open Import", "text": "Select Import from the Streamer.bot toolbar."},
-          {"number": ".3", "title": "Paste the import code", "text": "Paste the supplied import string into the Import String box, then select Import."},
-          {"number": ".4", "title": "Confirm the import", "text": "Review the actions being imported, then select Import to continue."}
+          {
+            "number": ".1",
+            "title": "Copy the import string",
+            "text": "Look above for Action Import and click [[code:Copy Import]]. Paste the import code into Streamer.bot's Import dialog."
+          },
+          {
+            "number": ".2",
+            "title": "Open Import",
+            "text": "Select Import from the Streamer.bot toolbar."
+          },
+          {
+            "number": ".3",
+            "title": "Paste the import code",
+            "text": "Paste the supplied import string into the Import String box, then select Import."
+          },
+          {
+            "number": ".4",
+            "title": "Confirm the import",
+            "text": "Review the actions being imported, then select Import to continue."
+          }
         ]
       },
       {
@@ -57,8 +90,16 @@
         "title": "Enable the imported actions",
         "description": "Enable the imported RTS Action Replay actions and commands so the extension can respond to events and chat commands.",
         "substeps": [
-          {"number": ".1", "title": "Enable the extension actions", "text": "Enable the imported RTS Action Replay actions in Streamer.bot."},
-          {"number": ".2", "title": "Check the commands", "text": "Confirm the imported RTS Action Replay commands are present and enabled where required."}
+          {
+            "number": ".1",
+            "title": "Enable the extension actions",
+            "text": "Enable the imported RTS Action Replay actions in Streamer.bot."
+          },
+          {
+            "number": ".2",
+            "title": "Check the commands",
+            "text": "Confirm the imported RTS Action Replay commands are present and enabled where required."
+          }
         ]
       },
       {
@@ -66,8 +107,16 @@
         "title": "Enable OBS Replay Buffer",
         "description": "Enable Replay Buffer in OBS and choose the folder where the replay files are saved.",
         "substeps": [
-          {"number": ".1", "title": "Enable Replay Buffer", "text": "In OBS, open Settings > Output and enable Replay Buffer."},
-          {"number": ".2", "title": "Choose the replay folder", "text": "Configure OBS to save replay files to a folder that Streamer.bot can access. You will use this same folder when configuring the HTTP Server mapping and RTS Action Replay settings."}
+          {
+            "number": ".1",
+            "title": "Enable Replay Buffer",
+            "text": "In OBS, open Settings > Output and enable Replay Buffer."
+          },
+          {
+            "number": ".2",
+            "title": "Choose the replay folder",
+            "text": "Configure OBS to save replay files to a folder that Streamer.bot can access. You will use this same folder when configuring the HTTP Server mapping and RTS Action Replay settings."
+          }
         ]
       },
       {
@@ -75,10 +124,26 @@
         "title": "Configure the Streamer.bot HTTP Server",
         "description": "The hosted RTS overlay cannot read files directly from your computer. Streamer.bot's HTTP Server provides the local URL that the overlay uses to load replay video files.",
         "substeps": [
-          {"number": ".1", "title": "Enable the HTTP Server", "text": "In Streamer.bot, open the Servers or Web Server settings and enable the HTTP Server. Keep note of the HTTP port."},
-          {"number": ".2", "title": "Add a file mapping", "text": "Create a file or directory mapping for the OBS Replay Buffer folder. Use a simple URL path such as [[code:replays]] and point it to the same local folder where OBS saves replay files."},
-          {"number": ".3", "title": "Check the mapping", "text": "The mapping should expose the replay folder through the Streamer.bot HTTP Server. For example, a replay file named [[code:Replay 001.mp4]] in the mapped folder should be available below the [[code:/replays/]] path."},
-          {"number": ".4", "title": "Keep the HTTP server available", "text": "Leave the Streamer.bot HTTP Server running while using Action Replay. The overlay uses this service to request the local replay video."}
+          {
+            "number": ".1",
+            "title": "Enable the HTTP Server",
+            "text": "In Streamer.bot, open the Servers or Web Server settings and enable the HTTP Server. Keep note of the HTTP port."
+          },
+          {
+            "number": ".2",
+            "title": "Add a file mapping",
+            "text": "Create a file or directory mapping for the OBS Replay Buffer folder. Use a simple URL path such as [[code:replays]] and point it to the same local folder where OBS saves replay files."
+          },
+          {
+            "number": ".3",
+            "title": "Check the mapping",
+            "text": "The mapping should expose the replay folder through the Streamer.bot HTTP Server. For example, a replay file named [[code:Replay 001.mp4]] in the mapped folder should be available below the [[code:/replays/]] path."
+          },
+          {
+            "number": ".4",
+            "title": "Keep the HTTP server available",
+            "text": "Leave the Streamer.bot HTTP Server running while using Action Replay. The overlay uses this service to request the local replay video."
+          }
         ]
       },
       {
@@ -86,8 +151,16 @@
         "title": "Enable the Streamer.bot WebSocket",
         "description": "The hosted overlay uses the Streamer.bot WebSocket to receive Action Replay events and commands.",
         "substeps": [
-          {"number": ".1", "title": "Enable the WebSocket Server", "text": "In Streamer.bot, open the WebSocket Server settings and enable the server. Keep the configured port available to the overlay."},
-          {"number": ".2", "title": "Keep WebSocket access available", "text": "The Streamer.bot WebSocket Server must remain running while the Action Replay overlay is in use."}
+          {
+            "number": ".1",
+            "title": "Enable the WebSocket Server",
+            "text": "In Streamer.bot, open the WebSocket Server settings and enable the server. Keep the configured port available to the overlay."
+          },
+          {
+            "number": ".2",
+            "title": "Keep WebSocket access available",
+            "text": "The Streamer.bot WebSocket Server must remain running while the Action Replay overlay is in use."
+          }
         ]
       },
       {
@@ -95,12 +168,36 @@
         "title": "Configure RTS Action Replay",
         "description": "Open the RTS Action Replay settings and configure the replay source and local HTTP mapping.",
         "substeps": [
-          {"number": ".1", "title": "Open the settings dialog", "text": "In the Streamer.bot Actions panel, run the RTS Action Replay settings action to open the extension settings."},
-          {"number": ".2", "title": "Configure the OBS replay folder", "text": "Set the replay folder to the same directory used by OBS Replay Buffer."},
-          {"number": ".3", "title": "Configure the HTTP mapping", "text": "Set the HTTP path and related local serving settings to match the Streamer.bot HTTP Server mapping you created in the previous step."},
-          {"number": ".4", "title": "Save the settings", "text": "Save the extension settings before testing replay creation and playback."},
-          {"number": "*", "title": "Automatic installation of RtsUI.dll", "text": "If you do not have the DLL installed, the extension can download and place it in your Streamer.bot installation directory."},
-          {"number": "*", "title": "Automatic updating of RtsUI.dll", "text": "If the extension requires an updated version, it can ask whether you want to download and install the latest version."}
+          {
+            "number": ".1",
+            "title": "Open the settings dialog",
+            "text": "In the Streamer.bot Actions panel, run the RTS Action Replay settings action to open the extension settings."
+          },
+          {
+            "number": ".2",
+            "title": "Configure the OBS replay folder",
+            "text": "Set the replay folder to the same directory used by OBS Replay Buffer."
+          },
+          {
+            "number": ".3",
+            "title": "Configure the HTTP mapping",
+            "text": "Set the HTTP path and related local serving settings to match the Streamer.bot HTTP Server mapping you created in the previous step."
+          },
+          {
+            "number": ".4",
+            "title": "Save the settings",
+            "text": "Save the extension settings before testing replay creation and playback."
+          },
+          {
+            "number": "*",
+            "title": "Automatic installation of RtsUI.dll",
+            "text": "If you do not have the DLL installed, the extension can download and place it in your Streamer.bot installation directory."
+          },
+          {
+            "number": "*",
+            "title": "Automatic updating of RtsUI.dll",
+            "text": "If the extension requires an updated version, it can ask whether you want to download and install the latest version."
+          }
         ]
       },
       {
@@ -108,9 +205,21 @@
         "title": "Add the Action Replay overlay to OBS",
         "description": "Add the hosted Action Replay overlay as an OBS Browser Source.",
         "substeps": [
-          {"number": ".1", "title": "Copy the Overlay URL", "text": "Look above in the Quick Access section and click [[code:Copy Overlay URL]]. This copies the overlay URL to your clipboard for use in OBS."},
-          {"number": ".2", "title": "Create a browser source", "text": "Add a Browser Source to the scene where you want Action Replay to appear."},
-          {"number": ".3", "title": "Configure the browser source", "text": "Paste the overlay URL into the URL field and set the Browser Source dimensions to 1920x1080, or another 16:9 size. The Action Replay overlay uses a 1920x1080 coordinate system. Enable Refresh browser when scene becomes active if required by your scene setup."}
+          {
+            "number": ".1",
+            "title": "Copy the Overlay URL",
+            "text": "Look above in the Quick Access section and click [[code:Copy Overlay URL]]. This copies the overlay URL to your clipboard for use in OBS."
+          },
+          {
+            "number": ".2",
+            "title": "Create a browser source",
+            "text": "Add a Browser Source to the scene where you want Action Replay to appear."
+          },
+          {
+            "number": ".3",
+            "title": "Configure the browser source",
+            "text": "Paste the overlay URL into the URL field and set the Browser Source dimensions to 1920x1080, or another 16:9 size. The Action Replay overlay uses a 1920x1080 coordinate system. Enable Refresh browser when scene becomes active if required by your scene setup."
+          }
         ]
       },
       {
@@ -118,9 +227,21 @@
         "title": "Test Action Replay",
         "description": "Create a replay and confirm that the complete local-to-overlay path is working.",
         "substeps": [
-          {"number": ".1", "title": "Save a replay", "text": "Use the Action Replay Save Replay command or the configured OBS Replay Buffer action to create a replay file."},
-          {"number": ".2", "title": "Confirm the replay is available", "text": "Check that the replay file appears in the configured replay folder and is reachable through the Streamer.bot HTTP mapping."},
-          {"number": ".3", "title": "Play the replay", "text": "Use the Action Replay playback command or Playlist controls and confirm the video appears in the OBS overlay."}
+          {
+            "number": ".1",
+            "title": "Save a replay",
+            "text": "Use the Action Replay Save Replay command or the configured OBS Replay Buffer action to create a replay file."
+          },
+          {
+            "number": ".2",
+            "title": "Confirm the replay is available",
+            "text": "Check that the replay file appears in the configured replay folder and is reachable through the Streamer.bot HTTP mapping."
+          },
+          {
+            "number": ".3",
+            "title": "Play the replay",
+            "text": "Use the Action Replay playback command or Playlist controls and confirm the video appears in the OBS overlay."
+          }
         ]
       }
     ]
@@ -129,5 +250,1096 @@
     "Replay files remain on the local computer. The RTS overlay does not upload them to the website.",
     "The production overlay is hosted by The Road to Somewhere; Streamer.bot supplies the local WebSocket and HTTP services."
   ],
-  "review": false
+  "review": false,
+  "documentation": {
+    "title": "Action Replay Documentation",
+    "intro": "Reference documentation for configuring and using RTS Action Replay.",
+    "sections": [
+      {
+        "title": "Settings",
+        "intro": "Configure Action Replay in the same order as the Streamer.bot settings window.",
+        "sections": [
+          {
+            "title": "Local Capture",
+            "intro": "Configure how RTS discovers, registers and serves local OBS Replay Buffer captures.",
+            "sections": [
+              {
+                "title": "Local Capture / OBS",
+                "controls": [
+                  [
+                    "Replay Folder",
+                    "Folder containing local OBS Replay Buffer files. Twitch and Kick downloads use separate folders.",
+                    "Empty"
+                  ],
+                  [
+                    "Replay File Types",
+                    "File extensions accepted when scanning or registering files from the Replay Folder. Separate multiple extensions with commas, for example [[code:.mp4, .mkv]].",
+                    ".mp4, .mkv"
+                  ],
+                  [
+                    "HTTP Mapping",
+                    "URL path used in the local replay URL. It must match the Streamer.bot HTTP server mapping serving the Replay Folder.",
+                    "replays"
+                  ],
+                  [
+                    "HTTP Port",
+                    "Port used in the local replay URL. It must match Streamer.bot's HTTP server port.",
+                    "7474"
+                  ]
+                ]
+              },
+              {
+                "title": "Replay Defaults",
+                "controls": [
+                  [
+                    "Replay Title Template",
+                    "Generates the title of a newly added OBS replay. Available variables are [[code:%replayName%]], [[code:%replayDate%]] and [[code:%replayTime%]]. A manually supplied title bypasses the template.",
+                    "%replayName%"
+                  ]
+                ]
+              },
+              {
+                "title": "Local Capture Handling",
+                "controls": [
+                  [
+                    "Auto-add Saved Replays (OBS Capture)",
+                    "Adds each newly saved OBS replay to the Catalog. It also becomes available to Recent Clips through the Catalog's recent history.",
+                    "On"
+                  ],
+                  [
+                    "Auto-play OBS Captures",
+                    "Adds a newly saved OBS replay to the playback queue for playback.",
+                    "Off"
+                  ]
+                ],
+                "notes": [
+                  "When automatic registration is disabled, existing replay files can still be registered with Add Replay or Scan Replays."
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Twitch",
+            "intro": "Configure how Twitch clips are acquired and made available to the player.",
+            "sections": [
+              {
+                "title": "Twitch Clips",
+                "controls": [
+                  [
+                    "Twitch Clip Playback",
+                    "Use the Twitch URL, download locally, or support both methods. In Both mode, a local copy is preferred and Twitch is the fallback.",
+                    "Download Locally"
+                  ],
+                  [
+                    "Twitch Clip Folder",
+                    "Folder used for downloaded Twitch clips. It must be separate from the OBS Replay Folder.",
+                    "Empty"
+                  ],
+                  [
+                    "Twitch HTTP Mapping",
+                    "URL path used by Streamer.bot to serve downloaded Twitch clips. The shared HTTP Port is configured under Local Capture / OBS.",
+                    "twitch"
+                  ],
+                  [
+                    "Clip Duration",
+                    "Default duration used by Twitch clip commands when no duration is supplied.",
+                    "30 seconds"
+                  ]
+                ],
+                "notes": [
+                  "The allowed Twitch clip duration is 5-60 seconds. A duration supplied with the command overrides the setting within that range."
+                ]
+              },
+              {
+                "title": "Twitch Clip Playback",
+                "bullets": [
+                  "[[code:Twitch URL]] - play directly from Twitch.",
+                  "[[code:Download Locally]] - download and play a local copy through Streamer.bot's HTTP server.",
+                  "[[code:Both]] - use the local copy when available and fall back to Twitch playback when it is unavailable."
+                ]
+              }
+            ]
+          },
+          {
+            "title": "YouTube",
+            "intro": "Configure timestamp-based clips from the current monitored YouTube broadcast.",
+            "sections": [
+              {
+                "title": "YouTube Clips",
+                "controls": [
+                  [
+                    "Clip Duration",
+                    "Default duration used by YouTube clip commands when no duration is supplied.",
+                    "30 seconds"
+                  ]
+                ],
+                "notes": [
+                  "The allowed duration is 5-60 seconds. Action Replay uses the current broadcast and its monitored start time to calculate the clip timestamp."
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Kick",
+            "intro": "Configure how Kick clips are acquired and made available to the player.",
+            "sections": [
+              {
+                "title": "Kick Clips",
+                "controls": [
+                  [
+                    "Kick Clip Playback",
+                    "Use the Kick URL, download locally, or support both methods. In Both mode, a local copy is preferred and direct Kick playback is the fallback.",
+                    "Kick URL"
+                  ],
+                  [
+                    "Kick Clip Folder",
+                    "Folder used for downloaded Kick clips. It must be separate from the OBS Replay Folder.",
+                    "Empty"
+                  ],
+                  [
+                    "Kick HTTP Mapping",
+                    "URL path used by Streamer.bot to serve downloaded Kick clips. The shared HTTP Port is configured under Local Capture / OBS.",
+                    "kick"
+                  ]
+                ]
+              },
+              {
+                "title": "Kick Clip Playback",
+                "bullets": [
+                  "[[code:Kick URL]] - play directly from Kick.",
+                  "[[code:Download Locally]] - download and play a local copy through Streamer.bot's HTTP server.",
+                  "[[code:Both]] - use the local copy when available and fall back to direct Kick playback when necessary."
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Playback",
+            "intro": "Control how replays start and how playback controls and player styling are presented.",
+            "sections": [
+              {
+                "title": "Playback",
+                "controls": [
+                  [
+                    "Show Controls",
+                    "Displays the Play/Pause control and interactive playback progress bar.",
+                    "Off"
+                  ],
+                  [
+                    "Show Progress Bar",
+                    "Displays the interactive playback progress bar.",
+                    "On"
+                  ],
+                  [
+                    "Default Playback Speed",
+                    "Playback speed used when a replay is loaded. Range 0.25-2.0.",
+                    "1.0"
+                  ],
+                  [
+                    "Show Visibility",
+                    "Controls when the playback speed indicator is displayed.",
+                    "Only when greater or less than 1"
+                  ]
+                ]
+              },
+              {
+                "title": "Player Appearance",
+                "controls": [
+                  [
+                    "Frame Colour Source",
+                    "Uses a Custom, Branding Primary or Branding Secondary colour for the player frame.",
+                    "Custom"
+                  ],
+                  [
+                    "Frame Colour",
+                    "Custom frame colour when Frame Colour Source is Custom.",
+                    "#0384CBFF"
+                  ],
+                  [
+                    "Control Colour Source",
+                    "Uses a Custom, Branding Primary or Branding Secondary colour for the Play/Pause control and progress bar.",
+                    "Branding Primary"
+                  ],
+                  [
+                    "Control Colour",
+                    "Custom control colour when Control Colour Source is Custom.",
+                    "#0384CBFF"
+                  ],
+                  [
+                    "Border Glow",
+                    "Adds a branded glow around the player border.",
+                    "On"
+                  ],
+                  [
+                    "Border Width",
+                    "Player border width in pixels.",
+                    "4"
+                  ],
+                  [
+                    "Corner Radius",
+                    "Player corner radius in pixels.",
+                    "0"
+                  ]
+                ],
+                "notes": [
+                  "Change Player Branding to Clip Source is configured later under Player Behaviour. When enabled, it can override the player frame and control branding with the active source branding."
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Catalog",
+            "intro": "The Catalog is the persistent replay library. Recent Clips and Last Played are different views/history derived from replay data, while the Playlist is the live playback queue.",
+            "sections": [
+              {
+                "title": "Recent Clips",
+                "controls": [
+                  [
+                    "Maximum Recent Clips",
+                    "Maximum number of entries shown in Recent Clips and retained in Last Played history. Older Catalog entries remain available.",
+                    "10"
+                  ],
+                  [
+                    "Maximum Catalog Results",
+                    "Maximum number of results shown per Catalog/search page. The [[code:--amount]] option can request a different page size up to this limit.",
+                    "20"
+                  ]
+                ]
+              },
+              {
+                "title": "Live Playlist",
+                "intro": "The Playlist is the live, source-agnostic playback queue. It can contain OBS captures, Twitch clips, YouTube clips and Kick clips.",
+                "controls": [
+                  [
+                    "Persist Playlist Across Restarts",
+                    "Keeps the current Playlist queue when Streamer.bot restarts. Active playback and pause state are not persisted.",
+                    "Off"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Branding Presets",
+            "intro": "Define reusable colours, typography and branding identity used by Player, Panel, Clapperboard and Message presentation.",
+            "controls": [
+              [
+                "Preset Name",
+                "Display name used in settings and selection lists.",
+                ""
+              ],
+              [
+                "Source Platform",
+                "Optional Twitch, Kick or YouTube association.",
+                "Optional"
+              ],
+              [
+                "Primary Colour",
+                "Primary branding colour.",
+                ""
+              ],
+              [
+                "Secondary Colour",
+                "Secondary branding colour.",
+                ""
+              ],
+              [
+                "Player Title Colour",
+                "Replay title text colour.",
+                ""
+              ],
+              [
+                "Player Prefix / Suffix Colour",
+                "Decorative title prefix/suffix colour.",
+                ""
+              ],
+              [
+                "Panel Text Colour",
+                "Panel title/list text colour.",
+                ""
+              ],
+              [
+                "Panel List Shadow Colour",
+                "Panel list shadow colour.",
+                ""
+              ],
+              [
+                "Font",
+                "Google Font used by player titles, panel titles and branding.",
+                ""
+              ],
+              [
+                "Font Size",
+                "Font size used by player and panel titles.",
+                ""
+              ],
+              [
+                "Logo URL",
+                "HTTPS URL of the branding logo.",
+                ""
+              ],
+              [
+                "Fallback Text",
+                "Text used when the branding logo cannot be loaded.",
+                ""
+              ],
+              [
+                "Brand Label",
+                "Label displayed with the logo or fallback text.",
+                ""
+              ]
+            ],
+            "notes": [
+              "A preset can optionally be associated with Twitch, Kick or YouTube. Source-platform branding is enabled independently by Player, Panel, Message and Clapperboard Behaviour settings.",
+              "If a matching platform preset is unavailable, the relevant Behaviour setting's configured Branding Preset is used as the fallback."
+            ]
+          },
+          {
+            "title": "Design Presets",
+            "intro": "Define the visual treatment used by Player, Panel and Message presentation.",
+            "sections": [
+              {
+                "title": "Available designs",
+                "bullets": [
+                  "Broadcast",
+                  "Cinematic",
+                  "Cut",
+                  "Minimal"
+                ],
+                "notes": [
+                  "Broadcast and Cut expose additional configuration in the settings window. Cinematic and Minimal currently have no design-specific controls."
+                ]
+              },
+              {
+                "title": "Broadcast",
+                "intro": "Provides the animated chevron treatment.",
+                "notes": [
+                  "Controls include the background source/colour and chevron height, width, spacing, speed and randomisation."
+                ]
+              },
+              {
+                "title": "Cut",
+                "intro": "Provides the block/bar treatment.",
+                "notes": [
+                  "Controls include the background source/colour, block width, block-width randomisation and bar height."
+                ]
+              }
+            ],
+            "notes": [
+              "Design Presets are assigned through the relevant Behaviour section."
+            ]
+          },
+          {
+            "title": "Title Presets",
+            "intro": "Define how replay titles are positioned, decorated and animated in the Player.",
+            "controls": [
+              [
+                "Preset Name",
+                "Display name for the preset.",
+                ""
+              ],
+              [
+                "Decoration Position",
+                "Places the decoration before or after the title.",
+                ""
+              ],
+              [
+                "Title Position",
+                "Places the title at the top or bottom of the player.",
+                ""
+              ],
+              [
+                "Decoration",
+                "Text displayed as the title prefix/suffix.",
+                ""
+              ],
+              [
+                "Animation",
+                "Title entrance/exit animation.",
+                ""
+              ],
+              [
+                "Show Delay",
+                "Delay before the title is shown, in milliseconds.",
+                ""
+              ],
+              [
+                "Display Duration",
+                "Time the title remains displayed, in milliseconds.",
+                ""
+              ],
+              [
+                "Animation Duration",
+                "Duration of the title animation, in milliseconds.",
+                ""
+              ]
+            ],
+            "notes": [
+              "The built-in Default Title Preset is permanent. Additional Title Presets can be created and removed."
+            ]
+          },
+          {
+            "title": "Positions",
+            "intro": "Define reusable Player, Panel, Message and Clapperboard positions in the shared 1920x1080 overlay coordinate space.",
+            "sections": [
+              {
+                "title": "Player Positions",
+                "intro": "Saved positions used by Player Animation and playback.",
+                "notes": [
+                  "The player editor also supports the player field-of-view transform used by the overlay."
+                ]
+              },
+              {
+                "title": "Panel Positions",
+                "intro": "Saved positions used by Panel Animation and panel playback.",
+                "controls": [
+                  [
+                    "Width",
+                    "Information panel width in 1920x1080 output pixels.",
+                    "500"
+                  ],
+                  [
+                    "Height",
+                    "Information panel height in 1920x1080 output pixels.",
+                    "700"
+                  ],
+                  [
+                    "Corner Radius",
+                    "Information panel corner radius in pixels.",
+                    "0"
+                  ]
+                ]
+              },
+              {
+                "title": "Message Positions",
+                "intro": "Saved positions used by Message Animation and playback.",
+                "controls": [
+                  [
+                    "Width",
+                    "Fixed message width in 1920x1080 output pixels.",
+                    "500"
+                  ],
+                  [
+                    "Height",
+                    "Fixed message height in 1920x1080 output pixels.",
+                    "120"
+                  ],
+                  [
+                    "Corner Radius",
+                    "Message panel corner radius in pixels.",
+                    "0"
+                  ]
+                ],
+                "notes": [
+                  "Message text scales to fit the configured message dimensions."
+                ]
+              },
+              {
+                "title": "Clapperboard Positions",
+                "intro": "Saved positions used by Clapperboard Animation and playback."
+              }
+            ],
+            "notes": [
+              "All four position editors support saved transforms including scale, X/Y/Z position and X/Y/Z rotation. Animation Profiles reference these saved positions, so changing a saved position affects every profile that uses it."
+            ]
+          },
+          {
+            "title": "Player Animation Profiles",
+            "intro": "Define reusable Player animation profiles with separate Start and End sequences.",
+            "notes": [
+              "Each sequence contains Position, Duration, Easing and Delay. Easing values are linear, ease, ease-in, ease-out and ease-in-out. Duration and delay support 0-60,000 milliseconds.",
+              "The built-in Default profile is permanent and editable. Additional profiles can be created and removed.",
+              "Profiles are assigned through Player Behaviour."
+            ]
+          },
+          {
+            "title": "Panel Animation Profiles",
+            "intro": "Define reusable Panel animation profiles with separate Start and End sequences. Steps use saved Panel Positions with configurable duration, easing and delay.",
+            "notes": [
+              "The built-in Default profile is permanent and editable. Additional profiles can be created and removed.",
+              "Profiles are assigned through Panel Behaviour."
+            ]
+          },
+          {
+            "title": "Message Animation Profiles",
+            "intro": "Define reusable Message animation profiles with separate Start and End sequences. Steps use saved Message Positions with configurable duration, easing and delay.",
+            "notes": [
+              "The built-in Default profile is permanent and editable. Additional profiles can be created and removed.",
+              "The selected profile is used by Message Behaviour."
+            ]
+          },
+          {
+            "title": "Clapperboard Animation Profiles",
+            "intro": "Define reusable Clapperboard animation profiles with separate Start and End sequences. Steps use saved Clapperboard Positions with configurable duration, easing and delay.",
+            "notes": [
+              "The built-in Default profile is permanent and editable. Additional profiles can be created and removed.",
+              "The selected profile is used by Clapperboard Behaviour."
+            ]
+          },
+          {
+            "title": "Player Behaviour",
+            "intro": "Configure the Player presentation for each replay entry point.",
+            "controls": [
+              [
+                "Create - OBS",
+                "Selects the Animation Profile, Design Preset, Title Preset and Branding Preset used for OBS-created replays.",
+                ""
+              ],
+              [
+                "Create - Twitch",
+                "Selects the presentation presets used for Twitch-created clips.",
+                ""
+              ],
+              [
+                "Create - YouTube",
+                "Selects the presentation presets used for YouTube-created clips.",
+                ""
+              ],
+              [
+                "Create - Kick",
+                "Selects the presentation presets used for Kick-created clips.",
+                ""
+              ],
+              [
+                "Play - Replay",
+                "Selects the presentation presets used when a replay is played.",
+                ""
+              ],
+              [
+                "Use Source Platform Branding",
+                "For newly created clips, selects the Branding Preset associated with the clip's source platform when a matching preset exists.",
+                ""
+              ],
+              [
+                "Change Player Branding to Clip Source",
+                "When enabled, each replay uses the Branding Preset assigned to the replay creator's platform. The player frame, design colours, buttons and progress bar follow that branding.",
+                "Off"
+              ]
+            ]
+          },
+          {
+            "title": "Panel Behaviour",
+            "intro": "Configure the presentation for Recent / Search, Playlist and Leaderboards.",
+            "notes": [
+              "Each entry point selects an Animation Profile, Design Preset, Title Preset and Branding Preset.",
+              "Use Source Platform Branding can override the configured branding when a matching platform preset exists. The platform is the platform that initiated the panel command."
+            ]
+          },
+          {
+            "title": "Message Behaviour",
+            "intro": "Configure how transient messages are presented in the overlay.",
+            "controls": [
+              [
+                "Branding Preset",
+                "Branding used by transient messages, with source-platform fallback when enabled.",
+                ""
+              ],
+              [
+                "Design Preset",
+                "Design used by transient messages.",
+                ""
+              ],
+              [
+                "Animation Profile",
+                "Animation used by transient messages.",
+                ""
+              ],
+              [
+                "Display Time",
+                "Time the message remains visible before its end animation begins, in milliseconds.",
+                "5000"
+              ],
+              [
+                "Use Source Platform Branding",
+                "Uses the platform that initiated the message to select matching branding when available.",
+                ""
+              ]
+            ],
+            "notes": [
+              "Messages use fixed dimensions configured under Message Positions and scale text to fit those dimensions. If no matching platform Branding Preset exists, the configured Message Behaviour Branding Preset is used."
+            ]
+          },
+          {
+            "title": "Clapperboard Behaviour",
+            "intro": "Configure the Clapperboard used when a new replay is created.",
+            "controls": [
+              [
+                "Use Clapperboard",
+                "Uses the Clapperboard for Replay Created instead of the Message system when Replay Created Overlay is enabled.",
+                "On"
+              ],
+              [
+                "Use Source Platform Branding",
+                "Uses the Branding Preset associated with the platform that created the clip when available.",
+                "Off"
+              ],
+              [
+                "Animation Profile",
+                "Animation profile used by the Clapperboard.",
+                "Default"
+              ],
+              [
+                "Branding Preset",
+                "Fallback branding used when source-platform branding is disabled or unavailable.",
+                "Default"
+              ],
+              [
+                "Display Time",
+                "Time the Clapperboard remains visible before its end animation begins, in milliseconds.",
+                "5000"
+              ]
+            ],
+            "notes": [
+              "The Clapperboard is a separate presentation from normal Message Outputs."
+            ]
+          },
+          {
+            "title": "Messages",
+            "intro": "Configure where list results are presented and how lifecycle messages are generated.",
+            "sections": [
+              {
+                "title": "Search Presentation",
+                "controls": [
+                  [
+                    "Search - Panel",
+                    "Shows Catalog/search results in the Search Panel.",
+                    "On"
+                  ],
+                  [
+                    "Search - Chat",
+                    "Sends one formatted chat message for the search header and each result.",
+                    "Off"
+                  ]
+                ],
+                "notes": [
+                  "Both can be enabled at the same time."
+                ]
+              },
+              {
+                "title": "Playlist and Recent Clips Presentation",
+                "controls": [
+                  [
+                    "Recent - Chat",
+                    "Sends one formatted chat message for each Recent Clips entry.",
+                    "On"
+                  ],
+                  [
+                    "Playlist - Chat",
+                    "Sends one formatted chat message for each Playlist entry.",
+                    "On"
+                  ],
+                  [
+                    "List Entry Format",
+                    "Format used for each list entry.",
+                    "#%listNumber% %title% - %creator% | %rating%/5 | %platform% | %plays% plays"
+                  ],
+                  [
+                    "Maximum Message Length",
+                    "Maximum length of each individual list entry/message. Longer entries are truncated rather than split.",
+                    "500"
+                  ]
+                ],
+                "notes": [
+                  "List entry variables are [[code:%listNumber%]], [[code:%title%]], [[code:%creator%]], [[code:%rating%]], [[code:%platform%]] and [[code:%plays%]]."
+                ]
+              },
+              {
+                "title": "Replay Messages",
+                "intro": "Replay lifecycle notifications are configured under Replays, Playlist and Updates.",
+                "controls": [
+                  [
+                    "Replay Created",
+                    "Replay saved: %replayTitle%.",
+                    ""
+                  ],
+                  [
+                    "Replay Played",
+                    "Play",
+                    ""
+                  ],
+                  [
+                    "Replay Queued",
+                    "Replay queued: %replayTitle%.",
+                    ""
+                  ],
+                  [
+                    "Replay Removed",
+                    "Replay removed: %replayTitle%.",
+                    ""
+                  ],
+                  [
+                    "Playlist Cleared",
+                    "Playlist cleared: %clearedCount% waiting item(s) removed.",
+                    ""
+                  ],
+                  [
+                    "Playlist Cleared All",
+                    "Playlist completely cleared: %clearedCount% item(s) removed.",
+                    ""
+                  ],
+                  [
+                    "Replay Rated",
+                    "Rated %replayTitle% %replayRating%/5 (average %averageRating%/5).",
+                    ""
+                  ],
+                  [
+                    "Replay Renamed",
+                    "Replay #%replayNumber% renamed from %oldTitle% to %newTitle%.",
+                    ""
+                  ],
+                  [
+                    "Replay Deleted",
+                    "Replay deleted: %replayTitle%.",
+                    ""
+                  ]
+                ],
+                "notes": [
+                  "Each event has message text and a Chat toggle. Events that support overlay output also have an Overlay toggle.",
+                  "Replay Created uses the separate Clapperboard presentation when Use Clapperboard is enabled. The other overlay-capable lifecycle events use the Message presentation.",
+                  "Overlay messages are queued centrally. Chat messages are sent immediately. An overlay message is considered finished only when its exit animation completes.",
+                  "Replay Queued is generated only when the Playlist already contained an item before the new replay was added."
+                ]
+              },
+              {
+                "title": "Message Variables",
+                "bullets": [
+                  "Replay Created: [[code:%replayTitle%]], [[code:%replayUser%]], [[code:%replayPlatform%]], [[code:%replaySourcePlatform%]], [[code:%requesterName%]], [[code:%requesterPlatform%]]",
+                  "Replay Played: [[code:%replayNumber%]], [[code:%replayTitle%]], [[code:%replayUser%]], [[code:%replayPlatform%]], [[code:%replaySourcePlatform%]], [[code:%requesterName%]], [[code:%requesterPlatform%]]",
+                  "Replay Queued: [[code:%replayTitle%]], [[code:%replayUser%]], [[code:%replayPlatform%]], [[code:%replaySourcePlatform%]], [[code:%requesterName%]], [[code:%requesterPlatform%]]",
+                  "Replay Removed: [[code:%replayTitle%]], [[code:%requesterName%]], [[code:%requesterPlatform%]]",
+                  "Playlist Cleared: [[code:%clearedCount%]], [[code:%requesterName%]], [[code:%requesterPlatform%]]",
+                  "Playlist Cleared All: [[code:%clearedCount%]], [[code:%requesterName%]], [[code:%requesterPlatform%]]",
+                  "Replay Rated: [[code:%replayTitle%]], [[code:%replayRating%]], [[code:%averageRating%]], [[code:%requesterName%]], [[code:%requesterPlatform%]]",
+                  "Replay Renamed: [[code:%replayNumber%]], [[code:%oldTitle%]], [[code:%newTitle%]], [[code:%requesterName%]], [[code:%requesterPlatform%]]",
+                  "Replay Deleted: [[code:%replayTitle%]], [[code:%replayUser%]], [[code:%replayPlatform%]], [[code:%replaySourcePlatform%]], [[code:%requesterName%]], [[code:%requesterPlatform%]]"
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Import / Export",
+            "sections": [
+              {
+                "title": "Import Settings",
+                "intro": "Import selected RTS Action Replay settings from a JSON file.",
+                "notes": [
+                  "The Import dialog controls which configuration areas, profiles and Catalog data are included and handles duplicate profiles."
+                ]
+              },
+              {
+                "title": "Export Settings",
+                "intro": "Export the complete RTS Action Replay configuration to a JSON file.",
+                "notes": [
+                  "Export includes the configuration snapshot and supported global settings."
+                ]
+              },
+              {
+                "title": "Factory Reset",
+                "intro": "Restore RTS Action Replay configuration to its built-in defaults.",
+                "notes": [
+                  "Factory Reset preserves the Catalog and play history. Configuration globals are reset and required defaults are recreated."
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Testing",
+            "sections": [
+              {
+                "title": "Configuration Sync",
+                "intro": "Send Configuration to Overlay sends the complete current Action Replay configuration to the overlay for configuration-sync testing."
+              },
+              {
+                "title": "Player",
+                "controls": [
+                  [
+                    "Test Origin",
+                    "Selects the simulated requester platform and chat routing.",
+                    ""
+                  ],
+                  [
+                    "Replay Origin",
+                    "Independently selects the source platform of the test replay.",
+                    ""
+                  ],
+                  [
+                    "Test Video",
+                    "Plays the first Catalog replay using the current Player presentation settings without adding it to the Playlist or play history.",
+                    ""
+                  ],
+                  [
+                    "Test Panel",
+                    "Shows a representative panel using the first Catalog replay and current Panel presentation settings.",
+                    ""
+                  ],
+                  [
+                    "Test Clapperboard",
+                    "Shows the Clapperboard for the first Catalog replay using the current Clapperboard presentation settings.",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "title": "Messages",
+                "controls": [
+                  [
+                    "Message Type",
+                    "Selects the lifecycle message simulated by Test Message.",
+                    ""
+                  ],
+                  [
+                    "Test Source",
+                    "Selects either the current Message settings or the selected Design and Branding overrides.",
+                    ""
+                  ],
+                  [
+                    "Message Design",
+                    "When Test Source is Override, selects the presentation design used for the test.",
+                    ""
+                  ],
+                  [
+                    "Message Branding",
+                    "When Test Source is Override, selects the presentation branding used for the test.",
+                    ""
+                  ],
+                  [
+                    "Test Message",
+                    "Shows the selected message using the first Catalog replay. Chat output follows the selected Test Origin.",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Commands",
+        "intro": "Command reference for the current Streamer.bot action mappings.",
+        "sections": [
+          {
+            "title": "Catalog",
+            "commands": [
+              [
+                "Add Existing Replay",
+                "!add-existing-replay \"<filename>\" <title>",
+                "Add one existing OBS replay file from the configured Replay Folder to the Catalog. If no title is supplied, the Replay Title Template is used. Existing Catalog entries are not added again."
+              ],
+              [
+                "Search By Creator",
+                "!search-creator <creator> [--amount <N>] | !creator-search <creator> [--amount <N>]",
+                "Search for replays by creator."
+              ],
+              [
+                "Search By Date",
+                "!search-date <date period> [--amount <N>] | !date-search <date period> [--amount <N>]",
+                "Search for replays from a date period. Supported forms include today, this week, last week, this year, last year, year, month and month year."
+              ],
+              [
+                "Delete Clip",
+                "!delete-from-catalog <number(s)>",
+                "Delete Catalog entries from the current result set. Multiple current-page results can be supplied as comma-separated numbers. The physical media file is not deleted."
+              ],
+              [
+                "First Page",
+                "!search-first",
+                "Return to the first page of the current Catalog/search results."
+              ],
+              [
+                "Last Page",
+                "!search-last",
+                "Jump to the last page of the current Catalog/search results."
+              ],
+              [
+                "Most Views",
+                "!search-views [--amount <N>] | !most-views [--amount <N>]",
+                "List replays ordered by playback count. Only replays with at least one recorded play are included."
+              ],
+              [
+                "Next Page",
+                "!search-next",
+                "Move to the next page of the current Catalog/search results."
+              ],
+              [
+                "Previous Page",
+                "!search-prev",
+                "Move to the previous page of the current Catalog/search results."
+              ],
+              [
+                "Purge",
+                "!catalog-purge",
+                "Remove Catalog entries whose replay media can no longer be resolved. It does not delete physical files."
+              ],
+              [
+                "Rate Replay",
+                "!rate-replay <rating> | !rate-clip <rating> | !rate-video <rating>",
+                "Rate the replay currently playing. Rating is 1 to 5 and is stored per user."
+              ],
+              [
+                "Search",
+                "!search <search text> [--amount <N>]",
+                "Search the Catalog by text. With no search text, returns the Catalog without a text filter."
+              ],
+              [
+                "Show Current Search Page",
+                "!search-show",
+                "Show the current page of the current Catalog/search results."
+              ],
+              [
+                "Search Top Rated",
+                "!search-rating [<rating>] [--amount <N>]",
+                "List replays by rating. 0 is unrated; 1-4 select average rating bands 1.0-4.9; 5 selects a 5.0 average. Without a rating, rated replays are returned ordered by average rating."
+              ],
+              [
+                "Leaderboard - Creator",
+                "!creator-leaderboard [<period>] [--amount <N>]",
+                "Show the creator leaderboard."
+              ],
+              [
+                "Name Replay",
+                "!name-clip <replay number> <replay title> | !rename-clip <replay number> <replay title>",
+                "Give a Catalog replay a custom title. Custom titles must be unique, ignoring case. The physical video file is not renamed."
+              ],
+              [
+                "Play History",
+                "!play-history <history item>",
+                "Play an item from the Last Played history."
+              ],
+              [
+                "List Recent",
+                "!search-recent [--amount <N>]",
+                "Show recently captured or added replays. This is different from Last Played."
+              ],
+              [
+                "Scan Replay Folder",
+                "!scan-replay-folder",
+                "Scan the configured Replay Folder and add replay files that are not already in the Catalog."
+              ],
+              [
+                "Show Replay Leaderboard",
+                "!clip-leaderboard",
+                "Show replay playback activity."
+              ]
+            ]
+          },
+          {
+            "title": "Create Clip",
+            "commands": [
+              [
+                "Create Kick Clip",
+                "!create-clip [<duration>] [<title>] | !createclip [<duration>] [<title>]",
+                "Request a Kick clip through the KickBot workflow. Kick chat only."
+              ],
+              [
+                "Create Twitch Clip",
+                "!twitch-clip [<duration>] [<title>] | !twitchclip [<duration>] [<title>] | !create-clip [<duration>] [<title>] | !createclip [<duration>] [<title>]",
+                "Create a Twitch clip. Twitch chat only. Duration is 5-60 seconds."
+              ],
+              [
+                "Create YouTube Clip",
+                "!create-clip [<duration>] [<title>] | !createclip [<duration>] [<title>]",
+                "Create a timestamped clip from the current YouTube live broadcast. YouTube chat only."
+              ],
+              [
+                "Save Replay",
+                "!savereplay | !save-replay | !clip-local | !cliplocal",
+                "Tell OBS to save the current Replay Buffer. What happens next depends on Replay Source and Playlist settings."
+              ]
+            ]
+          },
+          {
+            "title": "Message",
+            "commands": [
+              [
+                "Overlay Message",
+                "!overlay-message <message> | !rts-message <message>",
+                "Send a message directly to the RTS overlay using the configured Message Behaviour."
+              ]
+            ]
+          },
+          {
+            "title": "Playback",
+            "commands": [
+              [
+                "Playback History",
+                "!recently-played [--amount <N>] | !last-played [--amount <N>]",
+                "Show the most recently played replays."
+              ],
+              [
+                "Screen Position",
+                "!player-pos <position tag> [<duration ms>] | !player-position <position tag> [<duration ms>]",
+                "Move the player to a saved position. Use the saved position tag, not the display name."
+              ],
+              [
+                "Hide Player",
+                "!hide-player | !player-hide",
+                "Hide the current player without deleting or resetting the replay."
+              ],
+              [
+                "Pause",
+                "!video-pause | !player-pause",
+                "Pause the current video."
+              ],
+              [
+                "Play",
+                "!video-play | !player-play",
+                "Resume the current video."
+              ],
+              [
+                "Set Speed",
+                "!set-speed <playback speed> | !player-speed <playback speed> | !clip-speed <playback speed>",
+                "Change playback speed. Accepted range is 0.25 to 4.0."
+              ],
+              [
+                "Show Player",
+                "!show-player | !player-show",
+                "Show the current player and resume the current video."
+              ]
+            ]
+          },
+          {
+            "title": "Playlist",
+            "intro": "The Playlist is the live playback queue and is separate from the Catalog and playback history.",
+            "commands": [
+              [
+                "List Playlist",
+                "!playlist",
+                "Show the current Playlist."
+              ],
+              [
+                "Play Replay",
+                "!play-clip <replay number> | !play-replay <replay number>",
+                "Add a replay to the Playlist. A replay can be selected by Catalog/search result number, custom title, or platform and user search context."
+              ],
+              [
+                "Playlist - Clear",
+                "!playlist-clear | !playlistclear",
+                "Remove waiting items while leaving the currently playing item alone."
+              ],
+              [
+                "Playlist - Clear All",
+                "!playlist-clearall | !playlistclearall",
+                "Remove everything from the Playlist without stopping a replay already playing."
+              ],
+              [
+                "Playlist - Pause",
+                "!playlist-pause | !playlistpause",
+                "Pause automatic Playlist progression without stopping the current video."
+              ],
+              [
+                "Playlist - Remove",
+                "!playlistremove <playlist item> | !playlist-remove <playlist item>",
+                "Remove a waiting item by its Playlist position. The currently playing item cannot be removed."
+              ],
+              [
+                "Playlist - Resume",
+                "!playlistresume | !playlist-resume",
+                "Resume Playlist progression. If nothing is playing and queued items exist, Resume starts the next item."
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  }
 }
