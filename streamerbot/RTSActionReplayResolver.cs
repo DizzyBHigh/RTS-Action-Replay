@@ -256,6 +256,12 @@ public class CPHInline
         CPH.SetArgument("replayPanelListColor",(string)b["textColor"]??"#FFFFFFFF");
         CPH.SetArgument("replayPanelListShadowColor",(string)b["shadowColor"]??"#000000FF");
         CPH.SetArgument("replayPanelBackgroundColor",PanelBackgroundColor(d,b));
+        CPH.SetArgument("replayBrandLogoUrl",(string)b["logo"]??"");
+        CPH.SetArgument("replayBrandFallbackText",(string)b["fallbackText"]??"RTS");
+        CPH.SetArgument("replayBrandLabel",(string)b["brandLabel"]??"ACTION REPLAY");
+        CPH.SetArgument("replayBrandFallbackTextColor",(string)b["primaryColor"]??"#0384CBFF");
+        CPH.SetArgument("replayBrandLabelColor",(string)b["textColor"]??"#FFFFFFFF");
+        CPH.SetArgument("replayBrandingPresetId",(string)b["id"]??"default");
         Props("replayBroadcast",Broadcast(d,b));
         Props("replayCut",Cut(d,b));
         CPH.SetArgument("replayDesignPresetId",(string)d["id"]??"broadcast");
