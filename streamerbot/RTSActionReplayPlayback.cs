@@ -25,6 +25,7 @@ public class CPHInline
     private const string PlaybackProfileHandoffKey = "rts.actionreplay.handoff.playbackProfile";
     private const string PlaybackQueueEntryHandoffKey = "rts.actionreplay.handoff.playbackQueueEntryId";
     private const string PlayerPositionsHandoffKey = "rts.actionreplay.handoff.playerPositions";
+    private const string KickResolvedUrlHandoffKey = "rts.actionreplay.handoff.kickResolvedUrl";
 
     public bool Execute() => PlayReplay();
 
@@ -89,7 +90,9 @@ public class CPHInline
             return false;
         }
 
-        CPH.LogInfo($"RTS Action Replay: Kick replay {replayId} is media-ready for Playlist insertion.");
+        var resolved = new JObject { ["replayId"] = replayId, ["url"] = url };
+        CPH.SetGlobalVar(KickResolvedUrlHandoffKey, resolved.ToString(Newtonsoft.Json.Formatting.None), false);
+        CPH.LogInfo($"RTS Action Replay: Kick replay {replayId} is media-ready for Playlist insertion; resolved URL handed off.");
         return true;
     }
 
@@ -149,7 +152,19 @@ public class CPHInline
         var source = (string)replay["sourceType"] ?? "OBS"; var url = ResolveReplayUrl(replay);
         if (string.Equals(source, "Kick", StringComparison.OrdinalIgnoreCase))
         {
-            url = ResolveKickUrl(replay);
+            var handedOff = CPH.GetGlobalVar<string>(KickResolvedUrlHandoffKey, false);
+            if (!string.IsNullOrWhiteSpace(handedOff))
+            {
+                try
+                {
+                    var resolved = JObject.Parse(handedOff);
+                    if (string.Equals((string)resolved["replayId"], (string)replay["id"], StringComparison.OrdinalIgnoreCase))
+                        url = (string)resolved["url"];
+                }
+                catch { }
+            }
+            if (string.IsNullOrWhiteSpace(url)) url = ResolveKickUrl(replay);
+            CPH.UnsetGlobalVar(KickResolvedUrlHandoffKey, false);
             if (string.IsNullOrWhiteSpace(url)) { CPH.LogWarn($"RTS Action Replay TRACE: Kick media resolution failed for replay {(string)replay["id"]}."); SendMessage("Unable to resolve Kick media file."); return false; }
             CPH.LogInfo($"RTS Action Replay TRACE: Kick media resolved for playback; replayId={(string)replay["id"]}; url={url}.");
         }
