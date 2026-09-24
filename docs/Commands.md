@@ -229,8 +229,7 @@ Show the current page of the current Catalog/search results without starting a n
 
 The command follows the configured **Search Presentation** settings. **Search - Panel** shows the current results in the Search Panel. **Search - Chat** sends the current header and result entries to chat. Both can be enabled at the same time.
 
-The displayed numbers are the positions on the current page and can be used with commands such as `!delete-catalog-item <number>`.
-- `!delete-from-catalog <number(s)>` — same operation; multiple current-page results can be supplied as comma-separated numbers, e.g. `!delete-from-catalog 1, 2, 3`.
+The displayed numbers are the positions on the current page and can be used with `!delete-from-catalog <number(s)>`. Multiple current-page results can be supplied as comma-separated numbers, e.g. `!delete-from-catalog 1, 2, 3`. A single number works the same way.
 
 ### Next Page
 
