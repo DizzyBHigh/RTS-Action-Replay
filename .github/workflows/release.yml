@@ -25,6 +25,7 @@ jobs:
         shell: bash
         run: |
           REF="${{ github.event.inputs.ref || github.ref_name }}"
+          git fetch --tags --force origin
           git checkout "$REF"
           VERSION="${REF#v}"
           NAME=$(python - <<'PY'
