@@ -24,6 +24,9 @@ Commands: !search-recent [Parameters: optional --amount <N>]
 RTS - Action Replay - Catalog - Next Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogNext) 
 Commands: !search-next
 
+RTS - Action Replay - Catalog - Show Current Search Page : Execute Method(RTS - Action Replay - Core - Catalog, ShowSearchPage) 
+Commands: !search-show
+
 RTS - Action Replay - Catalog - Prev Page : Execute Method(RTS - Action Replay - Core - Catalog, CatalogPrevious) 
 Commands: !search-prev
 
