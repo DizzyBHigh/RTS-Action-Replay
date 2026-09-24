@@ -47,6 +47,125 @@ public class CPHInline
     public bool UserSearchPrevious() => ShowUserSearchPage(-1);
     public bool ResolveSelection() { var selector = Arg("rawInput").Trim(); if (!int.TryParse(selector, out var index) || index < 1) return false; var state = LoadUserState(); if (string.Equals((string)state["filterType"], "leaderboard", StringComparison.OrdinalIgnoreCase)) return false; return ResolveStateSelection(state, index); }
 
+    public bool Purge()
+    {
+        var data = Load();
+        var catalog = data["catalog"] as JArray ?? new JArray();
+        var kept = new JArray();
+        var removed = 0;
+        var removedItems = new List<string>();
+        foreach (var item in catalog.OfType<JObject>())
+        {
+            // Kick/KickBot clips are cloud-hosted and may take time to become downloadable.
+            // Do not treat a temporarily unavailable Kick URL as proof that the Catalog item is dead.
+            if (string.Equals((string)item["sourceType"], "Kick", StringComparison.OrdinalIgnoreCase))
+            {
+                kept.Add(item);
+                continue;
+            }
+            if (HasLocalFile(item) || HasUrl(item)) kept.Add(item);
+            else
+            {
+                removed++;
+                var id = (string)item["id"] ?? "<missing>";
+                var title = (string)item["title"] ?? "<untitled>";
+                var source = (string)item["sourceType"] ?? "Unknown";
+                removedItems.Add(source + ": " + title + " [" + id + "]");
+                CPH.LogInfo($"RTS Action Replay: purge removing unavailable replay; id={id}; title={title}.");
+            }
+        }
+        data["catalog"] = kept;
+        Save(data);
+        SendCatalogMessage($"Catalog purge complete: {removed} unavailable replay(s) removed, {kept.Count} kept.");
+        SendPurgeRemovedItems(removedItems);
+        return true;
+    }
+
+    private bool HasLocalFile(JObject item)
+    {
+        var path = (string)item["filePath"];
+        if (!string.IsNullOrWhiteSpace(path) && File.Exists(path)) return true;
+        var file = (string)item["file"];
+        if (string.IsNullOrWhiteSpace(file)) return false;
+        var folder = GetPurgeFolder((string)item["sourceType"]);
+        if (string.IsNullOrWhiteSpace(folder)) return false;
+        return File.Exists(Path.IsPathRooted(file) ? file : Path.Combine(folder, file));
+    }
+
+    private string GetPurgeFolder(string source)
+    {
+        if (string.Equals(source, "Twitch", StringComparison.OrdinalIgnoreCase)) return CPH.GetGlobalVar<string>("rts.actionreplay.twitch.folder", true) ?? "";
+        if (string.Equals(source, "Kick", StringComparison.OrdinalIgnoreCase)) return CPH.GetGlobalVar<string>("rts.actionreplay.kick.folder", true) ?? "";
+        return CPH.GetGlobalVar<string>("rts.actionreplay.replayFolder", true) ?? "";
+    }
+
+    private bool HasUrl(JObject item)
+    {
+        foreach (var url in PurgeUrlCandidates(item)) if (PurgeUrlExists(url)) return true;
+        return false;
+    }
+
+    private IEnumerable<string> PurgeUrlCandidates(JObject item)
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var field in new[] { "sourceUrl", "externalUrl", "embedUrl" })
+        {
+            var url = (string)item[field];
+            if (!string.IsNullOrWhiteSpace(url) && seen.Add(url)) yield return url;
+        }
+        var source = (string)item["sourceType"];
+        var id = (string)item["sourceId"];
+        if (string.Equals(source, "YouTube", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(id))
+        {
+            var url = "https://youtu.be/" + Uri.EscapeDataString(id);
+            if (seen.Add(url)) yield return url;
+        }
+        if (string.Equals(source, "Twitch", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(id))
+        {
+            var url = "https://clips.twitch.tv/" + Uri.EscapeDataString(id);
+            if (seen.Add(url)) yield return url;
+        }
+    }
+
+    private bool PurgeUrlExists(string url)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
+            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)) return false;
+        try
+        {
+            var request = (HttpWebRequest)WebRequest.Create(uri);
+            request.Method = "HEAD"; request.AllowAutoRedirect = true; request.Timeout = 3000; request.UserAgent = "RTS-Action-Replay";
+            using (var response = (HttpWebResponse)request.GetResponse()) return PurgeHttpSuccess(response.StatusCode);
+        }
+        catch (WebException ex)
+        {
+            var response = ex.Response as HttpWebResponse;
+            if (response == null || ((int)response.StatusCode != 405 && (int)response.StatusCode != 501)) return false;
+        }
+        catch { return false; }
+        try
+        {
+            var request = (HttpWebRequest)WebRequest.Create(uri);
+            request.Method = "GET"; request.AddRange(0, 0); request.AllowAutoRedirect = true; request.Timeout = 3000; request.UserAgent = "RTS-Action-Replay";
+            using (var response = (HttpWebResponse)request.GetResponse()) return PurgeHttpSuccess(response.StatusCode);
+        }
+        catch { return false; }
+    }
+
+    private bool PurgeHttpSuccess(HttpStatusCode status) { var code = (int)status; return code >= 200 && code < 300; }
+
+    private void SendPurgeRemovedItems(List<string> items)
+    {
+        if (items.Count == 0) { SendCatalogMessage("Nothing was purged."); return; }
+        var message = "Purged: ";
+        foreach (var item in items)
+        {
+            var next = message == "Purged: " ? item : message + " | " + item;
+            if (next.Length > 400) { SendCatalogMessage(message); message = "Purged: " + item; } else message = next;
+        }
+        if (message != "Purged: ") SendCatalogMessage(message);
+    }
+
     public bool DeleteCatalogItem()
     {
         CPH.SetArgument("catalogSelectionReplayId", "");
