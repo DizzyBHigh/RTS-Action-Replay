@@ -63,7 +63,7 @@ public class CPHInline
             ["replayCommand"] = "load", ["replayId"] = (string)replay["id"] ?? "", ["replayUrl"] = url,
             ["replayAutoplay"] = true, ["replayQueueEntryId"] = "", ["replayUserId"] = "rts-test-user",
             ["replayUserName"] = "Test User", ["replayDirector"] = (string)replay["creator"]?["name"] ?? "",
-            ["replayNumber"] = Array.IndexOf(GetCatalog(data).ToArray(), replay) + 1, ["replayTitle"] = (string)replay["title"] ?? "Test Replay",
+            ["replayNumber"] = GetReplayNumber(GetCatalog(data), replay), ["replayTitle"] = (string)replay["title"] ?? "Test Replay",
             ["replayPlayedCount"] = (int?)replay["plays"] ?? 0, ["replaySource"] = source, ["replaySourceId"] = (string)replay["sourceId"] ?? "",
             ["replaySourcePlatform"] = CPH.GetGlobalVar<string>("rts.actionreplay.test.replayOrigin", true) ?? source,
             ["replayCreated"] = true
@@ -166,7 +166,7 @@ public class CPHInline
         if (string.IsNullOrWhiteSpace(url)) { CPH.LogWarn($"RTS Action Replay TRACE: PlayReplay failed - media URL unavailable for replay {(string)replay["id"]}; file={(string)replay["file"]}; filePath={(string)replay["filePath"]}."); SendMessage($"Replay media is unavailable: {(string)replay["title"]}"); return false; }
         CPH.TryGetArg("userId", out string userId); CPH.TryGetArg("userName", out string userName); var creator = replay["creator"] as JObject; var creatorName = (string)creator?["name"] ?? "";
         CPH.SetArgument("replayCommand", "load"); CPH.SetArgument("replayId", (string)replay["id"]); CPH.SetArgument("replayUrl", url); CPH.SetArgument("replayAutoplay", true); CPH.SetArgument("replayQueueEntryId", queueEntryId); CPH.SetArgument("replayUserId", userId ?? ""); CPH.SetArgument("replayUserName", userName ?? ""); CPH.SetArgument("replayDirector", creatorName);
-        CPH.SetArgument("replayNumber", Array.IndexOf(list.ToArray(), replay) + 1); CPH.SetArgument("replayTitle", (string)replay["title"] ?? ""); CPH.SetArgument("replayPlayedCount", ((int?)replay["plays"] ?? 0) + 1); CPH.SetArgument("replaySource", source); CPH.SetArgument("replaySourceId", (string)replay["sourceId"] ?? "");
+        CPH.SetArgument("replayNumber", GetReplayNumber(list, replay)); CPH.SetArgument("replayTitle", (string)replay["title"] ?? ""); CPH.SetArgument("replayPlayedCount", ((int?)replay["plays"] ?? 0) + 1); CPH.SetArgument("replaySource", source); CPH.SetArgument("replaySourceId", (string)replay["sourceId"] ?? "");
         if (string.Equals(source, "YouTube", StringComparison.OrdinalIgnoreCase)) { CPH.SetArgument("replayStartTime", (long?)replay["startTime"] ?? 0); CPH.SetArgument("replayDuration", (int?)replay["duration"] ?? 0); }
         var profile = CPH.TryGetArg("replayAnimationProfileId", out string requestedProfile) && !string.IsNullOrWhiteSpace(requestedProfile)
             ? requestedProfile.Trim() : CPH.GetGlobalVar<string>(PlaybackProfileHandoffKey, false);
@@ -342,7 +342,7 @@ public class CPHInline
         private JObject Load() { var raw = CPH.GetGlobalVar<string>(DataKey, true); if (string.IsNullOrWhiteSpace(raw)) return CreateDataDefaults(); try { return JObject.Parse(raw); } catch { return CreateDataDefaults(); } }
     private JObject CreateDataDefaults() { return new JObject { ["version"] = "1.0", ["catalog"] = new JArray(), ["playHistory"] = new JArray() }; }
     private JArray GetCatalog(JObject data) => data["catalog"] as JArray ?? new JArray();
-    private string Arg(string name) { try { CPH.TryGetArg(name, out string value); return value ?? ""; } catch { return ""; } }
+    private int GetReplayNumber(JArray list, JObject replay)\n    {\n        for (var i = 0; i < list.Count; i++)\n            if (ReferenceEquals(list[i], replay)) return i + 1;\n        return 0;\n    }\n    private string Arg(string name) { try { CPH.TryGetArg(name, out string value); return value ?? ""; } catch { return ""; } }
     private void SaveData(JObject data) => CPH.SetGlobalVar(DataKey, data.ToString(Newtonsoft.Json.Formatting.None), true);
     private void SendMessage(string text)
     {
