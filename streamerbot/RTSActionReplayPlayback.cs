@@ -69,6 +69,30 @@ public class CPHInline
         return true;
     }
 
+    public bool PrepareReplayForQueue()
+    {
+        var replayId = CPH.GetGlobalVar<string>(ReplayIdHandoffKey, false);
+        if (string.IsNullOrWhiteSpace(replayId)) return false;
+
+        var replay = GetCatalog(Load()).OfType<JObject>()
+            .FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase));
+        if (replay == null) return false;
+
+        var source = (string)replay["sourceType"] ?? "OBS";
+        if (!string.Equals(source, "Kick", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        var url = ResolveKickUrl(replay);
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            CPH.LogWarn($"RTS Action Replay: Kick replay {replayId} is not media-ready.");
+            return false;
+        }
+
+        CPH.LogInfo($"RTS Action Replay: Kick replay {replayId} is media-ready for Playlist insertion.");
+        return true;
+    }
+
     public bool PlayReplay()
     {
         var data = Load(); var list = GetCatalog(data); JObject replay = null;
