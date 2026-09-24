@@ -154,6 +154,19 @@ private bool BroadcastReplay(JObject item, bool showClapperboard)
         CPH.SetGlobalVar("rts.actionreplay.handoff.showClapperboard", showClapperboard && (CPH.GetGlobalVar<bool?>("rts.actionreplay.clapper.showOnNewClip", true) ?? true), false);
         CPH.SetArgument("replaySource", (string)item["sourceType"] ?? "");
         if (!CPH.ExecuteMethod(ResolverAction, "ResolveEntryPointProfile")) return false;
+
+        // Kick media is not guaranteed to exist when the clip is created. Resolve it
+        // before inserting the replay into the live Playlist so a pending Kick clip
+        // can never block ready clips behind it.
+        if (string.Equals(sourceType, "kick", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!CPH.ExecuteMethod("RTS - Action Replay - Core - Playback", "PrepareReplayForQueue"))
+            {
+                CPH.LogWarn($"RTS Action Replay: Kick replay {(string)item["id"]} is not ready; leaving it out of the live Playlist.");
+                return false;
+            }
+        }
+
         return CPH.ExecuteMethod(PlaylistAction, "EnqueueCurrentReplay");
     }
 
