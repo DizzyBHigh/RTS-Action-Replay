@@ -183,6 +183,7 @@ public class CPHInline
         var brand = (string)entry["brandingPreset"] ?? "default";
         var source = (string)op["messageSourcePlatform"] ?? "";
         var presentationSource = (string)op["messagePresentationSource"] ?? "Current Settings";
+        CPH.LogInfo($"RTS Action Replay TRACE: Message presentation input source={presentationSource}, design={(string)op["messageDesign"]}, branding={(string)op["messageBranding"]}, configuredDesign={design}, configuredBrand={brand}.");
         if (string.Equals(presentationSource, "Override", StringComparison.OrdinalIgnoreCase))
         {
             var overrideDesign = (string)op["messageDesign"];
@@ -205,6 +206,7 @@ public class CPHInline
             .FirstOrDefault(p => string.Equals(p.Name, (string)op["messagePosition"] ?? "Centered", StringComparison.OrdinalIgnoreCase)
                 || string.Equals((string)p.Value["tag"], (string)op["messagePosition"] ?? "Centered", StringComparison.OrdinalIgnoreCase));
         CPH.LogInfo($"RTS Action Replay TRACE: message position source={(selectedMessagePosition == null ? "missing" : selectedMessagePosition.Name)}, data={(selectedMessagePosition?.Value ?? new JObject()).ToString(Newtonsoft.Json.Formatting.None)}.");
+        CPH.LogInfo($"RTS Action Replay TRACE: Message presentation resolved design={design}, brand={brand}.");
         ApplyMessagePresentation(design, brand, animation);
         CPH.LogInfo("RTS Action Replay TRACE: message presentation applied.");
 
