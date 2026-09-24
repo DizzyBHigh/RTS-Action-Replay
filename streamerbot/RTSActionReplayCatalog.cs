@@ -37,6 +37,34 @@ public class CPHInline
     public bool ListCatalogCreator() { var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var amount = ParseAmount(ref parts); var creator = string.Join(" ", parts).Trim(); if (string.IsNullOrWhiteSpace(creator)) { SendCatalogMessage("Please provide a creator name."); return false; } return Queue(BuildState("creator", creator, "catalog", amount)); }
     public bool ListCatalogMostViews() => Queue(BuildState("all", "", "plays", ParseAmount(Arg("rawInput"))));
     public bool ListCatalogTopRated() { var parts = Arg("rawInput").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var amount = ParseAmount(ref parts); var rating = ""; if (parts.Length > 0) rating = parts[0]; return Queue(BuildState("all", rating, "rating", amount)); }
+    public bool ShowSearchPage()
+    {
+        var state = LoadUserState();
+        var results = Query(state);
+        var amount = Math.Max(1, (int?)state["amount"] ?? MaxAmount());
+        var pages = Math.Max(1, (int)Math.Ceiling(results.Count / (double)amount));
+        var page = Math.Max(1, Math.Min(pages, (int?)state["page"] ?? 1));
+        var start = (page - 1) * amount;
+        SendCatalogMessage($"{Parameters(state)} • {page}/{pages} • {results.Count}");
+        var entries = results.Skip(start).Take(amount).OfType<JObject>().ToList();
+        if (entries.Count == 0)
+        {
+            SendCatalogMessage("No results on this search page.");
+            return true;
+        }
+        for (var i = 0; i < entries.Count; i++)
+        {
+            var replay = entries[i];
+            var creator = replay["creator"] as JObject;
+            var title = (string)replay["title"] ?? "Untitled replay";
+            var name = (string)creator?["name"] ?? "";
+            var platform = (string)creator?["platform"] ?? (string)replay["sourceType"] ?? "";
+            var rating = HasRatings(replay) ? Math.Round(Rating(replay), 1) : 0;
+            var plays = (int?)replay["plays"] ?? 0;
+            SendListEntry(i + 1, title, name, rating, platform, plays);
+        }
+        return true;
+    }
     public bool CatalogNext() => MovePage(1);
     public bool CatalogPrevious() => MovePage(-1);
     public bool CatalogFirst() => SetPage(1);
