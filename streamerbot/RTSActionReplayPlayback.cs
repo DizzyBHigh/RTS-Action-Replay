@@ -25,7 +25,8 @@ public class CPHInline
     private const string PlaybackProfileHandoffKey = "rts.actionreplay.handoff.playbackProfile";
     private const string PlaybackQueueEntryHandoffKey = "rts.actionreplay.handoff.playbackQueueEntryId";
     private const string PlayerPositionsHandoffKey = "rts.actionreplay.handoff.playerPositions";
-    private const string KickResolvedUrlHandoffKey = "rts.actionreplay.handoff.kickResolvedUrl";
+    private const string KickPendingHandoffKey = "rts.actionreplay.handoff.kickPending";
+    private const string KickReadyHandoffKey = "rts.actionreplay.handoff.kickReady";
 
     public bool Execute() => PlayReplay();
 
@@ -83,15 +84,16 @@ public class CPHInline
         if (!string.Equals(source, "Kick", StringComparison.OrdinalIgnoreCase))
             return true;
 
+        AddKickPending(replayId);
         var url = ResolveKickUrl(replay);
         if (string.IsNullOrWhiteSpace(url))
         {
+            RemoveKickPending(replayId);
             CPH.LogWarn($"RTS Action Replay: Kick replay {replayId} is not media-ready.");
             return false;
         }
 
-        var resolved = new JObject { ["replayId"] = replayId, ["url"] = url };
-        CPH.SetGlobalVar(KickResolvedUrlHandoffKey, resolved.ToString(Newtonsoft.Json.Formatting.None), false);
+        SetKickPendingReady(replayId, url);
         CPH.LogInfo($"RTS Action Replay: Kick replay {replayId} is media-ready for Playlist insertion; resolved URL handed off.");
         return true;
     }
@@ -152,19 +154,9 @@ public class CPHInline
         var source = (string)replay["sourceType"] ?? "OBS"; var url = ResolveReplayUrl(replay);
         if (string.Equals(source, "Kick", StringComparison.OrdinalIgnoreCase))
         {
-            var handedOff = CPH.GetGlobalVar<string>(KickResolvedUrlHandoffKey, false);
-            if (!string.IsNullOrWhiteSpace(handedOff))
-            {
-                try
-                {
-                    var handoffData = JObject.Parse(handedOff);
-                    if (string.Equals((string)handoffData["replayId"], (string)replay["id"], StringComparison.OrdinalIgnoreCase))
-                        url = (string)handoffData["url"];
-                }
-                catch { }
-            }
+            var queueResolvedUrl = GetKickResolvedUrl(queueEntryId);
+            if (!string.IsNullOrWhiteSpace(queueResolvedUrl)) url = queueResolvedUrl;
             if (string.IsNullOrWhiteSpace(url)) url = ResolveKickUrl(replay);
-            CPH.UnsetGlobalVar(KickResolvedUrlHandoffKey, false);
             if (string.IsNullOrWhiteSpace(url)) { CPH.LogWarn($"RTS Action Replay TRACE: Kick media resolution failed for replay {(string)replay["id"]}."); SendMessage("Unable to resolve Kick media file."); return false; }
             CPH.LogInfo($"RTS Action Replay TRACE: Kick media resolved for playback; replayId={(string)replay["id"]}; url={url}.");
         }
@@ -367,5 +359,56 @@ public class CPHInline
     }
     private bool PathsEqual(string a, string b) => string.Equals(Path.GetFullPath(a ?? "").TrimEnd(Path.DirectorySeparatorChar), Path.GetFullPath(b ?? "").TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase);
     private string Sanitize(string value) { foreach (var c in Path.GetInvalidFileNameChars()) value = value.Replace(c, '_'); return value; }
+    private void AddKickPending(string replayId)
+    {
+        var queue = LoadKickHandoffQueue(KickPendingHandoffKey);
+        if (!queue.OfType<JObject>().Any(x => string.Equals((string)x["replayId"], replayId, StringComparison.OrdinalIgnoreCase)))
+            queue.Add(new JObject { ["replayId"] = replayId, ["status"] = "resolving" });
+        SaveKickHandoffQueue(KickPendingHandoffKey, queue);
+    }
+
+    private void RemoveKickPending(string replayId)
+    {
+        var queue = LoadKickHandoffQueue(KickPendingHandoffKey);
+        foreach (var item in queue.OfType<JObject>().Where(x => string.Equals((string)x["replayId"], replayId, StringComparison.OrdinalIgnoreCase)).ToList()) queue.Remove(item);
+        SaveKickHandoffQueue(KickPendingHandoffKey, queue);
+    }
+
+    private void SetKickPendingReady(string replayId, string url)
+    {
+        var pending = LoadKickHandoffQueue(KickPendingHandoffKey);
+        foreach (var item in pending.OfType<JObject>().Where(x => string.Equals((string)x["replayId"], replayId, StringComparison.OrdinalIgnoreCase)).ToList()) pending.Remove(item);
+        SaveKickHandoffQueue(KickPendingHandoffKey, pending);
+
+        var ready = LoadKickHandoffQueue(KickReadyHandoffKey);
+        foreach (var item in ready.OfType<JObject>().Where(x => string.Equals((string)x["replayId"], replayId, StringComparison.OrdinalIgnoreCase)).ToList()) ready.Remove(item);
+        ready.Add(new JObject { ["replayId"] = replayId, ["url"] = url });
+        SaveKickHandoffQueue(KickReadyHandoffKey, ready);
+    }
+
+    private string GetKickResolvedUrl(string queueEntryId)
+    {
+        if (string.IsNullOrWhiteSpace(queueEntryId)) return null;
+        var raw = CPH.GetGlobalVar<string>("rts.actionreplay.playlist", false);
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+        try
+        {
+            var queue = JArray.Parse(raw);
+            var item = queue.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["entryId"], queueEntryId, StringComparison.OrdinalIgnoreCase));
+            return (string)item?["resolvedUrl"];
+        }
+        catch { return null; }
+    }
+
+    private JArray LoadKickHandoffQueue(string key)
+    {
+        var raw = CPH.GetGlobalVar<string>(key, false);
+        if (string.IsNullOrWhiteSpace(raw)) return new JArray();
+        try { return JArray.Parse(raw); } catch { return new JArray(); }
+    }
+
+    private void SaveKickHandoffQueue(string key, JArray queue) =>
+        CPH.SetGlobalVar(key, queue.ToString(Newtonsoft.Json.Formatting.None), false);
+
     private string GetTwitchPlaybackMode() => CPH.GetGlobalVar<string>(TwitchModeKey, true) ?? "Twitch URL";
 }
