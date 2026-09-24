@@ -228,8 +228,8 @@ public class CPHInline
         var positions=((JObject)animation["positions"]??new JObject()).ToString(Newtonsoft.Json.Formatting.None);
         CPH.SetArgument("replayMessagePositions",positions);
         CPH.SetArgument("replayMessageAnimation",animation.ToString(Newtonsoft.Json.Formatting.None));
-        var messageWidth=CPH.GetGlobalVar<int?>("rts.actionreplay.message.minWidth",true)??500;
-        var messageHeight=CPH.GetGlobalVar<int?>("rts.actionreplay.message.minHeight",true)??120;
+        var messageWidth=CPH.GetGlobalVar<int?>("rts.actionreplay.message.width",true)??500;
+        var messageHeight=CPH.GetGlobalVar<int?>("rts.actionreplay.message.height",true)??120;
         CPH.SetArgument("replayMessageWidth",messageWidth);
         CPH.SetArgument("replayMessageHeight",messageHeight);
         CPH.SetArgument("replayMessageMinWidth",messageWidth);
