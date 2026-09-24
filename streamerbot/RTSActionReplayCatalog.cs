@@ -282,9 +282,8 @@ public class CPHInline
         var showChat = CPH.GetGlobalVar<bool?>("rts.actionreplay.search.chat", true) ?? false;
         var showPanel = CPH.GetGlobalVar<bool?>("rts.actionreplay.search.panel", true) ?? true;
         if (!showChat && !showPanel) return true;
-        if (showChat) RenderSearchChat(request, results, page, pages, amount, start);
-        if (!showPanel) return true;
-        var operation = (JObject)request.DeepClone();
+        if (showPanel) {
+            var operation = (JObject)request.DeepClone();
         operation["replaySearchHeader"] = Header(request, page, pages, results.Count);
         operation["replaySearchRequester"] = (string)request["requesterName"] ?? "";
         operation["replaySearchRequesterPlatform"] = (string)request["platform"] ?? "";
@@ -305,7 +304,10 @@ public class CPHInline
             operation["replaySearchEntries"] = new JArray(entries).ToString(Newtonsoft.Json.Formatting.None);
         }
         CPH.SetGlobalVar(PanelOperationKey, operation.ToString(Newtonsoft.Json.Formatting.None), false);
-        return CPH.ExecuteMethod(ResolverAction, "ResolvePanel");
+            CPH.ExecuteMethod(ResolverAction, "ResolvePanel");
+        }
+        if (showChat) RenderSearchChat(request, results, page, pages, amount, start);
+        return true;
     }
 
     private void RenderSearchChat(JObject request, JArray results, int page, int pages, int amount, int start)
