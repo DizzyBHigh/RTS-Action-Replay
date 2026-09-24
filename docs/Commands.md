@@ -32,7 +32,7 @@ Create a Twitch clip from the current Twitch stream.
 
 If no duration is supplied, the configured Twitch Clip Duration is used.
 
-The allowed duration is 5–60 seconds. A title can be supplied after the optional duration.
+The allowed duration is 5-60 seconds. A title can be supplied after the optional duration.
 
 When the clip is created, Action Replay adds it to the Catalog and automatically queues it in the Playlist for playback.
 
@@ -61,7 +61,7 @@ Create a timestamped clip from the current YouTube live broadcast.
 
 If no duration is supplied, the configured YouTube Clip Duration is used.
 
-The allowed duration is 5–60 seconds.
+The allowed duration is 5-60 seconds.
 
 The title is everything after the optional duration.
 
@@ -94,7 +94,7 @@ Request a Kick clip through the KickBot workflow.
 
 If no duration is supplied, the default is 30 seconds.
 
-The command parser accepts 5–240 seconds. The title is everything after the optional duration.
+The command parser accepts 5-240 seconds. The title is everything after the optional duration.
 
 The command first asks KickBot to create the clip. Action Replay then captures the returned KickBot clip, adds it to the Catalog, and automatically queues it in the Playlist for playback.
 
@@ -128,9 +128,9 @@ Play a replay from the Catalog.
 
 You can select a replay in three ways:
 
-- **Replay number** — the number shown in a Catalog/search result.
-- **Custom title** — the exact custom title assigned to a replay.
-- **Platform and user** — select an item from a user's search results, for example `!play-replay Twitch:SomeUser 2`.
+- **Replay number**  -  the number shown in a Catalog/search result.
+- **Custom title**  -  the exact custom title assigned to a replay.
+- **Platform and user**  -  select an item from a user's search results, for example `!play-replay Twitch:SomeUser 2`.
 
 **Examples**
 
@@ -408,13 +408,13 @@ List replays by rating.
 
 `!search-rating [<rating>] [--amount <N>]`
 
-The rating is optional and accepts **0–5**.
-For ratings 1–4, the command uses a rating band:
+The rating is optional and accepts **0-5**.
+For ratings 1-4, the command uses a rating band:
 - `0` = unrated replays.
-- `1` = average rating 1.0–1.9
-- `2` = 2.0–2.9
-- `3` = 3.0–3.9
-- `4` = 4.0–4.9
+- `1` = average rating 1.0-1.9
+- `2` = 2.0-2.9
+- `3` = 3.0-3.9
+- `4` = 4.0-4.9
 - `5` = 5.0
 
 Without a rating, rated replays are returned ordered by average rating, with rating count used as the tie-breaker.
@@ -676,11 +676,11 @@ The setting called Default Playback Speed controls the speed when a replay is lo
 
 ---
 
-# Appendix A — Core Actions
+# Appendix A  -  Core Actions
 
 The Core actions are the machinery behind the commands. They are included here for reference, but they are not chat commands.
 
-### Core — Catalog
+### Core  -  Catalog
 
 **Action:** `RTS - Action Replay - Core - Catalog`
 
@@ -688,7 +688,7 @@ Handles Catalog searches, filtering, paging, ratings, playback history and leade
 
 The user-facing Catalog commands call methods in this action rather than accessing the Catalog directly.
 
-### Core — Playback
+### Core  -  Playback
 
 **Action:** `RTS - Action Replay - Core - Playback`
 
@@ -696,7 +696,7 @@ Handles replay saving, replay selection and player positioning.
 
 The main `Play Replay`, `Save Replay` and `Screen Position` actions use this module.
 
-### Core — Playlist
+### Core  -  Playlist
 
 **Action:** `RTS - Action Replay - Core - Playlist`
 
@@ -704,7 +704,7 @@ Handles the live replay queue.
 
 It adds selected replays to the queue, displays the queue, removes items, pauses/resumes progression and advances the queue when playback ends.
 
-### Core — Resolver
+### Core  -  Resolver
 
 **Action:** `RTS - Action Replay - Core - Resolver`
 
@@ -712,7 +712,7 @@ Resolves the configuration needed by the overlay before a player, panel or anima
 
 This is internal plumbing. You should not normally need to call it yourself.
 
-### Core — Search Queue
+### Core  -  Search Queue
 
 **Action:** `RTS - Action Replay - Core - Search Queue`
 
@@ -720,7 +720,7 @@ Queues search presentation requests and hands them to the configured Search Pane
 
 It also handles the internal search-panel lifecycle.
 
-### Core — Settings
+### Core  -  Settings
 
 **Action:** `RTS - Action Replay - Core - Settings`
 
@@ -728,7 +728,7 @@ Owns the Action Replay settings/configuration interface and its persisted config
 
 This is the bridge between the Streamer.bot settings UI and the stored Action Replay configuration.
 
-### Core — Store
+### Core  -  Store
 
 **Action:** `RTS - Action Replay - Core - Store`
 
@@ -736,18 +736,18 @@ Provides the shared Catalog/store functionality used by the rest of Action Repla
 
 It owns persistent replay data and related store operations such as adding and naming replays.
 
-### Core — Store
+### Core  -  Store
 
 **Action:** `RTS - Action Replay - Core - Store`
 
 The Store also provides the manual replay import operations used by **Add Replay** and **Scan Replays**.
 
-- `AddExistingReplay` — adds one existing replay file from the configured Replay Folder.
-- `ScanReplays` — scans the configured Replay Folder and imports replay files missing from the Catalog.
+- `AddExistingReplay`  -  adds one existing replay file from the configured Replay Folder.
+- `ScanReplays`  -  scans the configured Replay Folder and imports replay files missing from the Catalog.
 
 These operations do not depend on **Auto-add Saved Replays** being enabled.
 
-### Core — Video Controls
+### Core  -  Video Controls
 
 **Action:** `RTS - Action Replay - Core - Video Controls`
 
@@ -771,7 +771,7 @@ Initialises the persistent Action Replay store and makes sure the basic Catalog/
 
 It is startup plumbing, not a chat command.
 
-### Core — Platforms
+### Core  -  Platforms
 
 **Action:** `RTS - Action Replay - Core - Platforms`
 
@@ -779,7 +779,7 @@ The platform code is exposed as its own Streamer.bot Execute Code action and is 
 
 ---
 
-### Core — Platforms
+### Core  -  Platforms
 
 **Action:** `RTS - Action Replay - Core - Platforms`
 
