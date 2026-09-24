@@ -27,8 +27,8 @@ const messagePanelCommand = command => ({
 });
 
 const applyMessageBranding = command => {
-  const kicker = RTSReplayMessages.messageCard?.querySelector('.rts-panel-kicker');
-  if (!kicker) return;
+  const card = RTSReplayMessages.messageCard;
+  if (!card) return;
 
   const presets = window.rtsOverlayConfig?.presets?.branding;
   const configuredId = command?.replayBrandingPresetId
@@ -39,9 +39,31 @@ const applyMessageBranding = command => {
       || presets.find(item => String(item?.id || '') === 'default')
     : null;
 
-  const fallback = String(brand?.fallbackText || 'RTS').trim();
-  const label = String(brand?.brandLabel || 'ACTION REPLAY').trim();
-  kicker.textContent = [fallback, label].filter(Boolean).join(' ');
+  const fallback = String(command?.replayBrandFallbackText || brand?.fallbackText || 'RTS').trim();
+  const label = String(command?.replayBrandLabel || brand?.brandLabel || 'ACTION REPLAY').trim();
+  const logoUrl = String(command?.replayBrandLogoUrl || brand?.logo || '').trim();
+  const logo = card.querySelector('#message-brand-logo');
+  const fallbackNode = card.querySelector('#message-brand-fallback');
+  const labelNode = card.querySelector('#message-brand-label');
+  if (!logo || !fallbackNode || !labelNode) return;
+
+  fallbackNode.textContent = fallback;
+  labelNode.textContent = label;
+  card.style.setProperty('--message-brand-fallback', command?.replayBrandFallbackTextColor || brand?.primaryColor || '#0384CBFF');
+  card.style.setProperty('--message-brand-label', command?.replayBrandLabelColor || brand?.textColor || '#FFFFFFFF');
+  logo.classList.remove('loaded');
+  logo.removeAttribute('src');
+  fallbackNode.style.display = '';
+  if (!logoUrl) return;
+
+  fallbackNode.style.display = 'none';
+  logo.onload = () => logo.classList.add('loaded');
+  logo.onerror = () => {
+    logo.classList.remove('loaded');
+    logo.removeAttribute('src');
+    fallbackNode.style.display = '';
+  };
+  logo.src = logoUrl;
 };
 
 const fitMessageText = () => {
