@@ -157,9 +157,9 @@ public class CPHInline
             {
                 try
                 {
-                    var resolved = JObject.Parse(handedOff);
-                    if (string.Equals((string)resolved["replayId"], (string)replay["id"], StringComparison.OrdinalIgnoreCase))
-                        url = (string)resolved["url"];
+                    var handoffData = JObject.Parse(handedOff);
+                    if (string.Equals((string)handoffData["replayId"], (string)replay["id"], StringComparison.OrdinalIgnoreCase))
+                        url = (string)handoffData["url"];
                 }
                 catch { }
             }
