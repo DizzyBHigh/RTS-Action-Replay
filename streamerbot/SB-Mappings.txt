@@ -37,7 +37,8 @@ RTS - Action Replay - Catalog - Purge Missing Items : Execute Method(RTS - Actio
 Commands: !purge, !catalog-purge, !catalogpurge
 
 RTS - Action Replay - Catalog - Delete Item : Execute Method(RTS - Action Replay - Core - Catalog, DeleteCatalogItem) 
-Commands: !delete-catalog-item [Parameters: <search result number>]
+Commands: !delete-catalog-item [Parameters: <search result number(s), comma separated>]
+Commands: !delete-from-catalog [Parameters: <search result number(s), comma separated>]
 
 RTS - Action Replay - Catalog - Search : Execute Method(RTS - Action Replay - Core - Catalog, ListCatalog) 
 Commands: !search [Parameters: <search text> and optional --amount <N>]
