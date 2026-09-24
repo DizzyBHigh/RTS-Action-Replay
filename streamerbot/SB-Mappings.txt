@@ -63,7 +63,10 @@ Commands: !scan-replay-folder !scanreplayfolder
 
 RTS - Action Replay - Core
 RTS - Action Replay - Core - Messaging : Execute Code (RTS - Action Replay - Core - Messaging) - streamerbot/RTSActionReplayMessaging.cs 
-Methods: Enqueue, OverlayCompleted, Resume, ClearQueue, Reset
+Methods: Enqueue, SendOverlayMessage, OverlayCompleted, Resume, ClearQueue, Reset
+
+RTS - Action Replay - Overlay Message : Execute Method (RTS - Action Replay - Core - Messaging, SendOverlayMessage)
+Commands: !overlay-message [Parameters: <message>]
 
 RTS - Action Replay - Core - Test : Execute Code (RTS - Action Replay - Core - Test) - streamerbot/RTSActionReplayTest.cs
 Methods: TestMessage, TestPanel, TestVideo, TestClapperboard
