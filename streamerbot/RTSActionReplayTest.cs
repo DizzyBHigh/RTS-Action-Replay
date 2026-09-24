@@ -57,8 +57,8 @@ public class CPHInline
                 ["clearedCount"] = 3,
                 ["remainingCount"] = 0,
                 ["messagePresentationSource"] = CPH.GetGlobalVar<string>("rts.actionreplay.test.messagePresentationSource", true) ?? "Current Settings",
-                ["messageDesign"] = CPH.GetGlobalVar<string>("rts.actionreplay.test.messageDesign", true) ?? "Broadcast",
-                ["messageBranding"] = CPH.GetGlobalVar<string>("rts.actionreplay.test.messageBranding", true) ?? "Default"
+                ["messageDesign"] = PresetId("visual", CPH.GetGlobalVar<string>("rts.actionreplay.test.messageDesign", true) ?? "Broadcast", "broadcast"),
+                ["messageBranding"] = PresetId("branding", CPH.GetGlobalVar<string>("rts.actionreplay.test.messageBranding", true) ?? "Default", "default")
             }.ToString(Newtonsoft.Json.Formatting.None),
             false
         );
@@ -174,6 +174,21 @@ public class CPHInline
         }
         catch { }
         return 1;
+    }
+
+    private string PresetId(string group, string friendlyName, string fallback)
+    {
+        var raw = CPH.GetGlobalVar<string>("rts.actionreplay.config.presets", true);
+        try
+        {
+            var presets = JObject.Parse(raw ?? "{}");
+            var values = presets[group] as JArray ?? new JArray();
+            var match = values.OfType<JObject>().FirstOrDefault(x =>
+                string.Equals((string)x["id"], friendlyName, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals((string)x["name"], friendlyName, StringComparison.OrdinalIgnoreCase));
+            return (string)match?["id"] ?? fallback;
+        }
+        catch { return fallback; }
     }
 
     private string TestOrigin() => CPH.GetGlobalVar<string>(TestOriginKey, true) ?? "Twitch";
