@@ -333,7 +333,7 @@ public class CPHInline
         var messageOverride = Arg("messageOverride");
         var isOverlayMessage = eventName.Equals("Overlay Message", StringComparison.OrdinalIgnoreCase);
         var chat = CPH.GetGlobalVar<bool?>(configKey + ".chat", true) ?? !isOverlayMessage;
-        var defaultOverlay = eventName.Equals("Replay Created", StringComparison.OrdinalIgnoreCase) || isOverlayMessage;
+        var defaultOverlay = eventName.Equals("Replay Created", StringComparison.OrdinalIgnoreCase) || eventName.Equals("Replay Played", StringComparison.OrdinalIgnoreCase) || isOverlayMessage;
         var configuredOverlay = CPH.GetGlobalVar<bool?>(configKey + ".overlay", true);
         var overlay = configuredOverlay ?? defaultOverlay;
 
@@ -395,6 +395,7 @@ public class CPHInline
         switch ((eventName ?? "").Trim().ToLowerInvariant())
         {
             case "replay created": return "Replay saved: %replayTitle%.";
+            case "replay played": return "Play";
             case "replay queued": return "Replay queued: %replayTitle%.";
             case "replay renamed": return "Replay #%replayNumber% renamed from %oldTitle% to %newTitle%.";
             case "replay removed": return "Replay removed: %replayTitle%.";
@@ -443,6 +444,7 @@ public class CPHInline
         switch ((eventName ?? "").Trim().ToLowerInvariant())
         {
             case "replay created": return "created";
+            case "replay played": return "played";
             case "replay queued": return "queued";
             case "replay renamed": return "renamed";
             case "replay removed": return "removed";
