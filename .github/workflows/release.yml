@@ -55,12 +55,20 @@ jobs:
           echo "OVERLAY_PATH=dist/${OVERLAY_NAME}" >> "$GITHUB_ENV"
 
       - name: Check placeholder was replaced
+        if: github.event_name != 'workflow_dispatch'
         shell: bash
         run: |
           if grep -q "RTS EXTENSION IMPORT CODE PLACEHOLDER" "$IMPORT_PATH"; then
             echo "The Streamer.bot import code is still the template placeholder."
             exit 1
           fi
+
+      - name: Upload release assets
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets-${{ github.event.inputs.ref }}
+          path: dist/
 
       - name: Create GitHub Release
         env:
