@@ -372,18 +372,33 @@ public class CPHInline
     private void RemoveKickPending(string replayId)
     {
         var queue = LoadKickHandoffQueue(KickPendingHandoffKey);
-        foreach (var item in queue.OfType<JObject>().Where(x => string.Equals((string)x["replayId"], replayId, StringComparison.OrdinalIgnoreCase)).ToList()) queue.Remove(item);
+        for (var i = queue.Count - 1; i >= 0; i--)
+        {
+            var item = queue[i] as JObject;
+            if (item != null && string.Equals((string)item["replayId"], replayId, StringComparison.OrdinalIgnoreCase))
+                queue.RemoveAt(i);
+        }
         SaveKickHandoffQueue(KickPendingHandoffKey, queue);
     }
 
     private void SetKickPendingReady(string replayId, string url)
     {
         var pending = LoadKickHandoffQueue(KickPendingHandoffKey);
-        foreach (var item in pending.OfType<JObject>().Where(x => string.Equals((string)x["replayId"], replayId, StringComparison.OrdinalIgnoreCase)).ToList()) pending.Remove(item);
+        for (var i = pending.Count - 1; i >= 0; i--)
+        {
+            var item = pending[i] as JObject;
+            if (item != null && string.Equals((string)item["replayId"], replayId, StringComparison.OrdinalIgnoreCase))
+                pending.RemoveAt(i);
+        }
         SaveKickHandoffQueue(KickPendingHandoffKey, pending);
 
         var ready = LoadKickHandoffQueue(KickReadyHandoffKey);
-        foreach (var item in ready.OfType<JObject>().Where(x => string.Equals((string)x["replayId"], replayId, StringComparison.OrdinalIgnoreCase)).ToList()) ready.Remove(item);
+        for (var i = ready.Count - 1; i >= 0; i--)
+        {
+            var item = ready[i] as JObject;
+            if (item != null && string.Equals((string)item["replayId"], replayId, StringComparison.OrdinalIgnoreCase))
+                ready.RemoveAt(i);
+        }
         ready.Add(new JObject { ["replayId"] = replayId, ["url"] = url });
         SaveKickHandoffQueue(KickReadyHandoffKey, ready);
     }
