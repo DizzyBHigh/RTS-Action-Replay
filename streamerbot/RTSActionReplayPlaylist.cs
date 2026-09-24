@@ -70,6 +70,8 @@ public class CPHInline
             };
             queue.Add(queueEntry);
             SaveQueue(queue);
+            if (manualPlayback)
+                EnqueueReplayPlayed(replay, userId, requester, requesterPlatform, broadcastId);
             if (playlistNotEmpty)
             {
                 CPH.LogInfo($"RTS Action Replay TRACE: EnqueueCurrentReplay calling EnqueueReplayQueued; queueCountAfterAdd={queue.Count}.");
@@ -216,6 +218,24 @@ public class CPHInline
         CPH.UnsetGlobalVar(ReplayIdHandoffKey, false); CPH.UnsetGlobalVar(PlaybackQueueEntryHandoffKey, false); CPH.UnsetGlobalVar(PlaybackProfileHandoffKey, false);
         if (started) { CPH.SetGlobalVar(ActiveKey, (string)item["entryId"], false); CPH.SetGlobalVar(ActiveReplayKey, (string)item["replayId"], false); CPH.SetArgument("historyReplayId", (string)item["replayId"] ?? ""); CPH.SetArgument("historyReplayTitle", (string)item["title"] ?? "Replay"); CPH.SetArgument("historyReplayCreator", (string)FindReplay(catalog, (string)item["replayId"])?["creator"]?["name"] ?? ""); CPH.SetArgument("historyReplayRequester", (string)item["requesterName"] ?? ""); CPH.SetArgument("historyReplayPlatform", (string)item["requesterPlatform"] ?? ""); CPH.ExecuteMethod(CatalogAction, "RecordPlayed"); }
         return started;
+    }
+
+    private void EnqueueReplayPlayed(JObject replay, string requesterId, string requesterName, string requesterPlatform, string broadcastId)
+    {
+        var creator = replay?["creator"] as JObject;
+        CPH.SetArgument("messageEvent", "Replay Played");
+        CPH.SetArgument("replayId", (string)replay?["id"] ?? "");
+        CPH.SetArgument("replayNumber", ReplayNumber((string)replay?["id"] ?? ""));
+        CPH.SetArgument("replayTitle", (string)replay?["title"] ?? "Replay");
+        CPH.SetArgument("replayUserId", (string)creator?["id"] ?? "");
+        CPH.SetArgument("replayUser", (string)creator?["name"] ?? "");
+        CPH.SetArgument("replayPlatform", (string)creator?["platform"] ?? "");
+        CPH.SetArgument("replaySourcePlatform", (string)replay?["sourceType"] ?? "OBS");
+        CPH.SetArgument("requesterId", requesterId ?? "");
+        CPH.SetArgument("requesterName", requesterName ?? "");
+        CPH.SetArgument("requesterPlatform", requesterPlatform ?? "");
+        CPH.SetArgument("requesterBroadcastId", broadcastId ?? "");
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Messaging", "Enqueue");
     }
 
     private void EnqueueReplayQueued(JObject replay, string requesterId, string requesterName, string requesterPlatform, string broadcastId)
