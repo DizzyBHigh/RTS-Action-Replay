@@ -40,7 +40,7 @@ Search for replays from a date period.
 `!search-date <date period> [--amount <N>]`
 `!date-search <date period> [--amount <N>]`
 
-Supported period forms depend on the Catalog date parser, including values such as `today`, `this week`, `last week`, `this year`, `last year`, `2025`, `November` and `November 2025`.
+Supported period forms depend on the Catalog date parser, including values such as `today`, `this week`, `last week`, `this year`, `last year`, `year`, `month` and `month year`.
 
 ### Delete Clip
 
