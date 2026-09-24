@@ -221,11 +221,13 @@ This uses the Catalog's recent ordering. It is different from Last Played: a rep
 
 ### Show Current Search Page
 
-Show the current page of the current Catalog/search results in chat without starting a new search or changing the current page.
+Show the current page of the current Catalog/search results without starting a new search or changing the current page.
 
 **Command**
 
 `!search-show`
+
+The command follows the configured **Search Presentation** settings. **Search - Panel** shows the current results in the Search Panel. **Search - Chat** sends the current header and result entries to chat. Both can be enabled at the same time.
 
 The displayed numbers are the positions on the current page and can be used with commands such as `!delete-catalog-item <number>`.
 
@@ -714,7 +716,7 @@ This is internal plumbing. You should not normally need to call it yourself.
 
 **Action:** `RTS - Action Replay - Core - Search Queue`
 
-Queues search-panel requests and hands them to the overlay/search rendering path.
+Queues search presentation requests and hands them to the configured Search Panel/chat rendering path.
 
 It also handles the internal search-panel lifecycle.
 
