@@ -158,6 +158,11 @@ public class CPHInline
         var results = Query(request); var amount = Math.Max(1, (int?)request["amount"] ?? MaxAmount());
         var page = Math.Max(1, (int?)request["page"] ?? 1); var pages = Math.Max(1, (int)Math.Ceiling(results.Count / (double)amount));
         page = Math.Min(page, pages); var start = (page - 1) * amount;
+        var showChat = CPH.GetGlobalVar<bool?>("rts.actionreplay.search.chat", true) ?? false;
+        var showPanel = CPH.GetGlobalVar<bool?>("rts.actionreplay.search.panel", true) ?? true;
+        if (!showChat && !showPanel) return true;
+        if (showChat) RenderSearchChat(request, results, page, pages, amount, start);
+        if (!showPanel) return true;
         var operation = (JObject)request.DeepClone();
         operation["replaySearchHeader"] = Header(request, page, pages, results.Count);
         operation["replaySearchRequester"] = (string)request["requesterName"] ?? "";
@@ -180,6 +185,28 @@ public class CPHInline
         }
         CPH.SetGlobalVar(PanelOperationKey, operation.ToString(Newtonsoft.Json.Formatting.None), false);
         return CPH.ExecuteMethod(ResolverAction, "ResolvePanel");
+    }
+
+    private void RenderSearchChat(JObject request, JArray results, int page, int pages, int amount, int start)
+    {
+        SendCatalogMessage($"{Header(request, page, pages, results.Count)}");
+        var entries = results.Skip(start).Take(amount).OfType<JObject>().ToList();
+        if (entries.Count == 0)
+        {
+            SendCatalogMessage("No results on this search page.");
+            return;
+        }
+        for (var i = 0; i < entries.Count; i++)
+        {
+            var replay = entries[i];
+            var creatorObject = replay["creator"] as JObject;
+            var creator = (string)creatorObject?["name"] ?? (string)replay["creator"] ?? "";
+            var platform = (string)creatorObject?["platform"] ?? (string)replay["lastPlayedPlatform"] ?? (string)replay["sourceType"] ?? "";
+            var title = (string)replay["title"] ?? "Untitled replay";
+            var rating = HasRatings(replay) ? Math.Round(Rating(replay), 1) : 0;
+            var plays = (int?)replay["plays"] ?? 0;
+            SendListEntry(start + i + 1, title, creator, rating, platform, plays);
+        }
     }
 
     public bool RecordPlayed() { var replayId = Arg("historyReplayId"); if (string.IsNullOrWhiteSpace(replayId)) return false; var data = Load(); var catalog = data["catalog"] as JArray ?? new JArray(); var replay = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase)); if (replay == null) return false; replay["plays"] = Math.Max(0, (int?)replay["plays"] ?? 0) + 1; var history = data["playHistory"] as JArray ?? new JArray(); var existing = history.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["replayId"], replayId, StringComparison.OrdinalIgnoreCase)); var count = existing == null ? 1 : Math.Max(1, (int?)existing["count"] ?? 1) + 1; if (existing != null) history.Remove(existing); var requesterId = ""; var activeId = CPH.GetGlobalVar<string>(ActiveKey, false); var queueRaw = CPH.GetGlobalVar<string>(PlaylistKey, false); if (!string.IsNullOrWhiteSpace(queueRaw)) { try { var queue = JArray.Parse(queueRaw); var active = queue.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["entryId"], activeId, StringComparison.OrdinalIgnoreCase)); requesterId = (string)active?["requesterId"] ?? ""; } catch { } } history.Insert(0, new JObject { ["replayId"] = replayId, ["title"] = Arg("historyReplayTitle"), ["creator"] = Arg("historyReplayCreator"), ["count"] = count, ["lastPlayedBy"] = Arg("historyReplayRequester"), ["lastPlayedPlatform"] = Arg("historyReplayPlatform"), ["lastPlayedUserId"] = requesterId, ["lastPlayed"] = DateTime.Now.ToString("o") }); while (history.Count > MaxAmount()) history.RemoveAt(history.Count - 1); data["playHistory"] = history; Save(data); return true; }
