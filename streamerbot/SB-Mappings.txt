@@ -66,7 +66,7 @@ RTS - Action Replay - Core - Messaging : Execute Code (RTS - Action Replay - Cor
 Methods: Enqueue, SendOverlayMessage, OverlayCompleted, Resume, ClearQueue, Reset
 
 RTS - Action Replay - Overlay Message : Execute Method (RTS - Action Replay - Core - Messaging, SendOverlayMessage)
-Commands: !overlay-message [Parameters: <message>]
+Commands: !overlay-message, !send-message [Parameters: <message>]
 
 RTS - Action Replay - Core - Test : Execute Code (RTS - Action Replay - Core - Test) - streamerbot/RTSActionReplayTest.cs
 Methods: TestMessage, TestPanel, TestVideo, TestClapperboard
