@@ -45,6 +45,86 @@ public class CPHInline
     public bool UserSearchNext() => ShowUserSearchPage(1);
     public bool UserSearchPrevious() => ShowUserSearchPage(-1);
     public bool ResolveSelection() { var selector = Arg("rawInput").Trim(); if (!int.TryParse(selector, out var index) || index < 1) return false; var state = LoadUserState(); if (string.Equals((string)state["filterType"], "leaderboard", StringComparison.OrdinalIgnoreCase)) return false; return ResolveStateSelection(state, index); }
+
+    public bool DeleteCatalogItem()
+    {
+        CPH.SetArgument("catalogSelectionReplayId", "");
+        if (!ResolveSelection())
+        {
+            SendCatalogMessage("Please provide a valid Catalog result number.");
+            return false;
+        }
+
+        var replayId = Arg("catalogSelectionReplayId");
+        var data = Load();
+        var catalog = data["catalog"] as JArray ?? new JArray();
+        var replay = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase));
+        if (replay == null)
+        {
+            SendCatalogMessage("The selected replay is no longer in the Catalog.");
+            return false;
+        }
+
+        var activeReplayId = CPH.GetGlobalVar<string>(ActiveReplayKey, false) ?? "";
+        if (string.Equals(activeReplayId, replayId, StringComparison.OrdinalIgnoreCase))
+        {
+            SendCatalogMessage("The selected replay is currently playing and cannot be deleted.");
+            return false;
+        }
+
+        var queueRaw = CPH.GetGlobalVar<string>(PlaylistKey, false);
+        if (!string.IsNullOrWhiteSpace(queueRaw))
+        {
+            try
+            {
+                var queue = JArray.Parse(queueRaw);
+                if (queue.OfType<JObject>().Any(x => string.Equals((string)x["replayId"], replayId, StringComparison.OrdinalIgnoreCase)))
+                {
+                    SendCatalogMessage("The selected replay is in the Playlist and cannot be deleted.");
+                    return false;
+                }
+            }
+            catch
+            {
+                CPH.LogWarn("RTS Action Replay: unable to inspect Playlist while deleting Catalog item.");
+                SendCatalogMessage("The selected replay could not be safely deleted.");
+                return false;
+            }
+        }
+
+        var creator = replay["creator"] as JObject;
+        var title = (string)replay["title"] ?? "Replay";
+        catalog.Remove(replay);
+
+        var history = data["playHistory"] as JArray ?? new JArray();
+        for (var i = history.Count - 1; i >= 0; i--)
+        {
+            if (string.Equals((string)history[i]?["replayId"], replayId, StringComparison.OrdinalIgnoreCase))
+                history.RemoveAt(i);
+        }
+
+        data["catalog"] = catalog;
+        data["playHistory"] = history;
+        Save(data);
+
+        CPH.SetArgument("messageEvent", "Replay Deleted");
+        CPH.SetArgument("replayId", replayId);
+        CPH.SetArgument("replayNumber", "");
+        CPH.SetArgument("replayTitle", title);
+        CPH.SetArgument("replayRating", "");
+        CPH.SetArgument("replayUserId", (string)creator?["id"] ?? "");
+        CPH.SetArgument("replayUser", (string)creator?["name"] ?? "");
+        CPH.SetArgument("replayPlatform", (string)creator?["platform"] ?? "");
+        CPH.SetArgument("replaySourcePlatform", (string)replay["sourceType"] ?? "OBS");
+        CPH.SetArgument("requesterId", Arg("userId"));
+        CPH.SetArgument("requesterName", Arg("userName"));
+        CPH.SetArgument("requesterPlatform", CurrentPlatform());
+        CPH.SetArgument("requesterBroadcastId", Arg("broadcast.id"));
+        CPH.ExecuteMethod("RTS - Action Replay - Core - Messaging", "Enqueue");
+
+        CPH.LogInfo($"RTS Action Replay: Catalog replay deleted; id={replayId}; title={title}.");
+        return true;
+    }
     public bool ResolveSelectionForUser() { var selector = Arg("rawInput").Trim(); var parts = selector.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var indexText = parts.Length == 1 ? parts[0] : parts.Length == 2 ? parts[1] : ""; if (!int.TryParse(indexText, out var index) || index < 1) return false; var platform = Arg("catalogSelectionPlatform"); var userName = Arg("catalogSelectionUser"); if (!TryParseUserTarget(platform + ":" + userName, out platform, out userName)) return false; var userId = ResolveUserId(platform, userName); if (string.IsNullOrWhiteSpace(userId)) return false; var state = LoadUserSearchState(platform, userId, userName); if (state == null || string.Equals((string)state["filterType"], "leaderboard", StringComparison.OrdinalIgnoreCase)) return false; return ResolveStateSelection(state, index); }
     private void SendRecentChat(JArray results)
     {
