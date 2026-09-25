@@ -295,7 +295,7 @@
           {
             "number": ".1",
             "title": "Open the settings dialog",
-            "text": "In the [[blue:Streamer.bot]] Actions panel, look for RTS Action Replay settings action to open the extension settings. The settings are fully documented below in [yellow: Action Replay Documentation]",
+            "text": "In the [[blue:Streamer.bot]] Actions panel, look for RTS Action Replay settings action to open the extension settings. The settings are fully documented below in [[yellow:Action Replay Documentation]]",
             "images": [
               {
                 "src": "assets/images/action-replay-sb-open-settings.png",
@@ -323,7 +323,7 @@
           {
             "number": ".1",
             "title": "Put the overlay into dev mode",
-            "text": "Copy the [[overlay:Overlay URL]], open it in a browser, and add [[muted: ?dev=true]] at the end.\\n\\nThis will put the overlay into dev mode, where you can test and preview the extension's features and settings.",
+            "text": "Copy the [[overlay:Overlay URL]], open it in a browser, and add [[muted:?dev=true]] at the end.\\n\\nThis will put the overlay into dev mode, where you can test and preview the extension's features and settings.",
             "images": [
               {
                 "src": "assets/images/action-replay-overlay-activate-devmode.png",
@@ -345,7 +345,7 @@
           {
             "number": ".3",
             "title": "Use the test harness to preview your current settings.",
-            "text": "The Testing tab of the settings allows you to send various actions to the overlay so you can preview your changes easily.\\p\\pAfter changing an option in the test settings, click save before initiating a test."
+            "text": "The Testing tab of the settings allows you to send various actions to the overlay so you can preview your changes easily.\\n\\nAfter changing an option in the test settings, click save before initiating a test."
           }
         ]
       }
@@ -757,7 +757,7 @@
       {
         "number": "08",
         "title": "Design Presets",
-        "description": "Define the visual treatment used by Player, Panel, and Message presentation.\\nThere are 2 configurable presets [[yellow: Broadcast]] and [[yellow:Cut]], plus two non-configurable presets [[yellow:Cinematic]] and [[yellow:Minimal]]",
+        "description": "Define the visual treatment used by Player, Panel, and Message presentation.\\nThere are 2 configurable presets [[yellow:Broadcast]] and [[yellow:Cut]], plus two non-configurable presets [[yellow:Cinematic]] and [[yellow:Minimal]]",
         "substeps": [       
           {
             "number": ".1",
@@ -938,7 +938,7 @@
                 "title": "Edit Positions",
                 "description": "Opens the RTS Position Editor (See Position Editor below)"
               }
-            ]
+            ],
             "commands": [
               "screen-position"
             ]
@@ -963,10 +963,11 @@
                 "src": "assets/images/action-replay-settings-position-editor.png",
                 "alt": "Screenshot of the RTS - Position Editor"
               }
-              "settings": [
+            ],
+            "settings": [
               {
                 "title": "Position Presets",
-                "description": "The left-hand column lists the presets that have been created. The Full Screen [full-screen] is a default preset and cannot be edited. Presets you create will appear here and will be available for the [[yellow:animation editor]] (see below)"
+                "description": "The left-hand column lists the presets that have been created. The [[code:Full Screen]] is a default preset and cannot be edited. Presets you create will appear here and will be available for the [[yellow:animation editor]] (see below)"
               },
               {
                 "title": "Position Titles and Tags",
@@ -993,7 +994,6 @@
                 "description": "They do what they say; make sure you click Save before previewing a position. Always save and exit, unless you want to lose your changes."
               }
             ]
-            ],
           }
         ]
       },
@@ -1011,8 +1011,9 @@
                 "src": "assets/images/action-replay-settings-animation-profiles.png",
                 "alt": "Documentation screenshot placeholder for Player Animation Profiles"
               }
-            ] 
-            {
+            ]
+          },
+          {
             "number": ".2",
             "title": "Start Sequence",
             "text": "A sequence is created from 1 or more positions defined in the elements [[yellow:Position Editor]]; only the positions for the current element will be shown, i.e., player positions cannot be used in Panel Sequences",
@@ -1021,7 +1022,7 @@
                 "src": "assets/images/action-replay-settings-animation-sequence-editor.png",
                 "alt": "Screenshot for Animation Sequence Editor"
               }
-            ]
+            ],
             "settings": [
               {
                 "title": "The First item in a Start sequence",
