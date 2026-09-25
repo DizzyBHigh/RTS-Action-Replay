@@ -171,21 +171,33 @@
             "number": ".1",
             "title": "Enable the HTTP Server",
             "text": "In Streamer.bot, open the Servers or Web Server settings and enable the HTTP Server. Keep note of the HTTP port."
+            "images": [
+              {
+                "src": "/assets/images/sb-http-server-settings-screenshot.png",
+                "alt": "Setting up the HTTP Server in Streamer.bot"
+              }
+            ]
           },
           {
             "number": ".2",
             "title": "Add a file mapping",
-            "text": "Create a file or directory mapping for the OBS Replay Buffer folder. Use a simple URL path such as [[code:replays]] and point it to the same local folder where OBS saves replay files."
+            "text": "Create a file or directory mapping for the OBS Replay Buffer folder. Use a simple URL path such as [[code:replays]] and point it to the same local folder where OBS saves replay files. If you want to save Twitch and Kick clips locally. add mapping for those too."
           },
           {
             "number": ".3",
             "title": "Check the mapping",
             "text": "The mapping should expose the replay folder through the Streamer.bot HTTP Server. For example, a replay file named [[code:Replay 001.mp4]] in the mapped folder should be available below the [[code:/replays/]] path."
+            "images": [
+              {
+                "src": "/assets/images/sb-http-mappings-settings-screenshot.png",
+                "alt": "Mappings section of the http server settings"
+              }
+            ]
           },
           {
             "number": ".4",
             "title": "Keep the HTTP server available",
-            "text": "Leave the Streamer.bot HTTP Server running while using Action Replay. The overlay uses this service to request the local replay video."
+            "text": "Leave the Streamer.bot HTTP Server running while using Action Replay. The overlay uses this service to request the local replay video. Its reccomended to have the HTTP server auto start on launch"
           }
         ]
       },
@@ -198,6 +210,12 @@
             "number": ".1",
             "title": "Enable the WebSocket Server",
             "text": "In Streamer.bot, open the WebSocket Server settings and enable the server. Keep the configured port available to the overlay."
+            "images": [
+              {
+                "src": "/assets/images/sb-webswocket-server-settings-screenshot.png",
+                "alt": "Streamer.bot WebSocket Server Settings"
+              }
+            ]
           },
           {
             "number": ".2",
