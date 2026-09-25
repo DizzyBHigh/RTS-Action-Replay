@@ -3,7 +3,7 @@
   "id": "rts-action-replay",
   "name": "RTS Action Replay",
   "type": "extension",
-  "description": "Capture OBS replay-buffer clips and play them through a Streamer.bot-controlled browser overlay.",
+  "description": "Capture OBS replay-buffer clips and play them through a Streamer.bot controlled browser overlay.\\nUses its own [[blue:fully featured catalog]], with search capabilities. Over [[blue:39 commands]] for complete control through chat on all supported platforms.\\nThe Settings interface allows customisation of [[blue:colours]], [[blue:layout]] and [[blue:behaviour]].",
   "tags": [
     "Streamer.bot",
     "OBS",
@@ -26,6 +26,14 @@
     "overlayPath": "overlay",
     "footerLabel": "Part of The Road to Somewhere."
   },
+  "review": true,
+  "dependencies": {
+    "rtsUiDll": {
+      "id": "rts-ui-dll",
+      "name": "RTS UI DLL",
+      "minimumVersion": "1.0.0"
+    }
+  }
   "content": {
     "hero": {
       "kicker": "RTS STREAMER.BOT EXTENSION",
@@ -280,7 +288,7 @@
       {
         "number": "07",
         "title": "Configure RTS Action Replay Settings",
-        "description": "Open the RTS Action Replay settings and configure Extension.",
+        "description": "Open the RTS Action Replay settings and configure the extension.",
         "substeps": [
           {
             "number": ".1",
@@ -307,33 +315,34 @@
       },  
       {
         "number": "08",
-        "title": "Test Action Replay",
-        "description": "Create a replay and confirm that the complete local-to-overlay path is working.",
+        "title": "Test Action Replay Setup and Configuration",
+        "description": "Test and set up the Extension using the overlay's built-in development mode.",
         "substeps": [
           {
             "number": ".1",
-            "title": "Save a replay",
-            "text": "Use the Action Replay Save Replay command or the configured OBS Replay Buffer action to create a replay file."
+            "title": "Put the overlay into dev mode",
+            "text": "Copy the [[overlay:Overlay URL]], open it in a browser, and add [[muted: ?dev=true]] at the end.\\n\\nThis will put the overlay into dev mode, where you can test the extension's features."
           },
           {
             "number": ".2",
-            "title": "Confirm the replay is available",
-            "text": "Check that the replay file appears in the configured replay folder and is reachable through the Streamer.bot HTTP mapping."
+            "title": "Send the current config to the overlay",
+            "text": "In the Test tab of the extension's settings, you can click the Send Configuration to Overlay button. Once this is done, all the presets will be sent to the overlay and can be previewed.",
+          "images": [
+              {
+                "src": "assets/images/action-replay-test-settings-send-to-overlay.png",
+                "alt": "Send the configuration to the dev overlay"
+              }
+            ]
           },
           {
             "number": ".3",
-            "title": "Play the replay",
-            "text": "Use the Action Replay playback command or Playlist controls and confirm the video appears in the OBS overlay."
+            "title": "Use the test harness to preview your current settings.",
+            "text": "The Testing tab of the settings allows you to send various actions to the overlay so you can preview your changes easily.\\p\\pAfter changing an option in the test settings, click save before initiating a test."
           }
         ]
       }
     ]
   },
-  "notes": [
-    "Replay files remain on the local computer. The RTS overlay does not upload them to the website.",
-    "The production overlay is hosted by The Road to Somewhere; Streamer.bot supplies the local WebSocket and HTTP services."
-  ],
-  "review": false,
   "documentation": {
     "title": "Action Replay Documentation",
     "intro": "Reference documentation for configuring and using RTS Action Replay.",
@@ -344,7 +353,7 @@
         "sections": [
           {
             "title": "Local Capture",
-            "intro": "Configure how RTS discovers, registers and serves local OBS Replay Buffer captures.",
+            "intro": "Configure how RTS discovers, registers, and serves local OBS Replay Buffer captures.",
             "sections": [
               {
                 "title": "Local Capture / OBS",
@@ -1424,12 +1433,5 @@
         ]
       }
     ]
-  },
-  "dependencies": {
-    "rtsUiDll": {
-      "id": "rts-ui-dll",
-      "name": "RTS UI DLL",
-      "minimumVersion": "1.0.0"
-    }
   }
 }
