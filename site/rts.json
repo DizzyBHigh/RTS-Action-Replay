@@ -33,7 +33,7 @@
       "name": "RTS UI DLL",
       "minimumVersion": "1.0.0"
     }
-  }
+  },
   "content": {
     "hero": {
       "kicker": "RTS STREAMER.BOT EXTENSION",
