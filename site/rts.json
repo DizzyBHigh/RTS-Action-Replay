@@ -3,7 +3,7 @@
   "id": "rts-action-replay",
   "name": "RTS Action Replay",
   "type": "extension",
-  "description": "Capture OBS replay-buffer clips and play them through a Streamer.bot controlled browser overlay.\\nUses its own [[blue:fully featured catalog]], with search capabilities. Over [[blue:39 commands]] for complete control through chat on all supported platforms.\\nThe Settings interface allows customisation of [[blue:colours]], [[blue:layout]] and [[blue:behaviour]].",
+  "description": "Capture OBS replay-buffer clips and play them through a [[blue:Streamer.bot]] controlled browser overlay.\\nUses its own [[blue:fully featured catalog]], with search capabilities. Over [[blue:39 commands]] for complete control through chat on all supported platforms.\\nThe Settings interface allows customisation of [[blue:colours]], [[blue:layout]] and [[blue:behaviour]].",
   "tags": [
     "Streamer.bot",
     "OBS",
@@ -36,14 +36,14 @@
   },
   "content": {
     "hero": {
-      "kicker": "RTS STREAMER.BOT EXTENSION",
+      "kicker": "RTS [[blue:Streamer.bot]] Extension",
       "title": "Replay your",
       "titleAccent": "best moments"
     },
     "experience": {
       "kicker": "THE EXPERIENCE",
       "title": "Turn OBS replay clips into an interactive on-stream replay player.",
-      "text": "RTS Action Replay connects OBS Replay Buffer captures, Streamer.bot and a remote browser overlay so saved clips can be loaded and controlled without a separate web server.",
+      "text": "RTS Action Replay connects OBS Replay Buffer captures, [[blue:Streamer.bot]] and a remote browser overlay so saved clips can be loaded and controlled without a separate web server.",
       "features": [
         {
           "title": "Supports Twitch, YouTube and Kick",
@@ -73,23 +73,23 @@
     }
   },
   "requirements": [
-    "Streamer.bot with its WebSocket and HTTP servers enabled.",
+    "[[blue:Streamer.bot]] with its WebSocket and HTTP servers enabled.",
     "OBS with Replay Buffer enabled.",
     "RtsUI.dll for the extension settings interface."
   ],
   "setup": {
     "title": "Get Action Replay running.",
-    "intro": "Import the Streamer.bot actions, enable them, configure OBS Replay Buffer and the local HTTP file mapping, add the overlay to OBS, then test Action Replay.",
+    "intro": "Import the [[blue:Streamer.bot]] actions, enable them, configure OBS Replay Buffer and the local HTTP file mapping, add the overlay to OBS, then test Action Replay.",
     "steps": [
       {
         "number": "01",
-        "title": "Import the extension into Streamer.bot",
-        "description": "Open Streamer.bot and use Import to paste the supplied import string, or download the latest import file and import it into Streamer.bot.",
+        "title": "Import the extension into [[blue:Streamer.bot]]",
+        "description": "Open [[blue:Streamer.bot]] and use Import to paste the supplied import string, or download the latest import file and import it into [[blue:Streamer.bot]].",
         "substeps": [
           {
             "number": ".1",
             "title": "Copy the import string",
-            "text": "Look above for Action Import, click the Copy Import button, then paste the import code into Streamer.bot's Import dialog.",
+            "text": "Look above for Action Import, click the Copy Import button, then paste the import code into [[blue:Streamer.bot's]] Import dialog.",
             "images": [
               {
                 "src": "/assets/images/sb-import-code-copy-screenshot.png",
@@ -100,7 +100,7 @@
           {
             "number": ".2",
             "title": "Open Import",
-            "text": "Select Import from the Streamer.bot toolbar.",
+            "text": "Select Import from the [[blue:Streamer.bot]] toolbar.",
             "images": [
               {
                 "src": "/assets/images/sb-import-code-screenshot.png",
@@ -140,7 +140,7 @@
           {
             "number": ".1",
             "title": "Enable the extension actions",
-            "text": "Enable the imported RTS Action Replay actions in Streamer.bot.",
+            "text": "Enable the imported RTS Action Replay actions in [[blue:Streamer.bot]].",
             "images": [
               {
                 "src": "/assets/images/sb-import-code-enable-actions-screenshot.png",
@@ -180,7 +180,7 @@
           {
             "number": ".2",
             "title": "Choose the replay folder",
-            "text": "Configure OBS to save replay files to a folder that Streamer.bot can access. You will use this same folder when configuring the HTTP Server mapping and RTS Action Replay settings.",
+            "text": "Configure OBS to save replay files to a folder that [[blue:Streamer.bot]] can access. You will use this same folder when configuring the HTTP Server mapping and RTS Action Replay settings.",
             "images": [
               {
                 "src": "assets/images/action-replay-obs-save-file-settings.png",
@@ -192,13 +192,13 @@
       },
       {
         "number": "04",
-        "title": "Configure the Streamer.bot HTTP Server",
-        "description": "The hosted RTS overlay cannot read files directly from your computer. Streamer.bot's HTTP Server provides the local URL that the overlay uses to load replay video files.",
+        "title": "Configure the [[blue:Streamer.bot]] HTTP Server",
+        "description": "The hosted RTS overlay cannot read files directly from your computer. [[blue:Streamer.bot's]] HTTP Server provides the local URL that the overlay uses to load replay video files.",
         "substeps": [
           {
             "number": ".1",
             "title": "Enable the HTTP Server",
-            "text": "In Streamer.bot, open the Servers or Web Server settings and enable the HTTP Server. Keep note of the HTTP port.",
+            "text": "In [[blue:Streamer.bot]], open the Servers or Web Server settings and enable the HTTP Server. Keep note of the HTTP port.",
             "images": [
               {
                 "src": "/assets/images/sb-http-server-settings-screenshot.png",
@@ -220,19 +220,19 @@
           {
             "number": ".3",
             "title": "Keep the HTTP server available",
-            "text": "Leave the Streamer.bot HTTP Server running while using Action Replay. The overlay uses this service to request the local replay video. It's recommended to turn on the toggle at the top of the HTTP settings to have the HTTP server auto-start on launch."
+            "text": "Leave the [[blue:Streamer.bot]] HTTP Server running while using Action Replay. The overlay uses this service to request the local replay video. It's recommended to turn on the toggle at the top of the HTTP settings to have the HTTP server auto-start on launch."
           }
         ]
       },
       {
         "number": "05",
-        "title": "Enable the Streamer.bot WebSocket",
-        "description": "The hosted overlay uses the Streamer.bot WebSocket to receive Action Replay events and commands.",
+        "title": "Enable the [[blue:Streamer.bot]] WebSocket",
+        "description": "The hosted overlay uses the [[blue:Streamer.bot]] WebSocket to receive Action Replay events and commands.",
         "substeps": [
           {
             "number": ".1",
             "title": "Enable the WebSocket Server",
-            "text": "In Streamer.bot, open the WebSocket Server settings and enable the server. Keep the configured port available to the overlay.",
+            "text": "In [[blue:Streamer.bot]], open the WebSocket Server settings and enable the server. Keep the configured port available to the overlay.",
             "images": [
               {
                 "src": "/assets/images/sb-webswocket-server-settings-screenshot.png",
@@ -243,7 +243,7 @@
           {
             "number": ".2",
             "title": "Keep WebSocket access available",
-            "text": "The Streamer.bot WebSocket Server must remain running while the Action Replay overlay is in use. It's recommended to turn on the toggle at the top of the WebSocket settings to have the WebSocket server auto-start on launch."
+            "text": "The [[blue:Streamer.bot]] WebSocket Server must remain running while the Action Replay overlay is in use. It's recommended to turn on the toggle at the top of the WebSocket settings to have the WebSocket server auto-start on launch."
           }
         ]
       },
@@ -295,7 +295,7 @@
           {
             "number": ".1",
             "title": "Open the settings dialog",
-            "text": "In the Streamer.bot Actions panel, look for RTS Action Replay settings action to open the extension settings. The settings are fully documented below in [yellow: Action Replay Documentation]",
+            "text": "In the [[blue:Streamer.bot]] Actions panel, look for RTS Action Replay settings action to open the extension settings. The settings are fully documented below in [yellow: Action Replay Documentation]",
             "images": [
               {
                 "src": "assets/images/action-replay-sb-open-settings.png",
@@ -306,12 +306,12 @@
           {
             "number": "*",
             "title": "Automatic installation of RtsUI.dll",
-            "text": "If you do not have the DLL installed, the extension can download and place it in your Streamer.bot installation directory. If you do not see the install prompt, it may be hiding behind another window. Check your taskbar for a Streamer.bot dialog and bring it to the front."
+            "text": "If you do not have the DLL installed, the extension can download and place it in your [[blue:Streamer.bot]] installation directory. If you do not see the install prompt, it may be hiding behind another window. Check your taskbar for a [[blue:Streamer.bot]] dialog and bring it to the front."
           },
           {
             "number": "*",
             "title": "Automatic updating of RtsUI.dll",
-            "text": "If the extension requires an updated version, it can ask whether you want to download and install the latest version. If you do not see the update prompt, it may be hiding behind another window. Check your taskbar for a Streamer.bot dialog and bring it to the front."
+            "text": "If the extension requires an updated version, it can ask whether you want to download and install the latest version. If you do not see the update prompt, it may be hiding behind another window. Check your taskbar for a [[blue:Streamer.bot]] dialog and bring it to the front."
           }
         ]
       },
@@ -353,12 +353,12 @@
   },
   "documentation": {
     "title": "Action Replay Settings Guide",
-    "intro": "There are a large number of settings the extension exposes that enable you to configure how the extension behaves and looks.\\nThis guide aims to walk you through what each setting does and how it affects the player, panels, and messages.",
+    "intro": "There are a large number of settings that enable you to configure how the extension behaves and looks.\\nThis documentation guide aims to walk you through what each setting does, allowing you to tailor the extension to your specific needs.",
     "steps": [
       {
         "number": "01",
         "title": "Local Capture",
-        "description": "[[blue:Streamer.bot]] can be set up to watch a folder for new media.\\nThis is particularly useful for OBS (or other capture/streaming software) when captures via its replay buffer are saved to a folder on your computer. Streamer.bot picks this up and adds the file to the catalog.\\nStreamerbots HTTP Service allows us to map the folder and serve the file to the overlay for playback.",
+        "description": "[[blue:Streamer.bot]] can be set up to watch a folder for new media.\\nThis is particularly useful for OBS (or other capture/streaming software) when captures via its replay buffer are saved to a folder on your computer. [[blue:Streamer.bot]] picks this up and adds the file to the catalog.\\n[[blue:Streamer.bot's]] HTTP Service allows us to map the folder and serve the file to the overlay for playback.",
         "substeps": [
           {
             "number": ".1",
@@ -382,7 +382,7 @@
               },
               {
                 "title": "HTTP Mapping",
-                "description": "URL path used in the local replay URL. It must match the Streamer.bot HTTP server mapping serving the Replay Folder.",
+                "description": "URL path used in the local replay URL. It must match the [[blue:Streamer.bot]] HTTP server mapping serving the Replay Folder.",
                 "value": "replays"
               },
               {
@@ -481,7 +481,7 @@
               },
               {
                 "title": "Twitch HTTP Mapping",
-                "description": "URL path used by Streamer.bot to serve downloaded Twitch clips. The shared HTTP Port is configured under Local Capture / OBS.",
+                "description": "URL path used by [[blue:Streamer.bot]] to serve downloaded Twitch clips. The shared HTTP Port is configured under Local Capture / OBS.",
                 "value": "twitch"
               },
               {
@@ -508,7 +508,7 @@
             ],
             "bullets": [
               "[[code:Twitch URL]] - play directly from Twitch.",
-              "[[code:Download Locally]] - download and play a local copy through Streamer.bot's HTTP server.",
+              "[[code:Download Locally]] - download and play a local copy through [[blue:Streamer.bot's]] HTTP server.",
               "[[code:Both]] - use the local copy when available and fall back to Twitch playback when it is unavailable."
             ],
             "commands": [
@@ -574,7 +574,7 @@
               },
               {
                 "title": "Kick HTTP Mapping",
-                "description": "URL path used by Streamer.bot to serve downloaded Kick clips. The shared HTTP Port is configured under Local Capture / OBS.",
+                "description": "URL path used by [[blue:Streamer.bot]] to serve downloaded Kick clips. The shared HTTP Port is configured under Local Capture / OBS.",
                 "value": "kick"
               }
             ],
@@ -593,7 +593,7 @@
             ],
             "bullets": [
               "[[code:Kick URL]] - play directly from Kick.",
-              "[[code:Download Locally]] - download and play a local copy through Streamer.bot's HTTP server.",
+              "[[code:Download Locally]] - download and play a local copy through [[blue:Streamer.bot's]] HTTP server.",
               "[[code:Both]] - use the local copy when available and fall back to direct Kick playback when necessary."
             ],
             "commands": [
@@ -746,7 +746,7 @@
             "settings": [
               {
                 "title": "Persist Playlist Across Restarts",
-                "description": "Keeps the current Playlist queue when Streamer.bot restarts. Active playback and pause state are not persisted.",
+                "description": "Keeps the current Playlist queue when [[blue:Streamer.bot]] restarts. Active playback and pause state are not persisted.",
                 "value": "Off"
               }
             ],
