@@ -696,7 +696,7 @@
                 "src": "assets/images/action-replay-settings-branding-presets-default.png",
                 "alt": "Screenshot for Branding Presets settings"
               }
-            ],
+            ,
             "settings": [
               {
                 "title": "Preset Name",
@@ -805,7 +805,7 @@
               {
                 "title": "Chevron Speed",
                 "description": "How fast the chevrons move horizontally from left to right. 10-500"
-              },
+              }
             ]
           },
           {
@@ -841,7 +841,7 @@
               }
             ]
           }
-        ],
+        ]
       },
       {
         "number": "09",
