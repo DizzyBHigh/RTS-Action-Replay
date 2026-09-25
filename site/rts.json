@@ -690,7 +690,7 @@
           {
             "number": ".1",
             "title": "Brand Preset Settings",
-            "text": "There are 5 branding presets pre-configured; [[white:default]], [[yellow:RTS]], [[purple:Twitch]], [[red:YouTube]], and [[green:Kick]]. They can be changed, but not deleted.\\nYou can create and delete extra presets as you need, and they will be available for use throughout the settings.",
+            "text": "There are 5 branding presets pre-configured: [[white:default]], [[yellow:RTS]], [[purple:Twitch]], [[red:YouTube]], and [[green:Kick]]. They can be changed, but not deleted.\\nYou can create and delete extra presets as you need, and they will be available for use throughout the settings.",
             "images": [
               {
                 "src": "assets/images/action-replay-settings-branding-presets-default.png",
@@ -821,7 +821,7 @@
             "settings": [
              {
                 "title": "Background Source",
-                "description": "The background colour to use for panels,and messages. Options: RTS Dark Blue background, Branding Secondary Colour, or Custom Colour"
+                "description": "The background colour to use for panels, and messages. Options: RTS Dark Blue background, Branding Secondary Colour, or Custom Colour"
               },
               {
                 "title": "Background Colour",
@@ -851,7 +851,7 @@
           {
             "number": ".1",
             "title": "Title Presets",
-            "text": "Define how replay titles are positioned, decorated, and animated in the Player. The default preset can be changed, but not deleted.\\n*DO NOT REMANE THE DEFAULT PRESET!!!",
+            "text": "Define how replay titles are positioned, decorated, and animated in the Player. The default preset can be changed, but not deleted.\\n*DO NOT RENAME THE DEFAULT PRESET!!!",
             "images": [
               {
                 "src": "assets/images/action-replay-settings-title-presets.png",
@@ -898,122 +898,171 @@
       {
         "number": "10",
         "title": "Positions",
-        "description": "Define reusable Player, Panel, Message and Clapperboard positions in the shared 1920x1080 overlay coordinate space.",
+        "description": "Define reusable Player, Panel, Message, and Clapperboard positions in the shared 1920x1080 overlay coordinate space.",
         "substeps": [
           {
             "number": ".1",
-            "title": "Player Positions",
-            "text": "Saved positions used by Player Animation and playback.",
+            "title": "Panel and Message Positions",
+            "text": "Panel and Messages can have their Width, Height, and Corner Radius set. After changing these options, save and exit settings, then reopen settings before editing the positions.\\nPositions are used in animation presets for displaying the Panels/Messages.",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Player Positions"
+                "src": "assets/images/action-replay-settings-positions-panels.png",
+                "alt": "Screenshot for Panel Positions settings"
               }
             ],
-            "notes": [
-              "The player editor also supports the player field-of-view transform used by the overlay."
-            ],
+            "settings": [
+              {
+                "title": "Width",
+                "description": "Width of Panel/Message in pixels."
+              },
+              {
+                "title": "Height",
+                "description": "Height of Panel/Message in pixels."
+              },
+              {
+                "title": "Corner Radius",
+                "description": "Corner Radius of Panel/Message in pixels."
+              },
+              {
+                "title": "Edit Positions",
+                "description": "Opens the RTS Position Editor (See Position Editor below)"
+              }
+            ]
+          },
+          {
+            "number": ".2",
+            "title": "Player Positions",
+            "text": "Saved positions used by Player Animation and playback.",
+             "settings": [
+              {
+                "title": "Edit Positions",
+                "description": "Opens the RTS Position Editor (See Position Editor below)"
+              }
+            ]
             "commands": [
               "screen-position"
             ]
           },
           {
-            "number": ".2",
-            "title": "Panel Positions",
-            "text": "Saved positions used by Panel Animation and panel playback.",
-            "images": [
-              {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Panel Positions"
-              }
-            ],
+            "number": ".3",
+            "title": "Clapperboard Positions",
+            "text": "Saved positions used by Clapperboard Animation and playback.",
             "settings": [
               {
-                "title": "Width",
-                "description": "Information panel width in 1920x1080 output pixels.",
-                "value": "500"
-              },
-              {
-                "title": "Height",
-                "description": "Information panel height in 1920x1080 output pixels.",
-                "value": "700"
-              },
-              {
-                "title": "Corner Radius",
-                "description": "Information panel corner radius in pixels.",
-                "value": "0"
+                "title": "Edit Positions",
+                "description": "Opens the RTS Position Editor (See Position Editor below)"
               }
             ]
           },
           {
             "number": ".3",
-            "title": "Message Positions",
-            "text": "Saved positions used by Message Animation and playback.",
+            "title": "RTS Position Editor",
+            "text": "The [[yellow:RTS Position Editor]] allows you to place the Player, Panels, Messages, and Clapperboard anywhere on your display;\\n you can place elements on and off screen then use the animation presets to show and hide elements however you choose.\\n The position editor is based on a 16:9 resolution and works on 1080p and 1440 resolutions. All four position editors support saved transforms, including scale, X/Y/Z position, and X/Y/Z rotation. Animation Profiles reference these saved positions, so changing a saved position affects every profile that uses it.",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Message Positions"
+                "src": "assets/images/action-replay-settings-position-editor.png",
+                "alt": "Screenshot of the RTS - Position Editor"
               }
-            ],
-            "settings": [
+              "settings": [
               {
-                "title": "Width",
-                "description": "Fixed message width in 1920x1080 output pixels.",
-                "value": "500"
+                "title": "Position Presets",
+                "description": "The left-hand column lists the presets that have been created. The Full Screen [full-screen] is a default preset and cannot be edited. Presets you create will appear here and will be available for the [[yellow:animation editor]] (see below)"
               },
               {
-                "title": "Height",
-                "description": "Fixed message height in 1920x1080 output pixels.",
-                "value": "120"
+                "title": "Position Titles and Tags",
+                "description": "When creating a position you can set the title and a tag, the tag is used when using !set-pos command to position the player, currently it is not possible to set the position of Panels, Messages, or the Clapperboard on the fly."
               },
               {
-                "title": "Corner Radius",
-                "description": "Message panel corner radius in pixels.",
-                "value": "0"
-              }
-            ],
-            "notes": [
-              "Message text scales to fit the configured message dimensions."
-            ]
-          },
-          {
-            "number": ".4",
-            "title": "Clapperboard Positions",
-            "text": "Saved positions used by Clapperboard Animation and playback.",
-            "images": [
+                "title": "Positioning X, Y, Z",
+                "description": "Allows positioning of the element on the X, Y, and Z axis, 0 is centered. You can move the element left using - values and right using positive values. Z moves the element towards you (positive, e.g. 100) or away from you (negative e.g -100) in 3d space."
+              },
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Clapperboard Positions"
+                "title": "Transform X, Y, Z",
+                "description": "Allows rotating of the element on the X, Y, and Z axis, 0 is centered. You can rotate the element left using - values and right using positive values. Z rotates the element left (negative e.g -100) or right (positive, e.g. 100) on a flat plane"
+              },
+              {
+                "title": "Scale X, Y",
+                "description": "Allows resizing of the elements' X and Y values; setting to 0 will effectively hide the element completely"
+              },
+              {
+                "title": "Availiable Buttons",
+                "description": "Add Position - Adds a new position preset.\\nDuplicate - Duplicates the selected Position Preset.\\nDelete - Deletes the selected Preset.\\nPreview Position- Sends the current position to the dev overlay so you can see exactly where it will appear on the overlay.\\nHide Preview - I have no clue what this was for or what it does..."
+              },
+                {
+                "title": "Save, Close and Cancel",
+                "description": "They do what they say; make sure you click Save before previewing a position. Always save and exit, unless you want to lose your changes."
               }
-            ],
-            "notes": [
-              "All four position editors support saved transforms including scale, X/Y/Z position and X/Y/Z rotation. Animation Profiles reference these saved positions, so changing a saved position affects every profile that uses it."
             ]
+            ],
           }
         ]
       },
       {
         "number": "11",
-        "title": "Player Animation Profiles",
-        "description": "Define reusable Player animation profiles with separate Start and End sequences.",
+        "title": "Player, Panel, Message and Clapperboard Animation Profiles",
+        "description": "Animation Profiles are created to allow complete configuration of how your elements appear and disappear. The Animation system works the same for all elements. There is a default Animation profile that cannot be deleted. More presets can be created for each element as needed.",
         "substeps": [
           {
             "number": ".1",
-            "title": "Player Animation Profiles",
-            "text": "Define reusable Player animation profiles with separate Start and End sequences.",
+            "title": "Animation Sequences",
+            "text": "Each Animation Profile has a Start Sequence and an End Sequence. The Start Sequence determines how the element appears; the End Sequence determines how it disappears.",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
+                "src": "assets/images/action-replay-settings-animation-profiles.png",
                 "alt": "Documentation screenshot placeholder for Player Animation Profiles"
               }
             ]
+            {
+            "number": ".2",
+            "title": "Start Sequence",
+            "text": "A sequence is created from 1 or more positions defined in the elements [[yellow:Position Editor]]; only the positions for the current element will be shown, i.e., player positions cannot be used in Panel Sequences",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-animation-sequence-editor.png",
+                "alt": "Screenshot for Animation Sequence Editor"
+              }
+            ]
+            "settings": [
+              {
+                "title": "The First item in a Start sequence",
+                "description": "The first row determines the start animation position; it is best to use a position where the element's width and height are set to 0, or an off-screen position.\\nThe first position should have its duration and delay set to 0"
+              },
+              {
+                "title": "Adding items to a sequence",
+                "description": "Click Add Row to add a new position; the animation engine will use the rows setting and transition from the last item to the next item."
+              },
+              {
+                "title": "Position",
+                "description": "Select the position you want to transition to"
+              },
+              {
+                "title": "Duration",
+                "description": "The duration for the transition in milliseconds (1000ms = 1 second)."
+              },
+              {
+                "title": "Easing",
+                "description": "How you want the transition animation to run; easing affects the speed of the transition at its start and end. There are 4 easing settings to choose from."
+              },
+              {
+                "title": "Delay",
+                "description": "How long to wait before starting the next item in the sequence."
+              },
+              {
+                "title": "When the sequence ends",
+                "description": "Once the sequence is complete, the element will remain in its current position until its end sequence is triggered.\\nFor Messages, Panels, and the Clapperboard, this will be the duration they are set to be displayed for; once that finishes, the End sequence will be played.\\nFor the player, the end sequence will start when the last queued video has finished playing"
+              },
+              {
+                "title": "End Sequence",
+                "description": "The end sequence operates the same way as a start sequence, except it animates from the current position the element is in (the last position of the start sequence). Position, Duration, Easing, and delay are all taken into account for every row added."
+              }
+            ] 
           }
         ]
       },
       {
         "number": "12",
-        "title": "Panel Animation Profiles",
-        "description": "Define reusable Panel animation profiles with separate Start and End sequences. Steps use saved Panel Positions with configurable duration, easing and delay.",
+        "title": "Player, Panel, Message and Clapperboard Animation Profiles",
+        "description": "Animation Profiles are created to allow complete configuration of how your elements appear and disappear. The Animation system works the same for all elements. There is a default Animation profile that cannot be deleted. More presets can be created for each element as needed.",
         "substeps": [
           {
             "number": ".1",
