@@ -153,7 +153,7 @@
           {
             "number": ".1",
             "title": "Enable Replay Buffer",
-            "text": "In OBS, open Settings > Output and enable Replay Buffer."
+            "text": "In OBS, open Settings > Output and enable Replay Buffer.",
             "images": [
               {
                 "src": "assets/images/action-replay-obs-replay-buffer-settings.png",
@@ -176,7 +176,7 @@
           {
             "number": ".1",
             "title": "Enable the HTTP Server",
-            "text": "In Streamer.bot, open the Servers or Web Server settings and enable the HTTP Server. Keep note of the HTTP port."
+            "text": "In Streamer.bot, open the Servers or Web Server settings and enable the HTTP Server. Keep note of the HTTP port.",
             "images": [
               {
                 "src": "/assets/images/sb-http-server-settings-screenshot.png",
@@ -192,7 +192,7 @@
           {
             "number": ".3",
             "title": "Check the mapping",
-            "text": "The mapping should point to the replay folder that OBS saves its buffer to."
+            "text": "The mapping should point to the replay folder that OBS saves its buffer to.",
             "images": [
               {
                 "src": "/assets/images/sb-http-mappings-settings-screenshot.png",
@@ -215,7 +215,7 @@
           {
             "number": ".1",
             "title": "Enable the WebSocket Server",
-            "text": "In Streamer.bot, open the WebSocket Server settings and enable the server. Keep the configured port available to the overlay."
+            "text": "In Streamer.bot, open the WebSocket Server settings and enable the server. Keep the configured port available to the overlay.",
             "images": [
               {
                 "src": "/assets/images/sb-webswocket-server-settings-screenshot.png",
@@ -232,49 +232,6 @@
       },
       {
         "number": "06",
-        "title": "Configure RTS Action Replay",
-        "description": "Open the RTS Action Replay settings and configure the replay source and local HTTP mapping.",
-        "substeps": [
-          {
-            "number": ".1",
-            "title": "Open the settings dialog",
-            "text": "In the Streamer.bot Actions panel, look for RTS Action Replay settings action to open the extension settings."
-            "images": [
-              {
-                "src": "assets/images/sb-webswocket-server-settings-screenshot.png",
-                "alt": "Streamer.bot commands showing the imported RTS Action Replay commands"
-              }
-            ]
-          },
-          {
-            "number": ".2",
-            "title": "Configure the OBS replay folder",
-            "text": "Set the replay folder to the same directory used by OBS Replay Buffer."
-          },
-          {
-            "number": ".3",
-            "title": "Configure the HTTP mapping",
-            "text": "Set the HTTP path and related local serving settings to match the Streamer.bot HTTP Server mapping you created in the previous step."
-          },
-          {
-            "number": ".4",
-            "title": "Save the settings",
-            "text": "Save the extension settings before testing replay creation and playback."
-          },
-          {
-            "number": "*",
-            "title": "Automatic installation of RtsUI.dll",
-            "text": "If you do not have the DLL installed, the extension can download and place it in your Streamer.bot installation directory."
-          },
-          {
-            "number": "*",
-            "title": "Automatic updating of RtsUI.dll",
-            "text": "If the extension requires an updated version, it can ask whether you want to download and install the latest version."
-          }
-        ]
-      },
-      {
-        "number": "07",
         "title": "Add the Action Replay overlay to OBS",
         "description": "Add the Action Replay hosted overlay as an OBS Browser Source, or use the supplied local overlay files.",
         "substeps": [
@@ -313,6 +270,34 @@
           }
         ]
       },
+      {
+        "number": "07",
+        "title": "Configure RTS Action Replay Settings",
+        "description": "Open the RTS Action Replay settings and configure Extension.",
+        "substeps": [
+          {
+            "number": ".1",
+            "title": "Open the settings dialog",
+            "text": "In the Streamer.bot Actions panel, look for RTS Action Replay settings action to open the extension settings. The settings are fully documented below in [yellow: Action Replay Documentation]",
+            "images": [
+              {
+                "src": "assets/images/sb-webswocket-server-settings-screenshot.png",
+                "alt": "Streamer.bot commands showing the imported RTS Action Replay commands"
+              }
+            ]
+          },
+          {
+            "number": "*",
+            "title": "Automatic installation of RtsUI.dll",
+            "text": "If you do not have the DLL installed, the extension can download and place it in your Streamer.bot installation directory. If you do not see the install prompt, it may be hiding behind another window. Check your taskbar for a Streamer.bot dialog and bring it to the front."
+          },
+          {
+            "number": "*",
+            "title": "Automatic updating of RtsUI.dll",
+            "text": "If the extension requires an updated version, it can ask whether you want to download and install the latest version. If you do not see the update prompt, it may be hiding behind another window. Check your taskbar for a Streamer.bot dialog and bring it to the front."
+          }
+        ]
+      },  
       {
         "number": "08",
         "title": "Test Action Replay",
