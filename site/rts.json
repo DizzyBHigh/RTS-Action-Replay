@@ -179,7 +179,13 @@
           {
             "number": ".2",
             "title": "Choose the replay folder",
-            "text": "Configure OBS to save replay files to a folder that Streamer.bot can access. You will use this same folder when configuring the HTTP Server mapping and RTS Action Replay settings."
+            "text": "Configure OBS to save replay files to a folder that Streamer.bot can access. You will use this same folder when configuring the HTTP Server mapping and RTS Action Replay settings.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-obs-save-file-settings.png",
+                "alt": "Configure OBS Replay Buffer"
+              }
+            ]
           }
         ]
       },
