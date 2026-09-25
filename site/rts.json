@@ -354,1089 +354,1630 @@
   "documentation": {
     "title": "Action Replay Settings Guide",
     "intro": "There are a large number of settings the extension exposes that enable you to configure how the extension behaves and looks.\\nThis guide aims to walk you through what each setting does and how it affects the player, panels, and messages.",
-    "sections": [
+    "steps": [
       {
-        "title": "Settings",
-        "intro": "Configure Action Replay in the same order as the Streamer.bot settings window.",
-        "sections": [
+        "number": "01",
+        "title": "Local Capture",
+        "description": "[[blue:Streamer.bot]] can be set up to watch a folder for new media.\\nThis is particularly useful for OBS (or other capture/streaming software) when captures via its replay buffer are saved to a folder on your computer. Streamer.bot picks this up and adds the file to the catalog.\\nStreamerbots HTTP Service allows us to map the folder and serve the file to the overlay for playback.",
+        "substeps": [
           {
-            "title": "Local Capture",
-            "intro": "[[blue:Streamer.bot]] can be set up to watch a folder for new media.\\nThis is particularly useful for OBS (or other capture/streaming software) when captures via its replay buffer are saved to a folder on your computer. Streamer.bot picks this up and adds the file to the catalog.\\nStreamerbots HTTP Service allows us to map the folder and serve the file to the overlay for playback.",
-            "sections": [
+            "number": ".1",
+            "title": "Local Capture / OBS",
+            "images": [
               {
-                "title": "Local Capture / OBS",
-                "controls": [
-                  [
-                    "Replay Folder",
-                    "Browse to the folder where you have set up OBS (or other streaming software) to save its Replay Buffer files to. Twitch and Kick downloads use separate folders and are configured in their own sections.",
-                    "Empty"
-                  ],
-                  [
-                    "Replay File Types",
-                    "File extensions accepted when scanning or registering files from the Replay Folder. Separate multiple extensions with commas, for example [[code:.mp4, .mkv]].",
-                    ".mp4, .mkv"
-                  ],
-                  [
-                    "HTTP Mapping",
-                    "URL path used in the local replay URL. It must match the Streamer.bot HTTP server mapping serving the Replay Folder.",
-                    "replays"
-                  ],
-                  [
-                    "HTTP Port",
-                    "Port used in the local replay URL. It must match Streamer.bot's HTTP server port.",
-                    "7474"
-                  ]
-                ]
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Local Capture / OBS"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Replay Folder",
+                "description": "Browse to the folder where you have set up OBS (or other streaming software) to save its Replay Buffer files to. Twitch and Kick downloads use separate folders and are configured in their own sections.",
+                "value": "Empty"
               },
               {
-                "title": "Replay Defaults",
-                "controls": [
-                  [
-                    "Replay Title Template",
-                    "Generates the title of a newly added OBS replay. Available variables are [[code:%replayName%]], [[code:%replayDate%]] and [[code:%replayTime%]]. A manually supplied title bypasses the template.",
-                    "%replayName%"
-                  ]
-                ]
+                "title": "Replay File Types",
+                "description": "File extensions accepted when scanning or registering files from the Replay Folder. Separate multiple extensions with commas, for example [[code:.mp4, .mkv]].",
+                "value": ".mp4, .mkv"
               },
               {
-                "title": "Local Capture Handling",
-                "controls": [
-                  [
-                    "Auto-add Saved Replays (OBS Capture)",
-                    "Adds each newly saved OBS replay to the Catalog. It also becomes available to Recent Clips through the Catalog's recent history.",
-                    "On"
-                  ],
-                  [
-                    "Auto-play OBS Captures",
-                    "Adds a newly saved OBS replay to the playback queue for playback.",
-                    "Off"
-                  ]
-                ],
-                "notes": [
-                  "When automatic registration is disabled, existing replay files can still be registered with Add Replay or Scan Replays."
+                "title": "HTTP Mapping",
+                "description": "URL path used in the local replay URL. It must match the Streamer.bot HTTP server mapping serving the Replay Folder.",
+                "value": "replays"
+              },
+              {
+                "title": "HTTP Port",
+                "description": "Port used in the local replay URL. It must match Streamer.bot's HTTP server port.",
+                "value": "7474"
+              }
+            ],
+            "commands": [
+              "add-existing-replay",
+              "scan-replay-folder",
+              "save-replay"
+            ]
+          },
+          {
+            "number": ".2",
+            "title": "Replay Defaults",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Replay Defaults"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Replay Title Template",
+                "description": "Generates the title of a newly added OBS replay. Available variables are [[code:%replayName%]], [[code:%replayDate%]] and [[code:%replayTime%]]. A manually supplied title bypasses the template.",
+                "value": "%replayName%"
+              }
+            ],
+            "variables": [
+              {
+                "title": "Variables",
+                "values": [
+                  "%replayName%",
+                  "%replayDate%",
+                  "%replayTime%"
                 ]
               }
             ]
           },
           {
-            "title": "Twitch",
-            "intro": "Configure how Twitch clips are acquired and made available to the player.",
-            "sections": [
+            "number": ".3",
+            "title": "Local Capture Handling",
+            "images": [
               {
-                "title": "Twitch Clips",
-                "controls": [
-                  [
-                    "Twitch Clip Playback",
-                    "Use the Twitch URL, download locally, or support both methods. In Both mode, a local copy is preferred and Twitch is the fallback.",
-                    "Download Locally"
-                  ],
-                  [
-                    "Twitch Clip Folder",
-                    "Folder used for downloaded Twitch clips. It must be separate from the OBS Replay Folder.",
-                    "Empty"
-                  ],
-                  [
-                    "Twitch HTTP Mapping",
-                    "URL path used by Streamer.bot to serve downloaded Twitch clips. The shared HTTP Port is configured under Local Capture / OBS.",
-                    "twitch"
-                  ],
-                  [
-                    "Clip Duration",
-                    "Default duration used by Twitch clip commands when no duration is supplied.",
-                    "30 seconds"
-                  ]
-                ],
-                "notes": [
-                  "The allowed Twitch clip duration is 5-60 seconds. A duration supplied with the command overrides the setting within that range."
-                ]
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Local Capture Handling"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Auto-add Saved Replays (OBS Capture)",
+                "description": "Adds each newly saved OBS replay to the Catalog. It also becomes available to Recent Clips through the Catalog's recent history.",
+                "value": "On"
               },
+              {
+                "title": "Auto-play OBS Captures",
+                "description": "Adds a newly saved OBS replay to the playback queue for playback.",
+                "value": "Off"
+              }
+            ],
+            "notes": [
+              "When automatic registration is disabled, existing replay files can still be registered with Add Replay or Scan Replays."
+            ],
+            "commands": [
+              "save-replay"
+            ]
+          }
+        ]
+      },
+      {
+        "number": "02",
+        "title": "Twitch",
+        "description": "Configure how Twitch clips are acquired and made available to the player.",
+        "substeps": [
+          {
+            "number": ".1",
+            "title": "Twitch Clips",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Twitch Clips"
+              }
+            ],
+            "settings": [
               {
                 "title": "Twitch Clip Playback",
-                "bullets": [
-                  "[[code:Twitch URL]] - play directly from Twitch.",
-                  "[[code:Download Locally]] - download and play a local copy through Streamer.bot's HTTP server.",
-                  "[[code:Both]] - use the local copy when available and fall back to Twitch playback when it is unavailable."
-                ]
-              }
-            ]
-          },
-          {
-            "title": "YouTube",
-            "intro": "Configure timestamp-based clips from the current monitored YouTube broadcast.",
-            "sections": [
-              {
-                "title": "YouTube Clips",
-                "controls": [
-                  [
-                    "Clip Duration",
-                    "Default duration used by YouTube clip commands when no duration is supplied.",
-                    "30 seconds"
-                  ]
-                ],
-                "notes": [
-                  "The allowed duration is 5-60 seconds. Action Replay uses the current broadcast and its monitored start time to calculate the clip timestamp."
-                ]
-              }
-            ]
-          },
-          {
-            "title": "Kick",
-            "intro": "Configure how Kick clips are acquired and made available to the player.",
-            "sections": [
-              {
-                "title": "Kick Clips",
-                "controls": [
-                  [
-                    "Kick Clip Playback",
-                    "Use the Kick URL, download locally, or support both methods. In Both mode, a local copy is preferred and direct Kick playback is the fallback.",
-                    "Kick URL"
-                  ],
-                  [
-                    "Kick Clip Folder",
-                    "Folder used for downloaded Kick clips. It must be separate from the OBS Replay Folder.",
-                    "Empty"
-                  ],
-                  [
-                    "Kick HTTP Mapping",
-                    "URL path used by Streamer.bot to serve downloaded Kick clips. The shared HTTP Port is configured under Local Capture / OBS.",
-                    "kick"
-                  ]
-                ]
+                "description": "Use the Twitch URL, download locally, or support both methods. In Both mode, a local copy is preferred and Twitch is the fallback.",
+                "value": "Download Locally"
               },
+              {
+                "title": "Twitch Clip Folder",
+                "description": "Folder used for downloaded Twitch clips. It must be separate from the OBS Replay Folder.",
+                "value": "Empty"
+              },
+              {
+                "title": "Twitch HTTP Mapping",
+                "description": "URL path used by Streamer.bot to serve downloaded Twitch clips. The shared HTTP Port is configured under Local Capture / OBS.",
+                "value": "twitch"
+              },
+              {
+                "title": "Clip Duration",
+                "description": "Default duration used by Twitch clip commands when no duration is supplied.",
+                "value": "30 seconds"
+              }
+            ],
+            "notes": [
+              "The allowed Twitch clip duration is 5-60 seconds. A duration supplied with the command overrides the setting within that range."
+            ],
+            "commands": [
+              "create-twitch-clip"
+            ]
+          },
+          {
+            "number": ".2",
+            "title": "Twitch Clip Playback",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Twitch Clip Playback"
+              }
+            ],
+            "bullets": [
+              "[[code:Twitch URL]] - play directly from Twitch.",
+              "[[code:Download Locally]] - download and play a local copy through Streamer.bot's HTTP server.",
+              "[[code:Both]] - use the local copy when available and fall back to Twitch playback when it is unavailable."
+            ],
+            "commands": [
+              "create-twitch-clip"
+            ]
+          }
+        ]
+      },
+      {
+        "number": "03",
+        "title": "YouTube",
+        "description": "Configure timestamp-based clips from the current monitored YouTube broadcast.",
+        "substeps": [
+          {
+            "number": ".1",
+            "title": "YouTube Clips",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for YouTube Clips"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Clip Duration",
+                "description": "Default duration used by YouTube clip commands when no duration is supplied.",
+                "value": "30 seconds"
+              }
+            ],
+            "notes": [
+              "The allowed duration is 5-60 seconds. Action Replay uses the current broadcast and its monitored start time to calculate the clip timestamp."
+            ],
+            "commands": [
+              "create-youtube-clip"
+            ]
+          }
+        ]
+      },
+      {
+        "number": "04",
+        "title": "Kick",
+        "description": "Configure how Kick clips are acquired and made available to the player.",
+        "substeps": [
+          {
+            "number": ".1",
+            "title": "Kick Clips",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Kick Clips"
+              }
+            ],
+            "settings": [
               {
                 "title": "Kick Clip Playback",
-                "bullets": [
-                  "[[code:Kick URL]] - play directly from Kick.",
-                  "[[code:Download Locally]] - download and play a local copy through Streamer.bot's HTTP server.",
-                  "[[code:Both]] - use the local copy when available and fall back to direct Kick playback when necessary."
-                ]
+                "description": "Use the Kick URL, download locally, or support both methods. In Both mode, a local copy is preferred and direct Kick playback is the fallback.",
+                "value": "Kick URL"
+              },
+              {
+                "title": "Kick Clip Folder",
+                "description": "Folder used for downloaded Kick clips. It must be separate from the OBS Replay Folder.",
+                "value": "Empty"
+              },
+              {
+                "title": "Kick HTTP Mapping",
+                "description": "URL path used by Streamer.bot to serve downloaded Kick clips. The shared HTTP Port is configured under Local Capture / OBS.",
+                "value": "kick"
               }
+            ],
+            "commands": [
+              "create-kick-clip"
             ]
           },
           {
+            "number": ".2",
+            "title": "Kick Clip Playback",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Kick Clip Playback"
+              }
+            ],
+            "bullets": [
+              "[[code:Kick URL]] - play directly from Kick.",
+              "[[code:Download Locally]] - download and play a local copy through Streamer.bot's HTTP server.",
+              "[[code:Both]] - use the local copy when available and fall back to direct Kick playback when necessary."
+            ],
+            "commands": [
+              "create-kick-clip"
+            ]
+          }
+        ]
+      },
+      {
+        "number": "05",
+        "title": "Playback",
+        "description": "Control how replays start and how playback controls and player styling are presented.",
+        "substeps": [
+          {
+            "number": ".1",
             "title": "Playback",
-            "intro": "Control how replays start and how playback controls and player styling are presented.",
-            "sections": [
+            "images": [
               {
-                "title": "Playback",
-                "controls": [
-                  [
-                    "Show Controls",
-                    "Displays the Play/Pause control and interactive playback progress bar.",
-                    "Off"
-                  ],
-                  [
-                    "Show Progress Bar",
-                    "Displays the interactive playback progress bar.",
-                    "On"
-                  ],
-                  [
-                    "Default Playback Speed",
-                    "Playback speed used when a replay is loaded. Range 0.25-2.0.",
-                    "1.0"
-                  ],
-                  [
-                    "Show Visibility",
-                    "Controls when the playback speed indicator is displayed.",
-                    "Only when greater or less than 1"
-                  ]
-                ]
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Playback"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Show Controls",
+                "description": "Displays the Play/Pause control and interactive playback progress bar.",
+                "value": "Off"
               },
               {
-                "title": "Player Appearance",
-                "controls": [
-                  [
-                    "Frame Colour Source",
-                    "Uses a Custom, Branding Primary or Branding Secondary colour for the player frame.",
-                    "Custom"
-                  ],
-                  [
-                    "Frame Colour",
-                    "Custom frame colour when Frame Colour Source is Custom.",
-                    "#0384CBFF"
-                  ],
-                  [
-                    "Control Colour Source",
-                    "Uses a Custom, Branding Primary or Branding Secondary colour for the Play/Pause control and progress bar.",
-                    "Branding Primary"
-                  ],
-                  [
-                    "Control Colour",
-                    "Custom control colour when Control Colour Source is Custom.",
-                    "#0384CBFF"
-                  ],
-                  [
-                    "Border Glow",
-                    "Adds a branded glow around the player border.",
-                    "On"
-                  ],
-                  [
-                    "Border Width",
-                    "Player border width in pixels.",
-                    "4"
-                  ],
-                  [
-                    "Corner Radius",
-                    "Player corner radius in pixels.",
-                    "0"
-                  ]
-                ],
-                "notes": [
-                  "Change Player Branding to Clip Source is configured later under Player Behaviour. When enabled, it can override the player frame and control branding with the active source branding."
-                ]
+                "title": "Show Progress Bar",
+                "description": "Displays the interactive playback progress bar.",
+                "value": "On"
+              },
+              {
+                "title": "Default Playback Speed",
+                "description": "Playback speed used when a replay is loaded. Range 0.25-2.0.",
+                "value": "1.0"
+              },
+              {
+                "title": "Show Visibility",
+                "description": "Controls when the playback speed indicator is displayed.",
+                "value": "Only when greater or less than 1"
               }
+            ],
+            "commands": [
+              "playback-history",
+              "screen-position",
+              "hide-player",
+              "pause",
+              "play",
+              "set-speed",
+              "show-player"
             ]
           },
           {
-            "title": "Catalog",
-            "intro": "The Catalog is the persistent replay library. Recent Clips and Last Played are different views/history derived from replay data, while the Playlist is the live playback queue.",
-            "sections": [
+            "number": ".2",
+            "title": "Player Appearance",
+            "images": [
               {
-                "title": "Recent Clips",
-                "controls": [
-                  [
-                    "Maximum Recent Clips",
-                    "Maximum number of entries shown in Recent Clips and retained in Last Played history. Older Catalog entries remain available.",
-                    "10"
-                  ],
-                  [
-                    "Maximum Catalog Results",
-                    "Maximum number of results shown per Catalog/search page. The [[code:--amount]] option can request a different page size up to this limit.",
-                    "20"
-                  ]
-                ]
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Player Appearance"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Frame Colour Source",
+                "description": "Uses a Custom, Branding Primary or Branding Secondary colour for the player frame.",
+                "value": "Custom"
               },
               {
-                "title": "Live Playlist",
-                "intro": "The Playlist is the live, source-agnostic playback queue. It can contain OBS captures, Twitch clips, YouTube clips and Kick clips.",
-                "controls": [
-                  [
-                    "Persist Playlist Across Restarts",
-                    "Keeps the current Playlist queue when Streamer.bot restarts. Active playback and pause state are not persisted.",
-                    "Off"
-                  ]
-                ]
+                "title": "Frame Colour",
+                "description": "Custom frame colour when Frame Colour Source is Custom.",
+                "value": "#0384CBFF"
+              },
+              {
+                "title": "Control Colour Source",
+                "description": "Uses a Custom, Branding Primary or Branding Secondary colour for the Play/Pause control and progress bar.",
+                "value": "Branding Primary"
+              },
+              {
+                "title": "Control Colour",
+                "description": "Custom control colour when Control Colour Source is Custom.",
+                "value": "#0384CBFF"
+              },
+              {
+                "title": "Border Glow",
+                "description": "Adds a branded glow around the player border.",
+                "value": "On"
+              },
+              {
+                "title": "Border Width",
+                "description": "Player border width in pixels.",
+                "value": "4"
+              },
+              {
+                "title": "Corner Radius",
+                "description": "Player corner radius in pixels.",
+                "value": "0"
               }
+            ],
+            "notes": [
+              "Change Player Branding to Clip Source is configured later under Player Behaviour. When enabled, it can override the player frame and control branding with the active source branding."
+            ],
+            "commands": [
+              "screen-position"
+            ]
+          }
+        ]
+      },
+      {
+        "number": "06",
+        "title": "Catalog",
+        "description": "The Catalog is the persistent replay library. Recent Clips and Last Played are different views/history derived from replay data, while the Playlist is the live playback queue.",
+        "substeps": [
+          {
+            "number": ".1",
+            "title": "Recent Clips",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Recent Clips"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Maximum Recent Clips",
+                "description": "Maximum number of entries shown in Recent Clips and retained in Last Played history. Older Catalog entries remain available.",
+                "value": "10"
+              },
+              {
+                "title": "Maximum Catalog Results",
+                "description": "Maximum number of results shown per Catalog/search page. The [[code:--amount]] option can request a different page size up to this limit.",
+                "value": "20"
+              }
+            ],
+            "commands": [
+              "list-recent"
             ]
           },
           {
+            "number": ".2",
+            "title": "Live Playlist",
+            "text": "The Playlist is the live, source-agnostic playback queue. It can contain OBS captures, Twitch clips, YouTube clips and Kick clips.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Live Playlist"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Persist Playlist Across Restarts",
+                "description": "Keeps the current Playlist queue when Streamer.bot restarts. Active playback and pause state are not persisted.",
+                "value": "Off"
+              }
+            ],
+            "commands": [
+              "list-playlist",
+              "play-replay",
+              "playlist-clear",
+              "playlist-clear-all",
+              "playlist-pause",
+              "playlist-remove",
+              "playlist-resume"
+            ]
+          }
+        ]
+      },
+      {
+        "number": "07",
+        "title": "Branding Presets",
+        "description": "Define reusable colours, typography and branding identity used by Player, Panel, Clapperboard and Message presentation.",
+        "substeps": [
+          {
+            "number": ".1",
             "title": "Branding Presets",
-            "intro": "Define reusable colours, typography and branding identity used by Player, Panel, Clapperboard and Message presentation.",
-            "controls": [
-              [
-                "Preset Name",
-                "Display name used in settings and selection lists.",
-                ""
-              ],
-              [
-                "Source Platform",
-                "Optional Twitch, Kick or YouTube association.",
-                "Optional"
-              ],
-              [
-                "Primary Colour",
-                "Primary branding colour.",
-                ""
-              ],
-              [
-                "Secondary Colour",
-                "Secondary branding colour.",
-                ""
-              ],
-              [
-                "Player Title Colour",
-                "Replay title text colour.",
-                ""
-              ],
-              [
-                "Player Prefix / Suffix Colour",
-                "Decorative title prefix/suffix colour.",
-                ""
-              ],
-              [
-                "Panel Text Colour",
-                "Panel title/list text colour.",
-                ""
-              ],
-              [
-                "Panel List Shadow Colour",
-                "Panel list shadow colour.",
-                ""
-              ],
-              [
-                "Font",
-                "Google Font used by player titles, panel titles and branding.",
-                ""
-              ],
-              [
-                "Font Size",
-                "Font size used by player and panel titles.",
-                ""
-              ],
-              [
-                "Logo URL",
-                "HTTPS URL of the branding logo.",
-                ""
-              ],
-              [
-                "Fallback Text",
-                "Text used when the branding logo cannot be loaded.",
-                ""
-              ],
-              [
-                "Brand Label",
-                "Label displayed with the logo or fallback text.",
-                ""
-              ]
-            ],
-            "notes": [
-              "A preset can optionally be associated with Twitch, Kick or YouTube. Source-platform branding is enabled independently by Player, Panel, Message and Clapperboard Behaviour settings.",
-              "If a matching platform preset is unavailable, the relevant Behaviour setting's configured Branding Preset is used as the fallback."
-            ]
-          },
-          {
-            "title": "Design Presets",
-            "intro": "Define the visual treatment used by Player, Panel and Message presentation.",
-            "sections": [
+            "text": "Define reusable colours, typography and branding identity used by Player, Panel, Clapperboard and Message presentation.",
+            "images": [
               {
-                "title": "Available designs",
-                "bullets": [
-                  "Broadcast",
-                  "Cinematic",
-                  "Cut",
-                  "Minimal"
-                ],
-                "notes": [
-                  "Broadcast and Cut expose additional configuration in the settings window. Cinematic and Minimal currently have no design-specific controls."
-                ]
-              },
-              {
-                "title": "Broadcast",
-                "intro": "Provides the animated chevron treatment.",
-                "notes": [
-                  "Controls include the background source/colour and chevron height, width, spacing, speed and randomisation."
-                ]
-              },
-              {
-                "title": "Cut",
-                "intro": "Provides the block/bar treatment.",
-                "notes": [
-                  "Controls include the background source/colour, block width, block-width randomisation and bar height."
-                ]
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Branding Presets"
               }
             ],
-            "notes": [
-              "Design Presets are assigned through the relevant Behaviour section."
-            ]
-          },
-          {
-            "title": "Title Presets",
-            "intro": "Define how replay titles are positioned, decorated and animated in the Player.",
-            "controls": [
-              [
-                "Preset Name",
-                "Display name for the preset.",
-                ""
-              ],
-              [
-                "Decoration Position",
-                "Places the decoration before or after the title.",
-                ""
-              ],
-              [
-                "Title Position",
-                "Places the title at the top or bottom of the player.",
-                ""
-              ],
-              [
-                "Decoration",
-                "Text displayed as the title prefix/suffix.",
-                ""
-              ],
-              [
-                "Animation",
-                "Title entrance/exit animation.",
-                ""
-              ],
-              [
-                "Show Delay",
-                "Delay before the title is shown, in milliseconds.",
-                ""
-              ],
-              [
-                "Display Duration",
-                "Time the title remains displayed, in milliseconds.",
-                ""
-              ],
-              [
-                "Animation Duration",
-                "Duration of the title animation, in milliseconds.",
-                ""
-              ]
-            ],
-            "notes": [
-              "The built-in Default Title Preset is permanent. Additional Title Presets can be created and removed."
-            ]
-          },
-          {
-            "title": "Positions",
-            "intro": "Define reusable Player, Panel, Message and Clapperboard positions in the shared 1920x1080 overlay coordinate space.",
-            "sections": [
+            "settings": [
               {
-                "title": "Player Positions",
-                "intro": "Saved positions used by Player Animation and playback.",
-                "notes": [
-                  "The player editor also supports the player field-of-view transform used by the overlay."
-                ]
+                "title": "Preset Name",
+                "description": "Display name used in settings and selection lists.",
+                "value": ""
               },
               {
-                "title": "Panel Positions",
-                "intro": "Saved positions used by Panel Animation and panel playback.",
-                "controls": [
-                  [
-                    "Width",
-                    "Information panel width in 1920x1080 output pixels.",
-                    "500"
-                  ],
-                  [
-                    "Height",
-                    "Information panel height in 1920x1080 output pixels.",
-                    "700"
-                  ],
-                  [
-                    "Corner Radius",
-                    "Information panel corner radius in pixels.",
-                    "0"
-                  ]
-                ]
+                "title": "Source Platform",
+                "description": "Optional Twitch, Kick or YouTube association.",
+                "value": "Optional"
               },
               {
-                "title": "Message Positions",
-                "intro": "Saved positions used by Message Animation and playback.",
-                "controls": [
-                  [
-                    "Width",
-                    "Fixed message width in 1920x1080 output pixels.",
-                    "500"
-                  ],
-                  [
-                    "Height",
-                    "Fixed message height in 1920x1080 output pixels.",
-                    "120"
-                  ],
-                  [
-                    "Corner Radius",
-                    "Message panel corner radius in pixels.",
-                    "0"
-                  ]
-                ],
-                "notes": [
-                  "Message text scales to fit the configured message dimensions."
-                ]
+                "title": "Primary Colour",
+                "description": "Primary branding colour.",
+                "value": ""
               },
               {
-                "title": "Clapperboard Positions",
-                "intro": "Saved positions used by Clapperboard Animation and playback."
-              }
-            ],
-            "notes": [
-              "All four position editors support saved transforms including scale, X/Y/Z position and X/Y/Z rotation. Animation Profiles reference these saved positions, so changing a saved position affects every profile that uses it."
-            ]
-          },
-          {
-            "title": "Player Animation Profiles",
-            "intro": "Define reusable Player animation profiles with separate Start and End sequences.",
-            "notes": [
-              "Each sequence contains Position, Duration, Easing and Delay. Easing values are linear, ease, ease-in, ease-out and ease-in-out. Duration and delay support 0-60,000 milliseconds.",
-              "The built-in Default profile is permanent and editable. Additional profiles can be created and removed.",
-              "Profiles are assigned through Player Behaviour."
-            ]
-          },
-          {
-            "title": "Panel Animation Profiles",
-            "intro": "Define reusable Panel animation profiles with separate Start and End sequences. Steps use saved Panel Positions with configurable duration, easing and delay.",
-            "notes": [
-              "The built-in Default profile is permanent and editable. Additional profiles can be created and removed.",
-              "Profiles are assigned through Panel Behaviour."
-            ]
-          },
-          {
-            "title": "Message Animation Profiles",
-            "intro": "Define reusable Message animation profiles with separate Start and End sequences. Steps use saved Message Positions with configurable duration, easing and delay.",
-            "notes": [
-              "The built-in Default profile is permanent and editable. Additional profiles can be created and removed.",
-              "The selected profile is used by Message Behaviour."
-            ]
-          },
-          {
-            "title": "Clapperboard Animation Profiles",
-            "intro": "Define reusable Clapperboard animation profiles with separate Start and End sequences. Steps use saved Clapperboard Positions with configurable duration, easing and delay.",
-            "notes": [
-              "The built-in Default profile is permanent and editable. Additional profiles can be created and removed.",
-              "The selected profile is used by Clapperboard Behaviour."
-            ]
-          },
-          {
-            "title": "Player Behaviour",
-            "intro": "Configure the Player presentation for each replay entry point.",
-            "controls": [
-              [
-                "Create - OBS",
-                "Selects the Animation Profile, Design Preset, Title Preset and Branding Preset used for OBS-created replays.",
-                ""
-              ],
-              [
-                "Create - Twitch",
-                "Selects the presentation presets used for Twitch-created clips.",
-                ""
-              ],
-              [
-                "Create - YouTube",
-                "Selects the presentation presets used for YouTube-created clips.",
-                ""
-              ],
-              [
-                "Create - Kick",
-                "Selects the presentation presets used for Kick-created clips.",
-                ""
-              ],
-              [
-                "Play - Replay",
-                "Selects the presentation presets used when a replay is played.",
-                ""
-              ],
-              [
-                "Use Source Platform Branding",
-                "For newly created clips, selects the Branding Preset associated with the clip's source platform when a matching preset exists.",
-                ""
-              ],
-              [
-                "Change Player Branding to Clip Source",
-                "When enabled, each replay uses the Branding Preset assigned to the replay creator's platform. The player frame, design colours, buttons and progress bar follow that branding.",
-                "Off"
-              ]
-            ]
-          },
-          {
-            "title": "Panel Behaviour",
-            "intro": "Configure the presentation for Recent / Search, Playlist and Leaderboards.",
-            "notes": [
-              "Each entry point selects an Animation Profile, Design Preset, Title Preset and Branding Preset.",
-              "Use Source Platform Branding can override the configured branding when a matching platform preset exists. The platform is the platform that initiated the panel command."
-            ]
-          },
-          {
-            "title": "Message Behaviour",
-            "intro": "Configure how transient messages are presented in the overlay.",
-            "controls": [
-              [
-                "Branding Preset",
-                "Branding used by transient messages, with source-platform fallback when enabled.",
-                ""
-              ],
-              [
-                "Design Preset",
-                "Design used by transient messages.",
-                ""
-              ],
-              [
-                "Animation Profile",
-                "Animation used by transient messages.",
-                ""
-              ],
-              [
-                "Display Time",
-                "Time the message remains visible before its end animation begins, in milliseconds.",
-                "5000"
-              ],
-              [
-                "Use Source Platform Branding",
-                "Uses the platform that initiated the message to select matching branding when available.",
-                ""
-              ]
-            ],
-            "notes": [
-              "Messages use fixed dimensions configured under Message Positions and scale text to fit those dimensions. If no matching platform Branding Preset exists, the configured Message Behaviour Branding Preset is used."
-            ]
-          },
-          {
-            "title": "Clapperboard Behaviour",
-            "intro": "Configure the Clapperboard used when a new replay is created.",
-            "controls": [
-              [
-                "Use Clapperboard",
-                "Uses the Clapperboard for Replay Created instead of the Message system when Replay Created Overlay is enabled.",
-                "On"
-              ],
-              [
-                "Use Source Platform Branding",
-                "Uses the Branding Preset associated with the platform that created the clip when available.",
-                "Off"
-              ],
-              [
-                "Animation Profile",
-                "Animation profile used by the Clapperboard.",
-                "Default"
-              ],
-              [
-                "Branding Preset",
-                "Fallback branding used when source-platform branding is disabled or unavailable.",
-                "Default"
-              ],
-              [
-                "Display Time",
-                "Time the Clapperboard remains visible before its end animation begins, in milliseconds.",
-                "5000"
-              ]
-            ],
-            "notes": [
-              "The Clapperboard is a separate presentation from normal Message Outputs."
-            ]
-          },
-          {
-            "title": "Messages",
-            "intro": "Configure where list results are presented and how lifecycle messages are generated.",
-            "sections": [
-              {
-                "title": "Search Presentation",
-                "controls": [
-                  [
-                    "Search - Panel",
-                    "Shows Catalog/search results in the Search Panel.",
-                    "On"
-                  ],
-                  [
-                    "Search - Chat",
-                    "Sends one formatted chat message for the search header and each result.",
-                    "Off"
-                  ]
-                ],
-                "notes": [
-                  "Both can be enabled at the same time."
-                ]
+                "title": "Secondary Colour",
+                "description": "Secondary branding colour.",
+                "value": ""
               },
               {
-                "title": "Playlist and Recent Clips Presentation",
-                "controls": [
-                  [
-                    "Recent - Chat",
-                    "Sends one formatted chat message for each Recent Clips entry.",
-                    "On"
-                  ],
-                  [
-                    "Playlist - Chat",
-                    "Sends one formatted chat message for each Playlist entry.",
-                    "On"
-                  ],
-                  [
-                    "List Entry Format",
-                    "Format used for each list entry.",
-                    "#%listNumber% %title% - %creator% | %rating%/5 | %platform% | %plays% plays"
-                  ],
-                  [
-                    "Maximum Message Length",
-                    "Maximum length of each individual list entry/message. Longer entries are truncated rather than split.",
-                    "500"
-                  ]
-                ],
-                "notes": [
-                  "List entry variables are [[code:%listNumber%]], [[code:%title%]], [[code:%creator%]], [[code:%rating%]], [[code:%platform%]] and [[code:%plays%]]."
-                ]
+                "title": "Player Title Colour",
+                "description": "Replay title text colour.",
+                "value": ""
               },
               {
-                "title": "Replay Messages",
-                "intro": "Replay lifecycle notifications are configured under Replays, Playlist and Updates.",
-                "controls": [
-                  [
-                    "Replay Created",
-                    "Replay saved: %replayTitle%.",
-                    ""
-                  ],
-                  [
-                    "Replay Played",
-                    "Play",
-                    ""
-                  ],
-                  [
-                    "Replay Queued",
-                    "Replay queued: %replayTitle%.",
-                    ""
-                  ],
-                  [
-                    "Replay Removed",
-                    "Replay removed: %replayTitle%.",
-                    ""
-                  ],
-                  [
-                    "Playlist Cleared",
-                    "Playlist cleared: %clearedCount% waiting item(s) removed.",
-                    ""
-                  ],
-                  [
-                    "Playlist Cleared All",
-                    "Playlist completely cleared: %clearedCount% item(s) removed.",
-                    ""
-                  ],
-                  [
-                    "Replay Rated",
-                    "Rated %replayTitle% %replayRating%/5 (average %averageRating%/5).",
-                    ""
-                  ],
-                  [
-                    "Replay Renamed",
-                    "Replay #%replayNumber% renamed from %oldTitle% to %newTitle%.",
-                    ""
-                  ],
-                  [
-                    "Replay Deleted",
-                    "Replay deleted: %replayTitle%.",
-                    ""
-                  ]
-                ],
-                "notes": [
-                  "Each event has message text and a Chat toggle. Events that support overlay output also have an Overlay toggle.",
-                  "Replay Created uses the separate Clapperboard presentation when Use Clapperboard is enabled. The other overlay-capable lifecycle events use the Message presentation.",
-                  "Overlay messages are queued centrally. Chat messages are sent immediately. An overlay message is considered finished only when its exit animation completes.",
-                  "Replay Queued is generated only when the Playlist already contained an item before the new replay was added."
-                ]
+                "title": "Player Prefix / Suffix Colour",
+                "description": "Decorative title prefix/suffix colour.",
+                "value": ""
               },
               {
-                "title": "Message Variables",
-                "bullets": [
-                  "Replay Created: [[code:%replayTitle%]], [[code:%replayUser%]], [[code:%replayPlatform%]], [[code:%replaySourcePlatform%]], [[code:%requesterName%]], [[code:%requesterPlatform%]]",
-                  "Replay Played: [[code:%replayNumber%]], [[code:%replayTitle%]], [[code:%replayUser%]], [[code:%replayPlatform%]], [[code:%replaySourcePlatform%]], [[code:%requesterName%]], [[code:%requesterPlatform%]]",
-                  "Replay Queued: [[code:%replayTitle%]], [[code:%replayUser%]], [[code:%replayPlatform%]], [[code:%replaySourcePlatform%]], [[code:%requesterName%]], [[code:%requesterPlatform%]]",
-                  "Replay Removed: [[code:%replayTitle%]], [[code:%requesterName%]], [[code:%requesterPlatform%]]",
-                  "Playlist Cleared: [[code:%clearedCount%]], [[code:%requesterName%]], [[code:%requesterPlatform%]]",
-                  "Playlist Cleared All: [[code:%clearedCount%]], [[code:%requesterName%]], [[code:%requesterPlatform%]]",
-                  "Replay Rated: [[code:%replayTitle%]], [[code:%replayRating%]], [[code:%averageRating%]], [[code:%requesterName%]], [[code:%requesterPlatform%]]",
-                  "Replay Renamed: [[code:%replayNumber%]], [[code:%oldTitle%]], [[code:%newTitle%]], [[code:%requesterName%]], [[code:%requesterPlatform%]]",
-                  "Replay Deleted: [[code:%replayTitle%]], [[code:%replayUser%]], [[code:%replayPlatform%]], [[code:%replaySourcePlatform%]], [[code:%requesterName%]], [[code:%requesterPlatform%]]"
-                ]
-              }
-            ]
-          },
-          {
-            "title": "Import / Export",
-            "sections": [
-              {
-                "title": "Import Settings",
-                "intro": "Import selected RTS Action Replay settings from a JSON file.",
-                "notes": [
-                  "The Import dialog controls which configuration areas, profiles and Catalog data are included and handles duplicate profiles."
-                ]
+                "title": "Panel Text Colour",
+                "description": "Panel title/list text colour.",
+                "value": ""
               },
               {
-                "title": "Export Settings",
-                "intro": "Export the complete RTS Action Replay configuration to a JSON file.",
-                "notes": [
-                  "Export includes the configuration snapshot and supported global settings."
-                ]
+                "title": "Panel List Shadow Colour",
+                "description": "Panel list shadow colour.",
+                "value": ""
               },
               {
-                "title": "Factory Reset",
-                "intro": "Restore RTS Action Replay configuration to its built-in defaults.",
-                "notes": [
-                  "Factory Reset preserves the Catalog and play history. Configuration globals are reset and required defaults are recreated."
-                ]
-              }
-            ]
-          },
-          {
-            "title": "Testing",
-            "sections": [
-              {
-                "title": "Configuration Sync",
-                "intro": "Send Configuration to Overlay sends the complete current Action Replay configuration to the overlay for configuration-sync testing."
+                "title": "Font",
+                "description": "Google Font used by player titles, panel titles and branding.",
+                "value": ""
               },
               {
-                "title": "Player",
-                "controls": [
-                  [
-                    "Test Origin",
-                    "Selects the simulated requester platform and chat routing.",
-                    ""
-                  ],
-                  [
-                    "Replay Origin",
-                    "Independently selects the source platform of the test replay.",
-                    ""
-                  ],
-                  [
-                    "Test Video",
-                    "Plays the first Catalog replay using the current Player presentation settings without adding it to the Playlist or play history.",
-                    ""
-                  ],
-                  [
-                    "Test Panel",
-                    "Shows a representative panel using the first Catalog replay and current Panel presentation settings.",
-                    ""
-                  ],
-                  [
-                    "Test Clapperboard",
-                    "Shows the Clapperboard for the first Catalog replay using the current Clapperboard presentation settings.",
-                    ""
-                  ]
-                ]
+                "title": "Font Size",
+                "description": "Font size used by player and panel titles.",
+                "value": ""
               },
               {
-                "title": "Messages",
-                "controls": [
-                  [
-                    "Message Type",
-                    "Selects the lifecycle message simulated by Test Message.",
-                    ""
-                  ],
-                  [
-                    "Test Source",
-                    "Selects either the current Message settings or the selected Design and Branding overrides.",
-                    ""
-                  ],
-                  [
-                    "Message Design",
-                    "When Test Source is Override, selects the presentation design used for the test.",
-                    ""
-                  ],
-                  [
-                    "Message Branding",
-                    "When Test Source is Override, selects the presentation branding used for the test.",
-                    ""
-                  ],
-                  [
-                    "Test Message",
-                    "Shows the selected message using the first Catalog replay. Chat output follows the selected Test Origin.",
-                    ""
-                  ]
-                ]
+                "title": "Logo URL",
+                "description": "HTTPS URL of the branding logo.",
+                "value": ""
+              },
+              {
+                "title": "Fallback Text",
+                "description": "Text used when the branding logo cannot be loaded.",
+                "value": ""
+              },
+              {
+                "title": "Brand Label",
+                "description": "Label displayed with the logo or fallback text.",
+                "value": ""
               }
             ]
           }
         ]
       },
       {
-        "title": "Commands",
-        "intro": "Command reference for the current Streamer.bot action mappings.",
-        "sections": [
+        "number": "08",
+        "title": "Design Presets",
+        "description": "Define the visual treatment used by Player, Panel and Message presentation.",
+        "substeps": [
           {
-            "title": "Catalog",
-            "commands": [
-              [
-                "Add Existing Replay",
-                "!add-existing-replay \"<filename>\" <title>",
-                "Add one existing OBS replay file from the configured Replay Folder to the Catalog. If no title is supplied, the Replay Title Template is used. Existing Catalog entries are not added again."
-              ],
-              [
-                "Search By Creator",
-                "!search-creator <creator> [--amount <N>] | !creator-search <creator> [--amount <N>]",
-                "Search for replays by creator."
-              ],
-              [
-                "Search By Date",
-                "!search-date <date period> [--amount <N>] | !date-search <date period> [--amount <N>]",
-                "Search for replays from a date period. Supported forms include today, this week, last week, this year, last year, year, month and month year."
-              ],
-              [
-                "Delete Clip",
-                "!delete-from-catalog <number(s)>",
-                "Delete Catalog entries from the current result set. Multiple current-page results can be supplied as comma-separated numbers. The physical media file is not deleted."
-              ],
-              [
-                "First Page",
-                "!search-first",
-                "Return to the first page of the current Catalog/search results."
-              ],
-              [
-                "Last Page",
-                "!search-last",
-                "Jump to the last page of the current Catalog/search results."
-              ],
-              [
-                "Most Views",
-                "!search-views [--amount <N>] | !most-views [--amount <N>]",
-                "List replays ordered by playback count. Only replays with at least one recorded play are included."
-              ],
-              [
-                "Next Page",
-                "!search-next",
-                "Move to the next page of the current Catalog/search results."
-              ],
-              [
-                "Previous Page",
-                "!search-prev",
-                "Move to the previous page of the current Catalog/search results."
-              ],
-              [
-                "Purge",
-                "!catalog-purge",
-                "Remove Catalog entries whose replay media can no longer be resolved. It does not delete physical files."
-              ],
-              [
-                "Rate Replay",
-                "!rate-replay <rating> | !rate-clip <rating> | !rate-video <rating>",
-                "Rate the replay currently playing. Rating is 1 to 5 and is stored per user."
-              ],
-              [
-                "Search",
-                "!search <search text> [--amount <N>]",
-                "Search the Catalog by text. With no search text, returns the Catalog without a text filter."
-              ],
-              [
-                "Show Current Search Page",
-                "!search-show",
-                "Show the current page of the current Catalog/search results."
-              ],
-              [
-                "Search Top Rated",
-                "!search-rating [<rating>] [--amount <N>]",
-                "List replays by rating. 0 is unrated; 1-4 select average rating bands 1.0-4.9; 5 selects a 5.0 average. Without a rating, rated replays are returned ordered by average rating."
-              ],
-              [
-                "Leaderboard - Creator",
-                "!creator-leaderboard [<period>] [--amount <N>]",
-                "Show the creator leaderboard."
-              ],
-              [
-                "Name Replay",
-                "!name-clip <replay number> <replay title> | !rename-clip <replay number> <replay title>",
-                "Give a Catalog replay a custom title. Custom titles must be unique, ignoring case. The physical video file is not renamed."
-              ],
-              [
-                "Play History",
-                "!play-history <history item>",
-                "Play an item from the Last Played history."
-              ],
-              [
-                "List Recent",
-                "!search-recent [--amount <N>]",
-                "Show recently captured or added replays. This is different from Last Played."
-              ],
-              [
-                "Scan Replay Folder",
-                "!scan-replay-folder",
-                "Scan the configured Replay Folder and add replay files that are not already in the Catalog."
-              ],
-              [
-                "Show Replay Leaderboard",
-                "!clip-leaderboard",
-                "Show replay playback activity."
-              ]
+            "number": ".1",
+            "title": "Available designs",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Available designs"
+              }
+            ],
+            "bullets": [
+              "Broadcast",
+              "Cinematic",
+              "Cut",
+              "Minimal"
+            ],
+            "notes": [
+              "Broadcast and Cut expose additional configuration in the settings window. Cinematic and Minimal currently have no design-specific controls."
             ]
           },
           {
-            "title": "Create Clip",
-            "commands": [
-              [
-                "Create Kick Clip",
-                "!create-clip [<duration>] [<title>] | !createclip [<duration>] [<title>]",
-                "Request a Kick clip through the KickBot workflow. Kick chat only."
-              ],
-              [
-                "Create Twitch Clip",
-                "!twitch-clip [<duration>] [<title>] | !twitchclip [<duration>] [<title>] | !create-clip [<duration>] [<title>] | !createclip [<duration>] [<title>]",
-                "Create a Twitch clip. Twitch chat only. Duration is 5-60 seconds."
-              ],
-              [
-                "Create YouTube Clip",
-                "!create-clip [<duration>] [<title>] | !createclip [<duration>] [<title>]",
-                "Create a timestamped clip from the current YouTube live broadcast. YouTube chat only."
-              ],
-              [
-                "Save Replay",
-                "!savereplay | !save-replay | !clip-local | !cliplocal",
-                "Tell OBS to save the current Replay Buffer. What happens next depends on Replay Source and Playlist settings."
-              ]
+            "number": ".2",
+            "title": "Broadcast",
+            "text": "Provides the animated chevron treatment.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Broadcast"
+              }
+            ],
+            "notes": [
+              "Controls include the background source/colour and chevron height, width, spacing, speed and randomisation."
             ]
           },
           {
-            "title": "Message",
+            "number": ".3",
+            "title": "Cut",
+            "text": "Provides the block/bar treatment.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Cut"
+              }
+            ],
+            "notes": [
+              "Controls include the background source/colour, block width, block-width randomisation and bar height.",
+              "Design Presets are assigned through the relevant Behaviour section."
+            ]
+          }
+        ]
+      },
+      {
+        "number": "09",
+        "title": "Title Presets",
+        "description": "Define how replay titles are positioned, decorated and animated in the Player.",
+        "substeps": [
+          {
+            "number": ".1",
+            "title": "Title Presets",
+            "text": "Define how replay titles are positioned, decorated and animated in the Player.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Title Presets"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Preset Name",
+                "description": "Display name for the preset.",
+                "value": ""
+              },
+              {
+                "title": "Decoration Position",
+                "description": "Places the decoration before or after the title.",
+                "value": ""
+              },
+              {
+                "title": "Title Position",
+                "description": "Places the title at the top or bottom of the player.",
+                "value": ""
+              },
+              {
+                "title": "Decoration",
+                "description": "Text displayed as the title prefix/suffix.",
+                "value": ""
+              },
+              {
+                "title": "Animation",
+                "description": "Title entrance/exit animation.",
+                "value": ""
+              },
+              {
+                "title": "Show Delay",
+                "description": "Delay before the title is shown, in milliseconds.",
+                "value": ""
+              },
+              {
+                "title": "Display Duration",
+                "description": "Time the title remains displayed, in milliseconds.",
+                "value": ""
+              },
+              {
+                "title": "Animation Duration",
+                "description": "Duration of the title animation, in milliseconds.",
+                "value": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "number": "10",
+        "title": "Positions",
+        "description": "Define reusable Player, Panel, Message and Clapperboard positions in the shared 1920x1080 overlay coordinate space.",
+        "substeps": [
+          {
+            "number": ".1",
+            "title": "Player Positions",
+            "text": "Saved positions used by Player Animation and playback.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Player Positions"
+              }
+            ],
+            "notes": [
+              "The player editor also supports the player field-of-view transform used by the overlay."
+            ],
             "commands": [
-              [
-                "Overlay Message",
-                "!overlay-message <message> | !rts-message <message>",
-                "Send a message directly to the RTS overlay using the configured Message Behaviour."
-              ]
+              "screen-position"
             ]
           },
           {
-            "title": "Playback",
-            "commands": [
-              [
-                "Playback History",
-                "!recently-played [--amount <N>] | !last-played [--amount <N>]",
-                "Show the most recently played replays."
-              ],
-              [
-                "Screen Position",
-                "!player-pos <position tag> [<duration ms>] | !player-position <position tag> [<duration ms>]",
-                "Move the player to a saved position. Use the saved position tag, not the display name."
-              ],
-              [
-                "Hide Player",
-                "!hide-player | !player-hide",
-                "Hide the current player without deleting or resetting the replay."
-              ],
-              [
-                "Pause",
-                "!video-pause | !player-pause",
-                "Pause the current video."
-              ],
-              [
-                "Play",
-                "!video-play | !player-play",
-                "Resume the current video."
-              ],
-              [
-                "Set Speed",
-                "!set-speed <playback speed> | !player-speed <playback speed> | !clip-speed <playback speed>",
-                "Change playback speed. Accepted range is 0.25 to 4.0."
-              ],
-              [
-                "Show Player",
-                "!show-player | !player-show",
-                "Show the current player and resume the current video."
-              ]
+            "number": ".2",
+            "title": "Panel Positions",
+            "text": "Saved positions used by Panel Animation and panel playback.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Panel Positions"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Width",
+                "description": "Information panel width in 1920x1080 output pixels.",
+                "value": "500"
+              },
+              {
+                "title": "Height",
+                "description": "Information panel height in 1920x1080 output pixels.",
+                "value": "700"
+              },
+              {
+                "title": "Corner Radius",
+                "description": "Information panel corner radius in pixels.",
+                "value": "0"
+              }
             ]
           },
           {
-            "title": "Playlist",
-            "intro": "The Playlist is the live playback queue and is separate from the Catalog and playback history.",
-            "commands": [
-              [
-                "List Playlist",
-                "!playlist",
-                "Show the current Playlist."
-              ],
-              [
-                "Play Replay",
-                "!play-clip <replay number> | !play-replay <replay number>",
-                "Add a replay to the Playlist. A replay can be selected by Catalog/search result number, custom title, or platform and user search context."
-              ],
-              [
-                "Playlist - Clear",
-                "!playlist-clear | !playlistclear",
-                "Remove waiting items while leaving the currently playing item alone."
-              ],
-              [
-                "Playlist - Clear All",
-                "!playlist-clearall | !playlistclearall",
-                "Remove everything from the Playlist without stopping a replay already playing."
-              ],
-              [
-                "Playlist - Pause",
-                "!playlist-pause | !playlistpause",
-                "Pause automatic Playlist progression without stopping the current video."
-              ],
-              [
-                "Playlist - Remove",
-                "!playlistremove <playlist item> | !playlist-remove <playlist item>",
-                "Remove a waiting item by its Playlist position. The currently playing item cannot be removed."
-              ],
-              [
-                "Playlist - Resume",
-                "!playlistresume | !playlist-resume",
-                "Resume Playlist progression. If nothing is playing and queued items exist, Resume starts the next item."
-              ]
+            "number": ".3",
+            "title": "Message Positions",
+            "text": "Saved positions used by Message Animation and playback.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Message Positions"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Width",
+                "description": "Fixed message width in 1920x1080 output pixels.",
+                "value": "500"
+              },
+              {
+                "title": "Height",
+                "description": "Fixed message height in 1920x1080 output pixels.",
+                "value": "120"
+              },
+              {
+                "title": "Corner Radius",
+                "description": "Message panel corner radius in pixels.",
+                "value": "0"
+              }
+            ],
+            "notes": [
+              "Message text scales to fit the configured message dimensions."
             ]
+          },
+          {
+            "number": ".4",
+            "title": "Clapperboard Positions",
+            "text": "Saved positions used by Clapperboard Animation and playback.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Clapperboard Positions"
+              }
+            ],
+            "notes": [
+              "All four position editors support saved transforms including scale, X/Y/Z position and X/Y/Z rotation. Animation Profiles reference these saved positions, so changing a saved position affects every profile that uses it."
+            ]
+          }
+        ]
+      },
+      {
+        "number": "11",
+        "title": "Player Animation Profiles",
+        "description": "Define reusable Player animation profiles with separate Start and End sequences.",
+        "substeps": [
+          {
+            "number": ".1",
+            "title": "Player Animation Profiles",
+            "text": "Define reusable Player animation profiles with separate Start and End sequences.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Player Animation Profiles"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "number": "12",
+        "title": "Panel Animation Profiles",
+        "description": "Define reusable Panel animation profiles with separate Start and End sequences. Steps use saved Panel Positions with configurable duration, easing and delay.",
+        "substeps": [
+          {
+            "number": ".1",
+            "title": "Panel Animation Profiles",
+            "text": "Define reusable Panel animation profiles with separate Start and End sequences. Steps use saved Panel Positions with configurable duration, easing and delay.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Panel Animation Profiles"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "number": "13",
+        "title": "Message Animation Profiles",
+        "description": "Define reusable Message animation profiles with separate Start and End sequences. Steps use saved Message Positions with configurable duration, easing and delay.",
+        "substeps": [
+          {
+            "number": ".1",
+            "title": "Message Animation Profiles",
+            "text": "Define reusable Message animation profiles with separate Start and End sequences. Steps use saved Message Positions with configurable duration, easing and delay.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Message Animation Profiles"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "number": "14",
+        "title": "Clapperboard Animation Profiles",
+        "description": "Define reusable Clapperboard animation profiles with separate Start and End sequences. Steps use saved Clapperboard Positions with configurable duration, easing and delay.",
+        "substeps": [
+          {
+            "number": ".1",
+            "title": "Clapperboard Animation Profiles",
+            "text": "Define reusable Clapperboard animation profiles with separate Start and End sequences. Steps use saved Clapperboard Positions with configurable duration, easing and delay.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Clapperboard Animation Profiles"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "number": "15",
+        "title": "Player Behaviour",
+        "description": "Configure the Player presentation for each replay entry point.",
+        "substeps": [
+          {
+            "number": ".1",
+            "title": "Player Behaviour",
+            "text": "Configure the Player presentation for each replay entry point.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Player Behaviour"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Create - OBS",
+                "description": "Selects the Animation Profile, Design Preset, Title Preset and Branding Preset used for OBS-created replays.",
+                "value": ""
+              },
+              {
+                "title": "Create - Twitch",
+                "description": "Selects the presentation presets used for Twitch-created clips.",
+                "value": ""
+              },
+              {
+                "title": "Create - YouTube",
+                "description": "Selects the presentation presets used for YouTube-created clips.",
+                "value": ""
+              },
+              {
+                "title": "Create - Kick",
+                "description": "Selects the presentation presets used for Kick-created clips.",
+                "value": ""
+              },
+              {
+                "title": "Play - Replay",
+                "description": "Selects the presentation presets used when a replay is played.",
+                "value": ""
+              },
+              {
+                "title": "Use Source Platform Branding",
+                "description": "For newly created clips, selects the Branding Preset associated with the clip's source platform when a matching preset exists.",
+                "value": ""
+              },
+              {
+                "title": "Change Player Branding to Clip Source",
+                "description": "When enabled, each replay uses the Branding Preset assigned to the replay creator's platform. The player frame, design colours, buttons and progress bar follow that branding.",
+                "value": "Off"
+              }
+            ],
+            "commands": [
+              "hide-player",
+              "pause",
+              "play",
+              "set-speed",
+              "show-player"
+            ]
+          }
+        ]
+      },
+      {
+        "number": "16",
+        "title": "Panel Behaviour",
+        "description": "Configure the presentation for Recent / Search, Playlist and Leaderboards.",
+        "substeps": [
+          {
+            "number": ".1",
+            "title": "Panel Behaviour",
+            "text": "Configure the presentation for Recent / Search, Playlist and Leaderboards.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Panel Behaviour"
+              }
+            ],
+            "commands": [
+              "search",
+              "next-page",
+              "previous-page",
+              "first-page",
+              "last-page",
+              "show-current-search-page"
+            ]
+          }
+        ]
+      },
+      {
+        "number": "17",
+        "title": "Message Behaviour",
+        "description": "Configure how transient messages are presented in the overlay.",
+        "substeps": [
+          {
+            "number": ".1",
+            "title": "Message Behaviour",
+            "text": "Configure how transient messages are presented in the overlay.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Message Behaviour"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Branding Preset",
+                "description": "Branding used by transient messages, with source-platform fallback when enabled.",
+                "value": ""
+              },
+              {
+                "title": "Design Preset",
+                "description": "Design used by transient messages.",
+                "value": ""
+              },
+              {
+                "title": "Animation Profile",
+                "description": "Animation used by transient messages.",
+                "value": ""
+              },
+              {
+                "title": "Display Time",
+                "description": "Time the message remains visible before its end animation begins, in milliseconds.",
+                "value": "5000"
+              },
+              {
+                "title": "Use Source Platform Branding",
+                "description": "Uses the platform that initiated the message to select matching branding when available.",
+                "value": ""
+              }
+            ],
+            "commands": [
+              "overlay-message"
+            ]
+          }
+        ]
+      },
+      {
+        "number": "18",
+        "title": "Clapperboard Behaviour",
+        "description": "Configure the Clapperboard used when a new replay is created.",
+        "substeps": [
+          {
+            "number": ".1",
+            "title": "Clapperboard Behaviour",
+            "text": "Configure the Clapperboard used when a new replay is created.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Clapperboard Behaviour"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Use Clapperboard",
+                "description": "Uses the Clapperboard for Replay Created instead of the Message system when Replay Created Overlay is enabled.",
+                "value": "On"
+              },
+              {
+                "title": "Use Source Platform Branding",
+                "description": "Uses the Branding Preset associated with the platform that created the clip when available.",
+                "value": "Off"
+              },
+              {
+                "title": "Animation Profile",
+                "description": "Animation profile used by the Clapperboard.",
+                "value": "Default"
+              },
+              {
+                "title": "Branding Preset",
+                "description": "Fallback branding used when source-platform branding is disabled or unavailable.",
+                "value": "Default"
+              },
+              {
+                "title": "Display Time",
+                "description": "Time the Clapperboard remains visible before its end animation begins, in milliseconds.",
+                "value": "5000"
+              }
+            ],
+            "commands": [
+              "save-replay",
+              "create-kick-clip",
+              "create-twitch-clip",
+              "create-youtube-clip"
+            ]
+          }
+        ]
+      },
+      {
+        "number": "19",
+        "title": "Messages",
+        "description": "Configure where list results are presented and how lifecycle messages are generated.",
+        "substeps": [
+          {
+            "number": ".1",
+            "title": "Search Presentation",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Search Presentation"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Search - Panel",
+                "description": "Shows Catalog/search results in the Search Panel.",
+                "value": "On"
+              },
+              {
+                "title": "Search - Chat",
+                "description": "Sends one formatted chat message for the search header and each result.",
+                "value": "Off"
+              }
+            ],
+            "notes": [
+              "Both can be enabled at the same time."
+            ],
+            "commands": [
+              "search",
+              "search-by-creator",
+              "search-by-date",
+              "search-top-rated",
+              "list-recent",
+              "most-views",
+              "leaderboard-creator"
+            ]
+          },
+          {
+            "number": ".2",
+            "title": "Playlist and Recent Clips Presentation",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Playlist and Recent Clips Presentation"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Recent - Chat",
+                "description": "Sends one formatted chat message for each Recent Clips entry.",
+                "value": "On"
+              },
+              {
+                "title": "Playlist - Chat",
+                "description": "Sends one formatted chat message for each Playlist entry.",
+                "value": "On"
+              },
+              {
+                "title": "List Entry Format",
+                "description": "Format used for each list entry.",
+                "value": "#%listNumber% %title% - %creator% | %rating%/5 | %platform% | %plays% plays"
+              },
+              {
+                "title": "Maximum Message Length",
+                "description": "Maximum length of each individual list entry/message. Longer entries are truncated rather than split.",
+                "value": "500"
+              }
+            ],
+            "notes": [
+              "List entry variables are [[code:%listNumber%]], [[code:%title%]], [[code:%creator%]], [[code:%rating%]], [[code:%platform%]] and [[code:%plays%]]."
+            ],
+            "variables": [
+              {
+                "title": "Variables",
+                "values": [
+                  "%listNumber%",
+                  "%title%",
+                  "%creator%",
+                  "%rating%",
+                  "%platform%",
+                  "%plays%"
+                ]
+              }
+            ],
+            "commands": [
+              "list-playlist",
+              "list-recent"
+            ]
+          },
+          {
+            "number": ".3",
+            "title": "Replay Messages",
+            "text": "Replay lifecycle notifications are configured under Replays, Playlist and Updates.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Replay Messages"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Replay Created",
+                "description": "Replay saved: %replayTitle%.",
+                "value": ""
+              },
+              {
+                "title": "Replay Played",
+                "description": "Play",
+                "value": ""
+              },
+              {
+                "title": "Replay Queued",
+                "description": "Replay queued: %replayTitle%.",
+                "value": ""
+              },
+              {
+                "title": "Replay Removed",
+                "description": "Replay removed: %replayTitle%.",
+                "value": ""
+              },
+              {
+                "title": "Playlist Cleared",
+                "description": "Playlist cleared: %clearedCount% waiting item(s) removed.",
+                "value": ""
+              },
+              {
+                "title": "Playlist Cleared All",
+                "description": "Playlist completely cleared: %clearedCount% item(s) removed.",
+                "value": ""
+              },
+              {
+                "title": "Replay Rated",
+                "description": "Rated %replayTitle% %replayRating%/5 (average %averageRating%/5).",
+                "value": ""
+              },
+              {
+                "title": "Replay Renamed",
+                "description": "Replay #%replayNumber% renamed from %oldTitle% to %newTitle%.",
+                "value": ""
+              },
+              {
+                "title": "Replay Deleted",
+                "description": "Replay deleted: %replayTitle%.",
+                "value": ""
+              }
+            ],
+            "notes": [
+              "Each event has message text and a Chat toggle. Events that support overlay output also have an Overlay toggle.",
+              "Replay Created uses the separate Clapperboard presentation when Use Clapperboard is enabled. The other overlay-capable lifecycle events use the Message presentation.",
+              "Overlay messages are queued centrally. Chat messages are sent immediately. An overlay message is considered finished only when its exit animation completes.",
+              "Replay Queued is generated only when the Playlist already contained an item before the new replay was added."
+            ],
+            "variables": [
+              {
+                "title": "Replay Created",
+                "values": [
+                  "%replayTitle%",
+                  "%replayUser%",
+                  "%replayPlatform%",
+                  "%replaySourcePlatform%",
+                  "%requesterName%",
+                  "%requesterPlatform%"
+                ]
+              },
+              {
+                "title": "Replay Played",
+                "values": [
+                  "%replayNumber%",
+                  "%replayTitle%",
+                  "%replayUser%",
+                  "%replayPlatform%",
+                  "%replaySourcePlatform%",
+                  "%requesterName%",
+                  "%requesterPlatform%"
+                ]
+              },
+              {
+                "title": "Replay Queued",
+                "values": [
+                  "%replayTitle%",
+                  "%replayUser%",
+                  "%replayPlatform%",
+                  "%replaySourcePlatform%",
+                  "%requesterName%",
+                  "%requesterPlatform%"
+                ]
+              },
+              {
+                "title": "Replay Removed",
+                "values": [
+                  "%replayTitle%",
+                  "%requesterName%",
+                  "%requesterPlatform%"
+                ]
+              },
+              {
+                "title": "Playlist Cleared",
+                "values": [
+                  "%clearedCount%",
+                  "%requesterName%",
+                  "%requesterPlatform%"
+                ]
+              },
+              {
+                "title": "Playlist Cleared All",
+                "values": [
+                  "%clearedCount%",
+                  "%requesterName%",
+                  "%requesterPlatform%"
+                ]
+              },
+              {
+                "title": "Replay Rated",
+                "values": [
+                  "%replayTitle%",
+                  "%replayRating%",
+                  "%averageRating%",
+                  "%requesterName%",
+                  "%requesterPlatform%"
+                ]
+              },
+              {
+                "title": "Replay Renamed",
+                "values": [
+                  "%replayNumber%",
+                  "%oldTitle%",
+                  "%newTitle%",
+                  "%requesterName%",
+                  "%requesterPlatform%"
+                ]
+              },
+              {
+                "title": "Replay Deleted",
+                "values": [
+                  "%replayTitle%",
+                  "%replayUser%",
+                  "%replayPlatform%",
+                  "%replaySourcePlatform%",
+                  "%requesterName%",
+                  "%requesterPlatform%"
+                ]
+              }
+            ],
+            "commands": [
+              "save-replay",
+              "play-replay",
+              "rate-replay",
+              "name-replay",
+              "delete-clip",
+              "playlist-clear",
+              "playlist-clear-all"
+            ]
+          }
+        ]
+      },
+      {
+        "number": "20",
+        "title": "Import / Export",
+        "substeps": [
+          {
+            "number": ".1",
+            "title": "Import Settings",
+            "text": "Import selected RTS Action Replay settings from a JSON file.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Import Settings"
+              }
+            ],
+            "notes": [
+              "The Import dialog controls which configuration areas, profiles and Catalog data are included and handles duplicate profiles."
+            ]
+          },
+          {
+            "number": ".2",
+            "title": "Export Settings",
+            "text": "Export the complete RTS Action Replay configuration to a JSON file.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Export Settings"
+              }
+            ],
+            "notes": [
+              "Export includes the configuration snapshot and supported global settings."
+            ]
+          },
+          {
+            "number": ".3",
+            "title": "Factory Reset",
+            "text": "Restore RTS Action Replay configuration to its built-in defaults.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Factory Reset"
+              }
+            ],
+            "notes": [
+              "Factory Reset preserves the Catalog and play history. Configuration globals are reset and required defaults are recreated."
+            ]
+          }
+        ]
+      },
+      {
+        "number": "21",
+        "title": "Testing",
+        "substeps": [
+          {
+            "number": ".1",
+            "title": "Configuration Sync",
+            "text": "Send Configuration to Overlay sends the complete current Action Replay configuration to the overlay for configuration-sync testing.",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Configuration Sync"
+              }
+            ]
+          },
+          {
+            "number": ".2",
+            "title": "Player",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Player"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Test Origin",
+                "description": "Selects the simulated requester platform and chat routing.",
+                "value": ""
+              },
+              {
+                "title": "Replay Origin",
+                "description": "Independently selects the source platform of the test replay.",
+                "value": ""
+              },
+              {
+                "title": "Test Video",
+                "description": "Plays the first Catalog replay using the current Player presentation settings without adding it to the Playlist or play history.",
+                "value": ""
+              },
+              {
+                "title": "Test Panel",
+                "description": "Shows a representative panel using the first Catalog replay and current Panel presentation settings.",
+                "value": ""
+              },
+              {
+                "title": "Test Clapperboard",
+                "description": "Shows the Clapperboard for the first Catalog replay using the current Clapperboard presentation settings.",
+                "value": ""
+              }
+            ]
+          },
+          {
+            "number": ".3",
+            "title": "Messages",
+            "images": [
+              {
+                "src": "assets/images/documentation-settings-placeholder.svg",
+                "alt": "Documentation screenshot placeholder for Messages"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Message Type",
+                "description": "Selects the lifecycle message simulated by Test Message.",
+                "value": ""
+              },
+              {
+                "title": "Test Source",
+                "description": "Selects either the current Message settings or the selected Design and Branding overrides.",
+                "value": ""
+              },
+              {
+                "title": "Message Design",
+                "description": "When Test Source is Override, selects the presentation design used for the test.",
+                "value": ""
+              },
+              {
+                "title": "Message Branding",
+                "description": "When Test Source is Override, selects the presentation branding used for the test.",
+                "value": ""
+              },
+              {
+                "title": "Test Message",
+                "description": "Shows the selected message using the first Catalog replay. Chat output follows the selected Test Origin.",
+                "value": ""
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "number": "01",
+        "title": "Catalog",
+        "commands": [
+          {
+            "id": "add-existing-replay",
+            "title": "Add Existing Replay",
+            "syntax": "!add-existing-replay \"<filename>\" <title>",
+            "description": "Add one existing OBS replay file from the configured Replay Folder to the Catalog. If no title is supplied, the Replay Title Template is used. Existing Catalog entries are not added again."
+          },
+          {
+            "id": "search-by-creator",
+            "title": "Search By Creator",
+            "syntax": "!search-creator <creator> [--amount <N>] | !creator-search <creator> [--amount <N>]",
+            "description": "Search for replays by creator."
+          },
+          {
+            "id": "search-by-date",
+            "title": "Search By Date",
+            "syntax": "!search-date <date period> [--amount <N>] | !date-search <date period> [--amount <N>]",
+            "description": "Search for replays from a date period. Supported forms include today, this week, last week, this year, last year, year, month and month year."
+          },
+          {
+            "id": "delete-clip",
+            "title": "Delete Clip",
+            "syntax": "!delete-from-catalog <number(s)>",
+            "description": "Delete Catalog entries from the current result set. Multiple current-page results can be supplied as comma-separated numbers. The physical media file is not deleted."
+          },
+          {
+            "id": "first-page",
+            "title": "First Page",
+            "syntax": "!search-first",
+            "description": "Return to the first page of the current Catalog/search results."
+          },
+          {
+            "id": "last-page",
+            "title": "Last Page",
+            "syntax": "!search-last",
+            "description": "Jump to the last page of the current Catalog/search results."
+          },
+          {
+            "id": "most-views",
+            "title": "Most Views",
+            "syntax": "!search-views [--amount <N>] | !most-views [--amount <N>]",
+            "description": "List replays ordered by playback count. Only replays with at least one recorded play are included."
+          },
+          {
+            "id": "next-page",
+            "title": "Next Page",
+            "syntax": "!search-next",
+            "description": "Move to the next page of the current Catalog/search results."
+          },
+          {
+            "id": "previous-page",
+            "title": "Previous Page",
+            "syntax": "!search-prev",
+            "description": "Move to the previous page of the current Catalog/search results."
+          },
+          {
+            "id": "purge",
+            "title": "Purge",
+            "syntax": "!catalog-purge",
+            "description": "Remove Catalog entries whose replay media can no longer be resolved. It does not delete physical files."
+          },
+          {
+            "id": "rate-replay",
+            "title": "Rate Replay",
+            "syntax": "!rate-replay <rating> | !rate-clip <rating> | !rate-video <rating>",
+            "description": "Rate the replay currently playing. Rating is 1 to 5 and is stored per user."
+          },
+          {
+            "id": "search",
+            "title": "Search",
+            "syntax": "!search <search text> [--amount <N>]",
+            "description": "Search the Catalog by text. With no search text, returns the Catalog without a text filter."
+          },
+          {
+            "id": "show-current-search-page",
+            "title": "Show Current Search Page",
+            "syntax": "!search-show",
+            "description": "Show the current page of the current Catalog/search results."
+          },
+          {
+            "id": "search-top-rated",
+            "title": "Search Top Rated",
+            "syntax": "!search-rating [<rating>] [--amount <N>]",
+            "description": "List replays by rating. 0 is unrated; 1-4 select average rating bands 1.0-4.9; 5 selects a 5.0 average. Without a rating, rated replays are returned ordered by average rating."
+          },
+          {
+            "id": "leaderboard-creator",
+            "title": "Leaderboard - Creator",
+            "syntax": "!creator-leaderboard [<period>] [--amount <N>]",
+            "description": "Show the creator leaderboard."
+          },
+          {
+            "id": "name-replay",
+            "title": "Name Replay",
+            "syntax": "!name-clip <replay number> <replay title> | !rename-clip <replay number> <replay title>",
+            "description": "Give a Catalog replay a custom title. Custom titles must be unique, ignoring case. The physical video file is not renamed."
+          },
+          {
+            "id": "play-history",
+            "title": "Play History",
+            "syntax": "!play-history <history item>",
+            "description": "Play an item from the Last Played history."
+          },
+          {
+            "id": "list-recent",
+            "title": "List Recent",
+            "syntax": "!search-recent [--amount <N>]",
+            "description": "Show recently captured or added replays. This is different from Last Played."
+          },
+          {
+            "id": "scan-replay-folder",
+            "title": "Scan Replay Folder",
+            "syntax": "!scan-replay-folder",
+            "description": "Scan the configured Replay Folder and add replay files that are not already in the Catalog."
+          },
+          {
+            "id": "show-replay-leaderboard",
+            "title": "Show Replay Leaderboard",
+            "syntax": "!clip-leaderboard",
+            "description": "Show replay playback activity."
+          }
+        ]
+      },
+      {
+        "number": "02",
+        "title": "Create Clip",
+        "commands": [
+          {
+            "id": "create-kick-clip",
+            "title": "Create Kick Clip",
+            "syntax": "!create-clip [<duration>] [<title>] | !createclip [<duration>] [<title>]",
+            "description": "Request a Kick clip through the KickBot workflow. Kick chat only."
+          },
+          {
+            "id": "create-twitch-clip",
+            "title": "Create Twitch Clip",
+            "syntax": "!twitch-clip [<duration>] [<title>] | !twitchclip [<duration>] [<title>] | !create-clip [<duration>] [<title>] | !createclip [<duration>] [<title>]",
+            "description": "Create a Twitch clip. Twitch chat only. Duration is 5-60 seconds."
+          },
+          {
+            "id": "create-youtube-clip",
+            "title": "Create YouTube Clip",
+            "syntax": "!create-clip [<duration>] [<title>] | !createclip [<duration>] [<title>]",
+            "description": "Create a timestamped clip from the current YouTube live broadcast. YouTube chat only."
+          },
+          {
+            "id": "save-replay",
+            "title": "Save Replay",
+            "syntax": "!savereplay | !save-replay | !clip-local | !cliplocal",
+            "description": "Tell OBS to save the current Replay Buffer. What happens next depends on Replay Source and Playlist settings."
+          }
+        ]
+      },
+      {
+        "number": "03",
+        "title": "Message",
+        "commands": [
+          {
+            "id": "overlay-message",
+            "title": "Overlay Message",
+            "syntax": "!overlay-message <message> | !rts-message <message>",
+            "description": "Send a message directly to the RTS overlay using the configured Message Behaviour."
+          }
+        ]
+      },
+      {
+        "number": "04",
+        "title": "Playback",
+        "commands": [
+          {
+            "id": "playback-history",
+            "title": "Playback History",
+            "syntax": "!recently-played [--amount <N>] | !last-played [--amount <N>]",
+            "description": "Show the most recently played replays."
+          },
+          {
+            "id": "screen-position",
+            "title": "Screen Position",
+            "syntax": "!player-pos <position tag> [<duration ms>] | !player-position <position tag> [<duration ms>]",
+            "description": "Move the player to a saved position. Use the saved position tag, not the display name."
+          },
+          {
+            "id": "hide-player",
+            "title": "Hide Player",
+            "syntax": "!hide-player | !player-hide",
+            "description": "Hide the current player without deleting or resetting the replay."
+          },
+          {
+            "id": "pause",
+            "title": "Pause",
+            "syntax": "!video-pause | !player-pause",
+            "description": "Pause the current video."
+          },
+          {
+            "id": "play",
+            "title": "Play",
+            "syntax": "!video-play | !player-play",
+            "description": "Resume the current video."
+          },
+          {
+            "id": "set-speed",
+            "title": "Set Speed",
+            "syntax": "!set-speed <playback speed> | !player-speed <playback speed> | !clip-speed <playback speed>",
+            "description": "Change playback speed. Accepted range is 0.25 to 4.0."
+          },
+          {
+            "id": "show-player",
+            "title": "Show Player",
+            "syntax": "!show-player | !player-show",
+            "description": "Show the current player and resume the current video."
+          }
+        ]
+      },
+      {
+        "number": "05",
+        "title": "Playlist",
+        "description": "The Playlist is the live playback queue and is separate from the Catalog and playback history.",
+        "commands": [
+          {
+            "id": "list-playlist",
+            "title": "List Playlist",
+            "syntax": "!playlist",
+            "description": "Show the current Playlist."
+          },
+          {
+            "id": "play-replay",
+            "title": "Play Replay",
+            "syntax": "!play-clip <replay number> | !play-replay <replay number>",
+            "description": "Add a replay to the Playlist. A replay can be selected by Catalog/search result number, custom title, or platform and user search context."
+          },
+          {
+            "id": "playlist-clear",
+            "title": "Playlist - Clear",
+            "syntax": "!playlist-clear | !playlistclear",
+            "description": "Remove waiting items while leaving the currently playing item alone."
+          },
+          {
+            "id": "playlist-clear-all",
+            "title": "Playlist - Clear All",
+            "syntax": "!playlist-clearall | !playlistclearall",
+            "description": "Remove everything from the Playlist without stopping a replay already playing."
+          },
+          {
+            "id": "playlist-pause",
+            "title": "Playlist - Pause",
+            "syntax": "!playlist-pause | !playlistpause",
+            "description": "Pause automatic Playlist progression without stopping the current video."
+          },
+          {
+            "id": "playlist-remove",
+            "title": "Playlist - Remove",
+            "syntax": "!playlistremove <playlist item> | !playlist-remove <playlist item>",
+            "description": "Remove a waiting item by its Playlist position. The currently playing item cannot be removed."
+          },
+          {
+            "id": "playlist-resume",
+            "title": "Playlist - Resume",
+            "syntax": "!playlistresume | !playlist-resume",
+            "description": "Resume Playlist progression. If nothing is playing and queued items exist, Resume starts the next item."
           }
         ]
       }
