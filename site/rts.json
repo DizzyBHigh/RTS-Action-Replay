@@ -47,26 +47,27 @@
       "features": [
         {
           "title": "Supports Twitch, YouTube and Kick",
-          "text": "Full support for Twitch, YouTube, and Kick (via kickbot or kick), Capture clips directly from the platform's chat, and catalog them. Full cross-platform capabilities, with automatic platform branding depending on which platform initiated the command."
+          "text": "Full support for [[blue:Twitch, YouTube, and Kick]] (via kickbot or kick), Capture clips directly from the platform's chat, and catalog them. Full cross-platform capabilities, with automatic platform branding depending on which platform initiated the command."
         },
         {
           "title": "Complete Branding control",
-          "text": "Customise the Brand Colours, Logo, and fonts to fit your stream. 4 Design presets to choose from. Choose different presets for different platforms."
+          "text": "Customise the [[blue:Brand Colours, Logo, and fonts]] to fit your stream. [[blue:4 Design presets]] to choose from. Choose different presets for different platforms."
         },
         {
           "title": "Full catalog with search, rating and leaderboards",
-          "text": "Complete catalog of all your clips, with full searching by date, creator, and rating. Leaderboards keep track of top clippers and clip requestors. Full playlist functionality to queue multiple requested clips."
+          "text": "Complete catalog of all your clips, with full searching by [[blue:date, creator, and rating]]. Leaderboards keep track of top clippers and clip requestors. Full [[blue:playlist]] functionality to queue multiple requested clips."
         },
         {
           "title": "Remote or local overlay",
-          "text": "A complete, functioning overlay to perform all the actions you need, with a dev mode for complete testing of the extension"
+          "text": "A complete, functioning [[blue:overlay]] to perform all the actions you need, with a dev mode for complete testing of the extension."
         },
         {
           "title": "Complete layout control with full animation",
-          "text": "Complete control with our positioning system lets you position the Player, Search Panels, and Overlay Messages wherever you want, and create entry/exit animations for them with ease."
-        },{
+          "text": "Complete control with our positioning system lets you position the [[blue:Player, Search Panels, and Overlay Messages]] wherever you want, and create [[blue:entry/exit animations]] for them with ease."
+        },
+        {
           "title": "Include complete set of Chat commands",
-          "text": "Chat commands for everything: clipping, Queuing, Catalog Searching, Playlist control, and video control. "
+          "text": "Chat commands for everything: [[blue:clipping, Queuing, Catalog Searching, Playlist control, and video control]]."
         }
       ]
     }
@@ -313,7 +314,7 @@
             "text": "If the extension requires an updated version, it can ask whether you want to download and install the latest version. If you do not see the update prompt, it may be hiding behind another window. Check your taskbar for a Streamer.bot dialog and bring it to the front."
           }
         ]
-      },  
+      },
       {
         "number": "08",
         "title": "Test Action Replay Setup and Configuration",
