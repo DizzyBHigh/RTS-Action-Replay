@@ -38,20 +38,27 @@
       "text": "RTS Action Replay connects OBS Replay Buffer captures, Streamer.bot and a remote browser overlay so saved clips can be loaded and controlled without a separate web server.",
       "features": [
         {
-          "title": "OBS replay buffer",
-          "text": "Trigger OBS to save the current replay buffer from Streamer.bot."
+          "title": "Supports Twitch, YouTube and Kick",
+          "text": "Full support for Twitch, YouTube, and Kick (via kickbot or kick), Capture clips directly from the platform's chat, and catalog them. Full cross-platform capabilities, with automatic platform branding depending on which platform initiated the command."
         },
         {
-          "title": "Local replay serving",
-          "text": "Use Streamer.bot's HTTP server to expose replay files to the overlay."
+          "title": "Complete Branding control",
+          "text": "Customise the Brand Colours, Logo, and fonts to fit your stream. 4 Design presets to choose from. Choose different presets for different platforms."
         },
         {
-          "title": "Playlist ready",
-          "text": "Keep saved replays available for previous and next playback control."
+          "title": "Full catalog with search, rating and leaderboards",
+          "text": "Complete catalog of all your clips, with full searching by date, creator, and rating. Leaderboards keep track of top clippers and clip requestors. Full playlist functionality to queue multiple requested clips."
         },
         {
-          "title": "Remote overlay",
-          "text": "Host the player on The Road to Somewhere while the video files remain local."
+          "title": "Remote or local overlay",
+          "text": "A complete, functioning overlay to perform all the actions you need, with a dev mode for complete testing of the extension"
+        },
+        {
+          "title": "Complete layout control with full animation",
+          "text": "Complete control with our positioning system lets you position the Player, Search Panels, and Overlay Messages wherever you want, and create entry/exit animations for them with ease."
+        },{
+          "title": "Include complete set of Chat commands",
+          "text": "Chat commands for everything: clipping, Queuing, Catalog Searching, Playlist control, and video control. "
         }
       ]
     }
