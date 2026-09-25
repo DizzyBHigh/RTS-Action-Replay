@@ -896,10 +896,12 @@
               }
             ],
             "notes": [
-              "Controls include the background source/colour, block width, block-width randomisation and bar height.",
-              "Design Presets are assigned through the relevant Behaviour section."
+              "Controls include the background source/colour, block width, block-width randomisation and bar height."
             ]
           }
+        ],
+        "notes": [
+          "Design Presets are assigned through the relevant Behaviour section."
         ]
       },
       {
