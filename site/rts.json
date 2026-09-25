@@ -358,37 +358,33 @@
       {
         "number": "01",
         "title": "Local Capture",
-        "description": "[[blue:Streamer.bot]] can be set up to watch a folder for new media.\\nThis is particularly useful for OBS (or other capture/streaming software) when captures via its replay buffer are saved to a folder on your computer. [[blue:Streamer.bot]] picks this up and adds the file to the catalog.\\n[[blue:Streamer.bot's]] HTTP Service allows us to map the folder and serve the file to the overlay for playback.",
+        "description": "[[blue:Streamer.bot]] can be set up to watch a folder for new media.\\nThis is particularly useful for OBS (or other capture/streaming software) when captures via its replay buffer are saved to a folder on your computer. [[blue:Streamer.bot]] picks this up and adds the file to the catalog.\\n[[blue:Streamer.bot's]] HTTP Service maps the folder and serves the file to the overlay when requested.",
         "substeps": [
           {
             "number": ".1",
             "title": "Local Capture / OBS",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Local Capture / OBS"
+                "src": "assets/images/action-replay-settings-local-capture-obs-http.png",
+                "alt": "Screenshot of settings for Local Capture"
               }
             ],
             "settings": [
               {
                 "title": "Replay Folder",
-                "description": "Browse to the folder where you have set up OBS (or other streaming software) to save its Replay Buffer files to. Twitch and Kick downloads use separate folders and are configured in their own sections.",
-                "value": "Empty"
+                "description": "Browse to the folder where you have set up OBS (or other streaming software) to save its Replay Buffer files to.\\nTwitch and Kick downloads use separate folders and are configured in their own sections."
               },
               {
                 "title": "Replay File Types",
-                "description": "File extensions accepted when scanning or registering files from the Replay Folder. Separate multiple extensions with commas, for example [[code:.mp4, .mkv]].",
-                "value": ".mp4, .mkv"
+                "description": "File extensions accepted when scanning or registering files from the Replay Folder. Separate multiple extensions with commas, for example [[code:.mp4, .mkv]]."
               },
               {
                 "title": "HTTP Mapping",
-                "description": "URL path used in the local replay URL. It must match the [[blue:Streamer.bot]] HTTP server mapping serving the Replay Folder.",
-                "value": "replays"
+                "description": "URL path used in the local replay URL. It must match the [[blue:Streamer.bot]] HTTP server mapping you set up in the installion step [[yellow:04]]."
               },
               {
                 "title": "HTTP Port",
-                "description": "Port used in the local replay URL. It must match Streamer.bot's HTTP server port.",
-                "value": "7474"
+                "description": "Port used in the local replay URL. It must match Streamer.bot's HTTP server port."
               }
             ],
             "commands": [
@@ -402,15 +398,14 @@
             "title": "Replay Defaults",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Replay Defaults"
+                "src": "assets/images/action-replay-settings-local-capture-replay-defaults.png",
+                "alt": "screenshot of settings for Replay Defaults"
               }
             ],
             "settings": [
               {
                 "title": "Replay Title Template",
-                "description": "Generates the title of a newly added OBS replay. Available variables are [[code:%replayName%]], [[code:%replayDate%]] and [[code:%replayTime%]]. A manually supplied title bypasses the template.",
-                "value": "%replayName%"
+                "description": "Generates the title of a newly added OBS replay. Available variables are [[code:%replayName%]], [[code:%replayDate%]] and [[code:%replayTime%]]. A manually supplied title bypasses the template."
               }
             ],
             "variables": [
@@ -429,27 +424,25 @@
             "title": "Local Capture Handling",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Local Capture Handling"
+                "src": "assets/images/action-replay-settings-local-capture-handling.png",
+                "alt": "Screenshot for Local Capture Handling"
               }
             ],
             "settings": [
               {
                 "title": "Auto-add Saved Replays (OBS Capture)",
-                "description": "Adds each newly saved OBS replay to the Catalog. It also becomes available to Recent Clips through the Catalog's recent history.",
-                "value": "On"
+                "description": "Adds each newly saved OBS replay to the Catalog. It also becomes available to Recent Clips through the Catalog's recent history."
               },
               {
                 "title": "Auto-play OBS Captures",
-                "description": "Adds a newly saved OBS replay to the playback queue for playback.",
-                "value": "Off"
+                "description": "Adds a newly saved OBS replay to the playback queue for playback."
               }
             ],
             "notes": [
               "When automatic registration is disabled, existing replay files can still be registered with Add Replay or Scan Replays."
             ],
             "commands": [
-              "save-replay"
+              "[[muted:!save-replay, !clip-local <title>]] - *This command sends a raw request to OBS Studio and saves the replay buffer; it is not set up to work with other streaming software right now. "
             ]
           }
         ]
@@ -464,14 +457,14 @@
             "title": "Twitch Clips",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Twitch Clips"
+                "src": "assets/images/action-replay-settings-twitch.png",
+                "alt": "Screenshot for Twitch Settings"
               }
             ],
             "settings": [
               {
                 "title": "Twitch Clip Playback",
-                "description": "Use the Twitch URL, download locally, or support both methods. In Both mode, a local copy is preferred and Twitch is the fallback.",
+                "description": "Use the Twitch URL, download locally, or support both methods.\\nIn Both mode, a local copy is preferred, and Twitch is the fallback.",
                 "value": "Download Locally"
               },
               {
