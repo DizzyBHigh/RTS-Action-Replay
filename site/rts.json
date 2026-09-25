@@ -63,7 +63,7 @@
   ],
   "setup": {
     "title": "Get Action Replay running.",
-    "intro": "Import the Streamer.bot actions, enable the required services, configure OBS Replay Buffer and the local HTTP file mapping, then add the overlay to OBS.",
+    "intro": "Import the Streamer.bot actions, enable them, configure OBS Replay Buffer and the local HTTP file mapping, add the overlay to OBS, then test Action Replay.",
     "steps": [
       {
         "number": "01",
@@ -73,22 +73,46 @@
           {
             "number": ".1",
             "title": "Copy the import string",
-            "text": "Look above for Action Import and click [[code:Copy Import]]. Paste the import code into Streamer.bot's Import dialog."
+            "text": "Look above for Action Import, click the Copy Import button, then paste the import code into Streamer.bot's Import dialog.",
+            "images": [
+              {
+                "src": "/assets/images/sb-import-code-copy-screenshot.png",
+                "alt": "The RTS extension import code with an arrow pointing to the import code button"
+              }
+            ]
           },
           {
             "number": ".2",
             "title": "Open Import",
-            "text": "Select Import from the Streamer.bot toolbar."
+            "text": "Select Import from the Streamer.bot toolbar.",
+            "images": [
+              {
+                "src": "/assets/images/sb-import-code-screenshot.png",
+                "alt": "Streamer.bot import screen showing the RTS extension import code"
+              }
+            ]
           },
           {
             "number": ".3",
             "title": "Paste the import code",
-            "text": "Paste the supplied import string into the Import String box, then select Import."
+            "text": "Paste the supplied import string into the Import String box, then select Import.",
+            "images": [
+              {
+                "src": "/assets/images/sb-import-code-confirm-screenshot.png",
+                "alt": "Streamer.bot import confirmation dialog"
+              }
+            ]
           },
           {
             "number": ".4",
             "title": "Confirm the import",
-            "text": "Review the actions being imported, then select Import to continue."
+            "text": "Review the actions being imported, then select Import to continue.",
+            "images": [
+              {
+                "src": "/assets/images/sb-import-code-confirm-again-screenshot.png",
+                "alt": "Streamer.bot second import confirmation dialog"
+              }
+            ]
           }
         ]
       },
@@ -100,12 +124,24 @@
           {
             "number": ".1",
             "title": "Enable the extension actions",
-            "text": "Enable the imported RTS Action Replay actions in Streamer.bot."
+            "text": "Enable the imported RTS Action Replay actions in Streamer.bot.",
+            "images": [
+              {
+                "src": "/assets/images/sb-import-code-enable-actions-screenshot.png",
+                "alt": "Streamer.bot imported RTS actions being enabled"
+              }
+            ]
           },
           {
             "number": ".2",
-            "title": "Check the commands",
-            "text": "Confirm the imported RTS Action Replay commands are present and enabled where required."
+            "title": "Check and Enable the commands",
+            "text": "Confirm the imported RTS Action Replay commands are present and enabled where required.",
+            "images": [
+              {
+                "src": "/assets/images/sb-import-code-enable-commands-screenshot.png",
+                "alt": "Streamer.bot commands showing the imported RTS Action Replay commands"
+              }
+            ]
           }
         ]
       },
@@ -210,22 +246,40 @@
       {
         "number": "07",
         "title": "Add the Action Replay overlay to OBS",
-        "description": "Add the hosted Action Replay overlay as an OBS Browser Source.",
+        "description": "Add the Action Replay hosted overlay as an OBS Browser Source, or use the supplied local overlay files.",
         "substeps": [
           {
             "number": ".1",
             "title": "Copy the Overlay URL",
-            "text": "Look above in the Quick Access section and click [[code:Copy Overlay URL]]. This copies the overlay URL to your clipboard for use in OBS."
+            "text": "Look above in the Quick Access section and click the Copy Overlay URL button. This copies the overlay URL to your clipboard for use in OBS.",
+            "images": [
+              {
+                "src": "/assets/images/obs-copy-overlay-url-screenshot.png",
+                "alt": "RTS Copy Overlay URL button screenshot"
+              }
+            ]
           },
           {
             "number": ".2",
             "title": "Create a browser source",
-            "text": "Add a Browser Source to the scene where you want Action Replay to appear."
+            "text": "Add a Browser Source to an existing or newly created scene in OBS.",
+            "images": [
+              {
+                "src": "/assets/images/obs-add-browser-source-screenshot.png",
+                "alt": "OBS add a new browser source dialog"
+              }
+            ]
           },
           {
             "number": ".3",
             "title": "Configure the browser source",
-            "text": "Paste the overlay URL into the URL field and set the Browser Source dimensions to 1920x1080, or another 16:9 size. The Action Replay overlay uses a 1920x1080 coordinate system. Enable Refresh browser when scene becomes active if required by your scene setup."
+            "text": "Paste the Overlay URL you just copied into the URL field, then set the width and height to 1920x1080 or another 16:9 size. The Action Replay overlay uses a 1920x1080 coordinate system. Enable Refresh browser when scene becomes active if required by your scene setup.",
+            "images": [
+              {
+                "src": "/assets/images/obs-add-browser-source-settings-screenshot.png",
+                "alt": "OBS browser source settings dialog"
+              }
+            ]
           }
         ]
       },
