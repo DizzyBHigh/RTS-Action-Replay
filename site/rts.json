@@ -148,12 +148,18 @@
       {
         "number": "03",
         "title": "Enable OBS Replay Buffer",
-        "description": "Enable Replay Buffer in OBS and choose the folder where the replay files are saved.",
+        "description": "If you want to enable capturing of local files created by the OBS Replay Buffer, choose the folder where the replay files are saved.",
         "substeps": [
           {
             "number": ".1",
             "title": "Enable Replay Buffer",
             "text": "In OBS, open Settings > Output and enable Replay Buffer."
+            "images": [
+              {
+                "src": "assets/images/action-replay-obs-replay-buffer-settings.png",
+                "alt": "Configure OBS Replay Buffer"
+              }
+            ]
           },
           {
             "number": ".2",
@@ -186,18 +192,18 @@
           {
             "number": ".3",
             "title": "Check the mapping",
-            "text": "The mapping should expose the replay folder through the Streamer.bot HTTP Server. For example, a replay file named [[code:Replay 001.mp4]] in the mapped folder should be available below the [[code:/replays/]] path."
+            "text": "The mapping should point to the replay folder that OBS saves its buffer to."
             "images": [
               {
                 "src": "/assets/images/sb-http-mappings-settings-screenshot.png",
-                "alt": "Mappings section of the http server settings"
+                "alt": "Mappings section of the HTTP server settings"
               }
             ]
           },
           {
             "number": ".4",
             "title": "Keep the HTTP server available",
-            "text": "Leave the Streamer.bot HTTP Server running while using Action Replay. The overlay uses this service to request the local replay video. Its reccomended to have the HTTP server auto start on launch"
+            "text": "Leave the Streamer.bot HTTP Server running while using Action Replay. The overlay uses this service to request the local replay video. It's recommended to turn on the toggle at the top of the HTTP settings to have the HTTP server auto-start on launch."
           }
         ]
       },
@@ -220,7 +226,7 @@
           {
             "number": ".2",
             "title": "Keep WebSocket access available",
-            "text": "The Streamer.bot WebSocket Server must remain running while the Action Replay overlay is in use."
+            "text": "The Streamer.bot WebSocket Server must remain running while the Action Replay overlay is in use. It's recommended to turn on the toggle at the top of the WebSocket settings to have the WebSocket server auto-start on launch."
           }
         ]
       },
@@ -232,7 +238,13 @@
           {
             "number": ".1",
             "title": "Open the settings dialog",
-            "text": "In the Streamer.bot Actions panel, run the RTS Action Replay settings action to open the extension settings."
+            "text": "In the Streamer.bot Actions panel, look for RTS Action Replay settings action to open the extension settings."
+            "images": [
+              {
+                "src": "assets/images/sb-webswocket-server-settings-screenshot.png",
+                "alt": "Streamer.bot commands showing the imported RTS Action Replay commands"
+              }
+            ]
           },
           {
             "number": ".2",
