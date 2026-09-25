@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <rect width="1600" height="900" fill="#20242a"/>
+  <rect x="24" y="24" width="1552" height="852" rx="12" fill="#191c20" stroke="#3a4048" stroke-width="2"/>
+  <rect x="72" y="78" width="1456" height="10" rx="5" fill="#0384CB"/>
+  <text x="800" y="405" text-anchor="middle" fill="#f2f2f2" font-family="Arial, sans-serif" font-size="54" font-weight="700">SETTINGS SCREENSHOT</text>
+  <text x="800" y="480" text-anchor="middle" fill="#9da5af" font-family="Arial, sans-serif" font-size="30">PLACEHOLDER — REPLACE WITH ACTUAL IMAGE</text>
+</svg>
