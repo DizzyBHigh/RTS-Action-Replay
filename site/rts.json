@@ -691,12 +691,12 @@
             "number": ".1",
             "title": "Brand Preset Settings",
             "text": "There are 5 branding presets pre-configured; [[white:default]], [[yellow:RTS]], [[purple:Twitch]], [[red:YouTube]], and [[green:Kick]]. They can be changed, but not deleted.\\nYou can create and delete extra presets as you need, and they will be available for use throughout the settings.",
-            "images": 
+            "images": [
               {
                 "src": "assets/images/action-replay-settings-branding-presets-default.png",
                 "alt": "Screenshot for Branding Presets settings"
               }
-            ,
+            ],
             "settings": [
               {
                 "title": "Preset Name",
