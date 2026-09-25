@@ -450,7 +450,7 @@
       {
         "number": "02",
         "title": "Twitch",
-        "description": "Configure how Twitch clips are acquired and made available to the player.",
+        "description": "Configure how [[purple:Twitch clips]] are acquired and made available to the player.",
         "substeps": [
           {
             "number": ".1",
@@ -464,45 +464,23 @@
             "settings": [
               {
                 "title": "Twitch Clip Playback",
-                "description": "Use the Twitch URL, download locally, or support both methods.\\nIn Both mode, a local copy is preferred, and Twitch is the fallback.",
-                "value": "Download Locally"
+                "description": "Use the Twitch URL, download locally, or support both methods.\\nIn Both mode, a local copy is preferred, and Twitch is the fallback."
               },
               {
                 "title": "Twitch Clip Folder",
-                "description": "Folder used for downloaded Twitch clips. It must be separate from the OBS Replay Folder.",
-                "value": "Empty"
+                "description": "Folder used for downloaded Twitch clips. It must be separate from the OBS Replay Folder."
               },
               {
                 "title": "Twitch HTTP Mapping",
-                "description": "URL path used by [[blue:Streamer.bot]] to serve downloaded Twitch clips. The shared HTTP Port is configured under Local Capture / OBS.",
-                "value": "twitch"
+                "description": "URL path used by [[blue:Streamer.bot]] to serve downloaded Twitch clips. The shared HTTP Port is configured under Local Capture / OBS."
               },
               {
                 "title": "Clip Duration",
-                "description": "Default duration used by Twitch clip commands when no duration is supplied.",
-                "value": "30 seconds"
+                "description": "Default duration used by Twitch clip commands when no duration is supplied."
               }
             ],
             "notes": [
               "The allowed Twitch clip duration is 5-60 seconds. A duration supplied with the command overrides the setting within that range."
-            ],
-            "commands": [
-              "create-twitch-clip"
-            ]
-          },
-          {
-            "number": ".2",
-            "title": "Twitch Clip Playback",
-            "images": [
-              {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Twitch Clip Playback"
-              }
-            ],
-            "bullets": [
-              "[[code:Twitch URL]] - play directly from Twitch.",
-              "[[code:Download Locally]] - download and play a local copy through [[blue:Streamer.bot's]] HTTP server.",
-              "[[code:Both]] - use the local copy when available and fall back to Twitch playback when it is unavailable."
             ],
             "commands": [
               "create-twitch-clip"
@@ -513,22 +491,21 @@
       {
         "number": "03",
         "title": "YouTube",
-        "description": "Configure timestamp-based clips from the current monitored YouTube broadcast.",
+        "description": "Configure timestamp-based clips from the current monitored [[red:YouTube]] broadcast.",
         "substeps": [
           {
             "number": ".1",
             "title": "YouTube Clips",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for YouTube Clips"
+                "src": "assets/images/action-replay-settings-local-YouTube.png",
+                "alt": "Screenshot for YouTube Clips settings"
               }
             ],
             "settings": [
               {
                 "title": "Clip Duration",
-                "description": "Default duration used by YouTube clip commands when no duration is supplied.",
-                "value": "30 seconds"
+                "description": "Default duration used by [[red:YouTube]] clip commands when no duration is supplied."
               }
             ],
             "notes": [
@@ -543,51 +520,30 @@
       {
         "number": "04",
         "title": "Kick",
-        "description": "Configure how Kick clips are acquired and made available to the player.",
+        "description": "Configure how [[green:Kick]] clips are acquired and made available to the player.",
         "substeps": [
           {
             "number": ".1",
             "title": "Kick Clips",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Kick Clips"
+                "src": "assets/images/action-replay-settings-kick.png",
+                "alt": "Screenshot for Kick Clip settings"
               }
             ],
             "settings": [
               {
                 "title": "Kick Clip Playback",
-                "description": "Use the Kick URL, download locally, or support both methods. In Both mode, a local copy is preferred and direct Kick playback is the fallback.",
-                "value": "Kick URL"
+                "description": "Use the [[green:Kick]] URL, download locally, or support both methods. In Both mode, a local copy is preferred, and direct [[green:Kick]] playback is the fallback."
               },
               {
                 "title": "Kick Clip Folder",
-                "description": "Folder used for downloaded Kick clips. It must be separate from the OBS Replay Folder.",
-                "value": "Empty"
+                "description": "Folder used for downloaded [[green:Kick]] clips. It must be separate from the OBS Replay Folder."
               },
               {
                 "title": "Kick HTTP Mapping",
-                "description": "URL path used by [[blue:Streamer.bot]] to serve downloaded Kick clips. The shared HTTP Port is configured under Local Capture / OBS.",
-                "value": "kick"
+                "description": "URL path used by [[blue:Streamer.bot]] to serve downloaded [[green:Kick]] clips. The shared HTTP Port is configured under Local Capture / OBS."
               }
-            ],
-            "commands": [
-              "create-kick-clip"
-            ]
-          },
-          {
-            "number": ".2",
-            "title": "Kick Clip Playback",
-            "images": [
-              {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Kick Clip Playback"
-              }
-            ],
-            "bullets": [
-              "[[code:Kick URL]] - play directly from Kick.",
-              "[[code:Download Locally]] - download and play a local copy through [[blue:Streamer.bot's]] HTTP server.",
-              "[[code:Both]] - use the local copy when available and fall back to direct Kick playback when necessary."
             ],
             "commands": [
               "create-kick-clip"
@@ -597,7 +553,7 @@
       },
       {
         "number": "05",
-        "title": "Playback",
+        "title": "Player",
         "description": "Control how replays start and how playback controls and player styling are presented.",
         "substeps": [
           {
@@ -605,30 +561,26 @@
             "title": "Playback",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Playback"
+                "src": "assets/images/action-replay-settings-player-playback.png",
+                "alt": "Screenshot for Playback settings"
               }
             ],
             "settings": [
               {
                 "title": "Show Controls",
-                "description": "Displays the Play/Pause control and interactive playback progress bar.",
-                "value": "Off"
+                "description": "Displays the Play/Pause control and interactive playback progress bar."
               },
               {
                 "title": "Show Progress Bar",
-                "description": "Displays the interactive playback progress bar.",
-                "value": "On"
+                "description": "Displays the interactive playback progress bar."
               },
               {
                 "title": "Default Playback Speed",
-                "description": "Playback speed used when a replay is loaded. Range 0.25-2.0.",
-                "value": "1.0"
+                "description": "Playback speed used when a replay is loaded; normal playback speed is 1. Range from 0.25 to 2.0."
               },
               {
                 "title": "Show Visibility",
-                "description": "Controls when the playback speed indicator is displayed.",
-                "value": "Only when greater or less than 1"
+                "description": "Controls when the playback speed indicator is displayed."
               }
             ],
             "commands": [
@@ -646,49 +598,42 @@
             "title": "Player Appearance",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Player Appearance"
+                "src": "assets/images/action-replay-settings-player-player-appearance.png",
+                "alt": "Screenshot for Player Appearance settings"
               }
             ],
             "settings": [
               {
                 "title": "Frame Colour Source",
-                "description": "Uses a Custom, Branding Primary or Branding Secondary colour for the player frame.",
-                "value": "Custom"
+                "description": "Uses a Custom, Branding Primary or Branding Secondary colour for the player frame."
               },
               {
                 "title": "Frame Colour",
-                "description": "Custom frame colour when Frame Colour Source is Custom.",
-                "value": "#0384CBFF"
+                "description": "Custom frame colour when Frame Colour Source is Custom."
               },
               {
                 "title": "Control Colour Source",
-                "description": "Uses a Custom, Branding Primary or Branding Secondary colour for the Play/Pause control and progress bar.",
-                "value": "Branding Primary"
+                "description": "Uses a Custom, Branding Primary or Branding Secondary colour for the Play/Pause control and progress bar."
               },
               {
                 "title": "Control Colour",
-                "description": "Custom control colour when Control Colour Source is Custom.",
-                "value": "#0384CBFF"
+                "description": "Custom control colour when Control Colour Source is Custom."
               },
               {
                 "title": "Border Glow",
-                "description": "Adds a branded glow around the player border.",
-                "value": "On"
+                "description": "Adds a branded glow around the player border."
               },
               {
                 "title": "Border Width",
-                "description": "Player border width in pixels.",
-                "value": "4"
+                "description": "Player border width in pixels."
               },
               {
                 "title": "Corner Radius",
-                "description": "Player corner radius in pixels.",
-                "value": "0"
+                "description": "Player corner radius in pixels."
               }
             ],
             "notes": [
-              "Change Player Branding to Clip Source is configured later under Player Behaviour. When enabled, it can override the player frame and control branding with the active source branding."
+              "Colours support opacity using the alpha slider in the colour picker.\\nChange Player Branding to Clip Source is configured later under Player Behaviour. When enabled, it can override the player frame and control branding with the active source branding option."
             ],
             "commands": [
               "screen-position"
@@ -703,47 +648,29 @@
         "substeps": [
           {
             "number": ".1",
-            "title": "Recent Clips",
+            "title": "Recent Clips and Live Playlist",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Recent Clips"
+                "src": "assets/images/action-replay-settings-catalog.png",
+                "alt": "Screenshot for catalog settings"
               }
             ],
             "settings": [
               {
                 "title": "Maximum Recent Clips",
-                "description": "Maximum number of entries shown in Recent Clips and retained in Last Played history. Older Catalog entries remain available.",
-                "value": "10"
+                "description": "Maximum number of entries shown in Recent Clips and retained in Last Played history. Older Catalog entries remain available."
               },
               {
                 "title": "Maximum Catalog Results",
-                "description": "Maximum number of results shown per Catalog/search page. The [[code:--amount]] option can request a different page size up to this limit.",
-                "value": "20"
-              }
-            ],
-            "commands": [
-              "list-recent"
-            ]
-          },
-          {
-            "number": ".2",
-            "title": "Live Playlist",
-            "text": "The Playlist is the live, source-agnostic playback queue. It can contain OBS captures, Twitch clips, YouTube clips and Kick clips.",
-            "images": [
-              {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Live Playlist"
-              }
-            ],
-            "settings": [
+                "description": "Maximum number of results shown per Catalog/search page. The [[code:--amount]] option can request a different page size up to this limit."
+              },
               {
                 "title": "Persist Playlist Across Restarts",
-                "description": "Keeps the current Playlist queue when [[blue:Streamer.bot]] restarts. Active playback and pause state are not persisted.",
-                "value": "Off"
+                "description": "Keeps the current Playlist queue when [[blue:Streamer.bot]] restarts. Active playback and pause state are not persisted."
               }
             ],
             "commands": [
+              "list-recent",
               "list-playlist",
               "play-replay",
               "playlist-clear",
@@ -762,79 +689,66 @@
         "substeps": [
           {
             "number": ".1",
-            "title": "Branding Presets",
-            "text": "Define reusable colours, typography and branding identity used by Player, Panel, Clapperboard and Message presentation.",
-            "images": [
+            "title": "Brand Preset Settings",
+            "text": "There are 5 branding presets pre-configured; [[white:default]], [[yellow:RTS]], [[purple:Twitch]], [[red:YouTube]], and [[green:Kick]]. They can be changed, but not deleted.\\nYou can create and delete extra presets as you need, and they will be available for use throughout the settings.",
+            "images": 
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Branding Presets"
+                "src": "assets/images/action-replay-settings-branding-presets-default.png",
+                "alt": "Screenshot for Branding Presets settings"
               }
             ],
             "settings": [
               {
                 "title": "Preset Name",
-                "description": "Display name used in settings and selection lists.",
-                "value": ""
+                "description": "Display name used in settings and selection lists."
               },
               {
                 "title": "Source Platform",
-                "description": "Optional Twitch, Kick or YouTube association.",
-                "value": "Optional"
+                "description": "Optional [[purple:Twitch]], [[green:Kick]], or [[red:YouTube]] association.\\n This Branding Preset will be used when the [[yellow:Use Source Branding option]] is turned on.\\ne.g. If [[purple:Twitch]] is set as the source platform, this branding preset will be used to style requests initiating from [[purple:Twitch]]."
               },
               {
                 "title": "Primary Colour",
-                "description": "Primary branding colour.",
-                "value": ""
+                "description": "Primary branding colour."
               },
               {
                 "title": "Secondary Colour",
-                "description": "Secondary branding colour.",
-                "value": ""
+                "description": "Secondary branding colour."
               },
               {
                 "title": "Player Title Colour",
-                "description": "Replay title text colour.",
-                "value": ""
+                "description": "Replay title text colour."
               },
               {
                 "title": "Player Prefix / Suffix Colour",
-                "description": "Decorative title prefix/suffix colour.",
-                "value": ""
+                "description": "Decorative title prefix/suffix colour."
               },
               {
                 "title": "Panel Text Colour",
-                "description": "Panel title/list text colour.",
-                "value": ""
+                "description": "Panel title/list text colour."
               },
               {
                 "title": "Panel List Shadow Colour",
-                "description": "Panel list shadow colour.",
-                "value": ""
+                "description": "Panel list shadow colour."
               },
               {
                 "title": "Font",
-                "description": "Google Font used by player titles, panel titles and branding.",
-                "value": ""
+                "description": "Google Font used by player titles, panel titles and branding."
               },
               {
                 "title": "Font Size",
-                "description": "Font size used by player and panel titles.",
-                "value": ""
+                "description": "Font size used by player and panel titles."
               },
               {
                 "title": "Logo URL",
-                "description": "HTTPS URL of the branding logo.",
-                "value": ""
+                "description": "HTTPS URL of the branding logo."
               },
               {
                 "title": "Fallback Text",
-                "description": "Text used when the branding logo cannot be loaded.",
-                "value": ""
+                "description": "Text used when the branding logo cannot be loaded."
               },
               {
                 "title": "Brand Label",
-                "description": "Label displayed with the logo or fallback text.",
-                "value": ""
+                "description": "Label displayed with the logo or fallback text."
               }
             ]
           }
@@ -843,115 +757,139 @@
       {
         "number": "08",
         "title": "Design Presets",
-        "description": "Define the visual treatment used by Player, Panel and Message presentation.",
-        "substeps": [
+        "description": "Define the visual treatment used by Player, Panel, and Message presentation.\\nThere are 2 configurable presets [[yellow: Broadcast]] and [[yellow:Cut]], plus two non-configurable presets [[yellow:Cinematic]] and [[yellow:Minimal]]",
+        "substeps": [       
           {
             "number": ".1",
-            "title": "Available designs",
+            "title": "Broadcast",
+            "text": "Provides an animated chevron treatment.",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Available designs"
+                "src": "assets/images/action-replay-settings-design-presets-broadcast.png",
+                "alt": "Screenshot for Broadcast Design Preset settings"
               }
             ],
-            "bullets": [
-              "Broadcast",
-              "Cinematic",
-              "Cut",
-              "Minimal"
-            ],
-            "notes": [
-              "Broadcast and Cut expose additional configuration in the settings window. Cinematic and Minimal currently have no design-specific controls."
+            "settings": [
+              {
+                "title": "Background Source",
+                "description": "The background colour to use for panels,and messages. Options: RTS Dark Blue background, Branding Secondary Colour, or Custom Colour"
+              },
+              {
+                "title": "Background Colour",
+                "description": "The colour will be used if Custom is set for Background Source"
+              },
+              {
+                "title": "Chevron Height",
+                "description": "How tall the chevrons will appear. 1 - 89"
+              },
+              {
+                "title": "Randomise Height",
+                "description": "The height for each chevron will be randomised as it is generated, between 1 and the Chevron Height setting"
+              },
+              {
+                "title": "Chevron Width",
+                "description": "How wide the chevrons will appear. 1-300"
+              },
+              {
+                "title": "Randomise Width",
+                "description": "The width for each chevron will be randomised as it is generated. between 0 and the Chevron Width setting"
+              },
+              {
+                "title": "Chevron Spacing",
+                "description": "How much space between each chevron. 0-200"
+              },
+               {
+                "title": "Randomise Spacing",
+                "description": "The space between each chevron will be randomised as it is generated. between 0 and the Chevron Space setting"
+              },
+              {
+                "title": "Chevron Speed",
+                "description": "How fast the chevrons move horizontally from left to right. 10-500"
+              },
             ]
           },
           {
             "number": ".2",
-            "title": "Broadcast",
-            "text": "Provides the animated chevron treatment.",
-            "images": [
-              {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Broadcast"
-              }
-            ],
-            "notes": [
-              "Controls include the background source/colour and chevron height, width, spacing, speed and randomisation."
-            ]
-          },
-          {
-            "number": ".3",
             "title": "Cut",
-            "text": "Provides the block/bar treatment.",
+            "text": "Provides an animated block/bar treatment.",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Cut"
+                "src": "assets/images/action-replay-settings-design-presets-cut.png",
+                "alt": "Screenshot for Cut Design Preset settings"
               }
             ],
-            "notes": [
-              "Controls include the background source/colour, block width, block-width randomisation and bar height."
+            "settings": [
+             {
+                "title": "Background Source",
+                "description": "The background colour to use for panels,and messages. Options: RTS Dark Blue background, Branding Secondary Colour, or Custom Colour"
+              },
+              {
+                "title": "Background Colour",
+                "description": "The colour will be used if Custom is set for Background Source"
+              },
+              {
+                "title": "Block Width",
+                "description": "How wide the blocks will appear. 1 - 600"
+              },
+              {
+                "title": "Randomise Height",
+                "description": "The height for each chevron will be randomised as it is generated, between 1 and the Block Width setting"
+              },
+              {
+                "title": "Bar Height",
+                "description": "How tall the blocks will appear. 1-50"
+              }
             ]
           }
         ],
-        "notes": [
-          "Design Presets are assigned through the relevant Behaviour section."
-        ]
       },
       {
         "number": "09",
         "title": "Title Presets",
-        "description": "Define how replay titles are positioned, decorated and animated in the Player.",
+        "text": "Define how replay titles are positioned, decorated, and animated in the Player.",
         "substeps": [
           {
             "number": ".1",
             "title": "Title Presets",
-            "text": "Define how replay titles are positioned, decorated and animated in the Player.",
+            "text": "Define how replay titles are positioned, decorated, and animated in the Player. The default preset can be changed, but not deleted.\\n*DO NOT REMANE THE DEFAULT PRESET!!!",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Title Presets"
+                "src": "assets/images/action-replay-settings-title-presets.png",
+                "alt": "Screenshot for the Title Presets settings"
               }
             ],
             "settings": [
               {
                 "title": "Preset Name",
-                "description": "Display name for the preset.",
-                "value": ""
+                "description": "Display name for the preset."
               },
               {
                 "title": "Decoration Position",
-                "description": "Places the decoration before or after the title.",
-                "value": ""
+                "description": "Places the decoration before or after the title."
               },
               {
                 "title": "Title Position",
-                "description": "Places the title at the top or bottom of the player.",
-                "value": ""
+                "description": "Places the title at the top or bottom of the player."
               },
               {
                 "title": "Decoration",
-                "description": "Text displayed as the title prefix/suffix.",
-                "value": ""
+                "description": "Text displayed as the title prefix/suffix."
               },
               {
                 "title": "Animation",
-                "description": "Title entrance/exit animation.",
-                "value": ""
+                "description": "Title entrance/exit animation. There are 3 options:\\nLeft to Right - Slides in from the left to the right: Slides out from the right to the left\\nRight to Left - Slides in from the right to the left : Slides out from the left to the right\\nSlide Up/Down - Slides up from the bottom and back down, or slides down from the top and back up, depending on whether the title is positioned at the top or the bottom. : Slides out from Right to Left\\n"
               },
               {
                 "title": "Show Delay",
-                "description": "Delay before the title is shown, in milliseconds.",
-                "value": ""
+                "description": "Delay before the title is shown, in milliseconds."
               },
               {
                 "title": "Display Duration",
-                "description": "Time the title remains displayed, in milliseconds.",
-                "value": ""
+                "description": "Time the title remains displayed, in milliseconds."
               },
               {
                 "title": "Animation Duration",
-                "description": "Duration of the title animation, in milliseconds.",
-                "value": ""
+                "description": "Duration of the title animation, in milliseconds."
               }
             ]
           }
