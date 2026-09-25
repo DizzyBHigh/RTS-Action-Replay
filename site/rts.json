@@ -207,13 +207,8 @@
           },
           {
             "number": ".2",
-            "title": "Add a file mapping",
-            "text": "Create a file or directory mapping for the OBS Replay Buffer folder. Use a simple URL path such as [[code:replays]] and point it to the same local folder where OBS saves replay files. If you want to save Twitch and Kick clips locally. add mapping for those too."
-          },
-          {
-            "number": ".3",
-            "title": "Check the mapping",
-            "text": "The mapping should point to the replay folder that OBS saves its buffer to.",
+            "title": "Add file mappings to the HTTP server",
+            "text": "Create a file or directory mapping for the OBS Replay Buffer folder. Use a simple URL path such as [[code:replays]] and point it to the same local folder where OBS saves replay files.\\nIf you want to save Twitch and Kick clips locally, add a mapping for those too. The mapping should point to the folder you set up in the extension settings for Twitch and Kick.",
             "images": [
               {
                 "src": "/assets/images/sb-http-mappings-settings-screenshot.png",
@@ -222,7 +217,7 @@
             ]
           },
           {
-            "number": ".4",
+            "number": ".3",
             "title": "Keep the HTTP server available",
             "text": "Leave the Streamer.bot HTTP Server running while using Action Replay. The overlay uses this service to request the local replay video. It's recommended to turn on the toggle at the top of the HTTP settings to have the HTTP server auto-start on launch."
           }
