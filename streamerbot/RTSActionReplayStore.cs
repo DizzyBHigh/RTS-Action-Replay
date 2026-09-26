@@ -318,8 +318,8 @@ public class CPHInline
         AddSnapshotGlobal(globals, "messageWidth", "rts.actionreplay.message.width");
         AddSnapshotGlobal(globals, "messageHeight", "rts.actionreplay.message.height");
 
-        CPH.SetGlobalVar(ConfigurationSnapshotKey, config.ToString(Newtonsoft.Json.Formatting.None), false);
-        CPH.LogInfo("RTS Action Replay: configuration snapshot prepared.");
+        CPH.SetGlobalVar(ConfigurationSnapshotKey, config.ToString(Newtonsoft.Json.Formatting.None), true);
+        CPH.LogInfo($"RTS Action Replay: configuration snapshot prepared; length={config.ToString(Newtonsoft.Json.Formatting.None).Length}.");
         return true;
     }
 
