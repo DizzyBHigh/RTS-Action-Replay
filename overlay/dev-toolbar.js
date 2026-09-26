@@ -29,7 +29,7 @@
       <label>Playback Speed<select id="rts-dev-speed"><option>0.25</option><option>0.5</option><option>0.75</option><option selected>1</option><option>1.25</option><option>1.5</option><option>1.75</option><option>2</option></select></label>
       <label>Preview Title<input id="rts-dev-title" value="FIRST TEST — REPLAY CAPTURE"></label>
       <button data-action="title-toggle">Show Title</button>
-      <button data-action="position-test">Test Animation</button>`)
+      <button data-action="position-test">Test Animation</button>`)}
     ${section('panel', 'Panel', `<label>Panel Style<select data-control="style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label>`)}
     ${section('clapper', 'Clapperboard')}
     ${section('message', 'Message', `<label>Preview Message<input data-control="text" value="MESSAGE PREVIEW"></label>`)}
