@@ -222,11 +222,17 @@
     });
     return next;
   };
+  const getDevPanel = () => {
+    const type=controls('panel','panel-type')?.value || 'recent';
+    if(type==='search') return RTSSearchPanel?.panel;
+    if(type==='playlist') return RTSPlaylistList?.panel;
+    return RTSReplay?.recentList;
+  };
   const playIn = target => {
     const next = animationCommand(target);
     if(target==='player'){ showPlayer(); RTSReplayVideo.runAnimationProfile(next); }
     else if(target==='panel') {
-      const panel=RTSReplay.recentList;
+      const panel=getDevPanel();
       if (!panel) return;
       panel._rtsPanelAnimationCommand=next;
       RTSInformationPanelAnimation.show(panel,next,next.replayPanelPosition || 'Centered');
@@ -238,7 +244,7 @@
     const next = animationCommand(target);
     if(target==='player'){ showPlayer(); RTSReplayVideo.runEndAnimationProfile(next,hidePlayer); }
     else if(target==='panel') {
-      const panel=RTSReplay.recentList;
+      const panel=getDevPanel();
       if (panel) RTSInformationPanels.hide(panel,panel._rtsPanelAnimationCommand||next);
     }
     else if(target==='message') RTSReplayMessages.hideMessage(next);
