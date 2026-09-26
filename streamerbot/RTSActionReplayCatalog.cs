@@ -303,9 +303,17 @@ public class CPHInline
     private void SendListEntries(JArray entries)
     {
         CPH.SetArgument("listEntries", entries.ToString(Newtonsoft.Json.Formatting.None));
+        var platform = Arg("requesterPlatform");
+        if (string.IsNullOrWhiteSpace(platform)) platform = Arg("userType");
+        CPH.SetArgument("listPlatform", platform);
         if (!CPH.ExecuteMethod("RTS - Action Replay - Core - Messaging", "FormatListEntries")) return;
-        if (!CPH.TryGetArg("formattedList", out string message) || string.IsNullOrWhiteSpace(message)) return;
-        SendCatalogMessage(message);
+        if (!CPH.TryGetArg("formattedLists", out string raw) || string.IsNullOrWhiteSpace(raw)) return;
+        try
+        {
+            foreach (var message in JArray.Parse(raw).Values<string>())
+                if (!string.IsNullOrWhiteSpace(message)) SendCatalogMessage(message);
+        }
+        catch { }
     }
 
     private bool FullListChat() => CPH.GetGlobalVar<bool?>("rts.actionreplay.message.list.full", true) ?? false;
