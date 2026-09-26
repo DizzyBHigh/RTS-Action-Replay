@@ -1,12 +1,10 @@
 (() => {
   const params = new URLSearchParams(window.location.search);
   if (params.get('dev') !== 'true') return;
-
   const screen = document.createElement('div');
   screen.id = 'rts-dev-screen';
   screen.innerHTML = '<div class="dev-screen-label">1920 × 1080</div><div class="dev-safe-area"></div>';
   document.body.prepend(screen);
-
   const bar = document.createElement('aside');
   bar.id = 'rts-dev-toolbar';
   bar.innerHTML = `
@@ -40,7 +38,6 @@
     </section>
     <div class="dev-toolbar-footer"><span>?dev=true</span><button data-action="refresh">Refresh Config</button></div>`;
   document.body.prepend(bar);
-
   let playerVisible = false, panelVisible = false, messageVisible = false, clapperVisible = false;
   const formatDuration = seconds => { if (!Number.isFinite(seconds) || seconds < 0) return '—'; const total = Math.round(seconds); return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`; };
   const currentCommand = () => ({ ...(window.RTSReplaySettingsSync?.command || RTSReplayVideo?.currentCommand || RTSReplay?.command || {}) });
@@ -64,7 +61,6 @@
   const updateClapper = command => { const current = command || currentCommand(); const text = document.getElementById('clapper-message-text'); if (text) text.textContent = current.replayMessage || `Playing replay #${current.replayNumber || 1}: ${current.replayTitle || 'FIRST TEST'}.`; const length = document.getElementById('clapper-length'); if (length) length.textContent = formatDuration(RTSReplay?.video?.duration); const director = document.getElementById('clapper-director'); if (director) director.textContent = current.replayDirector || '—'; const played = document.getElementById('clapper-played'); if (played) played.textContent = current.replayPlayedCount ?? '—'; };
   const refresh = () => { refreshProfiles(); refreshPositions(); };
   window.RTSDevToolbar = { updateClapper, refreshPositions, refresh, log: window.RTSDevToolbar?.log };
-
   const showPlayer = () => { const player = RTSReplay?.player; if (!player) return; playerVisible = true; player.classList.add('dev-player', 'show'); player.style.opacity = '1'; player.style.visibility = 'visible'; RTSReplay.frame?.classList.add('dev-frame'); bar.querySelector('[data-action="player"]').textContent = 'Hide Player'; };
   const hidePlayer = () => { const player = RTSReplay?.player; if (!player) return; playerVisible = false; RTSReplayVideo.cancelAnimation(); player.classList.remove('show', 'dev-player'); player.style.opacity = ''; player.style.visibility = ''; RTSReplay.frame?.classList.remove('dev-frame'); bar.querySelector('[data-action="player"]').textContent = 'Show Player'; };
   const applyPlayerProfile = () => { const command = setProfile(currentCommand(), 'rts-dev-player-profile', 'replayAnimationProfiles', 'replayAnimationProfile'); RTSReplayVideo.currentCommand = command; RTSReplay.command = command; RTSReplayControls.configure(command); RTSReplayElements.configure(command); return command; };
@@ -73,7 +69,6 @@
   const previewTitle = () => { showPlayer(); const title = RTSReplay?.title; if (!title) return; RTSReplay.hideTitle?.(); const text = document.getElementById('rts-dev-title').value.trim() || 'FIRST TEST — REPLAY CAPTURE'; const position = document.getElementById('rts-dev-title-position').value; title.className = `title-${document.getElementById('rts-dev-title-style').value} title-${position}`; title.textContent = text; title.classList.add('visible', 'title-enter'); };
   const setSpeed = value => { const speed = Number(value); if (!Number.isFinite(speed) || !RTSReplay?.video) return; RTSReplay.video.playbackRate = speed; const command = { ...currentCommand(), replayPlaybackSpeed: speed }; RTSReplay.command = command; RTSReplayVideo.currentCommand = command; RTSReplayElements?.configureSpeed?.(command); };
   const testPosition = () => { const command = applyPlayerProfile(), from = document.getElementById('rts-dev-from').value, to = document.getElementById('rts-dev-to').value, duration = Math.max(0.1, Number(document.getElementById('rts-dev-duration').value) || 1), easing = document.getElementById('rts-dev-easing').value; command.replayStartPosition = from; command.replayEndPosition = to; command.replayAnimationDuration = duration; command.replayAnimationEasing = easing; RTSReplayVideo.currentCommand = command; RTSReplay.command = command; showPlayer(); RTSReplayVideo.animateIn(RTSReplayVideo.getPosition(from), RTSReplayVideo.getPosition(to)); };
-
   const showMessage = () => {
     const card = RTSReplayMessages?.messageCard;
     if (!card) return;
@@ -94,7 +89,6 @@
     messageVisible = false;
     bar.querySelector('[data-action="message"]').textContent = 'Show Message';
   };
-
   const showClapper = () => {
     const command = setProfile(currentCommand(), 'rts-dev-clapper-profile', 'replayClapperAnimationProfiles', 'replayClapperAnimation');
     RTSReplay.command = command;
@@ -131,7 +125,6 @@
     bar.querySelector('[data-action="clapper"]').textContent = 'Show Clapperboard';
   };
   const playClapperEnd = () => hideClapper();
-
   const buildPanelCommand = () => { const command = setProfile(currentCommand(), 'rts-dev-panel-profile', 'replayPanelAnimationProfiles', 'replayPanelAnimation'); command.replayRecent = 'dev-preview'; command.replayRecentData = JSON.stringify(Array.from({ length: 8 }, (_, i) => ({ number: String(i + 1).padStart(2, '0'), title: ['FIRST TEST — REPLAY CAPTURE', 'GTA V — ACTION REPLAY', 'CINEMATIC DRIVE', 'NIGHT SHIFT', 'HIGHWAY RUN', 'MISSION COMPLETE', 'STREAM HIGHLIGHT', 'LAST CALL'][i], avatarUrl: '' }))); command.replayPanelPreset = document.getElementById('rts-dev-panel-style').value; command.replayPanelPosition = document.getElementById('rts-dev-panel-position').value || command.replayPanelPosition || 'Centered'; return command; };
   const showPanel = () => { const panel = RTSReplay?.recentList; if (!panel || !RTSReplay?.showRecentList) return; const command = buildPanelCommand(); panel._rtsPanelAnimationCommand = command; RTSReplay.showRecentList(command); panelVisible = true; bar.querySelector('[data-action="panel"]').textContent = 'Hide Panel'; };
   const informationPanels = () => [RTSReplay?.recentList, document.getElementById('search-panel'), document.getElementById('playlist-list'), document.getElementById('leaderboard-list')].filter(Boolean);
@@ -139,7 +132,6 @@
   const hidePanel = () => { const panel = visiblePanel(); if (!panel) return; panelVisible = false; RTSInformationPanelAnimation.cancel(); panel.classList.remove('show'); panel.setAttribute('aria-hidden', 'true'); bar.querySelector('[data-action="panel"]').textContent = 'Show Panel'; };
   const playPanelProfile = () => { const panel = RTSReplay?.recentList; if (!panel) return; const command = buildPanelCommand(); panel._rtsPanelAnimationCommand = command; panel.classList.add('show'); panel.setAttribute('aria-hidden', 'false'); RTSInformationPanelAnimation.show(panel, command, command.replayPanelPosition); panelVisible = true; };
   const playPanelEnd = () => { const panel = RTSReplay?.recentList; if (!panel) return; RTSInformationPanels.hide(panel, panel._rtsPanelAnimationCommand || buildPanelCommand()); panelVisible = false; };
-
   bar.addEventListener('click', event => { const button = event.target.closest('button'); if (!button) return; const action = button.dataset.action; if (action === 'player') playerVisible ? hidePlayer() : (showPlayer(), applyPlayerProfile()); if (action === 'player-profile') playPlayerProfile(); if (action === 'player-profile-hide') playPlayerEnd(); if (action === 'title') previewTitle(); if (action === 'position-test') testPosition(); if (action === 'message') messageVisible ? hideMessage() : showMessage(); if (action === 'clapper') clapperVisible ? hideClapper() : showClapper(); if (action === 'clapper-profile') showClapper(); if (action === 'clapper-profile-hide') playClapperEnd(); if (action === 'panel') informationPanels().some(panel => panel.classList.contains('show')) ? hidePanel() : showPanel(); if (action === 'panel-profile') playPanelProfile(); if (action === 'panel-profile-hide') playPanelEnd(); if (action === 'refresh') refresh(); });
   bar.querySelector('#rts-dev-title-style').addEventListener('change', previewTitle);
   bar.querySelector('#rts-dev-title-position').addEventListener('change', previewTitle);
