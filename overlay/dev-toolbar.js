@@ -173,48 +173,47 @@
       );
     });
   };
-  const hideDevPanels = () => {
+  const hideDevPanels = except => {
     [RTSReplay?.recentList, RTSSearchPanel?.panel, RTSPlaylistList?.panel].forEach(panel => {
-      if (!panel) return;
+      if (!panel || panel === except) return;
       RTSInformationPanels.hide(panel, panel._rtsPanelAnimationCommand || RTSReplayVideo?.currentCommand || {});
     });
   };
+
+  const renderDevPanel = (panel, type, command) => {
+    if (!panel) return null;
+    const next = { ...command, replayTest: true };
+    panel.dataset.rtsInformationPanel = type;
+    if (type === 'search') {
+      panel.innerHTML = '<div class="rts-panel-header"><span class="rts-panel-kicker">CATALOG SEARCH</span><strong class="rts-search-type">Full Catalog</strong><span class="rts-search-summary">Page 1 of 1 | 2 Clips</span><span class="rts-search-requester"><span class="rts-search-requester-label">Requested By </span><span class="rts-search-requester-platform rts-search-requester-platform--twitch">Twitch:</span><span class="rts-search-requester-name">RTS Dev</span></span></div><div class="rts-panel-list"><div class="rts-panel-entry"><span class="rts-panel-number">01</span><div class="rts-search-result-content"><span class="rts-panel-title">Search Panel Preview</span><span class="rts-search-result-creator rts-search-requester-platform--twitch"><span class="rts-search-result-creator-name">DuhBuhHuh</span></span></div><span class="rts-search-stats">12 views | * 4.8 (5)</span></div><div class="rts-panel-entry"><span class="rts-panel-number">02</span><div class="rts-search-result-content"><span class="rts-panel-title">Current Settings Loaded</span><span class="rts-search-result-creator rts-search-requester-platform--twitch"><span class="rts-search-result-creator-name">RTS Dev</span></span></div><span class="rts-search-stats">8 views | * 5.0 (2)</span></div></div>';
+    } else if (type === 'playlist') {
+      panel.innerHTML = '<div class="rts-panel-header"><span class="rts-panel-kicker">ACTION REPLAY</span><strong>PLAYLIST</strong></div><div class="rts-panel-list"><div class="rts-panel-entry"><span class="rts-panel-number">01</span><span class="rts-playlist-content"><strong class="rts-panel-title">Playlist Preview</strong><small class="rts-playlist-requester">RTS Dev</small></span></div><div class="rts-panel-entry"><span class="rts-panel-number">02</span><span class="rts-playlist-content"><strong class="rts-panel-title">Current Settings Loaded</strong><small class="rts-playlist-requester">RTS Dev</small></span></div></div>';
+    } else {
+      panel.innerHTML = '<div class="rts-panel-header"><span class="rts-panel-kicker">ACTION REPLAY</span><strong>RECENT REPLAYS</strong></div><div class="rts-panel-list"><div class="rts-panel-entry"><span class="rts-panel-number">01</span><span class="rts-panel-title">Panel Preview</span></div><div class="rts-panel-entry"><span class="rts-panel-number">02</span><span class="rts-panel-title">Current Settings Loaded</span></div></div>';
+    }
+    panel.classList.remove('show');
+    panel.setAttribute('aria-hidden', 'true');
+    void panel.offsetWidth;
+    RTSInformationPanels.show(panel, next, next.replayPanelPosition || 'Centered');
+    panel._rtsPanelAnimationCommand = next;
+    devPanelAnimation = { panel, command: next };
+    return next;
+  };
+
   const showPanel = target => {
     const panel = target === 'message' ? RTSReplay?.messageCard : getDevPanel();
     if (!panel) return;
-    let next = setCommand(target);
     if (target === 'message') {
+      const next = setCommand(target);
       RTSReplayMessages.showMessage(next);
-    } else {
-      hideDevPanels();
-      const type = controls('panel', 'panel-type')?.value || 'recent';
-      next = { ...next, replayTest: true };
-      if (type === 'search') {
-        next.replayCommand = 'search-panel';
-        next.replaySearchParameters = 'CATALOG';
-        next.replaySearchHeader = 'SEARCH | 1/1 | 2';
-        next.replaySearchRequester = 'RTS Dev';
-        next.replaySearchRequesterPlatform = 'Twitch';
-        next.replaySearchEntries = JSON.stringify([{number:'01',title:'Search Panel Preview',creator:'DuhBuhHuh',creatorPlatform:'Twitch',plays:12,rating:4.8,ratingCount:5},{number:'02',title:'Current Settings Loaded',creator:'RTS Dev',creatorPlatform:'Twitch',plays:8,rating:5,ratingCount:2}]);
-        RTSSearchPanel.show(next);
-      } else if (type === 'playlist') {
-        next.replayCommand = 'playlist-panel';
-        next.replayPlaylist = '#1 Playlist Preview - RTS Dev | #2 Current Settings Loaded - RTS Dev';
-        RTSPlaylistList.show(next);
-      } else {
-        next.replayRecent = 'DEV PANEL PREVIEW';
-        next.replayRecentData = JSON.stringify([{number:'01',title:'Panel Preview',requester:'RTS Dev',avatarUrl:''},{number:'02',title:'Current Settings Loaded',requester:'RTS Dev',avatarUrl:''}]);
-        RTSReplay.showRecentList(next);
-      }
+      sectionFor(target).querySelector('[data-action="show"]').textContent = 'Hide Message';
+      return;
     }
-    if (target === 'panel') {
-      const shownPanel = getDevPanel();
-      if (shownPanel) {
-        devPanelAnimation={panel:shownPanel,command:next};
-        shownPanel._rtsPanelAnimationCommand=next;
-      }
-    }
-    sectionFor(target).querySelector('[data-action="show"]').textContent='Hide '+(target==='message'?'Message':'Panel');
+    const type = controls('panel', 'panel-type')?.value || 'recent';
+    const next = setCommand('panel');
+    hideDevPanels(panel);
+    renderDevPanel(panel, type, next);
+    sectionFor(target).querySelector('[data-action="show"]').textContent = 'Hide Panel';
   };
   const hidePanel = target => { const panel = target === 'message' ? RTSReplay?.messageCard : getDevPanel(); if (!panel) return; if(target==='message') RTSReplayMessages.hideMessage(RTSReplayVideo.currentCommand); else RTSInformationPanels.hide(panel,panel._rtsPanelAnimationCommand||RTSReplayVideo.currentCommand); sectionFor(target).querySelector('[data-action="show"]').textContent='Show '+(target==='message'?'Message':'Panel'); };
   const showClapper = () => { const next=setCommand('clapper'); RTSReplayMessages.showClapperboard({ ...next, replayMessage:next.replayMessage || 'CLAPPERBOARD PREVIEW' }); sectionFor('clapper').querySelector('[data-action="show"]').textContent='Hide Clapperboard'; };
@@ -239,16 +238,17 @@
   };
   let devPanelAnimation = { panel: null, command: null };
   const playIn = target => {
-    const next = target === 'panel' ? setCommand('panel') : animationCommand(target);
-    if(target==='player'){ showPlayer(); RTSReplayVideo.runAnimationProfile(next); }
-    else if(target==='panel') {
+    if(target==='player'){ const next=animationCommand(target); showPlayer(); RTSReplayVideo.runAnimationProfile(next); return; }
+    if(target==='panel'){
       const panel=getDevPanel();
       if (!panel) return;
-      devPanelAnimation={panel,command:next};
-      panel._rtsPanelAnimationCommand=next;
-      RTSInformationPanelAnimation.show(panel,next,next.replayPanelPosition || 'Centered');
+      const next=setCommand('panel');
+      hideDevPanels(panel);
+      renderDevPanel(panel,controls('panel','panel-type')?.value || 'recent',next);
+      return;
     }
-    else if(target==='message') RTSReplayMessages.showMessage(next);
+    const next=animationCommand(target);
+    if(target==='message') RTSReplayMessages.showMessage(next);
     else showClapper();
   };
   const playOut = target => {
