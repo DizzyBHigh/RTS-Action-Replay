@@ -18,7 +18,7 @@
       ${title === 'Player' ? '<div class="dev-grid"><button data-action="in">Play In</button><button data-action="out">Play Out</button><button data-action="complete">Complete</button></div>' : ''}
       <div class="dev-grid"><label>From<select data-control="from"></select></label><label>To<select data-control="to"></select></label></div>
       <div class="dev-grid"><label>Easing<select data-control="easing"><option>linear</option><option>ease-in</option><option selected>ease-in-out</option><option>ease-out</option></select></label><label>Duration (s)<input data-control="duration" type="number" min="0" max="10" step="0.1" value="1"></label></div>
-      ${title === 'Player' ? '<button data-action="position-test">Test Animation</button><label class="dev-checkbox"><input type="checkbox" id="rts-dev-reset-to"> Move To to From after Test Animation</label>' : ''}
+      ${title === 'Player' ? '<button data-action="position-test">Test Animation</button><label class="dev-checkbox"><input type="checkbox" id="rts-dev-reset-to"> Move From to To after Test Animation</label>' : ''}
       ${extra}
     </section>`;
 
@@ -246,12 +246,12 @@
     const complete=()=>{
       const reset=document.getElementById('rts-dev-reset-to')?.checked;
       if(!reset) return;
-      const toControl=controls('player','to');
-      toControl.value=from;
-      toControl.dispatchEvent(new Event('change',{bubbles:true}));
-      next.replayEndPosition=from;
-      RTSReplayVideo.currentCommand={...RTSReplayVideo.currentCommand,replayEndPosition:from};
-      RTSReplay.command={...RTSReplay.command,replayEndPosition:from};
+      const fromControl=controls('player','from');
+      fromControl.value=to;
+      fromControl.dispatchEvent(new Event('change',{bubbles:true}));
+      next.replayStartPosition=to;
+      RTSReplayVideo.currentCommand={...RTSReplayVideo.currentCommand,replayStartPosition:to};
+      RTSReplay.command={...RTSReplay.command,replayStartPosition:to};
     };
     RTSReplayVideo.cancelAnimation?.();
     RTSReplayVideo.applyPosition(start,true);
