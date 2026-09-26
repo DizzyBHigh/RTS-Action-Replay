@@ -30,6 +30,7 @@
       replayPanelListColor: b.textColor || '#FFFFFFFF',
       replayPanelListShadowColor: b.shadowColor || '#000000FF',
       replayPanelBackgroundColor: d.backgroundColor || b.secondaryColor || '#101416FF',
+      replayFrameColor: b.primaryColor || '#0384CBFF',
       replayShowTitle: t.showTitle !== false,
       replayTitleDecorationPosition: t.decorationPosition || 'Prefix',
       replayTitleDecoration: t.decoration || 'Action Replay -',
