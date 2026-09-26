@@ -9,22 +9,10 @@
 
   const bar = document.createElement('aside');
   bar.id = 'rts-dev-toolbar';
-  const devClapperStyle = document.createElement('style');
-  devClapperStyle.textContent = `
-    #clapper-card.dev-clapper-cinematic .slate { border-width:1px; border-radius:4px; box-shadow:inset 0 0 0 1px #ffffff12,0 18px 50px #000b; }
-    #clapper-card.dev-clapper-cinematic .clapstick { border-width:1px; box-shadow:0 5px 12px #000b; }
-    #clapper-card.dev-clapper-cut .slate { border-radius:0; border-width:4px; box-shadow:inset 0 -14px 0 var(--accent-color),0 12px 32px #000b; }
-    #clapper-card.dev-clapper-cut .clapstick { border-radius:0; transform:rotate(0deg); box-shadow:none; }
-    #clapper-card.dev-clapper-minimal .slate { background:color-mix(in srgb,var(--board-color) 94%,black); border-width:1px; border-radius:3px; box-shadow:0 0 30px #0009; }
-    #clapper-card.dev-clapper-minimal .clapstick { border-width:1px; box-shadow:none; }
-    #clapper-card.dev-clapper-minimal .hinge { border-width:1px; box-shadow:none; }
-  `;
-  document.head.appendChild(devClapperStyle);
   const section = (key, title, extra = '') => `
     <section class="dev-section" data-target="${key}"><h3>${title}</h3>
       ${title === 'Panel' ? '<label>Panel Type<select data-control="panel-type"><option value="recent">Recent Clips</option><option value="search">Search Results</option><option value="playlist">Playlist</option></select></label>' : ''}
       <label>${title === 'Player' ? 'Platform Brand Preset' : 'Brand Preset'}<select data-control="brand"></select></label>
-      ${title === 'Panel' || title === 'Clapperboard' ? '<label>Design Style<select data-control="style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label>' : ''}
       <label>Animation Profile<select data-control="profile"></select></label>
       <div class="dev-grid"><button data-action="show">${title === 'Player' ? 'Show Player' : 'Show ' + title}</button>${title === 'Player' ? '' : '<button data-action="in">Play In</button>'}</div>
       ${title === 'Player' ? '' : '<div class="dev-grid"><button data-action="hide">Hide</button><button data-action="out">Play Out</button></div>'}
@@ -132,9 +120,7 @@
   const applyPresentation = (target, base) => {
     const config = window.rtsOverlayConfig, m = targets[target], entry = { ...(m.entry() || {}) };
     entry.brandingPreset = controls(target, 'brand').value || entry.brandingPreset || 'default';
-    if (target === 'panel') entry.designPreset = controls(target, 'style')?.value || entry.designPreset || 'broadcast';
     window.RTSOverlayConfigPresentation?.apply?.(base, config, entry);
-    if (target === 'clapper') base.replayClapperPreset = controls(target, 'style')?.value || 'broadcast';
     if (target === 'message') base.replayMessage = controls(target, 'text').value.trim() || 'MESSAGE PREVIEW';
     return base;
   };
@@ -231,13 +217,10 @@
   const showClapper = () => {
     const next=setCommand('clapper');
     const card=RTSReplayMessages.clapperCard;
-    const style=controls('clapper','style')?.value || 'broadcast';
     RTSReplayMessages.showClapperboard({ ...next, replayMessage:next.replayMessage || 'CLAPPERBOARD PREVIEW' });
-    card?.classList.remove('dev-clapper-broadcast','dev-clapper-cinematic','dev-clapper-cut','dev-clapper-minimal');
-    card?.classList.add('dev-clapper-' + style);
     sectionFor('clapper').querySelector('[data-action="show"]').textContent='Hide Clapperboard';
   };
-  const hideClapper = () => { RTSReplayMessages.clapperboardTimer && clearTimeout(RTSReplayMessages.clapperboardTimer); RTSAnimationEngine.createRunner({target:RTSReplayMessages.clapperCard?.querySelector('.clapper-position')}).cancel(); RTSReplayMessages.clapperCard?.classList.remove('show','dev-clapper-broadcast','dev-clapper-cinematic','dev-clapper-cut','dev-clapper-minimal'); RTSReplayMessages.clapperCard?.setAttribute('aria-hidden','true'); sectionFor('clapper').querySelector('[data-action="show"]').textContent='Show Clapperboard'; };
+  const hideClapper = () => { RTSReplayMessages.clapperboardTimer && clearTimeout(RTSReplayMessages.clapperboardTimer); RTSAnimationEngine.createRunner({target:RTSReplayMessages.clapperCard?.querySelector('.clapper-position')}).cancel(); RTSReplayMessages.clapperCard?.classList.remove('show'); RTSReplayMessages.clapperCard?.setAttribute('aria-hidden','true'); sectionFor('clapper').querySelector('[data-action="show"]').textContent='Show Clapperboard'; };
 
   const animationCommand = target => {
     const next = command();
@@ -414,8 +397,7 @@
       if (target === 'panel' && getDevPanel()?.classList.contains('show')) showPanel('panel');
       if(target==='player' && RTSReplayElements?.title?.classList.contains('visible')) applyTitleSettings(true);
     }
-    if(control.dataset.control==='style' && target==='clapper' && RTSReplayMessages.clapperCard?.classList.contains('show')) showClapper();
-    if((control.dataset.control==='style'||control.dataset.control==='panel-type') && target==='panel' && (RTSReplay.recentList?.classList.contains('show')||RTSSearchPanel?.panel?.classList.contains('show')||RTSPlaylistList?.panel?.classList.contains('show'))) showPanel('panel');
+    if(control.dataset.control==='panel-type' && target==='panel' && (RTSReplay.recentList?.classList.contains('show')||RTSSearchPanel?.panel?.classList.contains('show')||RTSPlaylistList?.panel?.classList.contains('show'))) showPanel('panel');
     if(control.dataset.control==='text' && target==='message' && RTSReplay.messageCard?.classList.contains('show')) showPanel('message');
   });
   bar.querySelector('#rts-dev-title').addEventListener('input',() => applyTitleSettings(true));
