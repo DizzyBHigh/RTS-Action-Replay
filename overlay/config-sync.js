@@ -2,7 +2,15 @@
   const object = value => value && typeof value === 'object' && !Array.isArray(value) ? value : {};
   const list = value => Array.isArray(value) ? value : [];
   const findPreset = (presets, id) => list(presets).find(preset => String(preset?.id || '') === String(id || ''));
-  const positionsFor = (config, target) => object(config?.presets?.positions?.[target]);
+  const positionsFor = (config, target) => {
+    const preview = object(config?.preview);
+    if (preview.target === target && preview.positions) {
+      try {
+        return object(typeof preview.positions === 'string' ? JSON.parse(preview.positions) : preview.positions);
+      } catch (_) {}
+    }
+    return object(config?.presets?.positions?.[target]);
+  };
 
   const sequence = (raw, positions, fallback) => list(raw).map(step => {
     const name = String(step?.position || fallback);
@@ -38,7 +46,8 @@
     const message = object(config?.message);
     const messageBrand = findPreset(config?.presets?.branding, message.entryPoint?.brandingPreset || 'default');
     const globals = object(config?.globals);
-    const command = { replayCommand: 'config-test' };
+    const preview = object(config?.preview);
+    const command = { replayCommand: preview.command || 'config-test' };
 
     command.replayPlayerPositions = JSON.stringify(positionsFor(config, 'player'));
     command.replayPanelPositions = JSON.stringify(positionsFor(config, 'panel'));
@@ -70,6 +79,13 @@
     const messageProfileId = String(message.animation?.selectedProfile || message.entryPoint?.animationProfile || 'default');
     const messageProfile = command.replayMessageAnimationProfiles.find(p => p.id === messageProfileId) || command.replayMessageAnimationProfiles[0];
     command.replayMessageAnimation = messageProfile ? JSON.stringify(messageProfile) : '';
+
+    if (preview.position) {
+      if (preview.target === 'player') command.replayPosition = preview.position;
+      if (preview.target === 'panel') command.replayPanelPosition = preview.position;
+      if (preview.target === 'message') command.replayMessagePosition = preview.position;
+      if (preview.target === 'clapperboard') command.replayClapperPosition = preview.position;
+    }
 
     window.RTSOverlayConfigPresentation.apply(command, config, playerEntry);
 
@@ -115,6 +131,11 @@
     window.RTSReplayElements?.configure?.(command);
     window.RTSReplayControls?.configureControls?.(command);
     window.RTSInformationPanels?.applySize?.(window.RTSReplay.recentList, command);
+
+    if (config.preview) {
+      window.RTSReplay.handleReplayCommand?.(command);
+    }
+
     window.RTSDevToolbar?.refresh?.();
     window.RTSDevToolbar?.log?.('Overlay configuration applied to controls', {
       playerPositions: Object.keys(JSON.parse(command.replayPlayerPositions || '{}')).length,
