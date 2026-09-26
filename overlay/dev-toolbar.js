@@ -30,7 +30,7 @@
     ${section('panel', 'Panel', `<label>Panel Style<select data-control="style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label>`)}
     ${section('clapper', 'Clapperboard')}
     ${section('message', 'Message', `<label>Preview Message<input data-control="text" value="MESSAGE PREVIEW"></label>`)}
-    <div class="dev-toolbar-footer"><span>?dev=true</span><button data-action="refresh">Refresh Config</button></div>`;
+    <div class="dev-toolbar-footer"><span>?dev=true</span><div class="dev-grid"><button data-action="refresh-settings">Get Settings</button><button data-action="refresh">Refresh UI</button></div></div>`;
   document.body.prepend(bar);
 
   const targets = {
@@ -122,7 +122,7 @@
   };
   const testPosition = () => { const next=setCommand('player'), from=controls('player','from').value, to=controls('player','to').value, duration=Math.max(.1,Number(controls('player','duration').value)||1)*1000, ease=easing(sectionFor('player')).value; next.replayStartPosition=from; next.replayEndPosition=to; next.replayAnimationDuration=duration; next.replayAnimationEasing=ease; RTSReplayVideo.currentCommand=next; RTSReplay.command=next; showPlayer(); RTSReplayVideo.animateIn(RTSReplayVideo.getPosition(from),RTSReplayVideo.getPosition(to)); };
   const previewTitle = () => { showPlayer(); const title=RTSReplay?.title; if(!title)return; RTSReplay.hideTitle?.(); title.className=`title-${document.getElementById('rts-dev-title-style').value} title-${document.getElementById('rts-dev-title-position').value}`; title.textContent=document.getElementById('rts-dev-title').value.trim()||'FIRST TEST — REPLAY CAPTURE'; title.classList.add('visible','title-enter'); };
-  const setSpeed = value => { const speed=Number(value); if(!Number.isFinite(speed)||!RTSReplay?.video)return; RTSReplay.video.playbackRate=speed; const next={...command(),replayPlaybackSpeed:speed}; RTSReplay.command=next; RTSReplayVideo.currentCommand=next; RTSReplayElements?.configureSpeed?.(next); };
+  const refreshSettings = () => { const request = window.RTSReplayWebSocket?.requestAction; if (!request) return false; const button = bar.querySelector('[data-action="refresh-settings"]'); const ok = request({name:'RTS - Action Replay - Core - Resolver'}, {rtsDevConfigRefresh:'true'}, 'rts-dev-config-'+Date.now()); if (button) { const label = button.textContent; button.textContent = ok ? 'Request Sent' : 'WebSocket Offline'; setTimeout(() => { button.textContent = label; }, 1200); } return ok; };\n  const setSpeed = value => { const speed=Number(value); if(!Number.isFinite(speed)||!RTSReplay?.video)return; RTSReplay.video.playbackRate=speed; const next={...command(),replayPlaybackSpeed:speed}; RTSReplay.command=next; RTSReplayVideo.currentCommand=next; RTSReplayElements?.configureSpeed?.(next); };
 
   bar.addEventListener('click', event => {
     const button=event.target.closest('button'); if(!button)return;
@@ -133,7 +133,7 @@
     if(action==='out') playOut(target);
     if(action==='title') previewTitle();
     if(action==='position-test') testPosition();
-    if(action==='refresh') refresh();
+    if(action==='refresh') refresh(); if(action==='refresh-settings') refreshSettings();
   });
   bar.addEventListener('change', event => {
     const control=event.target.closest('[data-control]'), section=event.target.closest('.dev-section');
