@@ -48,6 +48,17 @@ RTSReplayVideo.runEndAnimationProfile = (command, complete) => {
   else complete?.();
 };
 RTSReplayVideo.cancelAnimation = () => playerRunner.cancel();
+RTSReplayVideo.resetDevPlaybackSurface = () => {
+  playerRunner.cancel();
+  stopYouTubeBoundaryTimer();
+  destroyYouTubePlayer();
+  destroyHls();
+  const video = RTSReplayVideo.video;
+  if (!video) return;
+  video.pause();
+  video.removeAttribute('src');
+  video.load();
+};
 
 RTSReplayVideo.animateOut = () => {
   const start = RTSReplayVideo.activePosition || RTSReplayVideo.getPosition('Full Screen');
