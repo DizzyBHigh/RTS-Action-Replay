@@ -35,6 +35,10 @@ public class CPHInline
             ["globals"] = new JObject()
         };
 
+        var catalogData = Read("rts.actionreplay.data");
+        var catalog = catalogData["catalog"] as JArray ?? new JArray();
+        config["previewCatalog"] = new JArray(catalog.Take(10).Select(x => x.DeepClone()));
+
         var previewRaw = CPH.GetGlobalVar<string>("rts.actionreplay.overlayPreview", false);
         if (!string.IsNullOrWhiteSpace(previewRaw))
         {
