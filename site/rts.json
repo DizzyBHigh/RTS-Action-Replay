@@ -758,7 +758,7 @@
         "number": "08",
         "title": "Design Presets",
         "description": "Define the visual treatment used by Player, Panel, and Message presentation.\\nThere are 2 configurable presets [[yellow:Broadcast]] and [[yellow:Cut]], plus two non-configurable presets [[yellow:Cinematic]] and [[yellow:Minimal]]",
-        "substeps": [       
+        "substeps": [
           {
             "number": ".1",
             "title": "Broadcast",
@@ -798,7 +798,7 @@
                 "title": "Chevron Spacing",
                 "description": "How much space between each chevron. 0-200"
               },
-               {
+              {
                 "title": "Randomise Spacing",
                 "description": "The space between each chevron will be randomised as it is generated. between 0 and the Chevron Space setting"
               },
@@ -819,7 +819,7 @@
               }
             ],
             "settings": [
-             {
+              {
                 "title": "Background Source",
                 "description": "The background colour to use for panels, and messages. Options: RTS Dark Blue background, Branding Secondary Colour, or Custom Colour"
               },
@@ -933,7 +933,7 @@
             "number": ".2",
             "title": "Player Positions",
             "text": "Saved positions used by Player Animation and playback.",
-             "settings": [
+            "settings": [
               {
                 "title": "Edit Positions",
                 "description": "Opens the RTS Position Editor (See Position Editor below)"
@@ -989,7 +989,7 @@
                 "title": "Availiable Buttons",
                 "description": "Add Position - Adds a new position preset.\\nDuplicate - Duplicates the selected Position Preset.\\nDelete - Deletes the selected Preset.\\nPreview Position- Sends the current position to the dev overlay so you can see exactly where it will appear on the overlay.\\nHide Preview - I have no clue what this was for or what it does..."
               },
-                {
+              {
                 "title": "Save, Close and Cancel",
                 "description": "They do what they say; make sure you click Save before previewing a position. Always save and exit, unless you want to lose your changes."
               }
@@ -1056,7 +1056,7 @@
                 "title": "End Sequence",
                 "description": "The end sequence operates the same way as a start sequence, except it animates from the current position the element is in (the last position of the start sequence). Position, Duration, Easing, and delay are all taken into account for every row added."
               }
-            ] 
+            ]
           }
         ]
       },
