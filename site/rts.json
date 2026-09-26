@@ -1284,12 +1284,6 @@
         "number": "14",
         "title": "Message Behaviour",
         "description": "Configure how transient messages are presented in the overlay.",
-        "images": [
-          {
-            "src": "assets/images/action-replay-settings-message-behaviour.png",
-            "alt": "Screenshot for Message Behaviour Use Source Platform Branding"
-          }
-        ],
         "substeps": [
           {
             "number": ".1",
@@ -1299,6 +1293,17 @@
               {
                 "src": "assets/images/action-replay-settings-message-behaviour-use-source-branding.png",
                 "alt": "Screenshot for Message Behaviour Use Source Platform Branding"
+              }
+            ]
+          },
+          {
+            "number": ".2",
+            "title": "Use Default Branding",
+            "text": "When this is set the messages will use the default branding of the platform the request came from.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-message-behaviour.png",
+                "alt": "Screenshot for Message Behaviour settings"
               }
             ],
             "settings": [
