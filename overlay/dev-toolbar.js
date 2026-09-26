@@ -33,7 +33,7 @@
       <label>Test Clip<select id="rts-dev-test-clip"></select></label>
       <label>Preview Title<input id="rts-dev-title" value="FIRST TEST - REPLAY CAPTURE"></label>
       <button data-action="title-toggle">Show Title</button>`)}
-    ${section('panel', 'Panel', `<label>Panel Style<select data-control="style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label>`)}
+    ${section('panel', 'Panel', `<label>Panel Type<select data-control="panel-type"><option value="recent">Recent Clips</option><option value="search">Search Results</option><option value="playlist">Playlist</option></select></label><label>Panel Style<select data-control="style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label>`)}
     ${section('clapper', 'Clapperboard')}
     ${section('message', 'Message', `<label>Preview Message<input data-control="text" value="MESSAGE PREVIEW"></label>`)}
     <div class="dev-toolbar-footer"><span>?dev=true</span><div class="dev-grid"><button data-action="refresh">Refresh UI</button></div></div>`;
@@ -178,7 +178,7 @@
     });
   };
   const showPanel = target => {
-    const panel = target === 'message' ? RTSReplay?.messageCard : RTSReplay?.recentList;
+    const panel = target === 'message' ? RTSReplay?.messageCard : getDevPanel();
     if (!panel) return;
     let next = setCommand(target);
     if (target === 'message') {
@@ -207,7 +207,7 @@
     }
     sectionFor(target).querySelector('[data-action="show"]').textContent='Hide '+(target==='message'?'Message':'Panel');
   };
-  const hidePanel = target => { const panel = target === 'message' ? RTSReplay?.messageCard : RTSReplay?.recentList; if (!panel) return; if(target==='message') RTSReplayMessages.hideMessage(RTSReplayVideo.currentCommand); else RTSInformationPanels.hide(panel,panel._rtsPanelAnimationCommand||RTSReplayVideo.currentCommand); sectionFor(target).querySelector('[data-action="show"]').textContent='Show '+(target==='message'?'Message':'Panel'); };
+  const hidePanel = target => { const panel = target === 'message' ? RTSReplay?.messageCard : getDevPanel(); if (!panel) return; if(target==='message') RTSReplayMessages.hideMessage(RTSReplayVideo.currentCommand); else RTSInformationPanels.hide(panel,panel._rtsPanelAnimationCommand||RTSReplayVideo.currentCommand); sectionFor(target).querySelector('[data-action="show"]').textContent='Show '+(target==='message'?'Message':'Panel'); };
   const showClapper = () => { const next=setCommand('clapper'); RTSReplayMessages.showClapperboard({ ...next, replayMessage:next.replayMessage || 'CLAPPERBOARD PREVIEW' }); sectionFor('clapper').querySelector('[data-action="show"]').textContent='Hide Clapperboard'; };
   const hideClapper = () => { RTSReplayMessages.clapperboardTimer && clearTimeout(RTSReplayMessages.clapperboardTimer); RTSAnimationEngine.createRunner({target:RTSReplayMessages.clapperCard?.querySelector('.clapper-position')}).cancel(); RTSReplayMessages.clapperCard?.classList.remove('show'); RTSReplayMessages.clapperCard?.setAttribute('aria-hidden','true'); sectionFor('clapper').querySelector('[data-action="show"]').textContent='Show Clapperboard'; };
 
@@ -282,7 +282,7 @@
   bar.addEventListener('click', event => {
     const button=event.target.closest('button'); if(!button)return;
     const section=button.closest('.dev-section'), target=section?.dataset.target, action=button.dataset.action;
-    if(action==='show') target==='player' ? (RTSReplay.player?.classList.contains('show')?hidePlayer():(setCommand('player'),showPlayer())) : (target==='clapper' ? (RTSReplayMessages.clapperCard?.classList.contains('show')?hideClapper():showClapper()) : (target==='message'||target==='panel' ? ((target==='message'?RTSReplay.messageCard:RTSReplay.recentList)?.classList.contains('show')?hidePanel(target):showPanel(target)) : null));
+    if(action==='show') target==='player' ? (RTSReplay.player?.classList.contains('show')?hidePlayer():(setCommand('player'),showPlayer())) : (target==='clapper' ? (RTSReplayMessages.clapperCard?.classList.contains('show')?hideClapper():showClapper()) : (target==='message'||target==='panel' ? ((target==='message'?RTSReplay.messageCard:getDevPanel())?.classList.contains('show')?hidePanel(target):showPanel(target)) : null));
     if(action==='hide') target==='player'?hidePlayer():target==='clapper'?hideClapper():hidePanel(target);
     if(action==='in') target==='player' ? playIn(target) : playIn(target);
     if(action==='out') target==='player' ? playOut(target) : playOut(target);
@@ -303,8 +303,7 @@
       setCommand(target);
       if(target==='player' && RTSReplayElements?.title?.classList.contains('visible')) applyTitleSettings(true);
     }
-    if(control.dataset.control==='style' && target==='panel' && (RTSReplay.recentList?.classList.contains('show')||RTSSearchPanel?.panel?.classList.contains('show')||RTSPlaylistList?.panel?.classList.contains('show'))) showPanel('panel');
-    if(control.dataset.control==='panel-type' && target==='panel' && (RTSReplay.recentList?.classList.contains('show')||RTSSearchPanel?.panel?.classList.contains('show')||RTSPlaylistList?.panel?.classList.contains('show'))) showPanel('panel');
+    if((control.dataset.control==='style'||control.dataset.control==='panel-type') && target==='panel' && (RTSReplay.recentList?.classList.contains('show')||RTSSearchPanel?.panel?.classList.contains('show')||RTSPlaylistList?.panel?.classList.contains('show'))) showPanel('panel');
     if(control.dataset.control==='text' && target==='message' && RTSReplay.messageCard?.classList.contains('show')) showPanel('message');
   });
   bar.querySelector('#rts-dev-title').addEventListener('input',() => applyTitleSettings(true));
