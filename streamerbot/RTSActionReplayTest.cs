@@ -13,7 +13,21 @@ public class CPHInline
     private const string ResolverAction = "RTS - Action Replay - Core - Resolver";
     private const string PlaybackAction = "RTS - Action Replay - Core - Playback";
 
-    public bool Execute() => TestMessage();
+    public bool Execute()
+    {
+        if (CPH.TryGetArg("rtsDevTest", out string devTest))
+        {
+            if (string.Equals(devTest, "TestVideo", StringComparison.OrdinalIgnoreCase))
+                return TestVideo();
+            if (string.Equals(devTest, "TestPanel", StringComparison.OrdinalIgnoreCase))
+                return TestPanel();
+            if (string.Equals(devTest, "TestClapperboard", StringComparison.OrdinalIgnoreCase))
+                return TestClapperboard();
+            if (string.Equals(devTest, "TestMessage", StringComparison.OrdinalIgnoreCase))
+                return TestMessage();
+        }
+        return TestMessage();
+    }
 
     public bool TestMessage()
     {
@@ -110,7 +124,13 @@ public class CPHInline
     {
         var replay = FirstReplay();
         if (replay == null) return false;
+        var devComplete = CPH.TryGetArg("rtsDevComplete", out string complete) && string.Equals(complete, "true", StringComparison.OrdinalIgnoreCase);
         SetReplayArgs(replay);
+        if (devComplete)
+        {
+            CPH.SetArgument("replayDevComplete", true);
+            CPH.SetArgument("replayDevSkipIn", true);
+        }
         if (!CPH.ExecuteMethod(PlaybackAction, "PrepareTestVideo")) return false;
         return CPH.ExecuteMethod(ResolverAction, "ResolvePlayer");
     }
