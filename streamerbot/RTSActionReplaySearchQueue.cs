@@ -83,7 +83,13 @@ public class CPHInline
             CPH.SetArgument("replaySearchRequestId", (string)request["requestId"] ?? "");
             shown = CPH.ExecuteMethod(CatalogAction, "RenderSearchRequest");
         }
-        if (!shown || !(CPH.GetGlobalVar<bool?>("rts.actionreplay.search.panel", true) ?? true))
+        var panelEnabled = true;
+        var panelType = ((string)request["panelType"] ?? "").ToLowerInvariant();
+        if (panelType == "recent") panelEnabled = CPH.GetGlobalVar<bool?>("rts.actionreplay.message.recent.panel", true) ?? true;
+        else if (panelType == "playlist") panelEnabled = CPH.GetGlobalVar<bool?>("rts.actionreplay.message.playlist.panel", true) ?? true;
+        else panelEnabled = CPH.GetGlobalVar<bool?>("rts.actionreplay.search.panel", true) ?? true;
+
+        if (!shown || !panelEnabled)
         {
             queue.RemoveAt(0);
             SaveQueue(queue);
