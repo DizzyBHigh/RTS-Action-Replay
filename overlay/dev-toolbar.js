@@ -239,7 +239,7 @@
     if(target==='player'){ showPlayer(); RTSReplayVideo.runEndAnimationProfile(next,hidePlayer); }
     else if(target==='panel') {
       const panel=RTSReplay.recentList;
-      if (panel) RTSInformationPanels.hide(panel,next);
+      if (panel) RTSInformationPanels.hide(panel,panel._rtsPanelAnimationCommand||next);
     }
     else if(target==='message') RTSReplayMessages.hideMessage(next);
     else {
