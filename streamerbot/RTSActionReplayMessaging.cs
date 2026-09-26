@@ -427,6 +427,35 @@ public class CPHInline
         return true;
     }
 
+    public bool FormatListEntries()
+    {
+        var raw = Arg("listEntries");
+        if (string.IsNullOrWhiteSpace(raw)) return false;
+        JArray entries;
+        try { entries = JArray.Parse(raw); } catch { return false; }
+        var format = CPH.GetGlobalVar<string>("rts.actionreplay.message.list.format", true);
+        if (string.IsNullOrWhiteSpace(format)) format = "#%listNumber% %title% — %creator% | %rating%/5 | %platform% | %plays% plays";
+        var values = new List<string>();
+        foreach (var entry in entries.OfType<JObject>())
+        {
+            var fields = new Dictionary<string, object>
+            {
+                ["listNumber"] = (string)entry["listNumber"] ?? "",
+                ["title"] = (string)entry["title"] ?? "",
+                ["creator"] = (string)entry["creator"] ?? "",
+                ["rating"] = (string)entry["rating"] ?? "",
+                ["platform"] = (string)entry["platform"] ?? "",
+                ["plays"] = (string)entry["plays"] ?? ""
+            };
+            values.Add(CPH.Parse(format, fields) ?? "");
+        }
+        var message = string.Join(" | ", values.Where(x => !string.IsNullOrWhiteSpace(x)));
+        var maxLength = Math.Max(1, CPH.GetGlobalVar<int?>("rts.actionreplay.message.list.maxLength", true) ?? 500);
+        if (message.Length > maxLength) message = maxLength == 1 ? "…" : message.Substring(0, maxLength - 1) + "…";
+        CPH.SetArgument("formattedList", message);
+        return !string.IsNullOrWhiteSpace(message);
+    }
+
     private string SourcePlatform()
     {
         try
