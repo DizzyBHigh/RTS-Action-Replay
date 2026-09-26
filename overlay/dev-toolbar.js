@@ -21,7 +21,7 @@
       <div class="dev-separator"></div>
       <div class="dev-grid"><label>From<select data-control="from"></select></label><label>To<select data-control="to"></select></label></div>
       <div class="dev-grid"><label>Easing<select data-control="easing"><option>linear</option><option>ease-in</option><option selected>ease-in-out</option><option>ease-out</option></select></label><label>Duration (s)<input data-control="duration" type="number" min="0" max="10" step="0.1" value="1"></label></div>
-      ${title === 'Player' ? '<button data-action="position-test">Test Animation</button><label class="dev-checkbox"><input type="checkbox" id="rts-dev-reset-to"> Move From to To after Test Animation</label><div class="dev-separator"></div>' : ''}
+      ${title === 'Player' || title === 'Panel' ? '<button data-action="position-test">Test Animation</button><label class="dev-checkbox"><input type="checkbox" data-control="reset-to"> Move From to To after Test Animation</label><div class="dev-separator"></div>' : ''}
       ${extra}
     </section>`;
 
@@ -283,27 +283,48 @@
       runner.configure(next.replayClapperPositions); runner.runEnd(profile?.end,()=>{card?.classList.remove('show');card?.setAttribute('aria-hidden','true');});
     }
   };
-  const testPosition = () => {
-    const next=setCommand('player'), from=controls('player','from').value, to=controls('player','to').value;
-    const duration=Math.max(.1,Number(controls('player','duration').value)||1)*1000, ease=easing(sectionFor('player')).value;
-    next.replayStartPosition=from; next.replayEndPosition=to; next.replayAnimationDuration=duration; next.replayAnimationEasing=ease;
-    RTSReplayVideo.currentCommand=next; RTSReplay.command=next; showPlayer();
-    const start=RTSReplayVideo.getPosition(from), end=RTSReplayVideo.getPosition(to);
-    const complete=()=>{
-      const reset=document.getElementById('rts-dev-reset-to')?.checked;
-      if(!reset) return;
-      const fromControl=controls('player','from');
-      fromControl.value=to;
-      fromControl.dispatchEvent(new Event('change',{bubbles:true}));
-      next.replayStartPosition=to;
-      RTSReplayVideo.currentCommand={...RTSReplayVideo.currentCommand,replayStartPosition:to};
-      RTSReplay.command={...RTSReplay.command,replayStartPosition:to};
-    };
-    RTSReplayVideo.cancelAnimation?.();
-    RTSReplayVideo.applyPosition(start,true);
-    if(RTSReplayVideo.positionsEqual(start,end)) complete();
-    else RTSReplayVideo.animatePosition(start,end,complete);
-  };
+  const testPosition = target => {
+     if (target === 'player') {
+       const next=setCommand('player'), from=controls('player','from').value, to=controls('player','to').value;
+       const duration=Math.max(.1,Number(controls('player','duration').value)||1)*1000, ease=easing(sectionFor('player')).value;
+       next.replayStartPosition=from; next.replayEndPosition=to; next.replayAnimationDuration=duration; next.replayAnimationEasing=ease;
+       RTSReplayVideo.currentCommand=next; RTSReplay.command=next; showPlayer();
+       const start=RTSReplayVideo.getPosition(from), end=RTSReplayVideo.getPosition(to);
+       const complete=()=>{
+         if(!controls('player','reset-to')?.checked) return;
+         const fromControl=controls('player','from');
+         fromControl.value=to;
+         fromControl.dispatchEvent(new Event('change',{bubbles:true}));
+         next.replayStartPosition=to;
+         RTSReplayVideo.currentCommand={...RTSReplayVideo.currentCommand,replayStartPosition:to};
+         RTSReplay.command={...RTSReplay.command,replayStartPosition:to};
+       };
+       RTSReplayVideo.cancelAnimation?.();
+       RTSReplayVideo.applyPosition(start,true);
+       if(RTSReplayVideo.positionsEqual(start,end)) complete();
+       else RTSReplayVideo.animatePosition(start,end,complete);
+       return;
+     }
+     if (target !== 'panel') return;
+     const panel=getDevPanel();
+     if (!panel) return;
+     const next=setCommand('panel');
+     hideDevPanels(panel);
+     renderDevPanel(panel,controls('panel','panel-type')?.value || 'recent',next);
+     const from=controls('panel','from').value, to=controls('panel','to').value;
+     const duration=Math.max(.1,Number(controls('panel','duration').value)||1)*1000;
+     const ease=easing(sectionFor('panel')).value || 'ease-in-out';
+     const runner=RTSAnimationEngine.createRunner({target:panel});
+     runner.configure(next.replayPanelPositions);
+     const start=runner.resolve(from), end=runner.resolve(to);
+     const complete=()=>{
+       if(!controls('panel','reset-to')?.checked) return;
+       const fromControl=controls('panel','from');
+       fromControl.value=to;
+       fromControl.dispatchEvent(new Event('change',{bubbles:true}));
+     };
+     runner.transition(start,end,duration,ease,complete);
+   };
   const previewTitle = () => applyTitleSettings(true);
   const refreshSettings = () => { const request = window.RTSReplay?.requestAction; if (!request) return false; const button = bar.querySelector('[data-action="refresh-settings"]'); const ok = request({name:'RTS - Action Replay - Core - Resolver'}, {rtsDevConfigRefresh:'true'}, 'rts-dev-config-'+Date.now()); if (button) { const label = button.textContent; button.textContent = ok ? 'Request Sent' : 'WebSocket Offline'; setTimeout(() => { button.textContent = label; }, 1200); } return ok; };
   const setSpeed = value => { const speed=Number(value); if(!Number.isFinite(speed)||!RTSReplay?.video)return; RTSReplay.video.playbackRate=speed; const next={...command(),replayPlaybackSpeed:speed}; RTSReplay.command=next; RTSReplayVideo.currentCommand=next; RTSReplayElements?.configureSpeed?.(next); };
@@ -321,7 +342,7 @@
       const title=RTSReplayElements?.title;
       applyTitleSettings(!title?.classList.contains('visible'));
     }
-    if(action==='position-test') testPosition();
+    if(action==='position-test') testPosition(target);
     if(action==='refresh') refresh(); if(action==='refresh-settings') refreshSettings();
   });
   bar.addEventListener('change', event => {
