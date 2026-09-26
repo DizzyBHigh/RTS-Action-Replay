@@ -12,7 +12,6 @@ public class CPHInline
     private const string EntryPointHandoffKey = "rts.actionreplay.handoff.entryPoint";
     private const string ResolvedProfileHandoffKey = "rts.actionreplay.handoff.resolvedProfile";
     private const string PlayerPositionsHandoffKey = "rts.actionreplay.handoff.playerPositions";
-    private const string ConfigurationSnapshotKey = "rts.actionreplay.handoff.configurationSnapshot";
 
 
     public bool Execute()
@@ -24,27 +23,67 @@ public class CPHInline
 
     public bool SendConfigurationToOverlay()
     {
-        CPH.LogInfo("RTS Action Replay: configuration test requested.");
-        CPH.UnsetGlobalVar(ConfigurationSnapshotKey, true);
-        if (!CPH.ExecuteMethod("RTS - Action Replay - Core - Store", "GetConfigurationSnapshot"))
+        EnsureProfiles();
+        var config = new JObject
         {
-            CPH.LogWarn("RTS Action Replay: Store configuration snapshot method failed.");
-            return false;
-        }
+            ["player"] = Read(PlayerKey),
+            ["panel"] = Read(PanelKey),
+            ["clapperboard"] = Read(ClapperKey),
+            ["message"] = Read(MessageKey),
+            ["presets"] = Read(PresetsKey),
+            ["animation"] = Read(AnimationKey),
+            ["globals"] = new JObject()
+        };
 
-        var config = CPH.GetGlobalVar<string>(ConfigurationSnapshotKey, true);
-        if (string.IsNullOrWhiteSpace(config))
-        {
-            CPH.LogWarn("RTS Action Replay: configuration snapshot was not produced.");
-            return false;
-        }
+        var globals = (JObject)config["globals"];
+        var names = new[] {
+            "uiTheme","replayFolder","replayFileTypes","httpMapping","httpPort","replayTitle","maxRecent","maxCatalog",
+            "autoAdd","autoPlay","clapperUseSourcePlatformBranding","playlistPersist","twitchPlaybackMode","twitchFolder",
+            "twitchHttpMapping","twitchClipDuration","kickPlaybackMode","kickFolder","kickHttpMapping","youtubeClipDuration",
+            "showControls","showProgress","playbackSpeed","playbackSpeedVisibility","frameColorSource","frameColor",
+            "controlColorSource","controlColor","borderGlow","borderWidth","cornerRadius","panelWidth","panelHeight",
+            "panelCornerRadius","messageMinWidth","messageMinHeight","messageCornerRadius","messageDuration","clapperDuration",
+            "brandLogoUrl","messageUseSourcePlatformBranding","messageWidth","messageHeight","messageRecentChat",
+            "messageRecentPanel","messagePlaylistChat","messagePlaylistPanel","messageListFormat","messageListFull",
+            "chatLimitTwitch","chatLimitYouTube","chatLimitKick"
+        };
+        var keys = new[] {
+            "rts.actionreplay.uiTheme","rts.actionreplay.replayFolder","rts.actionreplay.replayFileTypes","rts.actionreplay.httpMapping",
+            "rts.actionreplay.httpPort","rts.actionreplay.replayTitle","rts.actionreplay.maxRecent","rts.actionreplay.maxCatalog",
+            "rts.actionreplay.autoAdd","rts.actionreplay.autoPlay","rts.actionreplay.clapper.useSourcePlatformBranding",
+            "rts.actionreplay.playlistPersist","rts.actionreplay.twitch.playbackMode","rts.actionreplay.twitch.folder",
+            "rts.actionreplay.twitch.httpMapping","rts.actionreplay.twitch.clipDuration","rts.actionreplay.kick.playbackMode",
+            "rts.actionreplay.kick.folder","rts.actionreplay.kick.httpMapping","rts.actionreplay.youtube.clipDuration",
+            "rts.actionreplay.showControls","rts.actionreplay.showProgress","rts.actionreplay.playbackSpeed",
+            "rts.actionreplay.playbackSpeedVisibility","rts.actionreplay.frameColorSource","rts.actionreplay.frameColor",
+            "rts.actionreplay.controlColorSource","rts.actionreplay.controlColor","rts.actionreplay.borderGlow",
+            "rts.actionreplay.borderWidth","rts.actionreplay.cornerRadius","rts.actionreplay.panel.width","rts.actionreplay.panel.height",
+            "rts.actionreplay.panel.cornerRadius","rts.actionreplay.message.minWidth","rts.actionreplay.message.minHeight",
+            "rts.actionreplay.message.cornerRadius","rts.actionreplay.message.duration","rts.actionreplay.clapper.duration",
+            "rts.actionreplay.brandLogoUrl","rts.actionreplay.message.useSourcePlatformBranding","rts.actionreplay.message.width",
+            "rts.actionreplay.message.height","rts.actionreplay.message.recent.chat","rts.actionreplay.message.recent.panel",
+            "rts.actionreplay.message.playlist.chat","rts.actionreplay.message.playlist.panel","rts.actionreplay.message.list.format",
+            "rts.actionreplay.message.list.full","rts.actionreplay.message.chatLimit.twitch","rts.actionreplay.message.chatLimit.youtube",
+            "rts.actionreplay.message.chatLimit.kick"
+        };
+        for (var i = 0; i < names.Length; i++) AddConfigurationGlobal(globals, names[i], keys[i]);
 
-        CPH.SetArgument("replayConfig", config);
+        var json = config.ToString(Newtonsoft.Json.Formatting.None);
+        CPH.SetArgument("replayConfig", json);
         CPH.SetArgument("replayCommand", "config-test");
         CPH.TriggerEvent(EventName, true);
-        CPH.UnsetGlobalVar(ConfigurationSnapshotKey, true);
-        CPH.LogInfo($"RTS Action Replay: configuration test dispatched to overlay; length={config.Length}.");
+        CPH.LogInfo($"RTS Action Replay: configuration sent to overlay directly from current settings; length={json.Length}.");
         return true;
+    }
+
+    private void AddConfigurationGlobal(JObject target, string name, string key)
+    {
+        var raw = CPH.GetGlobalVar<string>(key, true);
+        if (raw == null) return;
+        if (bool.TryParse(raw, out var b)) target[name] = b;
+        else if (int.TryParse(raw, out var i)) target[name] = i;
+        else if (double.TryParse(raw, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var d)) target[name] = d;
+        else target[name] = raw;
     }
 
     public bool ResolveClapperboardBranding()
