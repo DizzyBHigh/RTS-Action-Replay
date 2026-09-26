@@ -239,7 +239,7 @@
   };
   let devPanelAnimation = { panel: null, command: null };
   const playIn = target => {
-    const next = animationCommand(target);
+    const next = target === 'panel' ? setCommand('panel') : animationCommand(target);
     if(target==='player'){ showPlayer(); RTSReplayVideo.runAnimationProfile(next); }
     else if(target==='panel') {
       const panel=getDevPanel();
@@ -255,10 +255,10 @@
     const next = animationCommand(target);
     if(target==='player'){ showPlayer(); RTSReplayVideo.runEndAnimationProfile(next,hidePlayer); }
     else if(target==='panel') {
-      const panel=devPanelAnimation.panel || getDevPanel();
-      const command=devPanelAnimation.panel === panel ? devPanelAnimation.command : (panel?._rtsPanelAnimationCommand || next);
-      if (!panel) return;
-      RTSInformationPanelAnimation.hide(panel,command,()=>{
+      const panel=devPanelAnimation.panel;
+      const storedCommand=devPanelAnimation.command;
+      if (!panel || !storedCommand) return;
+      RTSInformationPanelAnimation.hide(panel,storedCommand,()=>{
         if(devPanelAnimation.panel===panel) devPanelAnimation={panel:null,command:null};
       });
     }
