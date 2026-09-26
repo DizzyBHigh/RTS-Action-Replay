@@ -207,6 +207,13 @@
         RTSReplay.showRecentList(next);
       }
     }
+    if (target === 'panel') {
+      const shownPanel = getDevPanel();
+      if (shownPanel) {
+        devPanelAnimation={panel:shownPanel,command:next};
+        shownPanel._rtsPanelAnimationCommand=next;
+      }
+    }
     sectionFor(target).querySelector('[data-action="show"]').textContent='Hide '+(target==='message'?'Message':'Panel');
   };
   const hidePanel = target => { const panel = target === 'message' ? RTSReplay?.messageCard : getDevPanel(); if (!panel) return; if(target==='message') RTSReplayMessages.hideMessage(RTSReplayVideo.currentCommand); else RTSInformationPanels.hide(panel,panel._rtsPanelAnimationCommand||RTSReplayVideo.currentCommand); sectionFor(target).querySelector('[data-action="show"]').textContent='Show '+(target==='message'?'Message':'Panel'); };
@@ -230,12 +237,14 @@
     if(type==='playlist') return RTSPlaylistList?.panel;
     return RTSReplay?.recentList;
   };
+  let devPanelAnimation = { panel: null, command: null };
   const playIn = target => {
     const next = animationCommand(target);
     if(target==='player'){ showPlayer(); RTSReplayVideo.runAnimationProfile(next); }
     else if(target==='panel') {
       const panel=getDevPanel();
       if (!panel) return;
+      devPanelAnimation={panel,command:next};
       panel._rtsPanelAnimationCommand=next;
       RTSInformationPanelAnimation.show(panel,next,next.replayPanelPosition || 'Centered');
     }
@@ -246,8 +255,12 @@
     const next = animationCommand(target);
     if(target==='player'){ showPlayer(); RTSReplayVideo.runEndAnimationProfile(next,hidePlayer); }
     else if(target==='panel') {
-      const panel=getDevPanel();
-      if (panel) RTSInformationPanels.hide(panel,panel._rtsPanelAnimationCommand||next);
+      const panel=devPanelAnimation.panel || getDevPanel();
+      const command=devPanelAnimation.panel === panel ? devPanelAnimation.command : (panel?._rtsPanelAnimationCommand || next);
+      if (!panel) return;
+      RTSInformationPanelAnimation.hide(panel,command,()=>{
+        if(devPanelAnimation.panel===panel) devPanelAnimation={panel:null,command:null};
+      });
     }
     else if(target==='message') RTSReplayMessages.hideMessage(next);
     else {
