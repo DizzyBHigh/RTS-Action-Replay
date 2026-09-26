@@ -21,7 +21,7 @@
       <div class="dev-separator"></div>
       <div class="dev-grid"><label>From<select data-control="from"></select></label><label>To<select data-control="to"></select></label></div>
       <div class="dev-grid"><label>Easing<select data-control="easing"><option>linear</option><option>ease-in</option><option selected>ease-in-out</option><option>ease-out</option></select></label><label>Duration (ms)<input data-control="duration" type="number" min="0" max="10000" step="100" value="1000"></label></div>
-      ${title === 'Player' || title === 'Panel' ? '<button data-action="position-test">Test Animation</button><label class="dev-checkbox"><input type="checkbox" data-control="reset-to"> Move From to To after Test Animation</label><div class="dev-separator"></div>' : ''}
+      ${title === 'Player' || title === 'Panel' || title === 'Clapperboard' ? '<button data-action="position-test">Test Animation</button><label class="dev-checkbox"><input type="checkbox" data-control="reset-to"> Move From to To after Test Animation</label><div class="dev-separator"></div>' : ''}
       ${extra}
     </section>`;
 
@@ -303,6 +303,37 @@
        RTSReplayVideo.applyPosition(start,true);
        if(RTSReplayVideo.positionsEqual(start,end)) complete();
        else RTSReplayVideo.animatePosition(start,end,complete);
+       return;
+     }
+     if (target === 'clapper') {
+       const card=RTSReplayMessages.clapperCard;
+       const targetElement=card?.querySelector('.clapper-position');
+       if (!card || !targetElement) return;
+       const next=setCommand('clapper');
+       const from=controls('clapper','from').value, to=controls('clapper','to').value;
+       const duration=Math.max(0,Number(controls('clapper','duration').value)||0);
+       const ease=easing(sectionFor('clapper')).value || 'ease-in-out';
+       const runner=RTSAnimationEngine.createRunner({target:targetElement});
+       runner.configure(next.replayClapperPositions);
+       const start=runner.resolve(from), end=runner.resolve(to);
+       window.RTSDevToolbar?.log?.('Dev clapper Test Animation', {
+         from, to, duration, easing: ease,
+         start, end
+       });
+       clearTimeout(RTSReplayMessages.clapperboardTimer);
+       card.classList.add('show');
+       card.style.opacity='1';
+       card.style.visibility='visible';
+       card.style.zIndex='55';
+       runner.run([
+         { position: from, duration: 0, delay: 0, easing: ease },
+         { position: to, duration, delay: 0, easing: ease }
+       ], () => {
+         if(!controls('clapper','reset-to')?.checked) return;
+         const fromControl=controls('clapper','from');
+         fromControl.value=to;
+         fromControl.dispatchEvent(new Event('change',{bubbles:true}));
+       });
        return;
      }
      if (target !== 'panel') return;
