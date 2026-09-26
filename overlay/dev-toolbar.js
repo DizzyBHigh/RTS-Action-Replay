@@ -122,14 +122,19 @@
     sectionFor('player').querySelector('[data-action="title-toggle"]').textContent = show ? 'Hide Title' : 'Show Title';
   };
   const completePlayer = () => {
-    const next = setCommand('player');
+    const next = animationCommand('player');
+    const profile = selected('player', 'profile') || {};
     showPlayer();
     RTSReplayVideo.runAnimationProfile(next, () => {
       const request = window.RTSReplay?.requestAction;
       if (!request) return;
       request(
         {name:'RTS - Action Replay - Core - Test'},
-        {rtsDevTest:'TestVideo', rtsDevComplete:'true'},
+        {
+          rtsDevTest:'TestVideo',
+          rtsDevComplete:'true',
+          rtsDevAnimationProfileId: profile.id || 'default'
+        },
         'rts-dev-complete-'+Date.now()
       );
     });
