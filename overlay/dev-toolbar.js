@@ -11,10 +11,12 @@
   bar.id = 'rts-dev-toolbar';
   const section = (key, title, extra = '') => `
     <section class="dev-section" data-target="${key}"><h3>${title}</h3>
+      ${title === 'Panel' ? '<label>Panel Type<select data-control="panel-type"><option value="recent">Recent Clips</option><option value="search">Search Results</option><option value="playlist">Playlist</option></select></label>' : ''}
+      <label>${title === 'Player' ? 'Platform Brand Preset' : 'Brand Preset'}<select data-control="brand"></select></label>
+      ${title === 'Panel' ? '<label>Brand Style<select data-control="style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label>' : ''}
+      <label>Animation Profile<select data-control="profile"></select></label>
       <div class="dev-grid"><button data-action="show">${title === 'Player' ? 'Show Player' : 'Show ' + title}</button>${title === 'Player' ? '' : '<button data-action="in">Play In</button>'}</div>
       ${title === 'Player' ? '' : '<div class="dev-grid"><button data-action="hide">Hide</button><button data-action="out">Play Out</button></div>'}
-      <label>${title === 'Player' ? 'Platform Brand Preset' : 'Brand Preset'}<select data-control="brand"></select></label>
-      <label>Animation Profile<select data-control="profile"></select></label>
       ${title === 'Player' ? '<div class="dev-grid"><button data-action="in">Play In</button><button data-action="out">Play Out</button><button data-action="complete">Complete</button></div>' : ''}
       <div class="dev-separator"></div>
       <div class="dev-grid"><label>From<select data-control="from"></select></label><label>To<select data-control="to"></select></label></div>
@@ -33,7 +35,7 @@
       <label>Test Clip<select id="rts-dev-test-clip"></select></label>
       <label>Preview Title<input id="rts-dev-title" value="FIRST TEST - REPLAY CAPTURE"></label>
       <button data-action="title-toggle">Show Title</button>`)}
-    ${section('panel', 'Panel', `<label>Panel Type<select data-control="panel-type"><option value="recent">Recent Clips</option><option value="search">Search Results</option><option value="playlist">Playlist</option></select></label><label>Panel Style<select data-control="style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label>`)}
+    ${section('panel', 'Panel')}
     ${section('clapper', 'Clapperboard')}
     ${section('message', 'Message', `<label>Preview Message<input data-control="text" value="MESSAGE PREVIEW"></label>`)}
     <div class="dev-toolbar-footer"><span>?dev=true</span><div class="dev-grid"><button data-action="refresh">Refresh UI</button></div></div>`;
