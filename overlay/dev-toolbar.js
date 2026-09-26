@@ -284,3 +284,4 @@
   };
   window.RTSDevToolbar = { ...(window.RTSDevToolbar || {}), refresh, setPlayerVisibility };
   refresh();
+})();
