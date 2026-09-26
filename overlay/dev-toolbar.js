@@ -48,7 +48,8 @@
     Object.entries(targets).map(([kind,t])=>'<section class="dev-section" data-dev-element="'+kind+'"><div class="dev-section-head"><h3>'+t.label+'</h3><div class="dev-visibility"><button data-show>Show</button><button data-hide>Hide</button></div></div><div class="dev-subsection"><div class="dev-name"><span>Positions</span><small>existing positions</small></div><div class="dev-row"><select data-pos></select><button data-position>Animate</button></div><div class="dev-row equal"><label>Start<select data-start></select></label><label>End<select data-end></select></label></div><div class="dev-row equal"><label>Easing<select data-easing><option>linear</option><option>ease-in</option><option>ease-out</option><option selected>ease-in-out</option></select></label><label>Duration<input data-duration type="number" min="0" step="50" value="500"></label></div><button data-transition>Animate Transition</button></div><div class="dev-subsection"><div class="dev-name"><span>Animation Presets</span><small>existing profiles</small></div><select data-profile></select><div class="dev-profile"><button data-start-profile>Play Start</button><button data-end-profile>Play End</button><button data-complete>Play Complete</button></div></div><div class="dev-subsection"><div class="dev-name"><span>Branding Presets</span><small>existing branding</small></div><div class="dev-row"><select data-brand></select><button data-brand-apply>Apply</button></div></div></section>').join('')+
     '</div>';
   Object.keys(targets).forEach(k=>state[k].key=k);
-  bar.querySelector('[data-refresh]').onclick=e=>{e.preventDefault();window.RTSDevToolbar?.refreshFromStreamerBot?.()};
+  const refreshFromStreamerBot=()=>{const socket=window.RTSReplay?.socket;if(!window.RTSReplay?.requestAction||!socket||socket.readyState!==WebSocket.OPEN)return false;return window.RTSReplay.requestAction({name:'RTS - Action Replay - Core - Resolver'},{rtsDevConfigRefresh:'true'},'rts-dev-config-'+Date.now())};
+  bar.querySelector('[data-refresh]').onclick=e=>{e.preventDefault();refreshFromStreamerBot()};
   bar.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const root=b.closest('[data-dev-element]');if(!root)return;const k=root.dataset.devElement;
     if(b.dataset.show)show(k);if(b.dataset.hide)hide(k);if(b.dataset.position)animate(k,root.querySelector('[data-pos]').value);
     if(b.dataset.transition){animate(k,root.querySelector('[data-start]').value,0);animate(k,root.querySelector('[data-end]').value,Number(root.querySelector('[data-duration]').value)||500,root.querySelector('[data-easing]').value)}
@@ -56,6 +57,6 @@
   });
   bar.addEventListener('change',e=>{const root=e.target.closest('[data-dev-element]');if(!root)return;const k=root.dataset.devElement;if(e.target.dataset.pos)state[k].position=e.target.value;if(e.target.dataset.profile)state[k].profile=e.target.value;if(e.target.dataset.brand)state[k].branding=e.target.value;if(e.target.dataset.start)state[k].start=e.target.value;if(e.target.dataset.end)state[k].end=e.target.value});
   window.addEventListener('rts-overlay-config',refresh);
-  window.RTSDevToolbar={...(window.RTSDevToolbar||{}),refresh,refreshFromStreamerBot:window.RTSDevToolbar?.refreshFromStreamerBot};
+  window.RTSDevToolbar={...(window.RTSDevToolbar||{}),refresh,refreshFromStreamerBot};
   refresh();
 })();
