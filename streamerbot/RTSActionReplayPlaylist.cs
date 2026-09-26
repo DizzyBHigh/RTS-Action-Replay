@@ -275,28 +275,44 @@ public class CPHInline
     private void SendPlaylistChat(JArray queue)
     {
         var catalog = Catalog(Load());
+        var entries = new JArray();
         for (var i = 0; i < queue.Count; i++)
         {
             var item = queue[i] as JObject;
             var replay = FindReplay(catalog, (string)item?["replayId"] ?? "");
             if (item == null || replay == null) continue;
             var creator = replay["creator"] as JObject;
-            SendListEntry(i + 1, (string)replay["title"] ?? (string)item["title"] ?? "Untitled replay", (string)creator?["name"] ?? "", Rating(replay), (string)creator?["platform"] ?? (string)replay["sourceType"] ?? "", (int?)replay["plays"] ?? 0);
+            entries.Add(ListEntry(i + 1, (string)replay["title"] ?? (string)item["title"] ?? "Untitled replay", (string)creator?["name"] ?? "", Rating(replay), (string)creator?["platform"] ?? (string)replay["sourceType"] ?? "", (int?)replay["plays"] ?? 0));
         }
+        if (FullListChat()) SendListEntries(entries);
+        else foreach (var entry in entries.OfType<JObject>()) SendListEntry(entry);
     }
 
-    private void SendListEntry(int number, string title, string creator, double rating, string platform, int plays)
+    private JObject ListEntry(int number, string title, string creator, double rating, string platform, int plays) =>
+        new JObject { ["listNumber"] = number.ToString(), ["title"] = title, ["creator"] = creator, ["rating"] = rating.ToString(System.Globalization.CultureInfo.InvariantCulture), ["platform"] = platform, ["plays"] = plays.ToString() };
+
+    private void SendListEntry(JObject entry)
     {
-        CPH.SetArgument("listNumber", number);
-        CPH.SetArgument("title", title);
-        CPH.SetArgument("creator", creator);
-        CPH.SetArgument("rating", rating);
-        CPH.SetArgument("platform", platform);
-        CPH.SetArgument("plays", plays);
+        CPH.SetArgument("listNumber", (string)entry["listNumber"]);
+        CPH.SetArgument("title", (string)entry["title"]);
+        CPH.SetArgument("creator", (string)entry["creator"]);
+        CPH.SetArgument("rating", (string)entry["rating"]);
+        CPH.SetArgument("platform", (string)entry["platform"]);
+        CPH.SetArgument("plays", (string)entry["plays"]);
         if (!CPH.ExecuteMethod("RTS - Action Replay - Core - Messaging", "FormatListEntry")) return;
         if (!CPH.TryGetArg("formattedListEntry", out string message) || string.IsNullOrWhiteSpace(message)) return;
         SendOriginMessage(message);
     }
+
+    private void SendListEntries(JArray entries)
+    {
+        CPH.SetArgument("listEntries", entries.ToString(Newtonsoft.Json.Formatting.None));
+        if (!CPH.ExecuteMethod("RTS - Action Replay - Core - Messaging", "FormatListEntries")) return;
+        if (!CPH.TryGetArg("formattedList", out string message) || string.IsNullOrWhiteSpace(message)) return;
+        SendOriginMessage(message);
+    }
+
+    private bool FullListChat() => CPH.GetGlobalVar<bool?>("rts.actionreplay.message.list.full", true) ?? false;
 
     private double Rating(JObject replay)
     {
