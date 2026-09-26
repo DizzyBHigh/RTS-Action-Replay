@@ -18,6 +18,7 @@
       ${title === 'Player' ? '<div class="dev-grid"><button data-action="in">Play In</button><button data-action="out">Play Out</button><button data-action="complete">Complete</button></div>' : ''}
       <div class="dev-grid"><label>From<select data-control="from"></select></label><label>To<select data-control="to"></select></label></div>
       <div class="dev-grid"><label>Easing<select data-control="easing"><option>linear</option><option>ease-in</option><option selected>ease-in-out</option><option>ease-out</option></select></label><label>Duration (s)<input data-control="duration" type="number" min="0" max="10" step="0.1" value="1"></label></div>
+      ${title === 'Player' ? '<button data-action="position-test">Test Animation</button>' : ''}
       ${extra}
     </section>`;
 
@@ -29,8 +30,7 @@
       <label>Playback Speed<select id="rts-dev-speed"><option>0.25</option><option>0.5</option><option>0.75</option><option selected>1</option><option>1.25</option><option>1.5</option><option>1.75</option><option>2</option></select></label>
       <label>Test Clip<select id="rts-dev-test-clip"></select></label>
       <label>Preview Title<input id="rts-dev-title" value="FIRST TEST — REPLAY CAPTURE"></label>
-      <button data-action="title-toggle">Show Title</button>
-      <button data-action="position-test">Test Animation</button>`)}
+      <button data-action="title-toggle">Show Title</button>`)}
     ${section('panel', 'Panel', `<label>Panel Style<select data-control="style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label>`)}
     ${section('clapper', 'Clapperboard')}
     ${section('message', 'Message', `<label>Preview Message<input data-control="text" value="MESSAGE PREVIEW"></label>`)}
