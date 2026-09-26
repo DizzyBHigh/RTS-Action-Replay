@@ -143,6 +143,7 @@
     const next = animationCommand('player');
     const profile = selected('player', 'profile') || {};
     const replayId = document.getElementById('rts-dev-test-clip')?.value || '';
+    RTSReplayVideo.resetDevPlaybackSurface?.();
     showPlayer();
     RTSReplayVideo.runAnimationProfile(next, () => {
       const request = window.RTSReplay?.requestAction;
