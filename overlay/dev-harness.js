@@ -67,10 +67,17 @@
   };
 
   const refreshFromStreamerBot=()=>{
-    const socket=window.rtsSocket;
-    if(!socket||socket.readyState!==WebSocket.OPEN){window.RTSDevToolbar?.log?.('Configuration refresh requested while WebSocket is not connected');return false}
-    socket.send(JSON.stringify({request:'DoAction',id:'rts-dev-config-'+Date.now(),action:{name:'RTS - Action Replay - Core - Resolver'},args:{rtsDevConfigRefresh:'true'}}));
-    window.RTSDevToolbar?.log?.('Requested current configuration from Streamer.bot');return true;
+    const requested=RTSReplay?.requestAction?.(
+      {name:'RTS - Action Replay - Core - Resolver'},
+      {rtsDevConfigRefresh:'true'},
+      'rts-dev-config-'+Date.now()
+    );
+    if(!requested){
+      window.RTSDevToolbar?.log?.('Configuration refresh requested while WebSocket is not connected');
+      return false;
+    }
+    window.RTSDevToolbar?.log?.('Requested current configuration from Streamer.bot');
+    return true;
   };
 
   bar.innerHTML='<div class="dev-toolbar-header"><strong>RTS DEV</strong><span>TEST HARNESS</span></div><div class="dev-harness-tools"><button class="dev-accent" data-refresh>Refresh Configuration</button><button data-theme>☾ Dark</button></div><div class="dev-harness"><div class="dev-status" data-dev-status>Waiting for configuration</div>'
