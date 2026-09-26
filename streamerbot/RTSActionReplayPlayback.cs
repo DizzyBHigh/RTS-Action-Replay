@@ -53,12 +53,16 @@ public class CPHInline
     public bool PrepareTestVideo()
     {
         var data = Load();
-        var replay = GetCatalog(data).OfType<JObject>().FirstOrDefault();
+        var catalog = GetCatalog(data);
+        JObject replay = null;
+        if (CPH.TryGetArg("rtsDevReplayId", out string devReplayId) && !string.IsNullOrWhiteSpace(devReplayId))
+            replay = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], devReplayId.Trim(), StringComparison.OrdinalIgnoreCase));
+        replay ??= catalog.OfType<JObject>().FirstOrDefault();
         if (replay == null) return false;
         var source = (string)replay["sourceType"] ?? "OBS";
         var url = ResolveReplayUrl(replay);
         if (string.Equals(source, "Kick", StringComparison.OrdinalIgnoreCase)) url = ResolveKickUrl(replay);
-        if (string.IsNullOrWhiteSpace(url)) { CPH.LogWarn("RTS Action Replay: test video could not resolve media for the first Catalog replay."); return false; }
+        if (string.IsNullOrWhiteSpace(url)) { CPH.LogWarn($"RTS Action Replay: test video could not resolve media for Catalog replay {(string)replay["id"] ?? "<missing>"}."); return false; }
         var operation = new JObject {
             ["replayCommand"] = "load", ["replayId"] = (string)replay["id"] ?? "", ["replayUrl"] = url,
             ["replayAutoplay"] = true, ["replayQueueEntryId"] = "", ["replayUserId"] = "rts-test-user",
