@@ -25,13 +25,14 @@ public class CPHInline
     public bool SendConfigurationToOverlay()
     {
         CPH.LogInfo("RTS Action Replay: configuration test requested.");
+        CPH.UnsetGlobalVar(ConfigurationSnapshotKey, true);
         if (!CPH.ExecuteMethod("RTS - Action Replay - Core - Store", "GetConfigurationSnapshot"))
         {
             CPH.LogWarn("RTS Action Replay: Store configuration snapshot method failed.");
             return false;
         }
 
-        var config = CPH.GetGlobalVar<string>(ConfigurationSnapshotKey, false);
+        var config = CPH.GetGlobalVar<string>(ConfigurationSnapshotKey, true);
         if (string.IsNullOrWhiteSpace(config))
         {
             CPH.LogWarn("RTS Action Replay: configuration snapshot was not produced.");
@@ -41,6 +42,8 @@ public class CPHInline
         CPH.SetArgument("replayConfig", config);
         CPH.SetArgument("replayCommand", "config-test");
         CPH.TriggerEvent(EventName, true);
+        CPH.UnsetGlobalVar(ConfigurationSnapshotKey, true);
+        CPH.LogInfo($"RTS Action Replay: configuration test dispatched to overlay; length={config.Length}.");
         return true;
     }
 
