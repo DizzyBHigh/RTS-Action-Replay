@@ -13,7 +13,7 @@
     <section class="dev-section" data-target="${key}"><h3>${title}</h3>
       ${title === 'Panel' ? '<label>Panel Type<select data-control="panel-type"><option value="recent">Recent Clips</option><option value="search">Search Results</option><option value="playlist">Playlist</option></select></label>' : ''}
       <label>${title === 'Player' ? 'Platform Brand Preset' : 'Brand Preset'}<select data-control="brand"></select></label>
-      ${title === 'Panel' ? '<label>Brand Style<select data-control="style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label>' : ''}
+      ${title === 'Panel' || title === 'Clapperboard' ? '<label>Design Style<select data-control="style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label>' : ''}
       <label>Animation Profile<select data-control="profile"></select></label>
       <div class="dev-grid"><button data-action="show">${title === 'Player' ? 'Show Player' : 'Show ' + title}</button>${title === 'Player' ? '' : '<button data-action="in">Play In</button>'}</div>
       ${title === 'Player' ? '' : '<div class="dev-grid"><button data-action="hide">Hide</button><button data-action="out">Play Out</button></div>'}
@@ -120,8 +120,10 @@
   };
   const applyPresentation = (target, base) => {
     const config = window.rtsOverlayConfig, m = targets[target], entry = { ...(m.entry() || {}) };
-    entry.brandingPreset = controls(target, 'brand').value || entry.brandingPreset || 'default'; if (target === 'panel') entry.designPreset = controls(target, 'style')?.value || entry.designPreset || 'broadcast';
+    entry.brandingPreset = controls(target, 'brand').value || entry.brandingPreset || 'default';
+    if (target === 'panel') entry.designPreset = controls(target, 'style')?.value || entry.designPreset || 'broadcast';
     window.RTSOverlayConfigPresentation?.apply?.(base, config, entry);
+    if (target === 'clapper') base.replayClapperPreset = controls(target, 'style')?.value || 'broadcast';
     if (target === 'message') base.replayMessage = controls(target, 'text').value.trim() || 'MESSAGE PREVIEW';
     return base;
   };
@@ -215,7 +217,15 @@
     sectionFor(target).querySelector('[data-action="show"]').textContent = 'Hide Panel';
   };
   const hidePanel = target => { const panel = target === 'message' ? RTSReplay?.messageCard : getDevPanel(); if (!panel) return; if(target==='message') RTSReplayMessages.hideMessage(RTSReplayVideo.currentCommand); else RTSInformationPanels.hide(panel,panel._rtsPanelAnimationCommand||RTSReplayVideo.currentCommand); sectionFor(target).querySelector('[data-action="show"]').textContent='Show '+(target==='message'?'Message':'Panel'); };
-  const showClapper = () => { const next=setCommand('clapper'); RTSReplayMessages.showClapperboard({ ...next, replayMessage:next.replayMessage || 'CLAPPERBOARD PREVIEW' }); sectionFor('clapper').querySelector('[data-action="show"]').textContent='Hide Clapperboard'; };
+  const showClapper = () => {
+    const next=setCommand('clapper');
+    const card=RTSReplayMessages.clapperCard;
+    const style=controls('clapper','style')?.value || 'broadcast';
+    RTSReplayMessages.showClapperboard({ ...next, replayMessage:next.replayMessage || 'CLAPPERBOARD PREVIEW' });
+    card?.classList.remove('dev-clapper-broadcast','dev-clapper-cinematic','dev-clapper-cut','dev-clapper-minimal');
+    card?.classList.add('dev-clapper-' + style);
+    sectionFor('clapper').querySelector('[data-action="show"]').textContent='Hide Clapperboard';
+  };
   const hideClapper = () => { RTSReplayMessages.clapperboardTimer && clearTimeout(RTSReplayMessages.clapperboardTimer); RTSAnimationEngine.createRunner({target:RTSReplayMessages.clapperCard?.querySelector('.clapper-position')}).cancel(); RTSReplayMessages.clapperCard?.classList.remove('show'); RTSReplayMessages.clapperCard?.setAttribute('aria-hidden','true'); sectionFor('clapper').querySelector('[data-action="show"]').textContent='Show Clapperboard'; };
 
   const animationCommand = target => {
@@ -393,6 +403,7 @@
       if (target === 'panel' && getDevPanel()?.classList.contains('show')) showPanel('panel');
       if(target==='player' && RTSReplayElements?.title?.classList.contains('visible')) applyTitleSettings(true);
     }
+    if(control.dataset.control==='style' && target==='clapper' && RTSReplayMessages.clapperCard?.classList.contains('show')) showClapper();
     if((control.dataset.control==='style'||control.dataset.control==='panel-type') && target==='panel' && (RTSReplay.recentList?.classList.contains('show')||RTSSearchPanel?.panel?.classList.contains('show')||RTSPlaylistList?.panel?.classList.contains('show'))) showPanel('panel');
     if(control.dataset.control==='text' && target==='message' && RTSReplay.messageCard?.classList.contains('show')) showPanel('message');
   });
