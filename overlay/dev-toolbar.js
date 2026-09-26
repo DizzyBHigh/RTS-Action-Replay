@@ -18,7 +18,7 @@
       ${title === 'Player' ? '<div class="dev-grid"><button data-action="in">Play In</button><button data-action="out">Play Out</button><button data-action="complete">Complete</button></div>' : ''}
       <div class="dev-grid"><label>From<select data-control="from"></select></label><label>To<select data-control="to"></select></label></div>
       <div class="dev-grid"><label>Easing<select data-control="easing"><option>linear</option><option>ease-in</option><option selected>ease-in-out</option><option>ease-out</option></select></label><label>Duration (s)<input data-control="duration" type="number" min="0" max="10" step="0.1" value="1"></label></div>
-      ${title === 'Player' ? '<button data-action="position-test">Test Animation</button>' : ''}
+      ${title === 'Player' ? '<button data-action="position-test">Test Animation</button><label class="dev-checkbox"><input type="checkbox" id="rts-dev-reset-to"> Move To to From after Test Animation</label>' : ''}
       ${extra}
     </section>`;
 
@@ -237,7 +237,17 @@
       runner.configure(next.replayClapperPositions); runner.runEnd(profile?.end,()=>{card?.classList.remove('show');card?.setAttribute('aria-hidden','true');});
     }
   };
-  const testPosition = () => { const next=setCommand('player'), from=controls('player','from').value, to=controls('player','to').value, duration=Math.max(.1,Number(controls('player','duration').value)||1)*1000, ease=easing(sectionFor('player')).value; next.replayStartPosition=from; next.replayEndPosition=to; next.replayAnimationDuration=duration; next.replayAnimationEasing=ease; RTSReplayVideo.currentCommand=next; RTSReplay.command=next; showPlayer(); RTSReplayVideo.animateIn(RTSReplayVideo.getPosition(from),RTSReplayVideo.getPosition(to)); };
+  const testPosition = () => {
+    const next=setCommand('player'), from=controls('player','from').value, to=controls('player','to').value;
+    const duration=Math.max(.1,Number(controls('player','duration').value)||1)*1000, ease=easing(sectionFor('player')).value;
+    next.replayStartPosition=from; next.replayEndPosition=to; next.replayAnimationDuration=duration; next.replayAnimationEasing=ease;
+    RTSReplayVideo.currentCommand=next; RTSReplay.command=next; showPlayer();
+    const start=RTSReplayVideo.getPosition(from), end=RTSReplayVideo.getPosition(to);
+    const complete=()=>{ if(document.getElementById('rts-dev-reset-to')?.checked) controls('player','to').value=from; };
+    RTSReplayVideo.applyPosition(start,true);
+    if(RTSReplayVideo.positionsEqual(start,end)) complete();
+    else RTSReplayVideo.animatePosition(start,end,complete);
+  };
   const previewTitle = () => applyTitleSettings(true);
   const refreshSettings = () => { const request = window.RTSReplay?.requestAction; if (!request) return false; const button = bar.querySelector('[data-action="refresh-settings"]'); const ok = request({name:'RTS - Action Replay - Core - Resolver'}, {rtsDevConfigRefresh:'true'}, 'rts-dev-config-'+Date.now()); if (button) { const label = button.textContent; button.textContent = ok ? 'Request Sent' : 'WebSocket Offline'; setTimeout(() => { button.textContent = label; }, 1200); } return ok; };
   const setSpeed = value => { const speed=Number(value); if(!Number.isFinite(speed)||!RTSReplay?.video)return; RTSReplay.video.playbackRate=speed; const next={...command(),replayPlaybackSpeed:speed}; RTSReplay.command=next; RTSReplayVideo.currentCommand=next; RTSReplayElements?.configureSpeed?.(next); };
