@@ -3,7 +3,7 @@
   "id": "rts-action-replay",
   "name": "RTS Action Replay",
   "type": "extension",
-  "description": "Capture OBS replay-buffer clips and play them through a [[blue:Streamer.bot]] controlled browser overlay.\\nUses its own [[blue:fully featured catalog]], with search capabilities. Over [[blue:39 commands]] for complete control through chat on all supported platforms.\\nThe Settings interface allows customisation of [[blue:colours]], [[blue:layout]] and [[blue:behaviour]].",
+  "description": "Capture [[blue:OBS Replay Buffer]] clips and play them through a [[blue:Streamer.bot]] controlled browser overlay. Create a complete clip management system with a [[blue:fully featured catalog]], search, ratings and playlists. Capture and play clips from [[blue:OBS]], [[purple:Twitch]], [[red:YouTube]] and [[green:Kick]] platforms.\\n manage your clip library, and control playback directly from chat with over [[blue:39 commands]] across all supported platforms. The Settings interface provides control over [[blue:colours]], [[blue:layout]], [[blue:behaviour]] of playback, playlists, messages and presentation. Using the [[yellow:RTS Position Editor]], you can position and animate the [[blue:Player]], [[blue:Panels]] and [[blue:Messages]] anywhere on your overlay.",
   "tags": [
     "Streamer.bot",
     "OBS",
@@ -36,21 +36,21 @@
   },
   "content": {
     "hero": {
-      "kicker": "RTS [[blue:Streamer.bot]] Extension",
+      "kicker": "RTS [[blue:Action Replay]] Extension",
       "title": "Replay your",
       "titleAccent": "best moments"
     },
     "experience": {
       "kicker": "THE EXPERIENCE",
       "title": "Turn OBS replay clips into an interactive on-stream replay player.",
-      "text": "RTS Action Replay connects OBS Replay Buffer captures, [[blue:Streamer.bot]] and a remote browser overlay so saved clips can be loaded and controlled without a separate web server.",
+      "text": "A complete multi-platform clipping and catalog sytem for your replays.",
       "features": [
         {
           "title": "Supports Twitch, YouTube and Kick",
-          "text": "Full support for [[purple:Twitch]],  [[red:YouTube]], and  [[green:Kick]] (via kickbot or kick). Capture clips directly from the platform's chat, and catalog them. Full cross-platform capabilities, with automatic platform branding depending on which platform initiated the command."
+          "text": "Full support for [[purple:Twitch]],  [[red:YouTube]], and [[green:Kick]] (via kickbot or kick). Capture clips directly from each platform's chat with platform-specific branding, depending on which platform initiated the command."
         },
         {
-          "title": "Complete Branding control",
+          "title": "Complete colour control",
           "text": "Customise the [[white:Brand Colours]], [[white:Logo]], and [[white:fonts]] to fit your stream design. [[blue:4 Design presets]] to choose from. Choose different presets for different platforms."
         },
         {
@@ -74,8 +74,8 @@
   },
   "requirements": [
     "[[blue:Streamer.bot]] with its WebSocket and HTTP servers enabled.",
-    "OBS with Replay Buffer enabled.",
-    "RtsUI.dll for the extension settings interface."
+    "OBS with Replay Buffer enabled. (for local capture of clips)",
+    "RtsUI.dll for the extension settings interface. The extension will automatically update and install this DLL if it is missing or out of date."
   ],
   "setup": {
     "title": "Get Action Replay running.",
@@ -1047,14 +1047,43 @@
               {
                 "title": "Delay",
                 "description": "How long to wait before starting the next item in the sequence."
+              }
+            ]
+          },
+          {
+            "number": ".3",
+            "title": "End Sequence",
+            "text": "An End sequence is created from 1 or more positions defined in the elements [[yellow:Position Editor]]; only the positions for the current element will be shown, i.e., player positions cannot be used in Panel Sequences",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-animation-profiles-end-sequence.png",
+                "alt": "Screenshot for Animation Sequence Editor"
+              }
+            ],
+            "settings": [
+              {
+                "title": "The First item in an End Sequence",
+                "description": "The end Sequnce effectite start position  is taken from where it is currently displayed in the overlay, (e.g. the last position in the Start Sequence). The first item in the End Sequence will transition from the current position to the first item in the End Sequence. Then continue the other steps, It is reccomended that the last step in thee sequnce is a position off screen or with its width and height set to 0, so that the element is hidden at the end of the sequence."
               },
               {
-                "title": "When the sequence ends",
-                "description": "Once the sequence is complete, the element will remain in its current position until its end sequence is triggered.\\nFor Messages, Panels, and the Clapperboard, this will be the duration they are set to be displayed for; for the player, the end sequence will start when the last queued video has finished playing or the player is hiddden manually."
+                "title": "Adding items to a sequence",
+                "description": "Click Add Row to add a new step in the sequence, the animation engine will use the rows setting and transition from the last item to smoothly transition to the next item."
               },
               {
-                "title": "End Sequence",
-                "description": "The end sequence operates the same way as a start sequence, except it animates from the current position of the element to the first element in the sequence and then continues each step of the sequence. Position, Duration, Easing, and delay are all taken into account for every row added."
+                "title": "Position",
+                "description": "Select the position you want to transition to"
+              },
+              {
+                "title": "Duration",
+                "description": "The duration for the transition in milliseconds (1000ms = 1 second)."
+              },
+              {
+                "title": "Easing",
+                "description": "How you want the transition animation to run; easing affects the speed of the transition at its start and end. There are 4 easing settings to choose from."
+              },
+              {
+                "title": "Delay",
+                "description": "How long to wait before starting the next item in the sequence."
               }
             ]
           }
@@ -1079,7 +1108,7 @@
           {
             "number": ".2",
             "title": "Create [[blue:OBS]], [[purple:Twitch]], [[red:YouTube]], and [[green:Kick]] settings",
-            "text": "Each platform can have its own Animation Profile, Design Preset, Title Preset, and Branding Preset.\\nThe Create settings determine how the player looks when a clip is created on that platform.",
+            "text": "Each platform can have its own Animation Profile, Design Preset, Title Preset, and Branding Preset.\\nThe Create settings determine how the player looks when a clip is created and played from that platform.",
             "images": [
               {
                 "src": "assets/images/action-replay-settings-player-behaviour-create.png",
@@ -1118,7 +1147,7 @@
             "settings": [
               {
                 "title": "Change Player Branding to Clip Source",
-                "description": "Uses the branding of the platform the clip was captured on, e.g. If the clip was created on twitch it will use the twitch branding preset when being played. Each clip in the playlist will change the branding of the player to match the clip source platform.\\nIf a branding preset does not exist for the source platform, it will use the Branding Preset set in the Play Replay settings.",
+                "description": "Uses the branding of the platform the clip was captured on, e.g. If the clip was created on twitch it will use the twitch branding preset when being played. Each clip in the playlist will change the branding of the player to match the platform the clip was created on.",
                 "images": [
                   {
                     "src": "assets/images/action-replay-settings-player-behaviour-playback-use-source-branding.png",
@@ -1128,19 +1157,19 @@
               },
               {
                 "title": "Branding Preset",
-                "description": "Selects the Branding Preset to be used when a clip is played from the playlist, recent clips, or last played. If Change Player Branding to Clip Source is enabled, this setting will be ignored when a clip is played from a source platform that has a matching branding preset."
+                "description": "Selects the Branding Preset to be used when a clip is played from the playlist, recent clips, or last played."
               },
               {
                 "title": "Design Preset",
-                "description": "Selects the Design Preset to be used when a clip is played from the playlist, recent clips, or last played. If Change Player Branding to Clip Source is enabled, this setting will be ignored when a clip is played from a source platform that has a matching branding preset."
+                "description": "Selects the Design Preset to be used when a clip is played from the playlist, recent clips, or last played."
               },
               {
                 "title": "Title Preset",
-                "description": "Selects the Title Preset to be used when a clip is played from the playlist, recent clips, or last played. If Change Player Branding to Clip Source is enabled, this setting will be ignored when a clip is played from a source platform that has a matching branding preset."
+                "description": "Selects the Title Preset to be used when a clip is played from the playlist, recent clips, or last played."
               },
               {
                 "title": "Animation Profile",
-                "description": "Selects the Animation Profile to be used when a clip is played from the playlist, recent clips, or last played. If Change Player Branding to Clip Source is enabled, this setting will be ignored when a clip is played from a source platform that has a matching branding preset."
+                "description": "Selects the Animation Profile to be used when a clip is played from the playlist, recent clips, or last played."
               }
             ]
           }
@@ -1149,69 +1178,150 @@
       {
         "number": "13",
         "title": "Panel Behaviour",
-        "description": "Configure the presentation for Recent / Search, Playlist and Leaderboards.",
+        "description": "The Panel Behaviour tab allows you to configure how the panels look and behave, there are several options available to customize the appearance and behavior of the panels.\\n you can configure each panel type separately [[yellow:Recent/Search]], [[yellow:Playlist]] and [[yellow:Leaderboards]].",
         "substeps": [
           {
             "number": ".1",
-            "title": "Panel Behaviour",
-            "text": "Configure the presentation for Recent / Search, Playlist and Leaderboards.",
+            "title": "Use Source Platform Branding",
+            "text": "When this is selected, the recent/search will use the branding preset asscociated with the platform that the request came from.",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Panel Behaviour"
+                "src": "assets/images/action-replay-settings-panel-behaviour-use-source-branding.png",
+                "alt": "Screenshot for Panel Behaviour Use Source Platform Branding"
               }
-            ],
-            "commands": [
-              "search",
-              "next-page",
-              "previous-page",
-              "first-page",
-              "last-page",
-              "show-current-search-page"
             ]
-          }
-        ]
-      },
-      {
-        "number": "17",
-        "title": "Message Behaviour",
-        "description": "Configure how transient messages are presented in the overlay.",
-        "substeps": [
+          },
           {
-            "number": ".1",
-            "title": "Message Behaviour",
-            "text": "Configure how transient messages are presented in the overlay.",
+            "number": ".2",
+            "title": "Recent / Search",
+            "text": "When this is selected, the panels will use the branding preset asscociated with the platform that the request came from.",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Message Behaviour"
+                "src": "assets/images/action-replay-settings-panel-behaviour-recent-search.png",
+                "alt": "Screenshot for Panel Behaviour recent/search"
               }
             ],
             "settings": [
               {
                 "title": "Branding Preset",
-                "description": "Branding used by transient messages, with source-platform fallback when enabled.",
-                "value": ""
+                "description": "The branding preset to use for the recent/search panel when Use Source Platform Branding is not selected."
               },
               {
                 "title": "Design Preset",
-                "description": "Design used by transient messages.",
-                "value": ""
+                "description": "The design preset to use for the recent/search panel"
               },
               {
                 "title": "Animation Profile",
-                "description": "Animation used by transient messages.",
-                "value": ""
+                "description": "The animation profile to use for the recent/search panel"
+              }
+            ]   
+          },
+          {
+            "number": ".3",
+            "title": "Playlist",
+            "text": "Whenever a clip is requested, captured or queued, the playlist panel will be updated to reflect the current state of the playlist.\\nThe playlist panel can be configured to use a different branding preset, design preset and animation profile than the recent/search panel.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-panel-behaviour-playlist.png",
+                "alt": "Screenshot for Panel Behaviour Playlist"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Branding Preset",
+                "description": "The branding preset to use for the recent/search panel when Use Source Platform Branding is not selected."
+              },
+              {
+                "title": "Design Preset",
+                "description": "The design preset to use for the recent/search panel"
+              },
+              {
+                "title": "Animation Profile",
+                "description": "The animation profile to use for the recent/search panel"
+              }
+            ],
+            "commands": [
+              "list-playlist",
+              "playlist-clear",
+              "playlist-clear-all",
+              "playlist-pause",
+              "playlist-resume",
+              "playlist-remove"
+            ]
+          },
+          {
+            "number": ".4",
+            "title": "Leaderboards Creator and Most Views",
+            "text": "Action Replay keeps track of the most viewed clips and the creators with the most clips created.\\nThe leaderboard panels can be configured to use a different branding preset, design preset and animation profile than the recent/search panel.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-panel-behaviour-leaderboard.png",
+                "alt": "Screenshot for Panel Behaviour Leaderboard"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Branding Preset",
+                "description": "The branding preset to use for the Leaderboard panel when Use Source Platform Branding is not selected."
+              },
+              {
+                "title": "Design Preset",
+                "description": "The design preset to use for the Leaderboard panel"
+              },
+              {
+                "title": "Animation Profile",
+                "description": "The animation profile to use for the Leaderboard panel"
+              }
+            ],
+            "commands": [
+              "leaderboard-creator",
+              "leaderboard-most-views"
+            ]
+          }
+        ]
+      },
+      {
+        "number": "14",
+        "title": "Message Behaviour",
+        "description": "Configure how transient messages are presented in the overlay.",
+        "substeps": [
+          {
+            "number": ".1",
+            "title": "Use Source Platform Branding",
+            "text": "When this is set the messages will use the branding of the platform the request came from.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-message-behaviour-use-source-branding.png",
+                "alt": "Screenshot for Message Behaviour Use Source Platform Branding"
+              }
+            ]
+          },
+          {
+            "number": ".2",
+            "title": "Use Default Branding",
+            "text": "When this is set the messages will use the default branding of the platform the request came from.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-message-behaviour.png",
+                "alt": "Screenshot for Message Behaviour settings"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Branding Preset",
+                "description": "Branding used by transient messages, with source-platform fallback when enabled."
+              },
+              {
+                "title": "Design Preset",
+                "description": "Design used by transient messages."
+              },
+              {
+                "title": "Animation Profile",
+                "description": "Animation used by transient messages."
               },
               {
                 "title": "Display Time",
-                "description": "Time the message remains visible before its end animation begins, in milliseconds.",
-                "value": "5000"
-              },
-              {
-                "title": "Use Source Platform Branding",
-                "description": "Uses the platform that initiated the message to select matching branding when available.",
-                "value": ""
+                "description": "Time the message remains visible before its end animation begins, in milliseconds."
               }
             ],
             "commands": [
@@ -1223,43 +1333,60 @@
       {
         "number": "18",
         "title": "Clapperboard Behaviour",
-        "description": "Configure the Clapperboard used when a new replay is created.",
+        "description": "Configure the Clapperboard that is used when a new replay is created.",
+        "images": [
+          {
+            "src": "assets/images/action-replay-settings-clapperboard-behaviour.png",
+            "alt": "Screenshot for Clapperboard Behaviour"
+          }
+        ],
         "substeps": [
           {
             "number": ".1",
-            "title": "Clapperboard Behaviour",
-            "text": "Configure the Clapperboard used when a new replay is created.",
+            "title": "Use Clapperboard",
+            "text": "If selected the clapperboard will be shown when a new clip is created. If this setting is disabled, the message system will be used instead.",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Clapperboard Behaviour"
+                "src": "assets/images/action-replay-settings-clapperboard-behaviour-use-clapperboard.png",
+                "alt": "Screenshot for Use Clapperboard setting"
               }
-            ],
+            ]
+          },
+          {
+            "number": ".2",
+            "title": "Use Source Platform Branding",
+            "text": "When this is set the Clapperboard will use the branding of the platform the clip was created on.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-clapperboard-behaviour-use-source-branding.png",
+                "alt": "Screenshot for Clapperboard Behaviour Use Source Platform Branding"
+              }
+            ]
+          },
+          {
+            "number": ".3",
+            "title": "Animation Profile",
+            "text": "The animation profile used by the Clapperboard.",
             "settings": [
               {
                 "title": "Use Clapperboard",
-                "description": "Uses the Clapperboard for Replay Created instead of the Message system when Replay Created Overlay is enabled.",
-                "value": "On"
+                "description": "Uses the Clapperboard for Replay Created instead of the Message system when Replay Created Overlay is enabled."
               },
               {
                 "title": "Use Source Platform Branding",
-                "description": "Uses the Branding Preset associated with the platform that created the clip when available.",
-                "value": "Off"
+                "description": "Uses the Branding Preset associated with the platform that created the clip when available."
               },
               {
                 "title": "Animation Profile",
-                "description": "Animation profile used by the Clapperboard.",
-                "value": "Default"
+                "description": "Animation profile used by the Clapperboard."
               },
               {
                 "title": "Branding Preset",
-                "description": "Fallback branding used when source-platform branding is disabled or unavailable.",
-                "value": "Default"
+                "description": "Fallback branding used when source-platform branding is disabled or unavailable."
               },
               {
                 "title": "Display Time",
-                "description": "Time the Clapperboard remains visible before its end animation begins, in milliseconds.",
-                "value": "5000"
+                "description": "Time the Clapperboard remains visible before its end animation begins, in milliseconds."
               }
             ],
             "commands": [
@@ -1272,33 +1399,32 @@
         ]
       },
       {
-        "number": "19",
-        "title": "Messages",
-        "description": "Configure where list results are presented and how lifecycle messages are generated.",
+        "number": "15",
+        "title": "Search Options",
+        "description": "Control how Search, Playlist and Recent Items presented.",
         "substeps": [
           {
             "number": ".1",
             "title": "Search Presentation",
+            "text": "Control how search results are presented in the overlay and chat.",  
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
+                "src": "assets/images/action-replay-settings-search-options-presentation.png",
                 "alt": "Documentation screenshot placeholder for Search Presentation"
               }
             ],
             "settings": [
               {
                 "title": "Search - Panel",
-                "description": "Shows Catalog/search results in the Search Panel.",
-                "value": "On"
+                "description": "Shows Catalog/search results in the Search Panel."
               },
               {
                 "title": "Search - Chat",
-                "description": "Sends one formatted chat message for the search header and each result.",
-                "value": "Off"
+                "description": "Shows Catalog/search results in the chat."
               }
             ],
             "notes": [
-              "Both can be enabled at the same time."
+              "Both can be enabled at the same time. If none are enabled, search results are not presented in the overlay or chat."
             ],
             "commands": [
               "search",
@@ -1312,37 +1438,74 @@
           },
           {
             "number": ".2",
-            "title": "Playlist and Recent Clips Presentation",
+            "title": "Playlist Presentation",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Playlist and Recent Clips Presentation"
+                "src": "assets/images/action-replay-settings-search-options-playlist.png",
+                "alt": "Screenshot for Playlist Presentation settings"
               }
             ],
             "settings": [
               {
-                "title": "Recent - Chat",
-                "description": "Sends one formatted chat message for each Recent Clips entry.",
-                "value": "On"
+                "title": "Playlist - Panel",
+                "description": "Displays the playlist results in the playlist panel on the overlay."
               },
               {
                 "title": "Playlist - Chat",
-                "description": "Sends one formatted chat message for each Playlist entry.",
-                "value": "On"
-              },
-              {
-                "title": "List Entry Format",
-                "description": "Format used for each list entry.",
-                "value": "#%listNumber% %title% - %creator% | %rating%/5 | %platform% | %plays% plays"
-              },
-              {
-                "title": "Maximum Message Length",
-                "description": "Maximum length of each individual list entry/message. Longer entries are truncated rather than split.",
-                "value": "500"
+                "description": "Sends the playlist results to the chat."
               }
             ],
             "notes": [
-              "List entry variables are [[code:%listNumber%]], [[code:%title%]], [[code:%creator%]], [[code:%rating%]], [[code:%platform%]] and [[code:%plays%]]."
+              "Both can be enabled at the same time. If none are enabled, search results are not presented in the overlay or chat."
+            ],
+            "commands": [
+              "list-playlist"
+              ]
+            },
+           {
+            "number": ".3",
+            "title": " Recent Clips Presentation",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-search-options-recent-clips.png",
+                "alt": "Screenshot for Recent Clips Presentation"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Recent - Panel",
+                "description": "Displays the recent clips results in the recent clips panel on the overlay."
+              },
+              {
+                "title": "Recent - Chat",
+                "description": "Sends the recent clips results to the chat."
+              }
+            ], 
+            "notes": [
+              "Both can be enabled at the same time. If none are enabled, recent clips results are not presented in the overlay or chat."
+            ],
+            "commands": [
+              "list-recent"
+            ]
+          },
+          {
+            "number": ".4",
+            "title": "List Entry Format",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-search-options-list-entry-format.png",
+                "alt": "Screenshot for List Entry Format settings"
+              }
+            ],
+            "settings": [  
+              {
+                "title": "Send full List as One Message",
+                "description": "When disabled, each list entry is sent as a separate message. When enabled, the entire list is sent as a single message. If the list is too long to fit in a single message, it will be split into multiple messages."
+              },
+              {
+                "title": "List Entry Format",
+                "description": "The format of the list entry used for each list entry."
+              }
             ],
             "variables": [
               {
@@ -1356,74 +1519,59 @@
                   "%plays%"
                 ]
               }
-            ],
-            "commands": [
-              "list-playlist",
-              "list-recent"
             ]
-          },
+          }   
+        ]
+      },
+      {
+        "number": "19",
+        "title": "Messages",
+        "description": "Configure message outputs for the various [[yellow:yellow:Action Replay]] events",
+        "substeps": [
           {
-            "number": ".3",
-            "title": "Replay Messages",
-            "text": "Replay lifecycle notifications are configured under Replays, Playlist and Updates.",
+            "number": ".1",
+            "title": "Chat Message Limits",
+            "text": "Set the platforms max character limit for chat messages.",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Replay Messages"
+                "src": "assets/images/action-replay-settings-messages-chat-message-limits.png",
+                "alt": "Screenshot for Chat Message Limits settings"
               }
             ],
             "settings": [
               {
-                "title": "Replay Created",
-                "description": "Replay saved: %replayTitle%.",
-                "value": ""
+                "title": "Twitch",
+                "description": "[[purple:Twitch]] maximum character limit (max 500 characters)"
               },
               {
-                "title": "Replay Played",
-                "description": "Play",
-                "value": ""
+                "title": "Youtube",
+                "description": "[[red:YouTube]] maximum character limit (max 200 characters)"
               },
               {
-                "title": "Replay Queued",
-                "description": "Replay queued: %replayTitle%.",
-                "value": ""
-              },
+                "title": "Kick",
+                "description": "[[green:Kick]] maximum character limit (max 500 characters)"
+              }
+            ]
+          },
+          {
+            "number": ".2",
+            "title": "Replay Created Message",
+            "text": "When a replay is created this message is generated.",
+            "images": [
               {
-                "title": "Replay Removed",
-                "description": "Replay removed: %replayTitle%.",
-                "value": ""
-              },
-              {
-                "title": "Playlist Cleared",
-                "description": "Playlist cleared: %clearedCount% waiting item(s) removed.",
-                "value": ""
-              },
-              {
-                "title": "Playlist Cleared All",
-                "description": "Playlist completely cleared: %clearedCount% item(s) removed.",
-                "value": ""
-              },
-              {
-                "title": "Replay Rated",
-                "description": "Rated %replayTitle% %replayRating%/5 (average %averageRating%/5).",
-                "value": ""
-              },
-              {
-                "title": "Replay Renamed",
-                "description": "Replay #%replayNumber% renamed from %oldTitle% to %newTitle%.",
-                "value": ""
-              },
-              {
-                "title": "Replay Deleted",
-                "description": "Replay deleted: %replayTitle%.",
-                "value": ""
+                "src": "assets/images/action-replay-settings-messages-replay-created.png",
+                "alt": "Screenshot for Replay Created settings"
               }
             ],
-            "notes": [
-              "Each event has message text and a Chat toggle. Events that support overlay output also have an Overlay toggle.",
-              "Replay Created uses the separate Clapperboard presentation when Use Clapperboard is enabled. The other overlay-capable lifecycle events use the Message presentation.",
-              "Overlay messages are queued centrally. Chat messages are sent immediately. An overlay message is considered finished only when its exit animation completes.",
-              "Replay Queued is generated only when the Playlist already contained an item before the new replay was added."
+            "settings": [
+              {
+                "title": "Replay Created Chat",
+                "description": "Sends a message to the chat when a replay is created."
+              },
+              {
+                "title": "Replay Created - Overlay",
+                "description": "Displays a message in the overlay when a replay is created."
+              }
             ],
             "variables": [
               {
@@ -1436,7 +1584,30 @@
                   "%requesterName%",
                   "%requesterPlatform%"
                 ]
+              }
+            ]
+          },
+          {
+            "number": ".3",
+            "title": "Replay Played Message",
+            "text": "When a replay is played this message is generated.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-messages-replay-played.png",
+                "alt": "Screenshot for Replay Played settings"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Replay Played Chat",
+                "description": "Sends a message to the chat when a replay is played."
               },
+              {
+                "title": "Replay Played - Overlay",
+                "description": "Displays a message in the overlay when a replay is played."
+              }
+            ],
+            "variables": [
               {
                 "title": "Replay Played",
                 "values": [
@@ -1448,7 +1619,30 @@
                   "%requesterName%",
                   "%requesterPlatform%"
                 ]
+              }
+            ]
+          },
+          {
+            "number": ".4",
+            "title": "Replay Queued",
+            "text": "When a replay is queued this message is generated.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-messages-replay-queued.png",
+                "alt": "Screenshot for Replay Queued settings"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Replay Queued Chat",
+                "description": "Sends a message to the chat when a replay is queued."
               },
+              {
+                "title": "Replay Queued - Overlay",
+                "description": "Displays a message in the overlay when a replay is queued."
+              }
+            ],
+            "variables": [
               {
                 "title": "Replay Queued",
                 "values": [
@@ -1459,7 +1653,30 @@
                   "%requesterName%",
                   "%requesterPlatform%"
                 ]
+              }
+            ]
+          },
+          {
+            "number": ".5",
+            "title": "Playlist Replay Removed",
+            "text": "When a replay is removed from the playlist this message is generated.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-messages-playlist-replay-removed.png",
+                "alt": "Screenshot for Playlist - Replay Removed settings"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Playlist Replay Removed - Chat",
+                "description": "Sends a message to the chat when a replay is removed from the playlist."
               },
+              {
+                "title": "Playlist Replay Removed - Overlay",
+                "description": "Displays a message in the overlay when a replay is removed from the playlist."
+              }
+            ],
+            "variables": [
               {
                 "title": "Replay Removed",
                 "values": [
@@ -1467,7 +1684,30 @@
                   "%requesterName%",
                   "%requesterPlatform%"
                 ]
+              }
+            ]
+          },
+          {
+            "number": ".6",
+            "title": "Playlist Cleared",
+            "text": "When the playlist is cleared this message is generated.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-messages-playlist-cleared.png",
+                "alt": "Screenshot for Playlist - Cleared settings"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Playlist Cleared - Chat",
+                "description": "Sends a message to the chat when the playlist is cleared."
               },
+              {
+                "title": "Playlist Cleared - Overlay",
+                "description": "Displays a message in the overlay when the playlist is cleared."
+              }
+            ],
+            "variables": [
               {
                 "title": "Playlist Cleared",
                 "values": [
@@ -1475,25 +1715,95 @@
                   "%requesterName%",
                   "%requesterPlatform%"
                 ]
+              }
+            ]
+          },
+          {
+            "number": ".7",
+            "title": "Playlist Clear All",
+            "text": "When the all items in the playlist are cleared this message is generated.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-messages-playlist-cleared-all.png",
+                "alt": "Screenshot for Playlist - Cleared All settings"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Playlist Clear All - Chat",
+                "description": "Sends a message to the chat when the playlist is cleared."
               },
               {
-                "title": "Playlist Cleared All",
+                "title": "Playlist Clear All - Overlay",
+                "description": "Displays a message in the overlay when the playlist is cleared."
+              }
+            ],
+            "variables": [
+              {
+                "title": "Playlist Clear All",
                 "values": [
                   "%clearedCount%",
                   "%requesterName%",
                   "%requesterPlatform%"
                 ]
+              }
+            ]
+          },
+          {
+            "number": ".8",
+            "title": "Replay Rated",
+            "text": "When a replay is rated this message is generated.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-messages-replay-rated.png",
+                "alt": "Screenshot for Replay - Rated settings"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Replay Rated - Chat",
+                "description": "Sends a message to the chat when a replay is rated."
               },
+              {
+                "title": "Replay Rated - Overlay",
+                "description": "Displays a message in the overlay when a replay is rated."
+              }
+            ],
+            "variables": [
               {
                 "title": "Replay Rated",
                 "values": [
                   "%replayTitle%",
+                  "%replayDescription%",
                   "%replayRating%",
                   "%averageRating%",
                   "%requesterName%",
                   "%requesterPlatform%"
                 ]
+              }
+            ]
+          },
+          {
+            "number": ".9",
+            "title": "Replay Renamed",
+            "text": "When a replay is renamed this message is generated.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-messages-replay-renamed.png",
+                "alt": "Screenshot for Replay - Renamed settings"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Replay Renamed - Chat",
+                "description": "Sends a message to the chat when a replay is renamed."
               },
+              {
+                "title": "Replay Renamed - Overlay",
+                "description": "Displays a message in the overlay when a replay is renamed."
+              }
+            ],
+            "variables": [
               {
                 "title": "Replay Renamed",
                 "values": [
@@ -1503,7 +1813,30 @@
                   "%requesterName%",
                   "%requesterPlatform%"
                 ]
+              }
+            ]
+          },
+          {
+            "number": ".10",
+            "title": "Replay Deleted",
+            "text": "When a replay is deleted from the catalog, this message is generated.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-messages-replay-deleted.png",
+                "alt": "Screenshot for Replay - Deleted settings"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Replay Deleted - Chat",
+                "description": "Sends a message to the chat when a replay is deleted from the catalog."
               },
+              {
+                "title": "Replay Deleted - Overlay",
+                "description": "Displays a message in the overlay when a replay is deleted from the catalog."
+              }
+            ],
+            "variables": [
               {
                 "title": "Replay Deleted",
                 "values": [
@@ -1515,17 +1848,114 @@
                   "%requesterPlatform%"
                 ]
               }
-            ],
-            "commands": [
-              "save-replay",
-              "play-replay",
-              "rate-replay",
-              "name-replay",
-              "delete-clip",
-              "playlist-clear",
-              "playlist-clear-all"
             ]
           }
+        ],
+        "notes": [
+          "Each event has message text and a Chat toggle. Events that support overlay output also have an Overlay toggle.",
+          "Replay Created uses the separate Clapperboard presentation when Use Clapperboard is enabled. The other overlay-capable lifecycle events use the Message presentation.",
+          "Overlay messages are queued centrally. Chat messages are sent immediately. An overlay message is considered finished only when its exit animation completes.",
+          "Replay Queued is generated only when the Playlist already contained an item before the new replay was added."
+        ],
+        "variables": [
+          {
+            "title": "Replay Created",
+            "values": [
+              "%replayTitle%",
+              "%replayUser%",
+              "%replayPlatform%",
+              "%replaySourcePlatform%",
+              "%requesterName%",
+              "%requesterPlatform%"
+            ]
+          },
+          {
+            "title": "Replay Played",
+            "values": [
+              "%replayNumber%",
+              "%replayTitle%",
+              "%replayUser%",
+              "%replayPlatform%",
+              "%replaySourcePlatform%",
+              "%requesterName%",
+              "%requesterPlatform%"
+            ]
+          },
+          {
+            "title": "Replay Queued",
+            "values": [
+              "%replayTitle%",
+              "%replayUser%",
+              "%replayPlatform%",
+              "%replaySourcePlatform%",
+              "%requesterName%",
+              "%requesterPlatform%"
+            ]
+          },
+          {
+            "title": "Replay Removed",
+            "values": [
+              "%replayTitle%",
+              "%requesterName%",
+              "%requesterPlatform%"
+            ]
+          },
+          {
+            "title": "Playlist Cleared",
+            "values": [
+              "%clearedCount%",
+              "%requesterName%",
+              "%requesterPlatform%"
+            ]
+          },
+          {
+            "title": "Playlist Cleared All",
+            "values": [
+              "%clearedCount%",
+              "%requesterName%",
+              "%requesterPlatform%"
+            ]
+          },
+          {
+            "title": "Replay Rated",
+            "values": [
+              "%replayTitle%",
+              "%replayRating%",
+              "%averageRating%",
+              "%requesterName%",
+              "%requesterPlatform%"
+            ]
+          },
+          {
+            "title": "Replay Renamed",
+            "values": [
+              "%replayNumber%",
+              "%oldTitle%",
+              "%newTitle%",
+              "%requesterName%",
+              "%requesterPlatform%"
+            ]
+          },
+          {
+            "title": "Replay Deleted",
+            "values": [
+              "%replayTitle%",
+              "%replayUser%",
+              "%replayPlatform%",
+              "%replaySourcePlatform%",
+              "%requesterName%",
+              "%requesterPlatform%"
+            ]
+          }
+        ],
+        "commands": [
+          "save-replay",
+          "play-replay",
+          "rate-replay",
+          "name-replay",
+          "delete-clip",
+          "playlist-clear",
+          "playlist-clear-all"
         ]
       },
       {

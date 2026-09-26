@@ -272,27 +272,54 @@ public class CPHInline
     public bool ResolveSelectionForUser() { var selector = Arg("rawInput").Trim(); var parts = selector.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); var indexText = parts.Length == 1 ? parts[0] : parts.Length == 2 ? parts[1] : ""; if (!int.TryParse(indexText, out var index) || index < 1) return false; var platform = Arg("catalogSelectionPlatform"); var userName = Arg("catalogSelectionUser"); if (!TryParseUserTarget(platform + ":" + userName, out platform, out userName)) return false; var userId = ResolveUserId(platform, userName); if (string.IsNullOrWhiteSpace(userId)) return false; var state = LoadUserSearchState(platform, userId, userName); if (state == null || string.Equals((string)state["filterType"], "leaderboard", StringComparison.OrdinalIgnoreCase)) return false; return ResolveStateSelection(state, index); }
     private void SendRecentChat(JArray results)
     {
+        var entries = new JArray();
         for (var i = 0; i < results.Count; i++)
         {
             var replay = results[i] as JObject;
             if (replay == null) continue;
             var creator = replay["creator"] as JObject;
-            SendListEntry(i + 1, (string)replay["title"] ?? "Untitled replay", (string)creator?["name"] ?? "", HasRatings(replay) ? Math.Round(Rating(replay), 1) : 0, (string)creator?["platform"] ?? (string)replay["sourceType"] ?? "", (int?)replay["plays"] ?? 0);
+            entries.Add(ListEntry(i + 1, (string)replay["title"] ?? "Untitled replay", (string)creator?["name"] ?? "", HasRatings(replay) ? Math.Round(Rating(replay), 1) : 0, (string)creator?["platform"] ?? (string)replay["sourceType"] ?? "", (int?)replay["plays"] ?? 0));
         }
+        if (FullListChat()) SendListEntries(entries);
+        else foreach (var entry in entries.OfType<JObject>()) SendListEntry(entry);
     }
 
-    private void SendListEntry(int number, string title, string creator, double rating, string platform, int plays)
+    private JObject ListEntry(int number, string title, string creator, double rating, string platform, int plays) =>
+        new JObject { ["listNumber"] = number.ToString(), ["title"] = title, ["creator"] = creator, ["rating"] = rating.ToString(CultureInfo.InvariantCulture), ["platform"] = platform, ["plays"] = plays.ToString() };
+
+    private void SendListEntry(JObject entry)
     {
-        CPH.SetArgument("listNumber", number);
-        CPH.SetArgument("title", title);
-        CPH.SetArgument("creator", creator);
-        CPH.SetArgument("rating", rating);
-        CPH.SetArgument("platform", platform);
-        CPH.SetArgument("plays", plays);
+        CPH.SetArgument("listNumber", (string)entry["listNumber"]);
+        CPH.SetArgument("title", (string)entry["title"]);
+        CPH.SetArgument("creator", (string)entry["creator"]);
+        CPH.SetArgument("rating", (string)entry["rating"]);
+        CPH.SetArgument("platform", (string)entry["platform"]);
+        CPH.SetArgument("plays", (string)entry["plays"]);
+        var platform = Arg("requesterPlatform");
+        if (string.IsNullOrWhiteSpace(platform)) platform = Arg("userType");
+        CPH.SetArgument("listPlatform", platform);
         if (!CPH.ExecuteMethod("RTS - Action Replay - Core - Messaging", "FormatListEntry")) return;
         if (!CPH.TryGetArg("formattedListEntry", out string message) || string.IsNullOrWhiteSpace(message)) return;
         SendCatalogMessage(message);
     }
+
+    private void SendListEntries(JArray entries)
+    {
+        CPH.SetArgument("listEntries", entries.ToString(Newtonsoft.Json.Formatting.None));
+        var platform = Arg("requesterPlatform");
+        if (string.IsNullOrWhiteSpace(platform)) platform = Arg("userType");
+        CPH.SetArgument("listPlatform", platform);
+        if (!CPH.ExecuteMethod("RTS - Action Replay - Core - Messaging", "FormatListEntries")) return;
+        if (!CPH.TryGetArg("formattedLists", out string raw) || string.IsNullOrWhiteSpace(raw)) return;
+        try
+        {
+            foreach (var message in JArray.Parse(raw).Values<string>())
+                if (!string.IsNullOrWhiteSpace(message)) SendCatalogMessage(message);
+        }
+        catch { }
+    }
+
+    private bool FullListChat() => CPH.GetGlobalVar<bool?>("rts.actionreplay.message.list.full", true) ?? false;
 
     public bool RenderSearchRequest() {
         var json = Arg("replaySearchRequest"); if (string.IsNullOrWhiteSpace(json)) return false;
@@ -341,6 +368,7 @@ public class CPHInline
             SendCatalogMessage("No results on this search page.");
             return;
         }
+        var listEntries = new JArray();
         for (var i = 0; i < entries.Count; i++)
         {
             var replay = entries[i];
@@ -350,8 +378,10 @@ public class CPHInline
             var title = (string)replay["title"] ?? "Untitled replay";
             var rating = HasRatings(replay) ? Math.Round(Rating(replay), 1) : 0;
             var plays = (int?)replay["plays"] ?? 0;
-            SendListEntry(start + i + 1, title, creator, rating, platform, plays);
+            listEntries.Add(ListEntry(start + i + 1, title, creator, rating, platform, plays));
         }
+        if (FullListChat()) SendListEntries(listEntries);
+        else foreach (var entry in listEntries.OfType<JObject>()) SendListEntry(entry);
     }
 
     public bool RecordPlayed() { var replayId = Arg("historyReplayId"); if (string.IsNullOrWhiteSpace(replayId)) return false; var data = Load(); var catalog = data["catalog"] as JArray ?? new JArray(); var replay = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId, StringComparison.OrdinalIgnoreCase)); if (replay == null) return false; replay["plays"] = Math.Max(0, (int?)replay["plays"] ?? 0) + 1; var history = data["playHistory"] as JArray ?? new JArray(); var existing = history.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["replayId"], replayId, StringComparison.OrdinalIgnoreCase)); var count = existing == null ? 1 : Math.Max(1, (int?)existing["count"] ?? 1) + 1; if (existing != null) history.Remove(existing); var requesterId = ""; var activeId = CPH.GetGlobalVar<string>(ActiveKey, false); var queueRaw = CPH.GetGlobalVar<string>(PlaylistKey, false); if (!string.IsNullOrWhiteSpace(queueRaw)) { try { var queue = JArray.Parse(queueRaw); var active = queue.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["entryId"], activeId, StringComparison.OrdinalIgnoreCase)); requesterId = (string)active?["requesterId"] ?? ""; } catch { } } history.Insert(0, new JObject { ["replayId"] = replayId, ["title"] = Arg("historyReplayTitle"), ["creator"] = Arg("historyReplayCreator"), ["count"] = count, ["lastPlayedBy"] = Arg("historyReplayRequester"), ["lastPlayedPlatform"] = Arg("historyReplayPlatform"), ["lastPlayedUserId"] = requesterId, ["lastPlayed"] = DateTime.Now.ToString("o") }); while (history.Count > MaxRecentAmount()) history.RemoveAt(history.Count - 1); data["playHistory"] = history; Save(data); return true; }

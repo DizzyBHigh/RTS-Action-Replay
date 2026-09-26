@@ -411,7 +411,7 @@ public class CPHInline
     {
         var format = CPH.GetGlobalVar<string>("rts.actionreplay.message.list.format", true);
         if (string.IsNullOrWhiteSpace(format)) format = "#%listNumber% %title% — %creator% | %rating%/5 | %platform% | %plays% plays";
-        var maxLength = Math.Max(1, CPH.GetGlobalVar<int?>("rts.actionreplay.message.list.maxLength", true) ?? 500);
+        var maxLength = ChatLimit(Arg("listPlatform"));
         var values = new Dictionary<string, object>
         {
             ["listNumber"] = Arg("listNumber"),
@@ -426,6 +426,81 @@ public class CPHInline
         CPH.SetArgument("formattedListEntry", message);
         return true;
     }
+
+    public bool FormatListEntries()
+    {
+        var raw = Arg("listEntries");
+        if (string.IsNullOrWhiteSpace(raw)) return false;
+        JArray entries;
+        try { entries = JArray.Parse(raw); } catch { return false; }
+        var format = CPH.GetGlobalVar<string>("rts.actionreplay.message.list.format", true);
+        if (string.IsNullOrWhiteSpace(format)) format = "#%listNumber% %title% — %creator% | %rating%/5 | %platform% | %plays% plays";
+        var limit = ChatLimit(Arg("listPlatform"));
+        var chunks = new JArray();
+        var current = "";
+
+        foreach (var token in entries)
+        {
+            var entry = token as JObject;
+            if (entry == null) continue;
+
+            var text = FormatListEntryText(format, entry);
+            if (string.IsNullOrWhiteSpace(text)) continue;
+
+            if (text.Length > limit)
+            {
+                if (!string.IsNullOrWhiteSpace(current))
+                {
+                    chunks.Add(current);
+                    current = "";
+                }
+
+                var offset = 0;
+                while (offset < text.Length)
+                {
+                    var length = Math.Min(limit, text.Length - offset);
+                    chunks.Add(text.Substring(offset, length));
+                    offset += length;
+                }
+
+                continue;
+            }
+
+            var candidate = string.IsNullOrWhiteSpace(current)
+                ? text
+                : current + " | " + text;
+
+            if (candidate.Length <= limit)
+            {
+                current = candidate;
+            }
+            else
+            {
+                chunks.Add(current);
+                current = text;
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(current)) chunks.Add(current);
+        CPH.SetArgument("formattedLists", chunks.ToString(Newtonsoft.Json.Formatting.None));
+        return chunks.Count > 0;
+    }
+
+    private string FormatListEntryText(string format, JObject entry)
+    {
+        var values = new Dictionary<string, object>
+        {
+            ["listNumber"] = (string)entry["listNumber"] ?? "",
+            ["title"] = (string)entry["title"] ?? "",
+            ["creator"] = (string)entry["creator"] ?? "",
+            ["rating"] = (string)entry["rating"] ?? "",
+            ["platform"] = (string)entry["platform"] ?? "",
+            ["plays"] = (string)entry["plays"] ?? ""
+        };
+        return CPH.Parse(format, values) ?? "";
+    }
+
+    private int ChatLimit(string platform){var key="";switch((platform??"").ToLowerInvariant()){case "twitch":key="rts.actionreplay.message.chatLimit.twitch";break;case "youtube":key="rts.actionreplay.message.chatLimit.youtube";break;case "kick":key="rts.actionreplay.message.chatLimit.kick";break;}if(string.IsNullOrWhiteSpace(key))return 500;return CPH.GetGlobalVar<int?>(key,true)??(platform?.Equals("YouTube",StringComparison.OrdinalIgnoreCase)==true?200:500);}
 
     private string SourcePlatform()
     {
