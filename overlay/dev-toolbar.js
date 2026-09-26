@@ -77,7 +77,12 @@
     if (step?.easing) easing(sectionFor(target)).value = step.easing;
     if (step?.duration != null) controls(target, 'duration').value = Number(step.duration) / 1000;
   };
-  const refresh = () => Object.keys(targets).forEach(refreshTarget);
+  const refresh = () => {
+    Object.keys(targets).forEach(refreshTarget);
+    const title = RTSReplayElements?.title;
+    const toggle = bar.querySelector('[data-action="title-toggle"]');
+    if (toggle) toggle.textContent = title?.classList.contains('visible') ? 'Hide Title' : 'Show Title';
+  };
   const profileCommand = (target, reverse = false) => {
     const m = targets[target], base = command(), profile = selected(target, 'profile') || {};
     const from = controls(target, 'from').value, to = controls(target, 'to').value;
