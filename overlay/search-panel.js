@@ -92,7 +92,7 @@ RTSSearchPanel.normalizePlatform = platform => {
 };
 
 RTSSearchPanel.parsePageInfo = header => {
-  const parts = String(header || '').split('•').map(x => x.trim());
+  const parts = String(header || '').split(/\s*(?:\||\u2022)\s*/).map(x => x.trim());
   const page = parts.length > 1 ? parts[1].split('/').map(x => x.trim()) : [];
   return {
     page: page[0] || '1',
@@ -165,11 +165,11 @@ RTSSearchPanel.show = command => {
       const count = Number(entry.historyCount || 1);
       if (count > 1) {
         const repeat = document.createElement('span'); repeat.textContent = String(count); repeat.className = 'rts-search-history-count';
-        stats.append(' • ', repeat);
+        stats.append(' | ', repeat);
       }
     } else {
       const rating = Number(entry.rating || 0);
-      stats.textContent = `${Number(entry.plays || 0)} views${rating ? ` • ★ ${rating.toFixed(1)} (${Number(entry.ratingCount || 0)})` : ''}`;
+      stats.textContent = `${Number(entry.plays || 0)} views${rating ? ` | * ${rating.toFixed(1)} (${Number(entry.ratingCount || 0)})` : ''}`;
     }
     row.append(number, content, stats); list.appendChild(row);
   });
