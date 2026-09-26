@@ -20,7 +20,7 @@
       ${title === 'Player' ? '<div class="dev-grid"><button data-action="in">Play In</button><button data-action="out">Play Out</button><button data-action="complete">Complete</button></div>' : ''}
       <div class="dev-separator"></div>
       <div class="dev-grid"><label>From<select data-control="from"></select></label><label>To<select data-control="to"></select></label></div>
-      <div class="dev-grid"><label>Easing<select data-control="easing"><option>linear</option><option>ease-in</option><option selected>ease-in-out</option><option>ease-out</option></select></label><label>Duration (s)<input data-control="duration" type="number" min="0" max="10" step="0.1" value="1"></label></div>
+      <div class="dev-grid"><label>Easing<select data-control="easing"><option>linear</option><option>ease-in</option><option selected>ease-in-out</option><option>ease-out</option></select></label><label>Duration (ms)<input data-control="duration" type="number" min="0" max="10000" step="100" value="1000"></label></div>
       ${title === 'Player' || title === 'Panel' ? '<button data-action="position-test">Test Animation</button><label class="dev-checkbox"><input type="checkbox" data-control="reset-to"> Move From to To after Test Animation</label><div class="dev-separator"></div>' : ''}
       ${extra}
     </section>`;
@@ -77,7 +77,7 @@
     else if (defaultName) controls(target, 'to').value = defaultName;
     const step = profile?.start?.[0];
     if (step?.easing) easing(sectionFor(target)).value = step.easing;
-    if (step?.duration != null) controls(target, 'duration').value = Number(step.duration) / 1000;
+    if (step?.duration != null) controls(target, 'duration').value = Number(step.duration);
   };
   const refreshTestClips = () => {
     const select = document.getElementById('rts-dev-test-clip');
@@ -110,7 +110,7 @@
   const profileCommand = (target, reverse = false) => {
     const m = targets[target], base = command(), profile = selected(target, 'profile') || {};
     const from = controls(target, 'from').value, to = controls(target, 'to').value;
-    const duration = Math.max(0, Number(controls(target, 'duration').value) || 0) * 1000;
+    const duration = Math.max(0, Number(controls(target, 'duration').value) || 0);
     const ease = easing(sectionFor(target)).value || 'ease-in-out';
     const sequence = [{ position: from, duration: 0, delay: 0, easing: ease }, { position: to, duration, delay: 0, easing: ease }];
     const start = reverse ? [{ position: to, duration: 0, delay: 0, easing: ease }, { position: from, duration, delay: 0, easing: ease }] : sequence;
@@ -312,7 +312,7 @@
      hideDevPanels(panel);
      renderDevPanel(panel,controls('panel','panel-type')?.value || 'recent',next,false);
      const from=controls('panel','from').value, to=controls('panel','to').value;
-     const duration=Math.max(.1,Number(controls('panel','duration').value)||1)*1000;
+     const duration=Math.max(0,Number(controls('panel','duration').value)||0);
      const ease=easing(sectionFor('panel')).value || 'ease-in-out';
      const runner=RTSAnimationEngine.createRunner({target:panel});
      runner.configure(next.replayPanelPositions);
@@ -321,16 +321,17 @@
        from, to, duration, easing: ease,
        start, end
      });
-     runner.cancel();
      panel.classList.add('show');
-     runner.apply(start);
      const complete=()=>{
        if(!controls('panel','reset-to')?.checked) return;
        const fromControl=controls('panel','from');
        fromControl.value=to;
        fromControl.dispatchEvent(new Event('change',{bubbles:true}));
      };
-     runner.transition(start,end,duration,ease,complete);
+     runner.run([
+       { position: from, duration: 0, delay: 0, easing: ease },
+       { position: to, duration, delay: 0, easing: ease }
+     ], complete);
    };
   const previewTitle = () => applyTitleSettings(true);
   const refreshSettings = () => { const request = window.RTSReplay?.requestAction; if (!request) return false; const button = bar.querySelector('[data-action="refresh-settings"]'); const ok = request({name:'RTS - Action Replay - Core - Resolver'}, {rtsDevConfigRefresh:'true'}, 'rts-dev-config-'+Date.now()); if (button) { const label = button.textContent; button.textContent = ok ? 'Request Sent' : 'WebSocket Offline'; setTimeout(() => { button.textContent = label; }, 1200); } return ok; };
