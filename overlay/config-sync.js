@@ -110,6 +110,15 @@
     if (!config || typeof config !== 'object') return;
     window.rtsOverlayConfig = config;
     const command = buildCommand(config);
+    const devMode = new URLSearchParams(window.location.search).get('dev') === 'true';
+    if (devMode) {
+      command.replayStartPosition = 'Full Screen';
+      command.replayEndPosition = 'Full Screen';
+      command.replayPosition = 'Full Screen';
+      command.replayPanelPosition = 'Centered';
+      command.replayMessagePosition = 'Centered';
+      command.replayClapperPosition = 'Centered';
+    }
     window.RTSReplaySettingsSync = { config, command };
     window.RTSReplay.command = command;
     window.RTSReplay.currentCommand = command;
