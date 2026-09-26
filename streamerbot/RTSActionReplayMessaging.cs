@@ -435,10 +435,12 @@ public class CPHInline
         try { entries = JArray.Parse(raw); } catch { return false; }
         var format = CPH.GetGlobalVar<string>("rts.actionreplay.message.list.format", true);
         if (string.IsNullOrWhiteSpace(format)) format = "#%listNumber% %title% — %creator% | %rating%/5 | %platform% | %plays% plays";
-        var values = new List<string>();
+        var limit = Math.Min(Math.Max(1, CPH.GetGlobalVar<int?>("rts.actionreplay.message.list.maxLength", true) ?? 500), ChatLimit(Arg("listPlatform")));
+        var chunks = new JArray();
+        var current = "";
         foreach (var entry in entries.OfType<JObject>())
         {
-            var fields = new Dictionary<string, object>
+            var values = new Dictionary<string, object>
             {
                 ["listNumber"] = (string)entry["listNumber"] ?? "",
                 ["title"] = (string)entry["title"] ?? "",
@@ -447,14 +449,27 @@ public class CPHInline
                 ["platform"] = (string)entry["platform"] ?? "",
                 ["plays"] = (string)entry["plays"] ?? ""
             };
-            values.Add(CPH.Parse(format, fields) ?? "");
+            var text = CPH.Parse(format, values) ?? "";
+            while (text.Length > limit)
+            {
+                var part = text.Substring(0, limit);
+                if (!string.IsNullOrWhiteSpace(current)) { chunks.Add(current); current = ""; }
+                chunks.Add(part);
+                text = text.Substring(limit);
+            }
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                var candidate = string.IsNullOrWhiteSpace(current) ? text : current + " | " + text;
+                if (candidate.Length <= limit) current = candidate;
+                else { chunks.Add(current); current = text; }
+            }
         }
-        var message = string.Join(" | ", values.Where(x => !string.IsNullOrWhiteSpace(x)));
-        var maxLength = Math.Max(1, CPH.GetGlobalVar<int?>("rts.actionreplay.message.list.maxLength", true) ?? 500);
-        if (message.Length > maxLength) message = maxLength == 1 ? "…" : message.Substring(0, maxLength - 1) + "…";
-        CPH.SetArgument("formattedList", message);
-        return !string.IsNullOrWhiteSpace(message);
+        if (!string.IsNullOrWhiteSpace(current)) chunks.Add(current);
+        CPH.SetArgument("formattedLists", chunks.ToString(Newtonsoft.Json.Formatting.None));
+        return chunks.Count > 0;
     }
+
+    private int ChatLimit(string platform) => string.Equals(platform, "YouTube", StringComparison.OrdinalIgnoreCase) ? 200 : 500;
 
     private string SourcePlatform()
     {
