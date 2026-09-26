@@ -9,6 +9,17 @@
 
   const bar = document.createElement('aside');
   bar.id = 'rts-dev-toolbar';
+  const devClapperStyle = document.createElement('style');
+  devClapperStyle.textContent = `
+    #clapper-card.dev-clapper-cinematic .slate { border-width:1px; border-radius:4px; box-shadow:inset 0 0 0 1px #ffffff12,0 18px 50px #000b; }
+    #clapper-card.dev-clapper-cinematic .clapstick { border-width:1px; box-shadow:0 5px 12px #000b; }
+    #clapper-card.dev-clapper-cut .slate { border-radius:0; border-width:4px; box-shadow:inset 0 -14px 0 var(--accent-color),0 12px 32px #000b; }
+    #clapper-card.dev-clapper-cut .clapstick { border-radius:0; transform:rotate(0deg); box-shadow:none; }
+    #clapper-card.dev-clapper-minimal .slate { background:color-mix(in srgb,var(--board-color) 94%,black); border-width:1px; border-radius:3px; box-shadow:0 0 30px #0009; }
+    #clapper-card.dev-clapper-minimal .clapstick { border-width:1px; box-shadow:none; }
+    #clapper-card.dev-clapper-minimal .hinge { border-width:1px; box-shadow:none; }
+  `;
+  document.head.appendChild(devClapperStyle);
   const section = (key, title, extra = '') => `
     <section class="dev-section" data-target="${key}"><h3>${title}</h3>
       ${title === 'Panel' ? '<label>Panel Type<select data-control="panel-type"><option value="recent">Recent Clips</option><option value="search">Search Results</option><option value="playlist">Playlist</option></select></label>' : ''}
@@ -226,7 +237,7 @@
     card?.classList.add('dev-clapper-' + style);
     sectionFor('clapper').querySelector('[data-action="show"]').textContent='Hide Clapperboard';
   };
-  const hideClapper = () => { RTSReplayMessages.clapperboardTimer && clearTimeout(RTSReplayMessages.clapperboardTimer); RTSAnimationEngine.createRunner({target:RTSReplayMessages.clapperCard?.querySelector('.clapper-position')}).cancel(); RTSReplayMessages.clapperCard?.classList.remove('show'); RTSReplayMessages.clapperCard?.setAttribute('aria-hidden','true'); sectionFor('clapper').querySelector('[data-action="show"]').textContent='Show Clapperboard'; };
+  const hideClapper = () => { RTSReplayMessages.clapperboardTimer && clearTimeout(RTSReplayMessages.clapperboardTimer); RTSAnimationEngine.createRunner({target:RTSReplayMessages.clapperCard?.querySelector('.clapper-position')}).cancel(); RTSReplayMessages.clapperCard?.classList.remove('show','dev-clapper-broadcast','dev-clapper-cinematic','dev-clapper-cut','dev-clapper-minimal'); RTSReplayMessages.clapperCard?.setAttribute('aria-hidden','true'); sectionFor('clapper').querySelector('[data-action="show"]').textContent='Show Clapperboard'; };
 
   const animationCommand = target => {
     const next = command();
