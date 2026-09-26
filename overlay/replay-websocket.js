@@ -30,7 +30,7 @@ RTSReplayWebSocket.setStatus = (text, state = '') => {
 RTSReplayWebSocket.connect = () => {
   clearTimeout(RTSReplayWebSocket.reconnectTimer);
   const { host, port } = RTSReplayWebSocket.config;
-  RTSReplayWebSocket.setStatus(`Connecting to Streamer.bot at ws://${host}:${port}/…`);
+  RTSReplayWebSocket.setStatus(`Connecting to Streamer.bot at ws://${host}:${port}/...`);
   RTSReplayWebSocket.socket = new WebSocket(`ws://${host}:${port}/`);
 
   RTSReplayWebSocket.socket.onopen = () => {
