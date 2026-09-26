@@ -35,6 +35,21 @@ public class CPHInline
             ["globals"] = new JObject()
         };
 
+        var previewRaw = CPH.GetGlobalVar<string>("rts.actionreplay.overlayPreview", false);
+        if (!string.IsNullOrWhiteSpace(previewRaw))
+        {
+            try
+            {
+                config["preview"] = JObject.Parse(previewRaw);
+            }
+            catch
+            {
+                CPH.LogWarn("RTS Action Replay: invalid overlay preview payload.");
+            }
+
+            CPH.SetGlobalVar("rts.actionreplay.overlayPreview", null, false);
+        }
+
         var globals = (JObject)config["globals"];
         var names = new[] {
             "uiTheme","replayFolder","replayFileTypes","httpMapping","httpPort","replayTitle","maxRecent","maxCatalog",
