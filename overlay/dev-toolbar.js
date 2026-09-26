@@ -27,6 +27,7 @@
     ${section('player', 'Player', `
       <div class="dev-grid"><label>Title Style<select id="rts-dev-title-style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label><label>Title Position<select id="rts-dev-title-position"><option>top</option><option selected>bottom</option></select></label></div>
       <label>Playback Speed<select id="rts-dev-speed"><option>0.25</option><option>0.5</option><option>0.75</option><option selected>1</option><option>1.25</option><option>1.5</option><option>1.75</option><option>2</option></select></label>
+      <label>Test Clip<select id="rts-dev-test-clip"></select></label>
       <label>Preview Title<input id="rts-dev-title" value="FIRST TEST — REPLAY CAPTURE"></label>
       <button data-action="title-toggle">Show Title</button>
       <button data-action="position-test">Test Animation</button>`)}
@@ -77,8 +78,25 @@
     if (step?.easing) easing(sectionFor(target)).value = step.easing;
     if (step?.duration != null) controls(target, 'duration').value = Number(step.duration) / 1000;
   };
+  const refreshTestClips = () => {
+    const select = document.getElementById('rts-dev-test-clip');
+    if (!select) return;
+    const clips = Array.isArray(window.rtsOverlayConfig?.previewCatalog) ? window.rtsOverlayConfig.previewCatalog : [];
+    const old = select.value;
+    select.replaceChildren(...clips.map((clip, index) => {
+      const id = String(clip?.id || '');
+      const title = String(clip?.title || 'Untitled Replay');
+      const creator = String(clip?.creator?.name || clip?.creator || 'Unknown Creator');
+      const source = String(clip?.sourceType || clip?.sourcePlatform || '');
+      const label = `#${index + 1} ${title} — ${creator}${source ? ` [${source}]` : ''}`;
+      return new Option(label, id);
+    }));
+    if (clips.some(clip => String(clip?.id || '') === old)) select.value = old;
+    else if (clips[0]?.id) select.value = String(clips[0].id);
+  };
   const refresh = () => {
     Object.keys(targets).forEach(refreshTarget);
+    refreshTestClips();
     const title = RTSReplayElements?.title;
     const toggle = bar.querySelector('[data-action="title-toggle"]');
     if (toggle) toggle.textContent = title?.classList.contains('visible') ? 'Hide Title' : 'Show Title';
@@ -124,6 +142,7 @@
   const completePlayer = () => {
     const next = animationCommand('player');
     const profile = selected('player', 'profile') || {};
+    const replayId = document.getElementById('rts-dev-test-clip')?.value || '';
     showPlayer();
     RTSReplayVideo.runAnimationProfile(next, () => {
       const request = window.RTSReplay?.requestAction;
@@ -133,7 +152,8 @@
         {
           rtsDevTest:'TestVideo',
           rtsDevComplete:'true',
-          rtsDevAnimationProfileId: profile.id || 'default'
+          rtsDevAnimationProfileId: profile.id || 'default',
+          rtsDevReplayId: replayId
         },
         'rts-dev-complete-'+Date.now()
       );
@@ -252,10 +272,15 @@
   bar.querySelector('#rts-dev-title-style').addEventListener('change',() => applyTitleSettings(true));
   bar.querySelector('#rts-dev-title-position').addEventListener('change',() => applyTitleSettings(true));
   bar.querySelector('#rts-dev-speed').addEventListener('change',event=>setSpeed(event.target.value));
+  bar.querySelector('#rts-dev-test-clip').addEventListener('change',event => {
+    const clip = (window.rtsOverlayConfig?.previewCatalog || []).find(item => String(item?.id || '') === String(event.target.value || ''));
+    if (!clip) return;
+    const next = { ...command(), replayTitle: String(clip.title || 'Test Replay') };
+    RTSReplay.command = next; RTSReplayVideo.currentCommand = next;
+  });
   const setPlayerVisibility = visible => {
     const button = sectionFor('player')?.querySelector('[data-action="show"]');
     if (button) button.textContent = visible ? 'Hide Player' : 'Show Player';
   };
   window.RTSDevToolbar = { ...(window.RTSDevToolbar || {}), refresh, setPlayerVisibility };
   refresh();
-})();
