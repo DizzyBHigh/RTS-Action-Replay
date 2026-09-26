@@ -1079,7 +1079,7 @@
           {
             "number": ".2",
             "title": "Create [[blue:OBS]], [[purple:Twitch]], [[red:YouTube]], and [[green:Kick]] settings",
-            "text": "Each platform can have its own Animation Profile, Design Preset, Title Preset, and Branding Preset.\\nThe Create settings determine how the player looks when a clip is created on that platform.",
+            "text": "Each platform can have its own Animation Profile, Design Preset, Title Preset, and Branding Preset.\\nThe Create settings determine how the player looks when a clip is created and played from that platform.",
             "images": [
               {
                 "src": "assets/images/action-replay-settings-player-behaviour-create.png",
@@ -1118,7 +1118,7 @@
             "settings": [
               {
                 "title": "Change Player Branding to Clip Source",
-                "description": "Uses the branding of the platform the clip was captured on, e.g. If the clip was created on twitch it will use the twitch branding preset when being played. Each clip in the playlist will change the branding of the player to match the clip source platform.\\nIf a branding preset does not exist for the source platform, it will use the Branding Preset set in the Play Replay settings.",
+                "description": "Uses the branding of the platform the clip was captured on, e.g. If the clip was created on twitch it will use the twitch branding preset when being played. Each clip in the playlist will change the branding of the player to match the platform the clip was created on.",
                 "images": [
                   {
                     "src": "assets/images/action-replay-settings-player-behaviour-playback-use-source-branding.png",
@@ -1128,19 +1128,19 @@
               },
               {
                 "title": "Branding Preset",
-                "description": "Selects the Branding Preset to be used when a clip is played from the playlist, recent clips, or last played. If Change Player Branding to Clip Source is enabled, this setting will be ignored when a clip is played from a source platform that has a matching branding preset."
+                "description": "Selects the Branding Preset to be used when a clip is played from the playlist, recent clips, or last played."
               },
               {
                 "title": "Design Preset",
-                "description": "Selects the Design Preset to be used when a clip is played from the playlist, recent clips, or last played. If Change Player Branding to Clip Source is enabled, this setting will be ignored when a clip is played from a source platform that has a matching branding preset."
+                "description": "Selects the Design Preset to be used when a clip is played from the playlist, recent clips, or last played."
               },
               {
                 "title": "Title Preset",
-                "description": "Selects the Title Preset to be used when a clip is played from the playlist, recent clips, or last played. If Change Player Branding to Clip Source is enabled, this setting will be ignored when a clip is played from a source platform that has a matching branding preset."
+                "description": "Selects the Title Preset to be used when a clip is played from the playlist, recent clips, or last played."
               },
               {
                 "title": "Animation Profile",
-                "description": "Selects the Animation Profile to be used when a clip is played from the playlist, recent clips, or last played. If Change Player Branding to Clip Source is enabled, this setting will be ignored when a clip is played from a source platform that has a matching branding preset."
+                "description": "Selects the Animation Profile to be used when a clip is played from the playlist, recent clips, or last played."
               }
             ]
           }
@@ -1149,42 +1149,127 @@
       {
         "number": "13",
         "title": "Panel Behaviour",
-        "description": "Configure the presentation for Recent / Search, Playlist and Leaderboards.",
+        "description": "The Panel Behaviour tab allows you to configure how the panels look and behave, there are several options available to customize the appearance and behavior of the panels.\\n you can configure each panel type separately [[yellow:Recent/Search]], [[yellow:Playlist]] and [[yellow:Leaderboards]].",
         "substeps": [
           {
             "number": ".1",
-            "title": "Panel Behaviour",
-            "text": "Configure the presentation for Recent / Search, Playlist and Leaderboards.",
+            "title": "Use Source Platform Branding",
+            "text": "When this is selected, the recent/search will use the branding preset asscociated with the platform that the request came from.",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Panel Behaviour"
+                "src": "assets/images/action-replay-settings-panel-behaviour-use-source-branding.png",
+                "alt": "Screenshot for Panel Behaviour Use Source Platform Branding"
+              }
+            ]
+          },
+          {
+            "number": ".2",
+            "title": "Recent / Search",
+            "text": "When this is selected, the panels will use the branding preset asscociated with the platform that the request came from.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-panel-behaviour-recent-search.png",
+                "alt": "Screenshot for Panel Behaviour recent/search"
+              }
+            ],
+            "Settings": [
+              {
+                "title": "Branding Preset",
+                "text": "The branding preset to use for the recent/search panel when Use Source Platform Branding is not selected."
+              },
+              {
+                "title": "Design Preset",
+                "text": "The design preset to use for the recent/search panel"
+              },
+              {
+                "title": "Animation Profile",
+                "text": "The animation profile to use for the recent/search panel"
+              }
+            ]   
+          },
+          {
+            "number": ".3",
+            "title": "Playlist",
+            "text": "Whenever a clip is requested, captured or queued, the playlist panel will be updated to reflect the current state of the playlist.\\nThe playlist panel can be configured to use a different branding preset, design preset and animation profile than the recent/search panel.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-panel-behaviour-playlist.png",
+                "alt": "Screenshot for Panel Behaviour Playlist"
+              }
+            ],
+            "Settings": [
+              {
+                "title": "Branding Preset",
+                "text": "The branding preset to use for the recent/search panel when Use Source Platform Branding is not selected."
+              },
+              {
+                "title": "Design Preset",
+                "text": "The design preset to use for the recent/search panel"
+              },
+              {
+                "title": "Animation Profile",
+                "text": "The animation profile to use for the recent/search panel"
               }
             ],
             "commands": [
-              "search",
-              "next-page",
-              "previous-page",
-              "first-page",
-              "last-page",
-              "show-current-search-page"
+              "list-playlist",
+              "playlist-clear",
+              "playlist-clear-all",
+              "playlist-pause",
+              "playlist-resume",
+              "playlist-remove"
+            ]
+          },
+          {
+            "number": ".4",
+            "title": "Leaderboards Creator and Most Views",
+            "text": "Action Replay keeps track of the most viewed clips and the creators with the most clips created.\\nThe leaderboard panels can be configured to use a different branding preset, design preset and animation profile than the recent/search panel.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-panel-behaviour-leaderboard.png",
+                "alt": "Screenshot for Panel Behaviour Leaderboard"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Branding Preset",
+                "text": "The branding preset to use for the Leaderboard panel when Use Source Platform Branding is not selected."
+              },
+              {
+                "title": "Design Preset",
+                "text": "The design preset to use for the Leaderboard panel"
+              },
+              {
+                "title": "Animation Profile",
+                "text": "The animation profile to use for the Leaderboard panel"
+              }
+            ],
+            "commands": [
+              "leaderboard-creator",
+              "leaderboard-most-views"
             ]
           }
         ]
       },
       {
-        "number": "17",
+        "number": "14",
         "title": "Message Behaviour",
         "description": "Configure how transient messages are presented in the overlay.",
+        "images": [
+          {
+            "src": "assets/images/action-replay-settings-message-behaviour.png",
+            "alt": "Screenshot for Message Behaviour Use Source Platform Branding"
+          }
+        ],
         "substeps": [
           {
             "number": ".1",
-            "title": "Message Behaviour",
-            "text": "Configure how transient messages are presented in the overlay.",
+            "title": "Use Source Platform Branding",
+            "text": "When this is set the messages will use the branding of the platform the request came from.",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Message Behaviour"
+                "src": "assets/images/action-replay-settings-message-behaviour-use-source-branding.png",
+                "alt": "Screenshot for Message Behaviour Use Source Platform Branding"
               }
             ],
             "settings": [
@@ -1195,23 +1280,15 @@
               },
               {
                 "title": "Design Preset",
-                "description": "Design used by transient messages.",
-                "value": ""
+                "description": "Design used by transient messages."
               },
               {
                 "title": "Animation Profile",
-                "description": "Animation used by transient messages.",
-                "value": ""
+                "description": "Animation used by transient messages."
               },
               {
                 "title": "Display Time",
-                "description": "Time the message remains visible before its end animation begins, in milliseconds.",
-                "value": "5000"
-              },
-              {
-                "title": "Use Source Platform Branding",
-                "description": "Uses the platform that initiated the message to select matching branding when available.",
-                "value": ""
+                "description": "Time the message remains visible before its end animation begins, in milliseconds."
               }
             ],
             "commands": [
@@ -1223,18 +1300,40 @@
       {
         "number": "18",
         "title": "Clapperboard Behaviour",
-        "description": "Configure the Clapperboard used when a new replay is created.",
+        "description": "Configure the Clapperboard that is used when a new replay is created.",
+        "images": [
+          {
+            "src": "assets/images/action-replay-settings-clapperboard-behaviour.png",
+            "alt": "Screenshot for Clapperboard Behaviour"
+          }
+        ],
         "substeps": [
           {
             "number": ".1",
-            "title": "Clapperboard Behaviour",
-            "text": "Configure the Clapperboard used when a new replay is created.",
+            "title": "Use Clapperboard",
+            "text": "If selected the clapperboard will be shown when a new clip is created. If this setting is disabled, the message system will be used instead.",
             "images": [
               {
-                "src": "assets/images/documentation-settings-placeholder.svg",
-                "alt": "Documentation screenshot placeholder for Clapperboard Behaviour"
+                "src": "assets/images/action-replay-settings-clapperboard-behaviour-use-clapperboard.png",
+                "alt": "Screenshot for Use Clapperboard setting"
               }
-            ],
+            ]
+          },
+          {
+            "number": ".2",
+            "title": "Use Source Platform Branding",
+            "text": "When this is set the Clapperboard will use the branding of the platform the clip was created on.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-clapperboard-behaviour-use-source-branding.png",
+                "alt": "Screenshot for Clapperboard Behaviour Use Source Platform Branding"
+              }
+            ]
+          },
+          {
+            "number": ".3",
+            "title": "Animation Profile",
+            "text": "The animation profile used by the Clapperboard.",
             "settings": [
               {
                 "title": "Use Clapperboard",
