@@ -136,8 +136,13 @@ public class CPHInline
     public bool View()
     {
         var queue = LoadQueue();
-        if (queue.Count == 0) { SendPlaylistPanel("Playlist is empty."); return true; }
-        SendPlaylistPanel(BuildPlaylistPanelText(queue));
+        var showPanel = CPH.GetGlobalVar<bool?>("rts.actionreplay.message.playlist.panel", true) ?? true;
+        if (queue.Count == 0)
+        {
+            if (showPanel) SendPlaylistPanel("Playlist is empty.");
+            return true;
+        }
+        if (showPanel) SendPlaylistPanel(BuildPlaylistPanelText(queue));
         if (CPH.GetGlobalVar<bool?>("rts.actionreplay.message.playlist.chat", true) ?? true) SendPlaylistChat(queue);
         return true;
     }
