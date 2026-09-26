@@ -122,10 +122,12 @@ public class CPHInline
 
     public bool TestVideo()
     {
-        var replay = FirstReplay();
+        var replay = SelectedReplay();
         if (replay == null) return false;
         var devComplete = CPH.TryGetArg("rtsDevComplete", out string complete) && string.Equals(complete, "true", StringComparison.OrdinalIgnoreCase);
         SetReplayArgs(replay);
+        if (CPH.TryGetArg("rtsDevReplayId", out string devReplayId) && !string.IsNullOrWhiteSpace(devReplayId))
+            CPH.SetArgument("rtsDevReplayId", devReplayId.Trim());
         if (devComplete)
         {
             CPH.SetArgument("replayDevComplete", true);
@@ -196,6 +198,22 @@ public class CPHInline
         var raw = CPH.GetGlobalVar<string>(DataKey, true);
         try { var catalog = JObject.Parse(raw ?? "{}")["catalog"] as JArray; return catalog?.FirstOrDefault() as JObject; }
         catch { return null; }
+    }
+
+    private JObject SelectedReplay()
+    {
+        if (CPH.TryGetArg("rtsDevReplayId", out string replayId) && !string.IsNullOrWhiteSpace(replayId))
+        {
+            var raw = CPH.GetGlobalVar<string>(DataKey, true);
+            try
+            {
+                var catalog = JObject.Parse(raw ?? "{}")["catalog"] as JArray ?? new JArray();
+                var selected = catalog.OfType<JObject>().FirstOrDefault(x => string.Equals((string)x["id"], replayId.Trim(), StringComparison.OrdinalIgnoreCase));
+                if (selected != null) return selected;
+            }
+            catch { }
+        }
+        return FirstReplay();
     }
 
     private double Rating(JObject replay)
