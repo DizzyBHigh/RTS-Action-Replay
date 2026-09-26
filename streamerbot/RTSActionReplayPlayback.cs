@@ -74,6 +74,12 @@ public class CPHInline
         if (CPH.TryGetArg("rtsDevAnimationProfileId", out string devProfile) && !string.IsNullOrWhiteSpace(devProfile))
             operation["animationProfileId"] = devProfile.Trim();
         if (string.Equals(source, "YouTube", StringComparison.OrdinalIgnoreCase)) { operation["replayStartTime"] = (long?)replay["startTime"] ?? 0; operation["replayDuration"] = (int?)replay["duration"] ?? 0; }
+        if (CPH.TryGetArg("replayDevComplete", out string devComplete) && string.Equals(devComplete, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            operation["replayDevComplete"] = true;
+            operation["replayDevSkipIn"] = true;
+        }
+        CPH.LogInfo($"RTS Action Replay TRACE: dev test video prepared; replayId={(string)replay["id"]}; source={source}; url={url}; complete={(bool?)operation["replayDevComplete"] == true};");
         CPH.SetGlobalVar(PlayerOperationKey, operation.ToString(Newtonsoft.Json.Formatting.None), false);
         return true;
     }
