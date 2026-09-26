@@ -497,7 +497,7 @@ public class CPHInline
         return CPH.Parse(format, values) ?? "";
     }
 
-    private int ChatLimit(string platform) => string.Equals(platform, "YouTube", StringComparison.OrdinalIgnoreCase) ? 200 : 500;
+    private int ChatLimit(string platform){var key=platform?.ToLowerInvariant() switch{"twitch"=>"rts.actionreplay.message.chatLimit.twitch","youtube"=>"rts.actionreplay.message.chatLimit.youtube","kick"=>"rts.actionreplay.message.chatLimit.kick",_=>""};if(string.IsNullOrWhiteSpace(key))return 500;return CPH.GetGlobalVar<int?>(key,true)??(platform?.Equals("YouTube",StringComparison.OrdinalIgnoreCase)==true?200:500);}
 
     private string SourcePlatform()
     {
