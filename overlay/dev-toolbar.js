@@ -255,10 +255,25 @@
     if(target==='player'){ showPlayer(); RTSReplayVideo.runEndAnimationProfile(next,hidePlayer); }
     else if(target==='panel') {
       const panel=devPanelAnimation.panel;
-      const storedCommand=devPanelAnimation.command;
+      const storedCommand=devPanelAnimation.command || panel?._rtsPanelAnimationCommand;
       if (!panel || !storedCommand) return;
-      RTSInformationPanelAnimation.hide(panel,storedCommand,()=>{
-        if(devPanelAnimation.panel===panel) devPanelAnimation={panel:null,command:null};
+      panel._rtsPanelAnimationCommand = storedCommand;
+      panel.classList.add('show');
+      panel.setAttribute('aria-hidden', 'false');
+      const profile = RTSInformationPanelAnimation.profile(storedCommand);
+      window.RTSDevToolbar?.log?.('Dev panel Play Out', {
+        panelType: panel.dataset.rtsInformationPanel || '',
+        profile: profile?.id || '',
+        endSteps: Array.isArray(profile?.end) ? profile.end.length : 0,
+        active: RTSAnimationEngine.createRunner({ target: panel }).getActive?.() || null
+      });
+      RTSInformationPanelAnimation.hide(panel, storedCommand, () => {
+        window.RTSDevToolbar?.log?.('Dev panel Play Out complete', {
+          panelType: panel.dataset.rtsInformationPanel || '',
+          visible: panel.classList.contains('show'),
+          ariaHidden: panel.getAttribute('aria-hidden')
+        });
+        if (devPanelAnimation.panel === panel) devPanelAnimation = { panel: null, command: null };
       });
     }
     else if(target==='message') RTSReplayMessages.hideMessage(next);
