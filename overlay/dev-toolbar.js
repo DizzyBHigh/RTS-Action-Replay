@@ -11,9 +11,9 @@
   bar.id = 'rts-dev-toolbar';
   const section = (key, title, extra = '') => `
     <section class="dev-section" data-target="${key}"><h3>${title}</h3>
-      <div class="dev-grid"><button data-action="show">${title === 'Player' ? 'Show Player' : 'Show ' + title}</button><button data-action="in">Play In</button></div>
-      <div class="dev-grid"><button data-action="hide">Hide</button><button data-action="out">Play Out</button></div>
-      <label>Brand Preset<select data-control="brand"></select></label>
+      <div class="dev-grid"><button data-action="show">${title === 'Player' ? 'Show Player' : 'Show ' + title}</button>${title === 'Player' ? '' : '<button data-action="in">Play In</button>'}</div>
+      ${title === 'Player' ? '' : '<div class="dev-grid"><button data-action="hide">Hide</button><button data-action="out">Play Out</button></div>'}
+      <label>${title === 'Player' ? 'Platform Brand Preset' : 'Brand Preset'}<select data-control="brand"></select></label>
       <label>Animation Profile<select data-control="profile"></select></label>
       <div class="dev-grid"><label>From<select data-control="from"></select></label><label>To<select data-control="to"></select></label></div>
       <div class="dev-grid"><label>Easing<select data-control="easing"><option>linear</option><option>ease-in</option><option selected>ease-in-out</option><option>ease-out</option></select></label><label>Duration (s)<input data-control="duration" type="number" min="0" max="10" step="0.1" value="1"></label></div>
@@ -24,10 +24,13 @@
     <div class="dev-toolbar-header"><strong>RTS DEV</strong><span>DEV CONTROLS</span></div>
     <div class="dev-toolbar-settings"><button data-action="refresh-settings">Get Settings</button><span>Load current Streamer.bot settings</span></div>
     ${section('player', 'Player', `
+      <div class="dev-grid"><button data-action="in">Play In</button><button data-action="out">Play Out</button></div>
+      <button data-action="complete">Complete</button>
       <div class="dev-grid"><label>Title Style<select id="rts-dev-title-style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label><label>Title Position<select id="rts-dev-title-position"><option>top</option><option selected>bottom</option></select></label></div>
       <label>Playback Speed<select id="rts-dev-speed"><option>0.25</option><option>0.5</option><option>0.75</option><option selected>1</option><option>1.25</option><option>1.5</option><option>1.75</option><option>2</option></select></label>
-      <label>Preview Title<input id="rts-dev-title" value="FIRST TEST — REPLAY CAPTURE"></label><button data-action="title">Preview Title</button>
-      <button data-action="position-test">Test Position</button>`)}
+      <label>Preview Title<input id="rts-dev-title" value="FIRST TEST — REPLAY CAPTURE"></label>
+      <button data-action="title-toggle">Show Title</button>
+      <button data-action="position-test">Test Animation</button>`)
     ${section('panel', 'Panel', `<label>Panel Style<select data-control="style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label>`)}}
     ${section('clapper', 'Clapperboard')}
     ${section('message', 'Message', `<label>Preview Message<input data-control="text" value="MESSAGE PREVIEW"></label>`)}
@@ -61,9 +64,16 @@
     fill(target, 'from', names);
     fill(target, 'to', names);
     const profile = selected(target, 'profile');
+    const defaultPosition = target === 'player' ? 'Full Screen' : 'Centered';
     const start = profile?.start?.[0]?.position, end = profile?.end?.at(-1)?.position || start;
-    if (start && names.includes(start)) controls(target, 'from').value = start;
-    if (end && names.includes(end)) controls(target, 'to').value = end;
+    const defaultName = names.find(name => name.toLowerCase() === defaultPosition.toLowerCase());
+    if (defaultName) {
+      controls(target, 'from').value = defaultName;
+      controls(target, 'to').value = defaultName;
+    } else {
+      if (start && names.includes(start)) controls(target, 'from').value = start;
+      if (end && names.includes(end)) controls(target, 'to').value = end;
+    }
     const step = profile?.start?.[0];
     if (step?.easing) easing(sectionFor(target)).value = step.easing;
     if (step?.duration != null) controls(target, 'duration').value = Number(step.duration) / 1000;
@@ -98,6 +108,28 @@
 
   const showPlayer = () => { const player = RTSReplay?.player; if (!player) return; player.classList.add('dev-player','show'); player.style.opacity='1'; player.style.visibility='visible'; RTSReplay.frame?.classList.add('dev-frame'); sectionFor('player').querySelector('[data-action="show"]').textContent='Hide Player'; };
   const hidePlayer = () => { const player = RTSReplay?.player; if (!player) return; RTSReplayVideo.cancelAnimation(); player.classList.remove('show','dev-player'); player.style.opacity=''; player.style.visibility=''; RTSReplay.frame?.classList.remove('dev-frame'); sectionFor('player').querySelector('[data-action="show"]').textContent='Show Player'; };
+  const applyTitleSettings = show => {
+    const next = setCommand('player');
+    next.replayTitle = document.getElementById('rts-dev-title').value.trim() || 'FIRST TEST — REPLAY CAPTURE';
+    next.replayTitleStyle = document.getElementById('rts-dev-title-style').value;
+    next.replayTitlePosition = document.getElementById('rts-dev-title-position').value;
+    RTSReplay.command = next; RTSReplayVideo.currentCommand = next;
+    if (show) RTSReplayElements.showTitle(next); else RTSReplayElements.hideTitle();
+    sectionFor('player').querySelector('[data-action="title-toggle"]').textContent = show ? 'Hide Title' : 'Show Title';
+  };
+  const completePlayer = () => {
+    const next = setCommand('player');
+    showPlayer();
+    RTSReplayVideo.runAnimationProfile(next, () => {
+      const request = window.RTSReplay?.requestAction;
+      if (!request) return;
+      request(
+        {name:'RTS - Action Replay - Core - Test'},
+        {rtsDevTest:'TestVideo', rtsDevComplete:'true'},
+        'rts-dev-complete-'+Date.now()
+      );
+    });
+  };
   const hideDevPanels = () => {
     [RTSReplay?.recentList, RTSSearchPanel?.panel, RTSPlaylistList?.panel].forEach(panel => {
       if (!panel) return;
@@ -157,7 +189,7 @@
     }
   };
   const testPosition = () => { const next=setCommand('player'), from=controls('player','from').value, to=controls('player','to').value, duration=Math.max(.1,Number(controls('player','duration').value)||1)*1000, ease=easing(sectionFor('player')).value; next.replayStartPosition=from; next.replayEndPosition=to; next.replayAnimationDuration=duration; next.replayAnimationEasing=ease; RTSReplayVideo.currentCommand=next; RTSReplay.command=next; showPlayer(); RTSReplayVideo.animateIn(RTSReplayVideo.getPosition(from),RTSReplayVideo.getPosition(to)); };
-  const previewTitle = () => { showPlayer(); const title=RTSReplay?.title; if(!title)return; RTSReplay.hideTitle?.(); title.className=`title-${document.getElementById('rts-dev-title-style').value} title-${document.getElementById('rts-dev-title-position').value}`; title.textContent=document.getElementById('rts-dev-title').value.trim()||'FIRST TEST — REPLAY CAPTURE'; title.classList.add('visible','title-enter'); };
+  const previewTitle = () => applyTitleSettings(true);
   const refreshSettings = () => { const request = window.RTSReplay?.requestAction; if (!request) return false; const button = bar.querySelector('[data-action="refresh-settings"]'); const ok = request({name:'RTS - Action Replay - Core - Resolver'}, {rtsDevConfigRefresh:'true'}, 'rts-dev-config-'+Date.now()); if (button) { const label = button.textContent; button.textContent = ok ? 'Request Sent' : 'WebSocket Offline'; setTimeout(() => { button.textContent = label; }, 1200); } return ok; };
   const setSpeed = value => { const speed=Number(value); if(!Number.isFinite(speed)||!RTSReplay?.video)return; RTSReplay.video.playbackRate=speed; const next={...command(),replayPlaybackSpeed:speed}; RTSReplay.command=next; RTSReplayVideo.currentCommand=next; RTSReplayElements?.configureSpeed?.(next); };
 
@@ -166,9 +198,14 @@
     const section=button.closest('.dev-section'), target=section?.dataset.target, action=button.dataset.action;
     if(action==='show') target==='player' ? (RTSReplay.player?.classList.contains('show')?hidePlayer():(setCommand('player'),showPlayer())) : (target==='clapper' ? (RTSReplayMessages.clapperCard?.classList.contains('show')?hideClapper():showClapper()) : (target==='message'||target==='panel' ? ((target==='message'?RTSReplay.messageCard:RTSReplay.recentList)?.classList.contains('show')?hidePanel(target):showPanel(target)) : null));
     if(action==='hide') target==='player'?hidePlayer():target==='clapper'?hideClapper():hidePanel(target);
-    if(action==='in') playIn(target);
-    if(action==='out') playOut(target);
+    if(action==='in') target==='player' ? playIn(target) : playIn(target);
+    if(action==='out') target==='player' ? playOut(target) : playOut(target);
+    if(action==='complete' && target==='player') completePlayer();
     if(action==='title') previewTitle();
+    if(action==='title-toggle' && target==='player') {
+      const title=RTSReplayElements?.title;
+      applyTitleSettings(!title?.classList.contains('visible'));
+    }
     if(action==='position-test') testPosition();
     if(action==='refresh') refresh(); if(action==='refresh-settings') refreshSettings();
   });
@@ -176,13 +213,16 @@
     const control=event.target.closest('[data-control]'), section=event.target.closest('.dev-section');
     if(!control||!section)return;
     const target=section.dataset.target;
-    if(control.dataset.control==='profile'||control.dataset.control==='brand') setCommand(target);
+    if(control.dataset.control==='profile'||control.dataset.control==='brand') {
+      setCommand(target);
+      if(target==='player' && RTSReplayElements?.title?.classList.contains('visible')) applyTitleSettings(true);
+    }
     if(control.dataset.control==='style' && target==='panel' && (RTSReplay.recentList?.classList.contains('show')||RTSSearchPanel?.panel?.classList.contains('show')||RTSPlaylistList?.panel?.classList.contains('show'))) showPanel('panel');
     if(control.dataset.control==='panel-type' && target==='panel' && (RTSReplay.recentList?.classList.contains('show')||RTSSearchPanel?.panel?.classList.contains('show')||RTSPlaylistList?.panel?.classList.contains('show'))) showPanel('panel');
     if(control.dataset.control==='text' && target==='message' && RTSReplay.messageCard?.classList.contains('show')) showPanel('message');
   });
-  bar.querySelector('#rts-dev-title-style').addEventListener('change',previewTitle);
-  bar.querySelector('#rts-dev-title-position').addEventListener('change',previewTitle);
+  bar.querySelector('#rts-dev-title-style').addEventListener('change',() => applyTitleSettings(true));
+  bar.querySelector('#rts-dev-title-position').addEventListener('change',() => applyTitleSettings(true));
   bar.querySelector('#rts-dev-speed').addEventListener('change',event=>setSpeed(event.target.value));
   window.RTSDevToolbar = { ...(window.RTSDevToolbar || {}), refresh };
   refresh();
