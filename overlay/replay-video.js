@@ -325,7 +325,9 @@ RTSReplayVideo.loadReplay = command => {
 
   playerRunner.configure(command.replayPlayerPositions);
   const profile = RTSAnimationEngine.readProfile(command.replayAnimationProfile);
+  const devComplete = command?.replayDevComplete === true || String(command?.replayDevComplete).toLowerCase() === 'true';
   const devSkipStart = command?.replayDevSkipIn === true || String(command?.replayDevSkipIn).toLowerCase() === 'true';
+  replayDevLog('Replay dev flags', { replayId: command.replayId, devComplete, devSkipStart });
   const startSequence = devSkipStart ? [] : (Array.isArray(profile?.start) ? profile.start : []);
   const startName = command.replayStartPosition || command.replayPosition || 'Full Screen';
   const endName = command.replayEndPosition || startName;
