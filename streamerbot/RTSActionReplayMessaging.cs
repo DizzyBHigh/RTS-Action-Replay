@@ -439,8 +439,11 @@ public class CPHInline
         var chunks = new JArray();
         var current = "";
 
-        foreach (var entry in entries.OfType<JObject>())
+        foreach (var token in entries)
         {
+            var entry = token as JObject;
+            if (entry == null) continue;
+
             var text = FormatListEntryText(format, entry);
             if (string.IsNullOrWhiteSpace(text)) continue;
 
