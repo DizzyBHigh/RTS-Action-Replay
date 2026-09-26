@@ -15,6 +15,7 @@
       ${title === 'Player' ? '' : '<div class="dev-grid"><button data-action="hide">Hide</button><button data-action="out">Play Out</button></div>'}
       <label>${title === 'Player' ? 'Platform Brand Preset' : 'Brand Preset'}<select data-control="brand"></select></label>
       <label>Animation Profile<select data-control="profile"></select></label>
+      ${title === 'Player' ? '<div class="dev-grid"><button data-action="in">Play In</button><button data-action="out">Play Out</button><button data-action="complete">Complete</button></div>' : ''}
       <div class="dev-grid"><label>From<select data-control="from"></select></label><label>To<select data-control="to"></select></label></div>
       <div class="dev-grid"><label>Easing<select data-control="easing"><option>linear</option><option>ease-in</option><option selected>ease-in-out</option><option>ease-out</option></select></label><label>Duration (s)<input data-control="duration" type="number" min="0" max="10" step="0.1" value="1"></label></div>
       ${extra}
@@ -24,14 +25,12 @@
     <div class="dev-toolbar-header"><strong>RTS DEV</strong><span>DEV CONTROLS</span></div>
     <div class="dev-toolbar-settings"><button data-action="refresh-settings">Get Settings</button><span>Load current Streamer.bot settings</span></div>
     ${section('player', 'Player', `
-      <div class="dev-grid"><button data-action="in">Play In</button><button data-action="out">Play Out</button></div>
-      <button data-action="complete">Complete</button>
       <div class="dev-grid"><label>Title Style<select id="rts-dev-title-style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label><label>Title Position<select id="rts-dev-title-position"><option>top</option><option selected>bottom</option></select></label></div>
       <label>Playback Speed<select id="rts-dev-speed"><option>0.25</option><option>0.5</option><option>0.75</option><option selected>1</option><option>1.25</option><option>1.5</option><option>1.75</option><option>2</option></select></label>
       <label>Preview Title<input id="rts-dev-title" value="FIRST TEST — REPLAY CAPTURE"></label>
       <button data-action="title-toggle">Show Title</button>
       <button data-action="position-test">Test Animation</button>`)
-    ${section('panel', 'Panel', `<label>Panel Style<select data-control="style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label>`)}}
+    ${section('panel', 'Panel', `<label>Panel Style<select data-control="style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label>`)}
     ${section('clapper', 'Clapperboard')}
     ${section('message', 'Message', `<label>Preview Message<input data-control="text" value="MESSAGE PREVIEW"></label>`)}
     <div class="dev-toolbar-footer"><span>?dev=true</span><div class="dev-grid"><button data-action="refresh">Refresh UI</button></div></div>`;
