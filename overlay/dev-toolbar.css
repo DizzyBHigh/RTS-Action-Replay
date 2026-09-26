@@ -1,3 +1,4 @@
+#rts-dev-toolbar .dev-separator{height:1px;margin:10px 0;border:0;background:#f0c400;box-shadow:0 0 4px rgba(240,196,0,.35)}
 #rts-dev-viewport{position:fixed;top:0;right:0;bottom:0;left:286px;z-index:1;overflow:hidden;background:#fff;touch-action:none;cursor:grab}
 #rts-dev-viewport.dragging{cursor:grabbing}
 #rts-dev-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
