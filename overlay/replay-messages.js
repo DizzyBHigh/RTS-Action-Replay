@@ -114,6 +114,8 @@ RTSReplayMessages.showClapperboard = command => {
   if (!text) return;
 
   const card = RTSReplayMessages.clapperCard;
+  const logo = card.querySelector('#brand-logo');
+  const fallback = card.querySelector('#brand-fallback');
   RTSReplayMessages.clapperMessageText.textContent = text;
   const showBranding = command.replayShowClapperBranding !== false;
   card.querySelector('.brand').style.display = showBranding ? '' : 'none';
@@ -125,26 +127,26 @@ RTSReplayMessages.showClapperboard = command => {
   card.style.setProperty('--message-font', command.replayMessageFont || 'Arial, sans-serif');
   const fallbackText = command.replayBrandFallbackText || 'RTS';
   const brandLabel = command.replayBrandLabel || 'ACTION REPLAY';
-  RTSReplayMessages.brandFallback.textContent = fallbackText;
+  fallback.textContent = fallbackText;
   const label = card.querySelector('.brand small');
   if (label) label.textContent = brandLabel;
-  RTSReplayMessages.brandFallback.style.color = command.replayBrandFallbackTextColor || command.replayBrandPrimaryColor || '#0384cb';
+  fallback.style.color = command.replayBrandFallbackTextColor || command.replayBrandPrimaryColor || '#0384cb';
   if (label) label.style.color = command.replayBrandLabelColor || '#ddd';
 
   if (logoUrl) {
-    RTSReplayMessages.brandLogo.onload = () => {
-      RTSReplayMessages.brandLogo.style.display = 'block';
-      RTSReplayMessages.brandFallback.style.display = 'none';
+    logo.onload = () => {
+      logo.style.display = 'block';
+      fallback.style.display = 'none';
     };
-    RTSReplayMessages.brandLogo.onerror = () => {
-      RTSReplayMessages.brandLogo.style.display = 'none';
-      RTSReplayMessages.brandFallback.style.display = 'block';
+    logo.onerror = () => {
+      logo.style.display = 'none';
+      fallback.style.display = 'block';
     };
-    RTSReplayMessages.brandLogo.src = logoUrl;
+    logo.src = logoUrl;
   } else {
-    RTSReplayMessages.brandLogo.removeAttribute('src');
-    RTSReplayMessages.brandLogo.style.display = 'none';
-    RTSReplayMessages.brandFallback.style.display = 'block';
+    logo.removeAttribute('src');
+    logo.style.display = 'none';
+    fallback.style.display = 'block';
   }
 
   clearTimeout(RTSReplayMessages.clapperboardTimer);
