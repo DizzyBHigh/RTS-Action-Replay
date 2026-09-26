@@ -1047,14 +1047,43 @@
               {
                 "title": "Delay",
                 "description": "How long to wait before starting the next item in the sequence."
+              }
+            ]
+          },
+          {
+            "number": ".3",
+            "title": "End Sequence",
+            "text": "An End sequence is created from 1 or more positions defined in the elements [[yellow:Position Editor]]; only the positions for the current element will be shown, i.e., player positions cannot be used in Panel Sequences",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-animation-profiles-end-sequence.png",
+                "alt": "Screenshot for Animation Sequence Editor"
+              }
+            ],
+            "settings": [
+              {
+                "title": "The First item in an End Sequence",
+                "description": "The end Sequnce effectite start position  is taken from where it is currently displayed in the overlay, (e.g. the last position in the Start Sequence). The first item in the End Sequence will transition from the current position to the first item in the End Sequence. Then continue the other steps, It is reccomended that the last step in thee sequnce is a position off screen or with its width and height set to 0, so that the element is hidden at the end of the sequence."
               },
               {
-                "title": "When the sequence ends",
-                "description": "Once the sequence is complete, the element will remain in its current position until its end sequence is triggered.\\nFor Messages, Panels, and the Clapperboard, this will be the duration they are set to be displayed for; for the player, the end sequence will start when the last queued video has finished playing or the player is hiddden manually."
+                "title": "Adding items to a sequence",
+                "description": "Click Add Row to add a new step in the sequence, the animation engine will use the rows setting and transition from the last item to smoothly transition to the next item."
               },
               {
-                "title": "End Sequence",
-                "description": "The end sequence operates the same way as a start sequence, except it animates from the current position of the element to the first element in the sequence and then continues each step of the sequence. Position, Duration, Easing, and delay are all taken into account for every row added."
+                "title": "Position",
+                "description": "Select the position you want to transition to"
+              },
+              {
+                "title": "Duration",
+                "description": "The duration for the transition in milliseconds (1000ms = 1 second)."
+              },
+              {
+                "title": "Easing",
+                "description": "How you want the transition animation to run; easing affects the speed of the transition at its start and end. There are 4 easing settings to choose from."
+              },
+              {
+                "title": "Delay",
+                "description": "How long to wait before starting the next item in the sequence."
               }
             ]
           }
@@ -1175,15 +1204,15 @@
             "Settings": [
               {
                 "title": "Branding Preset",
-                "text": "The branding preset to use for the recent/search panel when Use Source Platform Branding is not selected."
+                "description": "The branding preset to use for the recent/search panel when Use Source Platform Branding is not selected."
               },
               {
                 "title": "Design Preset",
-                "text": "The design preset to use for the recent/search panel"
+                "description": "The design preset to use for the recent/search panel"
               },
               {
                 "title": "Animation Profile",
-                "text": "The animation profile to use for the recent/search panel"
+                "description": "The animation profile to use for the recent/search panel"
               }
             ]   
           },
@@ -1200,15 +1229,15 @@
             "Settings": [
               {
                 "title": "Branding Preset",
-                "text": "The branding preset to use for the recent/search panel when Use Source Platform Branding is not selected."
+                "description": "The branding preset to use for the recent/search panel when Use Source Platform Branding is not selected."
               },
               {
                 "title": "Design Preset",
-                "text": "The design preset to use for the recent/search panel"
+                "description": "The design preset to use for the recent/search panel"
               },
               {
                 "title": "Animation Profile",
-                "text": "The animation profile to use for the recent/search panel"
+                "description": "The animation profile to use for the recent/search panel"
               }
             ],
             "commands": [
@@ -1233,15 +1262,15 @@
             "settings": [
               {
                 "title": "Branding Preset",
-                "text": "The branding preset to use for the Leaderboard panel when Use Source Platform Branding is not selected."
+                "description": "The branding preset to use for the Leaderboard panel when Use Source Platform Branding is not selected."
               },
               {
                 "title": "Design Preset",
-                "text": "The design preset to use for the Leaderboard panel"
+                "description": "The design preset to use for the Leaderboard panel"
               },
               {
                 "title": "Animation Profile",
-                "text": "The animation profile to use for the Leaderboard panel"
+                "description": "The animation profile to use for the Leaderboard panel"
               }
             ],
             "commands": [
@@ -1275,8 +1304,7 @@
             "settings": [
               {
                 "title": "Branding Preset",
-                "description": "Branding used by transient messages, with source-platform fallback when enabled.",
-                "value": ""
+                "description": "Branding used by transient messages, with source-platform fallback when enabled."
               },
               {
                 "title": "Design Preset",
