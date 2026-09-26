@@ -174,17 +174,36 @@
   const showClapper = () => { const next=setCommand('clapper'); RTSReplayMessages.showClapperboard({ ...next, replayMessage:next.replayMessage || 'CLAPPERBOARD PREVIEW' }); sectionFor('clapper').querySelector('[data-action="show"]').textContent='Hide Clapperboard'; };
   const hideClapper = () => { RTSReplayMessages.clapperboardTimer && clearTimeout(RTSReplayMessages.clapperboardTimer); RTSAnimationEngine.createRunner({target:RTSReplayMessages.clapperCard?.querySelector('.clapper-position')}).cancel(); RTSReplayMessages.clapperCard?.classList.remove('show'); RTSReplayMessages.clapperCard?.setAttribute('aria-hidden','true'); sectionFor('clapper').querySelector('[data-action="show"]').textContent='Show Clapperboard'; };
 
+  const animationCommand = target => {
+    const next = command();
+    const profile = selected(target, 'profile') || {};
+    next[targets[target].animation] = JSON.stringify({
+      id: profile.id || 'default',
+      name: profile.name || 'Default',
+      start: Array.isArray(profile.start) ? profile.start : [],
+      end: Array.isArray(profile.end) ? profile.end : []
+    });
+    return next;
+  };
   const playIn = target => {
-    const next=setCommand(target);
+    const next = animationCommand(target);
     if(target==='player'){ showPlayer(); RTSReplayVideo.runAnimationProfile(next); }
-    else if(target==='panel') { const panel=RTSReplay.recentList; panel._rtsPanelAnimationCommand=next; RTSInformationPanelAnimation.show(panel,next,next.replayPanelPosition); }
+    else if(target==='panel') {
+      const panel=RTSReplay.recentList;
+      if (!panel) return;
+      panel._rtsPanelAnimationCommand=next;
+      RTSInformationPanelAnimation.show(panel,next,next.replayPanelPosition || 'Centered');
+    }
     else if(target==='message') RTSReplayMessages.showMessage(next);
     else showClapper();
   };
   const playOut = target => {
-    const next=setCommand(target);
+    const next = animationCommand(target);
     if(target==='player'){ showPlayer(); RTSReplayVideo.runEndAnimationProfile(next,hidePlayer); }
-    else if(target==='panel') RTSInformationPanels.hide(RTSReplay.recentList,next);
+    else if(target==='panel') {
+      const panel=RTSReplay.recentList;
+      if (panel) RTSInformationPanels.hide(panel,next);
+    }
     else if(target==='message') RTSReplayMessages.hideMessage(next);
     else {
       const card=RTSReplayMessages.clapperCard, profile=RTSAnimationEngine.readProfile(next.replayClapperAnimation);
