@@ -1370,28 +1370,23 @@
             "settings": [
               {
                 "title": "Use Clapperboard",
-                "description": "Uses the Clapperboard for Replay Created instead of the Message system when Replay Created Overlay is enabled.",
-                "value": "On"
+                "description": "Uses the Clapperboard for Replay Created instead of the Message system when Replay Created Overlay is enabled."
               },
               {
                 "title": "Use Source Platform Branding",
-                "description": "Uses the Branding Preset associated with the platform that created the clip when available.",
-                "value": "Off"
+                "description": "Uses the Branding Preset associated with the platform that created the clip when available."
               },
               {
                 "title": "Animation Profile",
-                "description": "Animation profile used by the Clapperboard.",
-                "value": "Default"
+                "description": "Animation profile used by the Clapperboard."
               },
               {
                 "title": "Branding Preset",
-                "description": "Fallback branding used when source-platform branding is disabled or unavailable.",
-                "value": "Default"
+                "description": "Fallback branding used when source-platform branding is disabled or unavailable."
               },
               {
                 "title": "Display Time",
-                "description": "Time the Clapperboard remains visible before its end animation begins, in milliseconds.",
-                "value": "5000"
+                "description": "Time the Clapperboard remains visible before its end animation begins, in milliseconds."
               }
             ],
             "commands": [
