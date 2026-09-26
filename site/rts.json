@@ -36,14 +36,14 @@
   },
   "content": {
     "hero": {
-      "kicker": "RTS [[blue:Streamer.bot]] Extension",
+      "kicker": "RTS [[blue:Action Replay]] Extension",
       "title": "Replay your",
       "titleAccent": "best moments"
     },
     "experience": {
       "kicker": "THE EXPERIENCE",
       "title": "Turn OBS replay clips into an interactive on-stream replay player.",
-      "text": "RTS Action Replay connects OBS Replay Buffer captures, [[blue:Streamer.bot]] and a remote browser overlay so saved clips can be loaded and controlled without a separate web server.",
+      "text": "[yellow:RTS Action Replay]] connects OBS Replay Buffer captures, [[blue:Streamer.bot]] and a remote browser overlay to create a complete clip management system. Capture and play clips from [[blue:OBS]], [[purple:Twitch]], [[red:YouTube]] and [[green:Kick]], build playlists, let your [[blue:community]] search and rate your catalog, control playback directly and create new clips directly from chat. Customize the Player, Panels, Messages and Clapperboard with your own or platform branding, layouts, animations and presets, all from the RTS Action Replay settings.",
       "features": [
         {
           "title": "Supports Twitch, YouTube and Kick",
@@ -74,8 +74,8 @@
   },
   "requirements": [
     "[[blue:Streamer.bot]] with its WebSocket and HTTP servers enabled.",
-    "OBS with Replay Buffer enabled.",
-    "RtsUI.dll for the extension settings interface."
+    "OBS with Replay Buffer enabled. (for local capture of clips)",
+    "RtsUI.dll for the extension settings interface. The extension will automatically update and install this DLL if it is missing or out of date."
   ],
   "setup": {
     "title": "Get Action Replay running.",
