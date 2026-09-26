@@ -16,12 +16,12 @@
   const selected=(t)=>profiles(t).find(p=>String(p.id)===String(state[t.key].profile))||profiles(t)[0];
   const runner=t=>{const target=t.target();if(!target)return null;const r=RTSAnimationEngine.createRunner({target});r.configure(command()[t.pos]);return r};
   const show=(kind)=>{
-    const t=targets[kind], c={...command()}; if(kind==='player'){t.el()?.classList.add('dev-player','show');t.el()?.setAttribute('aria-hidden','false');RTSReplay.frame?.classList.add('dev-frame');}
-    if(kind==='panel'){RTSReplay.showRecentList?.({...c,replayRecent:'dev-preview',replayRecentData:JSON.stringify([{number:'01',title:'FIRST TEST — REPLAY CAPTURE'},{number:'02',title:'GTA V — ACTION REPLAY'},{number:'03',title:'CINEMATIC DRIVE'},{number:'04',title:'LATEST REPLAY'}]),replayPanelPosition:state[kind].position||'Centered'});}
+    const t=targets[kind], c={...command()}; if(kind==='player'){const e=t.el();if(!e)return;e.classList.add('dev-player','show');e.style.opacity='1';e.style.visibility='visible';e.setAttribute('aria-hidden','false');RTSReplay.frame?.classList.add('dev-frame');}
+    if(kind==='panel'){const panel=RTSReplay.recentList;if(!panel)return;const command={...c,replayRecent:'dev-preview',replayRecentData:JSON.stringify([{number:'01',title:'FIRST TEST — REPLAY CAPTURE'},{number:'02',title:'GTA V — ACTION REPLAY'},{number:'03',title:'CINEMATIC DRIVE'},{number:'04',title:'LATEST REPLAY'}]),replayPanelPosition:state[kind].position||'Centered'};panel._rtsPanelAnimationCommand=command;RTSReplay.showRecentList?.(command);}
     if(kind==='message'){RTSReplayMessages?.showMessage?.({...c,replayMessage:'MESSAGE TEST PREVIEW',replayMessageDuration:999999});}
     if(kind==='clapper'){RTSReplayMessages?.showClapperboard?.({...c,replayMessage:'CLAPPERBOARD TEST PREVIEW',replayClapperDuration:999999});}
   };
-  const hide=kind=>{const e=targets[kind].el();if(!e)return;if(kind==='player'){RTSReplayVideo.cancelAnimation();e.classList.remove('show','dev-player');RTSReplay.frame?.classList.remove('dev-frame');}else{e.classList.remove('show');e.setAttribute('aria-hidden','true');}};
+  const hide=kind=>{const e=targets[kind].el();if(!e)return;if(kind==='player'){RTSReplayVideo.cancelAnimation();e.classList.remove('show','dev-player');e.style.opacity='';e.style.visibility='';RTSReplay.frame?.classList.remove('dev-frame');e.setAttribute('aria-hidden','true');}else if(kind==='panel'){RTSInformationPanelAnimation?.cancel?.();e.classList.remove('show');e.setAttribute('aria-hidden','true');}else if(kind==='clapper'){const target=e.querySelector('.clapper-position');if(target)RTSAnimationEngine?.createRunner?.({target})?.cancel?.();clearTimeout(RTSReplay.messageTimer);e.classList.remove('show');e.setAttribute('aria-hidden','true');}else{clearTimeout(RTSReplay.messageTimer);e.classList.remove('show');e.setAttribute('aria-hidden','true');}};
   const playProfile=(kind,mode)=>{
     const t=targets[kind],p=selected(t);if(!p)return;show(kind);const r=runner(t);if(!r)return;
     const start=p.startSequence||p.start||[],end=p.endSequence||p.end||[];
