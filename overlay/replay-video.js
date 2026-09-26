@@ -341,10 +341,16 @@ RTSReplayVideo.loadReplay = command => {
     RTSReplayVideo.visiblePosition = endPosition;
     RTSReplayVideo.player.classList.add('show');
     if (alreadyVisible) {
-      playerRunner.cancel();
-      RTSReplayVideo.applyPosition(endPosition, true);
-      RTSReplayVideo.activePosition = endPosition;
-      replayDevLog('YouTube replay loaded while player already visible', { replayId: command.replayId, position: endPosition.name || endName });
+      if (!devComplete) {
+        playerRunner.cancel();
+        RTSReplayVideo.applyPosition(endPosition, true);
+        RTSReplayVideo.activePosition = endPosition;
+      }
+      replayDevLog('YouTube replay loaded while player already visible', {
+        replayId: command.replayId,
+        position: RTSReplayVideo.activePosition?.name || endPosition.name || endName,
+        preserveDevCompletePosition: devComplete
+      });
     } else if (devSkipStart) {
       RTSReplayVideo.applyPosition(endPosition, true);
       RTSReplayVideo.activePosition = endPosition;
@@ -366,7 +372,9 @@ RTSReplayVideo.loadReplay = command => {
   RTSReplayVideo.video.style.display = 'block';
   RTSReplayVideo.visiblePosition = endPosition;
   if (alreadyVisible) {
-    replayDevLog('Replay loaded while player already visible; preserving current position', { replayId: command.replayId, position: RTSReplayVideo.activePosition?.name || '<live>' });
+    if (!devComplete) {
+      replayDevLog('Replay loaded while player already visible; preserving current position', { replayId: command.replayId, position: RTSReplayVideo.activePosition?.name || '<live>' });
+    }
   } else if (devSkipStart) {
     RTSReplayVideo.player.classList.add('show');
     RTSReplayVideo.applyPosition(endPosition, true);
