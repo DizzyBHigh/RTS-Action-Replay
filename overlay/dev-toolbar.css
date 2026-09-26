@@ -46,6 +46,9 @@
 #rts-dev-toolbar .dev-section[data-target]{border-left:2px solid rgba(3,132,203,.55)}
 #rts-dev-toolbar .dev-section[data-target] h3{display:flex;align-items:center;justify-content:space-between}
 #rts-dev-toolbar .dev-section[data-target="message"]{border-left-color:rgba(255,255,255,.35)}
-#rts-dev-toolbar .dev-section[data-target="panel"]{border-color:rgba(240,196,0,.38);box-shadow:0 0 8px rgba(240,196,0,.06)}
+#rts-dev-toolbar .dev-section[data-target="player"],
+#rts-dev-toolbar .dev-section[data-target="panel"],
+#rts-dev-toolbar .dev-section[data-target="clapper"],
+#rts-dev-toolbar .dev-section[data-target="message"]{border-color:rgba(240,196,0,.38);box-shadow:0 0 8px rgba(240,196,0,.06)}
 
 #rts-dev-toolbar .dev-section[data-target] h3{color:#f0c400}
