@@ -323,7 +323,6 @@
      });
      runner.cancel();
      panel.classList.add('show');
-     panel.setAttribute('aria-hidden', 'false');
      runner.apply(start);
      const complete=()=>{
        if(!controls('panel','reset-to')?.checked) return;
