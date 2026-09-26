@@ -138,7 +138,7 @@
   const hidePlayer = () => { const player = RTSReplay?.player; if (!player) return; RTSReplayVideo.cancelAnimation(); player.classList.remove('show','dev-player'); player.style.opacity=''; player.style.visibility=''; RTSReplay.frame?.classList.remove('dev-frame'); sectionFor('player').querySelector('[data-action="show"]').textContent='Show Player'; };
   const applyTitleSettings = show => {
     const next = setCommand('player');
-    next.replayTitle = document.getElementById('rts-dev-title').value.trim() || 'FIRST TEST — REPLAY CAPTURE';
+    next.replayTitle = document.getElementById('rts-dev-title').value.trim() || 'FIRST TEST - REPLAY CAPTURE';
     next.replayTitleDelay = Math.max(0, Number(document.getElementById('rts-dev-title-delay').value) || 0) * 1000;
     next.replayTitleDuration = Math.max(0, Number(document.getElementById('rts-dev-title-duration').value) || 0) * 1000;
     next.replayTitleStyle = document.getElementById('rts-dev-title-style').value;
@@ -196,7 +196,7 @@
         RTSSearchPanel.show(next);
       } else if (type === 'playlist') {
         next.replayCommand = 'playlist-panel';
-        next.replayPlaylist = '#1 Playlist Preview — RTS Dev | #2 Current Settings Loaded — RTS Dev';
+        next.replayPlaylist = '#1 Playlist Preview - RTS Dev | #2 Current Settings Loaded - RTS Dev';
         RTSPlaylistList.show(next);
       } else {
         next.replayRecent = 'DEV PANEL PREVIEW';
