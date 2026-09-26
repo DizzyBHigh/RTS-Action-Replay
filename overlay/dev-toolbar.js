@@ -22,6 +22,7 @@
 
   bar.innerHTML = `
     <div class="dev-toolbar-header"><strong>RTS DEV</strong><span>DEV CONTROLS</span></div>
+    <div class="dev-toolbar-settings"><button data-action="refresh-settings">Get Settings</button><span>Load current Streamer.bot settings</span></div>
     ${section('player', 'Player', `
       <div class="dev-grid"><label>Title Style<select id="rts-dev-title-style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label><label>Title Position<select id="rts-dev-title-position"><option>top</option><option selected>bottom</option></select></label></div>
       <label>Playback Speed<select id="rts-dev-speed"><option>0.25</option><option>0.5</option><option>0.75</option><option selected>1</option><option>1.25</option><option>1.5</option><option>1.75</option><option>2</option></select></label>
@@ -30,7 +31,7 @@
     ${section('panel', 'Panel', `<label>Panel Style<select data-control="style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label>`)}
     ${section('clapper', 'Clapperboard')}
     ${section('message', 'Message', `<label>Preview Message<input data-control="text" value="MESSAGE PREVIEW"></label>`)}
-    <div class="dev-toolbar-footer"><span>?dev=true</span><div class="dev-grid"><button data-action="refresh-settings">Get Settings</button><button data-action="refresh">Refresh UI</button></div></div>`;
+    <div class="dev-toolbar-footer"><span>?dev=true</span><div class="dev-grid"><button data-action="refresh">Refresh UI</button></div></div>`;
   document.body.prepend(bar);
 
   const targets = {
