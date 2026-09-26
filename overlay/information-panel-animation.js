@@ -47,7 +47,6 @@ RTSInformationPanelAnimation.show = (panel, command, name) => {
   const profile = RTSInformationPanelAnimation.profile(command);
   if (command?.replayInformationPanelType === 'message') RTSInformationPanels.applyMessageSize(panel, command); else RTSInformationPanels.applySize(panel, command);
   panel.classList.add('show');
-  panel.setAttribute('aria-hidden', 'false');
   if (Array.isArray(profile?.start) && profile.start.length) {
     RTSInformationPanelAnimation.run(panel, command, profile.start);
   } else {
@@ -65,14 +64,12 @@ RTSInformationPanelAnimation.hide = (panel, command, complete) => {
   if (!Array.isArray(end) || !end.length) {
     RTSInformationPanelAnimation.cancel();
     panel.classList.remove('show');
-    panel.setAttribute('aria-hidden', 'true');
     complete?.();
     return;
   }
   const runner = getPanelRunner(panel, hideCommand);
   runner.runEnd(end, () => {
     panel.classList.remove('show');
-    panel.setAttribute('aria-hidden', 'true');
     complete?.();
   });
 };
