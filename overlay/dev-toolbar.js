@@ -243,7 +243,17 @@
     next.replayStartPosition=from; next.replayEndPosition=to; next.replayAnimationDuration=duration; next.replayAnimationEasing=ease;
     RTSReplayVideo.currentCommand=next; RTSReplay.command=next; showPlayer();
     const start=RTSReplayVideo.getPosition(from), end=RTSReplayVideo.getPosition(to);
-    const complete=()=>{ if(document.getElementById('rts-dev-reset-to')?.checked) controls('player','to').value=from; };
+    const complete=()=>{
+      const reset=document.getElementById('rts-dev-reset-to')?.checked;
+      if(!reset) return;
+      const toControl=controls('player','to');
+      toControl.value=from;
+      toControl.dispatchEvent(new Event('change',{bubbles:true}));
+      next.replayEndPosition=from;
+      RTSReplayVideo.currentCommand={...RTSReplayVideo.currentCommand,replayEndPosition:from};
+      RTSReplay.command={...RTSReplay.command,replayEndPosition:from};
+    };
+    RTSReplayVideo.cancelAnimation?.();
     RTSReplayVideo.applyPosition(start,true);
     if(RTSReplayVideo.positionsEqual(start,end)) complete();
     else RTSReplayVideo.animatePosition(start,end,complete);
