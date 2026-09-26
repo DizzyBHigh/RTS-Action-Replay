@@ -49,7 +49,7 @@
   };
   const easing = s => s.querySelector('[data-control="easing"]');
   const parse = value => { try { return typeof value === 'string' ? JSON.parse(value || '{}') : value; } catch (_) { return null; } };
-  const command = () => ({ ...(window.RTSReplaySettingsSync?.command || RTSReplayVideo?.currentCommand || RTSReplay?.command || {}) });
+  const command = () => ({ ...(RTSReplayVideo?.currentCommand || RTSReplay?.command || window.RTSReplaySettingsSync?.command || {}) });
   const sectionFor = target => bar.querySelector(`.dev-section[data-target="${target}"]`);
   const controls = (target, name) => sectionFor(target)?.querySelector(`[data-control="${name}"]`);
   const list = (target, name) => { const value = parse(command()[targets[target][name]]); return Array.isArray(value) ? value : []; };
@@ -129,6 +129,7 @@
     let next = applyPresentation(target, animationCommand(target));
     if (!custom) next = command();
     RTSReplay.command = next; RTSReplayVideo.currentCommand = next;
+    if (window.RTSReplaySettingsSync) window.RTSReplaySettingsSync.command = next;
     if (target === 'player') { RTSReplayControls.configure(next); RTSReplayElements.configure(next); }
     return next;
   };
@@ -189,9 +190,12 @@
     panel.classList.remove('show');
     panel.setAttribute('aria-hidden', 'true');
     void panel.offsetWidth;
-    RTSInformationPanels.show(panel, next, next.replayPanelPosition || 'Centered');
     panel._rtsPanelAnimationCommand = next;
     devPanelAnimation = { panel, command: next };
+    RTSReplay.command = next;
+    RTSReplayVideo.currentCommand = next;
+    if (window.RTSReplaySettingsSync) window.RTSReplaySettingsSync.command = next;
+    RTSInformationPanelAnimation.show(panel, next, next.replayPanelPosition || 'Centered');
     return next;
   };
 
@@ -311,6 +315,7 @@
     const target=section.dataset.target;
     if(control.dataset.control==='profile'||control.dataset.control==='brand') {
       setCommand(target);
+      if (target === 'panel' && getDevPanel()?.classList.contains('show')) showPanel('panel');
       if(target==='player' && RTSReplayElements?.title?.classList.contains('visible')) applyTitleSettings(true);
     }
     if((control.dataset.control==='style'||control.dataset.control==='panel-type') && target==='panel' && (RTSReplay.recentList?.classList.contains('show')||RTSSearchPanel?.panel?.classList.contains('show')||RTSPlaylistList?.panel?.classList.contains('show'))) showPanel('panel');
