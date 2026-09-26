@@ -188,7 +188,11 @@ public class CPHInline
         var useSourceBranding=(bool?)entry["changePlayerBrandingToClipSource"]==true;
         if(useSourceBranding){var source=(string)op["replaySourcePlatform"];if(string.IsNullOrWhiteSpace(source))source=ResolveReplaySourcePlatform((string)op["replayId"]);var b=PlatformBranding(source);if(b!=null)brand=(string)b["id"]??brand;}
         else if(useCreateBranding){var source=(string)op["replaySourcePlatform"]??(string)op["replaySource"]??"";var b=PlatformBranding(source);if(b!=null)brand=(string)b["id"]??brand;}
-        ApplyPresentation(design,title,brand,animation,false,useSourceBranding||useCreateBranding); CPH.LogInfo("RTS Action Replay TRACE: Player colours resolved; event arguments set for frame/control/branding."); CPH.TriggerEvent(EventName,true); CPH.UnsetGlobalVar(PlayerOperationKey,false); return true;
+        ApplyPresentation(design,title,brand,animation,false,useSourceBranding||useCreateBranding);
+        if ((bool?)op["replayDevComplete"] == true) CPH.SetArgument("replayDevComplete", true);
+        if ((bool?)op["replayDevSkipIn"] == true) CPH.SetArgument("replayDevSkipIn", true);
+        CPH.LogInfo($"RTS Action Replay TRACE: Player resolved; replayId={(string)op["replayId"]}; devComplete={(bool?)op["replayDevComplete"] == true}; devSkipIn={(bool?)op["replayDevSkipIn"] == true}; source={(string)op["replaySource"] ?? "<unknown>"};");
+        CPH.TriggerEvent(EventName,true); CPH.UnsetGlobalVar(PlayerOperationKey,false); return true;
     }
 
     public bool ResolvePanel()
