@@ -3,7 +3,7 @@
   "id": "rts-action-replay",
   "name": "RTS Action Replay",
   "type": "extension",
-  "description": "Capture OBS replay-buffer clips and play them through a [[blue:Streamer.bot]] controlled browser overlay.\\nUses its own [[blue:fully featured catalog]], with search capabilities. Over [[blue:39 commands]] for complete control through chat on all supported platforms.\\nThe Settings interface allows customisation of [[blue:colours]], [[blue:layout]] and [[blue:behaviour]].",
+  "description": "Capture [[blue:OBS Replay Buffer]] clips and play them through a [[blue:Streamer.bot]] controlled browser overlay. Create a complete clip management system with a [[blue:fully featured catalog]], search, ratings and playlists. Capture and play clips from [[blue:OBS]], [[purple:Twitch]], [[red:YouTube]] and [[green:Kick]] platforms.\\n manage your clip library, and control playback directly from chat with over [[blue:39 commands]] across all supported platforms. The Settings interface provides control over [[blue:colours]], [[blue:layout]], [[blue:behaviour]] of playback, playlists, messages and presentation. Using the [[yellow:RTS Position Editor]], you can position and animate the [[blue:Player]], [[blue:Panels]] and [[blue:Messages]] anywhere on your overlay.",
   "tags": [
     "Streamer.bot",
     "OBS",
@@ -43,14 +43,14 @@
     "experience": {
       "kicker": "THE EXPERIENCE",
       "title": "Turn OBS replay clips into an interactive on-stream replay player.",
-      "text": "[yellow:RTS Action Replay]] connects OBS Replay Buffer captures, [[blue:Streamer.bot]] and a remote browser overlay to create a complete clip management system. Capture and play clips from [[blue:OBS]], [[purple:Twitch]], [[red:YouTube]] and [[green:Kick]], build playlists, let your [[blue:community]] search and rate your catalog, control playback directly and create new clips directly from chat. Customize the Player, Panels, Messages and Clapperboard with your own or platform branding, layouts, animations and presets, all from the RTS Action Replay settings.",
+      "text": "A complete multi-platform clipping and catalog sytem for your replays.",
       "features": [
         {
           "title": "Supports Twitch, YouTube and Kick",
-          "text": "Full support for [[purple:Twitch]],  [[red:YouTube]], and  [[green:Kick]] (via kickbot or kick). Capture clips directly from the platform's chat, and catalog them. Full cross-platform capabilities, with automatic platform branding depending on which platform initiated the command."
+          "text": "Full support for [[purple:Twitch]],  [[red:YouTube]], and [[green:Kick]] (via kickbot or kick). Capture clips directly from each platform's chat with platform-specific branding, depending on which platform initiated the command."
         },
         {
-          "title": "Complete Branding control",
+          "title": "Complete colour control",
           "text": "Customise the [[white:Brand Colours]], [[white:Logo]], and [[white:fonts]] to fit your stream design. [[blue:4 Design presets]] to choose from. Choose different presets for different platforms."
         },
         {
