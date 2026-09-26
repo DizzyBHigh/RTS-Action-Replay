@@ -176,7 +176,7 @@
     });
   };
 
-  const renderDevPanel = (panel, type, command) => {
+  const renderDevPanel = (panel, type, command, animate = true) => {
     if (!panel) return null;
     const next = { ...command, replayTest: true };
     panel.dataset.rtsInformationPanel = type;
@@ -195,7 +195,7 @@
     RTSReplay.command = next;
     RTSReplayVideo.currentCommand = next;
     if (window.RTSReplaySettingsSync) window.RTSReplaySettingsSync.command = next;
-    RTSInformationPanelAnimation.show(panel, next, next.replayPanelPosition || 'Centered');
+    if (animate) RTSInformationPanelAnimation.show(panel, next, next.replayPanelPosition || 'Centered');
     return next;
   };
 
@@ -310,13 +310,19 @@
      if (!panel) return;
      const next=setCommand('panel');
      hideDevPanels(panel);
-     renderDevPanel(panel,controls('panel','panel-type')?.value || 'recent',next);
+     renderDevPanel(panel,controls('panel','panel-type')?.value || 'recent',next,false);
      const from=controls('panel','from').value, to=controls('panel','to').value;
      const duration=Math.max(.1,Number(controls('panel','duration').value)||1)*1000;
      const ease=easing(sectionFor('panel')).value || 'ease-in-out';
      const runner=RTSAnimationEngine.createRunner({target:panel});
      runner.configure(next.replayPanelPositions);
      const start=runner.resolve(from), end=runner.resolve(to);
+     window.RTSDevToolbar?.log?.('Dev panel Test Animation', {
+       from, to, duration, easing: ease,
+       start, end
+     });
+     runner.cancel();
+     runner.apply(start);
      const complete=()=>{
        if(!controls('panel','reset-to')?.checked) return;
        const fromControl=controls('panel','from');
