@@ -321,6 +321,9 @@ RTSReplayVideo.loadReplay = command => {
       RTSReplayVideo.applyPosition(endPosition, true);
       RTSReplayVideo.activePosition = endPosition;
       replayDevLog('YouTube replay loaded while player already visible', { replayId: command.replayId, position: endPosition.name || endName });
+    } else if (devSkipStart) {
+      RTSReplayVideo.applyPosition(endPosition, true);
+      RTSReplayVideo.activePosition = endPosition;
     } else if (startSequence.length) {
       playerRunner.run(startSequence);
     } else {
@@ -340,6 +343,10 @@ RTSReplayVideo.loadReplay = command => {
   RTSReplayVideo.visiblePosition = endPosition;
   if (alreadyVisible) {
     replayDevLog('Replay loaded while player already visible; preserving current position', { replayId: command.replayId, position: RTSReplayVideo.activePosition?.name || '<live>' });
+  } else if (devSkipStart) {
+    RTSReplayVideo.player.classList.add('show');
+    RTSReplayVideo.applyPosition(endPosition, true);
+    RTSReplayVideo.activePosition = endPosition;
   } else if (startSequence.length) { playerRunner.run(startSequence); RTSReplayVideo.player.classList.add('show'); }
   else RTSReplayVideo.animateIn(startPosition, endPosition);
   if (isHlsUrl(command.replayUrl)) loadHlsReplay(command.replayUrl, command); else loadNativeReplay(command.replayUrl, command);
@@ -411,6 +418,17 @@ RTSReplayVideo.video.addEventListener('ended', () => {
   const command = RTSReplayVideo.currentCommand;
   if (command?.replaySource?.toLowerCase() === 'youtube') return;
   if (!command) return;
+  if (command.replayDevComplete === true || String(command.replayDevComplete).toLowerCase() === 'true') {
+    RTSReplayWatchdog?.stop?.();
+    RTSReplayVideo.runEndAnimationProfile(command, () => {
+      RTSReplayVideo.player.classList.remove('show');
+      RTSReplayVideo.player.style.opacity = '';
+      RTSReplayVideo.player.style.visibility = '';
+      RTSReplayVideo.frame?.classList.remove('dev-frame');
+      window.RTSDevToolbar?.setPlayerVisibility?.(false);
+    });
+    return;
+  }
 
   // Let the browser finish the native ended event before Streamer.bot can
   // synchronously load the next playlist item into this same video element.
