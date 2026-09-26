@@ -65,9 +65,10 @@ public class CPHInline
             ["replayUserName"] = "Test User", ["replayDirector"] = (string)replay["creator"]?["name"] ?? "",
             ["replayNumber"] = GetReplayNumber(GetCatalog(data), replay), ["replayTitle"] = (string)replay["title"] ?? "Test Replay",
             ["replayPlayedCount"] = (int?)replay["plays"] ?? 0, ["replaySource"] = source, ["replaySourceId"] = (string)replay["sourceId"] ?? "",
-            ["replaySourcePlatform"] = CPH.GetGlobalVar<string>("rts.actionreplay.test.replayOrigin", true) ?? source,
-            ["replayCreated"] = true
+            ["replaySourcePlatform"] = CPH.GetGlobalVar<string>("rts.actionreplay.test.replayOrigin", true) ?? source
         };
+        if (CPH.TryGetArg("rtsDevAnimationProfileId", out string devProfile) && !string.IsNullOrWhiteSpace(devProfile))
+            operation["animationProfileId"] = devProfile.Trim();
         if (string.Equals(source, "YouTube", StringComparison.OrdinalIgnoreCase)) { operation["replayStartTime"] = (long?)replay["startTime"] ?? 0; operation["replayDuration"] = (int?)replay["duration"] ?? 0; }
         CPH.SetGlobalVar(PlayerOperationKey, operation.ToString(Newtonsoft.Json.Formatting.None), false);
         return true;
