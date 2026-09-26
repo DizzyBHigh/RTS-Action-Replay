@@ -31,3 +31,8 @@
 #rts-dev-viewport{left:330px}
 #rts-dev-viewport-controls{background:var(--dev-bg);border-color:var(--dev-blue)}
 #rts-dev-screen .dev-screen-label{background:var(--dev-bg)}
+
+.dev-harness .dev-section-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.dev-harness .dev-section-head h3{margin:0}
+.dev-harness .dev-visibility{display:flex;gap:4px}
+.dev-harness .dev-visibility button{min-height:24px;margin:0;padding:3px 7px;font-size:10px}

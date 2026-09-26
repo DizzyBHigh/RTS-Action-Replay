@@ -39,6 +39,17 @@
     if(t.label==='Clapperboard') RTSReplayMessages?.showClapperboard?.({...command(),replayMessage:'CLAPPERBOARD TEST PREVIEW',replayClapperDuration:999999});
   };
   const runner=t=>{const target=t.target();if(!target)return null;const r=RTSAnimationEngine.createRunner({target});r.configure(command()[t.positions]);return r};
+  const hide=t=>{
+    const el=t.element(); if(!el)return;
+    el.classList.remove('show');
+    el.setAttribute('aria-hidden','true');
+    if(t.label==='Player'){
+      el.classList.remove('dev-player');
+      el.style.opacity='';
+      el.style.visibility='';
+      RTSReplay.frame?.classList.remove('dev-frame');
+    }
+  };
   const animateTo=(kind,name,duration=500,easing='ease-in-out')=>{
     const t=targets[kind]; show(t); const r=runner(t); if(!r)return;
     const next=r.resolve(name); const start=r.getActive()||next; r.transition(start,next,duration,easing); state[kind].position=name;
@@ -94,7 +105,7 @@
   };
 
   bar.innerHTML='<div class="dev-toolbar-header"><strong>RTS DEV</strong><span>TEST HARNESS</span></div><div class="dev-harness-tools"><button class="dev-accent" data-refresh>Refresh Configuration</button><button data-theme>☾ Dark</button></div><div class="dev-harness"><div class="dev-status" data-dev-status>Waiting for configuration</div>'
-    +Object.entries(targets).map(([kind,t])=>'<section class="dev-section" data-dev-element="'+kind+'"><h3>'+t.label+'</h3>'
+    +Object.entries(targets).map(([kind,t])=>'<section class="dev-section" data-dev-element="'+kind+'"><div class="dev-section-head"><h3>'+t.label+'</h3><div class="dev-visibility"><button data-show>Show</button><button data-hide>Hide</button></div></div>'
     +'<div class="dev-subsection"><div class="dev-name"><span>Positions</span><small>animate to</small></div><div class="dev-row"><select data-pos></select><button data-position>Animate</button></div>'
     +'<div class="dev-row equal"><label>Start<select data-start></select></label><label>End<select data-end></select></label></div>'
     +'<div class="dev-row equal"><label>Easing<select data-easing><option>linear</option><option>ease-in</option><option>ease-out</option><option selected>ease-in-out</option></select></label><label>Duration (ms)<input data-duration type="number" min="0" step="50" value="500"></label></div>'
@@ -116,6 +127,8 @@
     const b=e.target.closest('button');if(!b)return;
     if(b.dataset.theme)setTheme();
     const root=b.closest('[data-dev-element]');if(!root)return;const kind=root.dataset.devElement;
+    if(b.dataset.show)show(targets[kind]);
+    if(b.dataset.hide)hide(targets[kind]);
     if(b.dataset.position)animateTo(kind,root.querySelector('[data-pos]').value);
     if(b.dataset.transition){animateTo(kind,root.querySelector('[data-start]').value,0);animateTo(kind,root.querySelector('[data-end]').value,Math.max(0,Number(root.querySelector('[data-duration]').value)||500),root.querySelector('[data-easing]').value)}
     if(b.dataset.startProfile)runProfile(kind,'start');if(b.dataset.endProfile)runProfile(kind,'end');if(b.dataset.complete)runProfile(kind,'complete');if(b.dataset.brandApply)applyBranding(kind,root.querySelector('[data-brand]').value);
