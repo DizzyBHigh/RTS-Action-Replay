@@ -1,6 +1,13 @@
 const RTSReplayWebSocket = window.RTSReplay;
 let pendingMessageCompletion = null;
 
+RTSReplayWebSocket.requestAction = (action,args={},id='rts-action-'+Date.now()) => {
+  const socket=RTSReplayWebSocket.socket;
+  if(!socket || socket.readyState!==WebSocket.OPEN) return false;
+  socket.send(JSON.stringify({request:'DoAction',id,action,args}));
+  return true;
+};
+
 RTSReplayWebSocket.acknowledgeMessage = queueId => {
   if (!queueId) return false;
   if (!RTSReplayWebSocket.socket || RTSReplayWebSocket.socket.readyState !== WebSocket.OPEN) {
@@ -8,13 +15,11 @@ RTSReplayWebSocket.acknowledgeMessage = queueId => {
     return false;
   }
   pendingMessageCompletion = null;
-  RTSReplayWebSocket.socket.send(JSON.stringify({
-    request: 'DoAction',
-    id: 'rts-message-complete-' + queueId,
-    action: { name: 'RTS - Action Replay - Core - Messaging' },
-    args: { messageQueueId: queueId, messageComplete: 'true' }
-  }));
-  return true;
+  return RTSReplayWebSocket.requestAction(
+    {name:'RTS - Action Replay - Core - Messaging'},
+    {messageQueueId:queueId,messageComplete:'true'},
+    'rts-message-complete-'+queueId
+  );
 };
 
 RTSReplayWebSocket.setStatus = (text, state = '') => {
