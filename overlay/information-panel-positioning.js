@@ -71,7 +71,6 @@ RTSInformationPanels.show = (panel, command, name) => {
   }
   RTSInformationPanels.applyPosition(panel, command, name);
   panel.classList.add('show');
-  panel.setAttribute('aria-hidden', 'false');
 };
 
 RTSInformationPanels.hide = (panel, command, complete) => {
@@ -81,7 +80,6 @@ RTSInformationPanels.hide = (panel, command, complete) => {
     return;
   }
   panel.classList.remove('show');
-  panel.setAttribute('aria-hidden', 'true');
   complete?.();
 };
 
