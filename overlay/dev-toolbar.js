@@ -16,9 +16,10 @@
       <label>${title === 'Player' ? 'Platform Brand Preset' : 'Brand Preset'}<select data-control="brand"></select></label>
       <label>Animation Profile<select data-control="profile"></select></label>
       ${title === 'Player' ? '<div class="dev-grid"><button data-action="in">Play In</button><button data-action="out">Play Out</button><button data-action="complete">Complete</button></div>' : ''}
+      <div class="dev-separator"></div>
       <div class="dev-grid"><label>From<select data-control="from"></select></label><label>To<select data-control="to"></select></label></div>
       <div class="dev-grid"><label>Easing<select data-control="easing"><option>linear</option><option>ease-in</option><option selected>ease-in-out</option><option>ease-out</option></select></label><label>Duration (s)<input data-control="duration" type="number" min="0" max="10" step="0.1" value="1"></label></div>
-      ${title === 'Player' ? '<button data-action="position-test">Test Animation</button><label class="dev-checkbox"><input type="checkbox" id="rts-dev-reset-to"> Move From to To after Test Animation</label>' : ''}
+      ${title === 'Player' ? '<button data-action="position-test">Test Animation</button><label class="dev-checkbox"><input type="checkbox" id="rts-dev-reset-to"> Move From to To after Test Animation</label><div class="dev-separator"></div>' : ''}
       ${extra}
     </section>`;
 
@@ -300,6 +301,7 @@
     if(control.dataset.control==='panel-type' && target==='panel' && (RTSReplay.recentList?.classList.contains('show')||RTSSearchPanel?.panel?.classList.contains('show')||RTSPlaylistList?.panel?.classList.contains('show'))) showPanel('panel');
     if(control.dataset.control==='text' && target==='message' && RTSReplay.messageCard?.classList.contains('show')) showPanel('message');
   });
+  bar.querySelector('#rts-dev-title').addEventListener('input',() => applyTitleSettings(true));
   bar.querySelector('#rts-dev-title-style').addEventListener('change',() => applyTitleSettings(true));
   bar.querySelector('#rts-dev-title-position').addEventListener('change',() => applyTitleSettings(true));
   bar.querySelector('#rts-dev-title-delay').addEventListener('change',() => applyTitleSettings(true));
