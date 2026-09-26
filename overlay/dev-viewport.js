@@ -13,7 +13,7 @@
   stage.id = 'rts-dev-stage';
   const controls = document.createElement('div');
   controls.id = 'rts-dev-viewport-controls';
-  controls.innerHTML = '<button type="button" data-viewport-reset>Reset View</button><span>Drag to pan · Wheel to zoom · R to reset</span>';
+  controls.innerHTML = '<button type="button" data-viewport-reset>Reset View</button><span>Drag to pan - Wheel to zoom - R to reset</span>';
   viewport.append(stage, controls);
   document.body.appendChild(viewport);
 
@@ -42,7 +42,7 @@
   const render = () => {
     clamp();
     stage.style.transform = `translate3d(${x}px,${y}px,0) scale(${scale})`;
-    controls.querySelector('span').textContent = `Drag to pan · Wheel to zoom · ${Math.round(scale / fitScale() * 100)}% · R to reset`;
+    controls.querySelector('span').textContent = `Drag to pan - Wheel to zoom - ${Math.round(scale / fitScale() * 100)}% - R to reset`;
   };
 
   const reset = () => {
