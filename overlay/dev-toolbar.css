@@ -23,6 +23,8 @@
 #rts-dev-toolbar .dev-section{margin:10px 0 0;padding:9px;border:1px solid rgba(255,255,255,.1);border-radius:4px;background:rgba(255,255,255,.025)}
 #rts-dev-toolbar .dev-section h3{margin:0 0 8px;color:#0384CB;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
 #rts-dev-toolbar label{display:flex;flex-direction:column;gap:4px;margin:7px 0;opacity:.82}
+#rts-dev-toolbar .dev-checkbox{flex-direction:row;align-items:center;gap:7px;cursor:pointer}
+#rts-dev-toolbar .dev-checkbox input{width:auto;margin:0}
 #rts-dev-toolbar .dev-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
 #rts-dev-toolbar button{width:100%;box-sizing:border-box;margin:3px 0;padding:7px 8px}
 #rts-dev-toolbar input,#rts-dev-toolbar select{width:100%;box-sizing:border-box;padding:6px 7px}
