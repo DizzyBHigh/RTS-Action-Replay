@@ -1507,9 +1507,6 @@
                 "description": "The format of the list entry used for each list entry."
               }
             ],
-            "notes": [
-              "List entry variables are [[code:%listNumber%]], [[code:%title%]], [[code:%creator%]], [[code:%rating%]], [[code:%platform%]] and [[code:%plays%]]."
-            ],
             "variables": [
               {
                 "title": "Variables",
@@ -1523,342 +1520,58 @@
                 ]
               }
             ]
-          },
-          
+          }   
+        ]
+      },
+      {
+        "number": "19",
+        "title": "Messages",
+        "description": "Configure message outputs for the various [[yellow:yellow:Action Replay]] events",
+        "substeps": [
           {
-            "number": "19",
-            "title": "Messages",
-            "description": "Configure message outputs for the various [[yellow:yellow:Action Replay]] events",            
-            "substeps": [
+            "number": ".1",
+            "title": "Chat Message Limits",
+            "text": "Set the platforms max character limit for chat messages.",
+            "images": [
               {
-                "number": ".1",
-                "title": "Chat Message Limits",
-                "text": "Set the platforms max character limit for chat messages.",
-                "images": [
-                  {
-                    "src": "assets/images/action-replay-settings-messages-chat-message-limits.png",
-                    "alt": "Screenshot for Chat Message Limits settings"
-                  }
-                ],
-                "settings": [
-                  {
-                    "title": "Twitch",
-                    "description": "[[purple:Twitch]] maximum character limit (max 500 characters)"
-                  },
-                  {
-                    "title": "Youtube",
-                    "description": "[[red:YouTube]] maximum character limit (max 200 characters)"
-                  },
-                  {
-                    "title": "Kick",
-                    "description": "[[green:Kick]] maximum character limit (max 500 characters)"
-                  }
-                ]
-              },
-              {
-                "number": ".2",
-                "title": "Replay Created Message",
-                "text": "When a replay is created this message is generated.",
-                "images": [
-                  {
-                    "src": "assets/images/action-replay-settings-messages-replay-created.png",
-                    "alt": "Screenshot for Replay Created settings"
-                  }
-                ],
-                "settings": [
-                  {
-                    "title": "Replay Created Chat",
-                    "description": "Sends a message to the chat when a replay is created."
-                  },
-                  {
-                    "title": "Replay Created - Overlay",
-                    "description": "Displays a message in the overlay when a replay is created."
-                  }
-                ],
-                "variables": [
-                  {
-                    "title": "Replay Created",
-                    "values": [
-                      "%replayTitle%",
-                      "%replayUser%",
-                      "%replayPlatform%",
-                      "%replaySourcePlatform%",
-                      "%requesterName%",
-                      "%requesterPlatform%"
-                    ]
-                  }
-                ]
-              },
-              {
-                "number": ".3",
-                "title": "Replay Played Message",
-                "text": "When a replay is played this message is generated.",
-                "images": [
-                  {
-                    "src": "assets/images/action-replay-settings-messages-replay-played.png",
-                    "alt": "Screenshot for Replay Played settings"
-                  }
-                ],
-                "settings": [
-                  {
-                    "title": "Replay Played Chat",
-                    "description": "Sends a message to the chat when a replay is played."
-                  },
-                  {
-                    "title": "Replay Played - Overlay",
-                    "description": "Displays a message in the overlay when a replay is played."
-                  }
-                ],
-                "variables": [
-                  {
-                    "title": "Replay Played",
-                    "values": [
-                      "%replayNumber%",
-                      "%replayTitle%",
-                      "%replayUser%",
-                      "%replayPlatform%",
-                      "%replaySourcePlatform%",
-                      "%requesterName%",
-                      "%requesterPlatform%"
-                    ]
-                  }
-                ]
-              },
-              {
-                "number": ".4",
-                "title": "Replay Queued",
-                "text": "When a replay is queued this message is generated.",
-                "images": [
-                  {
-                    "src": "assets/images/action-replay-settings-messages-replay-queued.png",
-                    "alt": "Screenshot for Replay Queued settings"
-                  }
-                ],
-                "settings": [
-                  {
-                    "title": "Replay Queued Chat",
-                    "description": "Sends a message to the chat when a replay is queued."
-                  },
-                  {
-                    "title": "Replay Queued - Overlay",
-                    "description": "Displays a message in the overlay when a replay is queued."
-                  }
-                ],
-                "variables": [
-                  {
-                    "title": "Replay Queued",
-                    "values": [
-                      "%replayTitle%",
-                      "%replayUser%",
-                      "%replayPlatform%",
-                      "%replaySourcePlatform%",
-                      "%requesterName%",
-                      "%requesterPlatform%"
-                    ]
-                  }
-                ]
-              },
-              {
-                "number": ".5",
-                "title": "Playlist Replay Removed",
-                "text": "When a replay is removed from the playlist this message is generated.",
-                "images": [
-                  {
-                    "src": "assets/images/action-replay-settings-messages-playlist-replay-removed.png",
-                    "alt": "Screenshot for Playlist - Replay Removed settings"
-                  }
-                ],
-                "settings": [
-                  {
-                    "title": "Playlist Replay Removed - Chat",
-                    "description": "Sends a message to the chat when a replay is removed from the playlist."
-                  },
-                  {
-                    "title": "Playlist Replay Removed - Overlay",
-                    "description": "Displays a message in the overlay when a replay is removed from the playlist."
-                  }
-                ],
-                "variables": [
-                  {
-                    "title": "Replay Removed",
-                    "values": [
-                      "%replayTitle%",
-                      "%requesterName%",
-                      "%requesterPlatform%"
-                    ]
-                  }
-                ]
-              },
-              {
-                "number": ".6",
-                "title": "Playlist Cleared",
-                "text": "When the playlist is cleared this message is generated.",
-                "images": [
-                  {
-                    "src": "assets/images/action-replay-settings-messages-playlist-cleared.png",
-                    "alt": "Screenshot for Playlist - Cleared settings"
-                  }
-                ],
-                "settings": [
-                  {
-                    "title": "Playlist Cleared - Chat",
-                    "description": "Sends a message to the chat when the playlist is cleared."
-                  },
-                  {
-                    "title": "Playlist Cleared - Overlay",
-                    "description": "Displays a message in the overlay when the playlist is cleared."
-                  }
-                ],
-                "variables": [
-                  {
-                    "title": "Playlist Cleared",
-                    "values": [
-                      "%clearedCount%",
-                      "%requesterName%",
-                      "%requesterPlatform%"
-                    ]
-                  }
-                ]
-              },
-              {
-                "number": ".7",
-                "title": "Playlist Clear All",
-                "text": "When the all items in the playlist are cleared this message is generated.",
-                "images": [
-                  {
-                    "src": "assets/images/action-replay-settings-messages-playlist-cleared-all.png",
-                    "alt": "Screenshot for Playlist - Cleared All settings"
-                  }
-                ],
-                "settings": [
-                  {
-                    "title": "Playlist Clear All - Chat",
-                    "description": "Sends a message to the chat when the playlist is cleared."
-                  },
-                  {
-                    "title": "Playlist Clear All - Overlay",
-                    "description": "Displays a message in the overlay when the playlist is cleared."
-                  }
-                ],
-                "variables": [
-                  {
-                    "title": "Playlist Clear All",
-                    "values": [
-                      "%clearedCount%",
-                      "%requesterName%",
-                      "%requesterPlatform%"
-                    ]
-                  }
-                ]
-              },
-              {
-                "number": ".8",
-                "title": "Replay Rated",
-                "text": "When a replay is rated this message is generated.",
-                "images": [
-                  {
-                    "src": "assets/images/action-replay-settings-messages-replay-rated.png",
-                    "alt": "Screenshot for Replay - Rated settings"
-                  }
-                ],
-                "settings": [
-                  {
-                    "title": "Replay Rated - Chat",
-                    "description": "Sends a message to the chat when a replay is rated."
-                  },
-                  {
-                    "title": "Replay Rated - Overlay",
-                    "description": "Displays a message in the overlay when a replay is rated."
-                  }
-                ],
-                "variables": [
-                  {
-                    "title": "Replay Rated",
-                    "values": [
-                      "%replayTitle%",
-                      "%replayDescription%",
-                      "%replayRating%",
-                      "%averageRating%",
-                      "%requesterName%",
-                      "%requesterPlatform%"
-                    ]
-                  }
-                ]
-              },
-              {
-                "number": ".9",
-                "title": "Replay Renamed",
-                "text": "When a replay is renamed this message is generated.",
-                "images": [
-                  {
-                    "src": "assets/images/action-replay-settings-messages-replay-renamed.png",
-                    "alt": "Screenshot for Replay - Renamed settings"
-                  }
-                ],
-                "settings": [
-                  {
-                    "title": "Replay Renamed - Chat",
-                    "description": "Sends a message to the chat when a replay is renamed."
-                  },
-                  {
-                    "title": "Replay Renamed - Overlay",
-                    "description": "Displays a message in the overlay when a replay is renamed."
-                  }
-                ],
-                "variables": [
-                  {
-                    "title": "Replay Renamed",
-                    "values": [
-                      "%replayNumber%",
-                      "%oldTitle%",
-                      "%newTitle%",
-                      "%requesterName%",
-                      "%requesterPlatform%"
-                    ]
-                  }
-                ]
-              },
-
-              {
-                "number": ".10",
-                "title": "Replay Deleted",
-                "text": "When a replay is deleted from the catalog, this message is generated.",
-                "images": [
-                  {
-                    "src": "assets/images/action-replay-settings-messages-replay-deleted.png",
-                    "alt": "Screenshot for Replay - Deleted settings"
-                  }
-                ],
-                "settings": [
-                  {
-                    "title": "Replay Deleted - Chat",
-                    "description": "Sends a message to the chat when a replay is deleted from the catalog."
-                  },
-                  {
-                    "title": "Replay Deleted - Overlay",
-                    "description": "Displays a message in the overlay when a replay is deleted from the catalog."
-                  }
-                ],
-                "variables": [
-                  {
-                    "title": "Replay Deleted",
-                    "values": [
-                      "%replayTitle%",
-                      "%replayUser%",
-                      "%replayPlatform%",
-                      "%replaySourcePlatform%",
-                      "%requesterName%",
-                      "%requesterPlatform%"
-                    ]
-                  }
-                ]
+                "src": "assets/images/action-replay-settings-messages-chat-message-limits.png",
+                "alt": "Screenshot for Chat Message Limits settings"
               }
             ],
-            "notes": [
-              "Each event has message text and a Chat toggle. Events that support overlay output also have an Overlay toggle.",
-              "Replay Created uses the separate Clapperboard presentation when Use Clapperboard is enabled. The other overlay-capable lifecycle events use the Message presentation.",
-              "Overlay messages are queued centrally. Chat messages are sent immediately. An overlay message is considered finished only when its exit animation completes.",
-              "Replay Queued is generated only when the Playlist already contained an item before the new replay was added."
+            "settings": [
+              {
+                "title": "Twitch",
+                "description": "[[purple:Twitch]] maximum character limit (max 500 characters)"
+              },
+              {
+                "title": "Youtube",
+                "description": "[[red:YouTube]] maximum character limit (max 200 characters)"
+              },
+              {
+                "title": "Kick",
+                "description": "[[green:Kick]] maximum character limit (max 500 characters)"
+              }
+            ]
+          },
+          {
+            "number": ".2",
+            "title": "Replay Created Message",
+            "text": "When a replay is created this message is generated.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-messages-replay-created.png",
+                "alt": "Screenshot for Replay Created settings"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Replay Created Chat",
+                "description": "Sends a message to the chat when a replay is created."
+              },
+              {
+                "title": "Replay Created - Overlay",
+                "description": "Displays a message in the overlay when a replay is created."
+              }
             ],
             "variables": [
               {
@@ -1871,7 +1584,30 @@
                   "%requesterName%",
                   "%requesterPlatform%"
                 ]
+              }
+            ]
+          },
+          {
+            "number": ".3",
+            "title": "Replay Played Message",
+            "text": "When a replay is played this message is generated.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-messages-replay-played.png",
+                "alt": "Screenshot for Replay Played settings"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Replay Played Chat",
+                "description": "Sends a message to the chat when a replay is played."
               },
+              {
+                "title": "Replay Played - Overlay",
+                "description": "Displays a message in the overlay when a replay is played."
+              }
+            ],
+            "variables": [
               {
                 "title": "Replay Played",
                 "values": [
@@ -1883,7 +1619,30 @@
                   "%requesterName%",
                   "%requesterPlatform%"
                 ]
+              }
+            ]
+          },
+          {
+            "number": ".4",
+            "title": "Replay Queued",
+            "text": "When a replay is queued this message is generated.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-messages-replay-queued.png",
+                "alt": "Screenshot for Replay Queued settings"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Replay Queued Chat",
+                "description": "Sends a message to the chat when a replay is queued."
               },
+              {
+                "title": "Replay Queued - Overlay",
+                "description": "Displays a message in the overlay when a replay is queued."
+              }
+            ],
+            "variables": [
               {
                 "title": "Replay Queued",
                 "values": [
@@ -1894,7 +1653,30 @@
                   "%requesterName%",
                   "%requesterPlatform%"
                 ]
+              }
+            ]
+          },
+          {
+            "number": ".5",
+            "title": "Playlist Replay Removed",
+            "text": "When a replay is removed from the playlist this message is generated.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-messages-playlist-replay-removed.png",
+                "alt": "Screenshot for Playlist - Replay Removed settings"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Playlist Replay Removed - Chat",
+                "description": "Sends a message to the chat when a replay is removed from the playlist."
               },
+              {
+                "title": "Playlist Replay Removed - Overlay",
+                "description": "Displays a message in the overlay when a replay is removed from the playlist."
+              }
+            ],
+            "variables": [
               {
                 "title": "Replay Removed",
                 "values": [
@@ -1902,7 +1684,30 @@
                   "%requesterName%",
                   "%requesterPlatform%"
                 ]
+              }
+            ]
+          },
+          {
+            "number": ".6",
+            "title": "Playlist Cleared",
+            "text": "When the playlist is cleared this message is generated.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-messages-playlist-cleared.png",
+                "alt": "Screenshot for Playlist - Cleared settings"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Playlist Cleared - Chat",
+                "description": "Sends a message to the chat when the playlist is cleared."
               },
+              {
+                "title": "Playlist Cleared - Overlay",
+                "description": "Displays a message in the overlay when the playlist is cleared."
+              }
+            ],
+            "variables": [
               {
                 "title": "Playlist Cleared",
                 "values": [
@@ -1910,25 +1715,95 @@
                   "%requesterName%",
                   "%requesterPlatform%"
                 ]
+              }
+            ]
+          },
+          {
+            "number": ".7",
+            "title": "Playlist Clear All",
+            "text": "When the all items in the playlist are cleared this message is generated.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-messages-playlist-cleared-all.png",
+                "alt": "Screenshot for Playlist - Cleared All settings"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Playlist Clear All - Chat",
+                "description": "Sends a message to the chat when the playlist is cleared."
               },
               {
-                "title": "Playlist Cleared All",
+                "title": "Playlist Clear All - Overlay",
+                "description": "Displays a message in the overlay when the playlist is cleared."
+              }
+            ],
+            "variables": [
+              {
+                "title": "Playlist Clear All",
                 "values": [
                   "%clearedCount%",
                   "%requesterName%",
                   "%requesterPlatform%"
                 ]
+              }
+            ]
+          },
+          {
+            "number": ".8",
+            "title": "Replay Rated",
+            "text": "When a replay is rated this message is generated.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-messages-replay-rated.png",
+                "alt": "Screenshot for Replay - Rated settings"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Replay Rated - Chat",
+                "description": "Sends a message to the chat when a replay is rated."
               },
+              {
+                "title": "Replay Rated - Overlay",
+                "description": "Displays a message in the overlay when a replay is rated."
+              }
+            ],
+            "variables": [
               {
                 "title": "Replay Rated",
                 "values": [
                   "%replayTitle%",
+                  "%replayDescription%",
                   "%replayRating%",
                   "%averageRating%",
                   "%requesterName%",
                   "%requesterPlatform%"
                 ]
+              }
+            ]
+          },
+          {
+            "number": ".9",
+            "title": "Replay Renamed",
+            "text": "When a replay is renamed this message is generated.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-messages-replay-renamed.png",
+                "alt": "Screenshot for Replay - Renamed settings"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Replay Renamed - Chat",
+                "description": "Sends a message to the chat when a replay is renamed."
               },
+              {
+                "title": "Replay Renamed - Overlay",
+                "description": "Displays a message in the overlay when a replay is renamed."
+              }
+            ],
+            "variables": [
               {
                 "title": "Replay Renamed",
                 "values": [
@@ -1938,7 +1813,30 @@
                   "%requesterName%",
                   "%requesterPlatform%"
                 ]
+              }
+            ]
+          },
+          {
+            "number": ".10",
+            "title": "Replay Deleted",
+            "text": "When a replay is deleted from the catalog, this message is generated.",
+            "images": [
+              {
+                "src": "assets/images/action-replay-settings-messages-replay-deleted.png",
+                "alt": "Screenshot for Replay - Deleted settings"
+              }
+            ],
+            "settings": [
+              {
+                "title": "Replay Deleted - Chat",
+                "description": "Sends a message to the chat when a replay is deleted from the catalog."
               },
+              {
+                "title": "Replay Deleted - Overlay",
+                "description": "Displays a message in the overlay when a replay is deleted from the catalog."
+              }
+            ],
+            "variables": [
               {
                 "title": "Replay Deleted",
                 "values": [
@@ -1950,17 +1848,114 @@
                   "%requesterPlatform%"
                 ]
               }
-            ],
-            "commands": [
-              "save-replay",
-              "play-replay",
-              "rate-replay",
-              "name-replay",
-              "delete-clip",
-              "playlist-clear",
-              "playlist-clear-all"
             ]
           }
+        ],
+        "notes": [
+          "Each event has message text and a Chat toggle. Events that support overlay output also have an Overlay toggle.",
+          "Replay Created uses the separate Clapperboard presentation when Use Clapperboard is enabled. The other overlay-capable lifecycle events use the Message presentation.",
+          "Overlay messages are queued centrally. Chat messages are sent immediately. An overlay message is considered finished only when its exit animation completes.",
+          "Replay Queued is generated only when the Playlist already contained an item before the new replay was added."
+        ],
+        "variables": [
+          {
+            "title": "Replay Created",
+            "values": [
+              "%replayTitle%",
+              "%replayUser%",
+              "%replayPlatform%",
+              "%replaySourcePlatform%",
+              "%requesterName%",
+              "%requesterPlatform%"
+            ]
+          },
+          {
+            "title": "Replay Played",
+            "values": [
+              "%replayNumber%",
+              "%replayTitle%",
+              "%replayUser%",
+              "%replayPlatform%",
+              "%replaySourcePlatform%",
+              "%requesterName%",
+              "%requesterPlatform%"
+            ]
+          },
+          {
+            "title": "Replay Queued",
+            "values": [
+              "%replayTitle%",
+              "%replayUser%",
+              "%replayPlatform%",
+              "%replaySourcePlatform%",
+              "%requesterName%",
+              "%requesterPlatform%"
+            ]
+          },
+          {
+            "title": "Replay Removed",
+            "values": [
+              "%replayTitle%",
+              "%requesterName%",
+              "%requesterPlatform%"
+            ]
+          },
+          {
+            "title": "Playlist Cleared",
+            "values": [
+              "%clearedCount%",
+              "%requesterName%",
+              "%requesterPlatform%"
+            ]
+          },
+          {
+            "title": "Playlist Cleared All",
+            "values": [
+              "%clearedCount%",
+              "%requesterName%",
+              "%requesterPlatform%"
+            ]
+          },
+          {
+            "title": "Replay Rated",
+            "values": [
+              "%replayTitle%",
+              "%replayRating%",
+              "%averageRating%",
+              "%requesterName%",
+              "%requesterPlatform%"
+            ]
+          },
+          {
+            "title": "Replay Renamed",
+            "values": [
+              "%replayNumber%",
+              "%oldTitle%",
+              "%newTitle%",
+              "%requesterName%",
+              "%requesterPlatform%"
+            ]
+          },
+          {
+            "title": "Replay Deleted",
+            "values": [
+              "%replayTitle%",
+              "%replayUser%",
+              "%replayPlatform%",
+              "%replaySourcePlatform%",
+              "%requesterName%",
+              "%requesterPlatform%"
+            ]
+          }
+        ],
+        "commands": [
+          "save-replay",
+          "play-replay",
+          "rate-replay",
+          "name-replay",
+          "delete-clip",
+          "playlist-clear",
+          "playlist-clear-all"
         ]
       },
       {
