@@ -13,7 +13,7 @@ RTSReplayControls.setPlaybackState = playing => {
   if (!RTSReplayControls.playPause) return;
   RTSReplayControls.playPause.setAttribute('aria-label', playing ? 'Pause' : 'Play');
   RTSReplayControls.playPause.setAttribute('aria-pressed', playing ? 'true' : 'false');
-  RTSReplayControls.playPause.firstElementChild.textContent = playing ? 'Ⅱ' : '▶';
+  RTSReplayControls.playPause.firstElementChild.textContent = playing ? '||' : '>';
 };
 
 RTSReplayControls.updateControls = () => {
@@ -68,7 +68,7 @@ RTSReplayControls.configure = command => {
   RTSReplayControls.frame.className = '';
   RTSReplayControls.frame.classList.add(`border-${String(command.replayBorderStyle || 'Solid').toLowerCase()}`);
   const speed = Number(command.replayPlaybackSpeed) || 1;
-  RTSReplayControls.speed.textContent = `${speed}×`;
+  RTSReplayControls.speed.textContent = `${speed}x`;
   RTSReplayControls.video.playbackRate = speed;
 };
 
