@@ -4,7 +4,7 @@
 
   const screen = document.createElement('div');
   screen.id = 'rts-dev-screen';
-  screen.innerHTML = '<div class="dev-screen-label">1920 × 1080</div><div class="dev-safe-area"></div>';
+  screen.innerHTML = '<div class="dev-screen-label">1920 x 1080</div><div class="dev-safe-area"></div>';
   document.body.prepend(screen);
 
   const bar = document.createElement('aside');
@@ -27,9 +27,10 @@
     <div class="dev-toolbar-settings"><button data-action="refresh-settings">Get Settings</button><span>Load current Streamer.bot settings</span></div>
     ${section('player', 'Player', `
       <div class="dev-grid"><label>Title Style<select id="rts-dev-title-style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label><label>Title Position<select id="rts-dev-title-position"><option>top</option><option selected>bottom</option></select></label></div>
+      <div class="dev-grid"><label>Title Delay (s)<input id="rts-dev-title-delay" type="number" min="0" max="120" step="0.1" value="2"></label><label>Title Duration (s)<input id="rts-dev-title-duration" type="number" min="0" max="120" step="0.1" value="10"></label></div>
       <label>Playback Speed<select id="rts-dev-speed"><option>0.25</option><option>0.5</option><option>0.75</option><option selected>1</option><option>1.25</option><option>1.5</option><option>1.75</option><option>2</option></select></label>
       <label>Test Clip<select id="rts-dev-test-clip"></select></label>
-      <label>Preview Title<input id="rts-dev-title" value="FIRST TEST — REPLAY CAPTURE"></label>
+      <label>Preview Title<input id="rts-dev-title" value="FIRST TEST - REPLAY CAPTURE"></label>
       <button data-action="title-toggle">Show Title</button>`)}
     ${section('panel', 'Panel', `<label>Panel Style<select data-control="style"><option>broadcast</option><option>cinematic</option><option>cut</option><option>minimal</option></select></label>`)}
     ${section('clapper', 'Clapperboard')}
@@ -88,7 +89,7 @@
       const title = String(clip?.title || 'Untitled Replay');
       const creator = String(clip?.creator?.name || clip?.creator || 'Unknown Creator');
       const source = String(clip?.sourceType || clip?.sourcePlatform || '');
-      const label = `#${index + 1} ${title} — ${creator}${source ? ` [${source}]` : ''}`;
+      const label = `#${index + 1} ${title} - ${creator}${source ? ` [${source}]` : ''}`;
       return new Option(label, id);
     }));
     if (clips.some(clip => String(clip?.id || '') === old)) select.value = old;
@@ -96,6 +97,11 @@
   };
   const refresh = () => {
     Object.keys(targets).forEach(refreshTarget);
+    const current = command();
+    const delay = document.getElementById('rts-dev-title-delay');
+    const duration = document.getElementById('rts-dev-title-duration');
+    if (delay) delay.value = Math.max(0, Number(current.replayTitleDelay) || 0) / 1000;
+    if (duration) duration.value = Math.max(0, Number(current.replayTitleDuration) || 0) / 1000;
     refreshTestClips();
     const title = RTSReplayElements?.title;
     const toggle = bar.querySelector('[data-action="title-toggle"]');
@@ -133,9 +139,13 @@
   const applyTitleSettings = show => {
     const next = setCommand('player');
     next.replayTitle = document.getElementById('rts-dev-title').value.trim() || 'FIRST TEST — REPLAY CAPTURE';
+    next.replayTitleDelay = Math.max(0, Number(document.getElementById('rts-dev-title-delay').value) || 0) * 1000;
+    next.replayTitleDuration = Math.max(0, Number(document.getElementById('rts-dev-title-duration').value) || 0) * 1000;
     next.replayTitleStyle = document.getElementById('rts-dev-title-style').value;
     next.replayTitlePosition = document.getElementById('rts-dev-title-position').value;
     RTSReplay.command = next; RTSReplayVideo.currentCommand = next;
+    RTSReplayElements.clearTitleDelay?.();
+    RTSReplayElements.clearTitleTimer?.();
     if (show) RTSReplayElements.showTitle(next); else RTSReplayElements.hideTitle();
     sectionFor('player').querySelector('[data-action="title-toggle"]').textContent = show ? 'Hide Title' : 'Show Title';
   };
@@ -179,7 +189,7 @@
       if (type === 'search') {
         next.replayCommand = 'search-panel';
         next.replaySearchParameters = 'CATALOG';
-        next.replaySearchHeader = 'SEARCH • 1/1 • 2';
+        next.replaySearchHeader = 'SEARCH | 1/1 | 2';
         next.replaySearchRequester = 'RTS Dev';
         next.replaySearchRequesterPlatform = 'Twitch';
         next.replaySearchEntries = JSON.stringify([{number:'01',title:'Search Panel Preview',creator:'DuhBuhHuh',creatorPlatform:'Twitch',plays:12,rating:4.8,ratingCount:5},{number:'02',title:'Current Settings Loaded',creator:'RTS Dev',creatorPlatform:'Twitch',plays:8,rating:5,ratingCount:2}]);
@@ -292,6 +302,8 @@
   });
   bar.querySelector('#rts-dev-title-style').addEventListener('change',() => applyTitleSettings(true));
   bar.querySelector('#rts-dev-title-position').addEventListener('change',() => applyTitleSettings(true));
+  bar.querySelector('#rts-dev-title-delay').addEventListener('change',() => applyTitleSettings(true));
+  bar.querySelector('#rts-dev-title-duration').addEventListener('change',() => applyTitleSettings(true));
   bar.querySelector('#rts-dev-speed').addEventListener('change',event=>setSpeed(event.target.value));
   bar.querySelector('#rts-dev-test-clip').addEventListener('change',event => {
     const clip = (window.rtsOverlayConfig?.previewCatalog || []).find(item => String(item?.id || '') === String(event.target.value || ''));
