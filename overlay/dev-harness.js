@@ -67,17 +67,30 @@
   };
 
   const refreshFromStreamerBot=()=>{
-    const requested=RTSReplay?.requestAction?.(
+    const log=window.RTSDevToolbar?.log||((...args)=>console.debug('[RTS DEV]',...args));
+    const socket=window.RTSReplay?.socket;
+    log('Refresh clicked', {
+      replay:!!window.RTSReplay,
+      requestAction:typeof window.RTSReplay?.requestAction,
+      socket:!!socket,
+      readyState:socket?.readyState,
+      readyStateName:['CONNECTING','OPEN','CLOSING','CLOSED'][socket?.readyState]||'NONE'
+    });
+    if(!window.RTSReplay?.requestAction){
+      log('Refresh failed: requestAction is unavailable');
+      return false;
+    }
+    if(!socket||socket.readyState!==WebSocket.OPEN){
+      log('Refresh failed: WebSocket is not open');
+      return false;
+    }
+    const requested=window.RTSReplay.requestAction(
       {name:'RTS - Action Replay - Core - Resolver'},
       {rtsDevConfigRefresh:'true'},
       'rts-dev-config-'+Date.now()
     );
-    if(!requested){
-      window.RTSDevToolbar?.log?.('Configuration refresh requested while WebSocket is not connected');
-      return false;
-    }
-    window.RTSDevToolbar?.log?.('Requested current configuration from Streamer.bot');
-    return true;
+    log(requested?'Refresh DoAction sent':'Refresh DoAction failed');
+    return requested;
   };
 
   bar.innerHTML='<div class="dev-toolbar-header"><strong>RTS DEV</strong><span>TEST HARNESS</span></div><div class="dev-harness-tools"><button class="dev-accent" data-refresh>Refresh Configuration</button><button data-theme>☾ Dark</button></div><div class="dev-harness"><div class="dev-status" data-dev-status>Waiting for configuration</div>'
@@ -94,9 +107,14 @@
   const setTheme=()=>{const light=bar.classList.toggle('dev-light');bar.querySelector('[data-theme]').textContent=light?'☀ Light':'☾ Dark';localStorage.setItem('rts-dev-theme',light?'light':'dark')};
   if(localStorage.getItem('rts-dev-theme')==='light')bar.classList.add('dev-light');
 
+  bar.querySelector('[data-refresh]')?.addEventListener('click',e=>{
+    e.preventDefault();
+    refreshFromStreamerBot();
+  });
+
   bar.addEventListener('click',e=>{
     const b=e.target.closest('button');if(!b)return;
-    if(b.dataset.refresh)refreshFromStreamerBot();if(b.dataset.theme)setTheme();
+    if(b.dataset.theme)setTheme();
     const root=b.closest('[data-dev-element]');if(!root)return;const kind=root.dataset.devElement;
     if(b.dataset.position)animateTo(kind,root.querySelector('[data-pos]').value);
     if(b.dataset.transition){animateTo(kind,root.querySelector('[data-start]').value,0);animateTo(kind,root.querySelector('[data-end]').value,Math.max(0,Number(root.querySelector('[data-duration]').value)||500),root.querySelector('[data-easing]').value)}
