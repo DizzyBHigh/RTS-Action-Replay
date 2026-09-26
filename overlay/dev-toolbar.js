@@ -148,5 +148,6 @@
   bar.querySelector('#rts-dev-title-style').addEventListener('change',previewTitle);
   bar.querySelector('#rts-dev-title-position').addEventListener('change',previewTitle);
   bar.querySelector('#rts-dev-speed').addEventListener('change',event=>setSpeed(event.target.value));
+  window.RTSDevToolbar = { ...(window.RTSDevToolbar || {}), refresh };
   refresh();
 })();
