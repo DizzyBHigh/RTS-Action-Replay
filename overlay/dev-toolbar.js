@@ -224,6 +224,10 @@
   bar.querySelector('#rts-dev-title-style').addEventListener('change',() => applyTitleSettings(true));
   bar.querySelector('#rts-dev-title-position').addEventListener('change',() => applyTitleSettings(true));
   bar.querySelector('#rts-dev-speed').addEventListener('change',event=>setSpeed(event.target.value));
-  window.RTSDevToolbar = { ...(window.RTSDevToolbar || {}), refresh };
+  const setPlayerVisibility = visible => {
+    const button = sectionFor('player')?.querySelector('[data-action="show"]');
+    if (button) button.textContent = visible ? 'Hide Player' : 'Show Player';
+  };
+  window.RTSDevToolbar = { ...(window.RTSDevToolbar || {}), refresh, setPlayerVisibility };
   refresh();
 })();
