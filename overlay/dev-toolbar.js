@@ -71,13 +71,10 @@
     const defaultPosition = target === 'player' ? 'Full Screen' : 'Centered';
     const start = profile?.start?.[0]?.position, end = profile?.end?.at(-1)?.position || start;
     const defaultName = names.find(name => name.toLowerCase() === defaultPosition.toLowerCase());
-    if (defaultName) {
-      controls(target, 'from').value = defaultName;
-      controls(target, 'to').value = defaultName;
-    } else {
-      if (start && names.includes(start)) controls(target, 'from').value = start;
-      if (end && names.includes(end)) controls(target, 'to').value = end;
-    }
+    if (start && names.includes(start)) controls(target, 'from').value = start;
+    else if (defaultName) controls(target, 'from').value = defaultName;
+    if (end && names.includes(end)) controls(target, 'to').value = end;
+    else if (defaultName) controls(target, 'to').value = defaultName;
     const step = profile?.start?.[0];
     if (step?.easing) easing(sectionFor(target)).value = step.easing;
     if (step?.duration != null) controls(target, 'duration').value = Number(step.duration) / 1000;
@@ -130,13 +127,12 @@
     return base;
   };
   const setCommand = (target, custom = true) => {
-    let next = applyPresentation(target, command());
+    let next = target === 'panel' ? applyPresentation(target, animationCommand(target)) : applyPresentation(target, command());
     if (!custom) next = command();
     RTSReplay.command = next; RTSReplayVideo.currentCommand = next;
     if (target === 'player') { RTSReplayControls.configure(next); RTSReplayElements.configure(next); }
     return next;
   };
-
   const showPlayer = () => { const player = RTSReplay?.player; if (!player) return; player.classList.add('dev-player','show'); player.style.opacity='1'; player.style.visibility='visible'; RTSReplay.frame?.classList.add('dev-frame'); sectionFor('player').querySelector('[data-action="show"]').textContent='Hide Player'; };
   const hidePlayer = () => { const player = RTSReplay?.player; if (!player) return; RTSReplayVideo.cancelAnimation(); player.classList.remove('show','dev-player'); player.style.opacity=''; player.style.visibility=''; RTSReplay.frame?.classList.remove('dev-frame'); sectionFor('player').querySelector('[data-action="show"]').textContent='Show Player'; };
   const applyTitleSettings = show => {
