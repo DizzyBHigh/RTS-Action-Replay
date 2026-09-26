@@ -299,6 +299,7 @@ public class CPHInline
         CPH.SetArgument("rating", (string)entry["rating"]);
         CPH.SetArgument("platform", (string)entry["platform"]);
         CPH.SetArgument("plays", (string)entry["plays"]);
+        CPH.SetArgument("listPlatform", GetRequestPlatform() ?? "");
         if (!CPH.ExecuteMethod("RTS - Action Replay - Core - Messaging", "FormatListEntry")) return;
         if (!CPH.TryGetArg("formattedListEntry", out string message) || string.IsNullOrWhiteSpace(message)) return;
         SendOriginMessage(message);
