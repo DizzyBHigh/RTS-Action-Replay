@@ -286,7 +286,7 @@
   const testPosition = target => {
      if (target === 'player') {
        const next=setCommand('player'), from=controls('player','from').value, to=controls('player','to').value;
-       const duration=Math.max(.1,Number(controls('player','duration').value)||1)*1000, ease=easing(sectionFor('player')).value;
+       const duration=Math.max(0,Number(controls('player','duration').value)||0), ease=easing(sectionFor('player')).value;
        next.replayStartPosition=from; next.replayEndPosition=to; next.replayAnimationDuration=duration; next.replayAnimationEasing=ease;
        RTSReplayVideo.currentCommand=next; RTSReplay.command=next; showPlayer();
        const start=RTSReplayVideo.getPosition(from), end=RTSReplayVideo.getPosition(to);
