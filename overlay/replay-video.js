@@ -86,6 +86,17 @@ const updateYouTubeControls = command => {
 const notifyEndedOnce = (command, token) => {
   if (token !== youtubeReplayToken || youtubeEndedNotified) return;
   youtubeEndedNotified = true;
+  if (command?.replayDevComplete === true || String(command?.replayDevComplete).toLowerCase() === 'true') {
+    RTSReplayWatchdog?.stop?.();
+    RTSReplayVideo.runEndAnimationProfile(command, () => {
+      RTSReplayVideo.player.classList.remove('show');
+      RTSReplayVideo.player.style.opacity = '';
+      RTSReplayVideo.player.style.visibility = '';
+      RTSReplayVideo.frame?.classList.remove('dev-frame');
+      window.RTSDevToolbar?.setPlayerVisibility?.(false);
+    });
+    return;
+  }
   RTSReplayVideo.notifyPlaybackEnded(command);
   RTSReplayVideo.hideReplay();
 };
