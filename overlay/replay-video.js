@@ -37,9 +37,10 @@ RTSReplayVideo.animateIn = (start, end) => {
   if (RTSReplayVideo.positionsEqual(start || end, end)) return;
   RTSReplayVideo.animatePosition(start || end, end);
 };
-RTSReplayVideo.runAnimationProfile = command => {
+RTSReplayVideo.runAnimationProfile = (command, complete) => {
   const profile = RTSAnimationEngine.readProfile(command?.replayAnimationProfile);
-  if (Array.isArray(profile?.start) && profile.start.length) playerRunner.run(profile.start);
+  if (Array.isArray(profile?.start) && profile.start.length) playerRunner.run(profile.start, complete);
+  else complete?.();
 };
 RTSReplayVideo.runEndAnimationProfile = (command, complete) => {
   const profile = RTSAnimationEngine.readProfile(command?.replayAnimationProfile);
@@ -302,7 +303,8 @@ RTSReplayVideo.loadReplay = command => {
 
   playerRunner.configure(command.replayPlayerPositions);
   const profile = RTSAnimationEngine.readProfile(command.replayAnimationProfile);
-  const startSequence = Array.isArray(profile?.start) ? profile.start : [];
+  const devSkipStart = command?.replayDevSkipIn === true || String(command?.replayDevSkipIn).toLowerCase() === 'true';
+  const startSequence = devSkipStart ? [] : (Array.isArray(profile?.start) ? profile.start : []);
   const startName = command.replayStartPosition || command.replayPosition || 'Full Screen';
   const endName = command.replayEndPosition || startName;
   const startPosition = startSequence.length ? playerRunner.resolve(startSequence[0].position) : RTSReplayVideo.getPosition(startName);
