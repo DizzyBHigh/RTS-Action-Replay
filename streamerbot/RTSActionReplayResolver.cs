@@ -15,7 +15,12 @@ public class CPHInline
     private const string ConfigurationSnapshotKey = "rts.actionreplay.handoff.configurationSnapshot";
 
 
-    public bool Execute()=>EnsureProfiles();
+    public bool Execute()
+    {
+        if (CPH.TryGetArg("rtsDevConfigRefresh", out string refresh) && string.Equals(refresh, "true", StringComparison.OrdinalIgnoreCase))
+            return SendConfigurationToOverlay();
+        return EnsureProfiles();
+    }
 
     public bool SendConfigurationToOverlay()
     {
