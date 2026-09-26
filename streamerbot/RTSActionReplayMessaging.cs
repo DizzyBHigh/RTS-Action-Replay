@@ -411,7 +411,7 @@ public class CPHInline
     {
         var format = CPH.GetGlobalVar<string>("rts.actionreplay.message.list.format", true);
         if (string.IsNullOrWhiteSpace(format)) format = "#%listNumber% %title% — %creator% | %rating%/5 | %platform% | %plays% plays";
-        var maxLength = Math.Min(Math.Max(1, CPH.GetGlobalVar<int?>("rts.actionreplay.message.list.maxLength", true) ?? 500), ChatLimit(Arg("listPlatform")));
+        var maxLength = ChatLimit(Arg("listPlatform"));
         var values = new Dictionary<string, object>
         {
             ["listNumber"] = Arg("listNumber"),
@@ -435,7 +435,7 @@ public class CPHInline
         try { entries = JArray.Parse(raw); } catch { return false; }
         var format = CPH.GetGlobalVar<string>("rts.actionreplay.message.list.format", true);
         if (string.IsNullOrWhiteSpace(format)) format = "#%listNumber% %title% — %creator% | %rating%/5 | %platform% | %plays% plays";
-        var limit = Math.Min(Math.Max(1, CPH.GetGlobalVar<int?>("rts.actionreplay.message.list.maxLength", true) ?? 500), ChatLimit(Arg("listPlatform")));
+        var limit = ChatLimit(Arg("listPlatform"));
         var chunks = new JArray();
         var current = "";
 
