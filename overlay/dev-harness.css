@@ -29,7 +29,6 @@
 .dev-harness .dev-profile button{padding-left:4px;padding-right:4px}
 .dev-harness .dev-status{margin:8px 0;color:var(--dev-muted);font-size:10px}
 #rts-dev-viewport{left:330px}
-#rts-overlay{z-index:1}
 #rts-dev-viewport-controls{background:var(--dev-bg);border-color:var(--dev-blue)}
 #rts-dev-screen .dev-screen-label{background:var(--dev-bg)}
 
