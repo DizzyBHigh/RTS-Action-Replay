@@ -119,8 +119,30 @@
   };
   const applyPresentation = (target, base) => {
     const config = window.rtsOverlayConfig, m = targets[target], entry = { ...(m.entry() || {}) };
-    entry.brandingPreset = controls(target, 'brand').value || entry.brandingPreset || 'default';
+    const brandingPreset = controls(target, 'brand').value || entry.brandingPreset || 'default';
+    entry.brandingPreset = brandingPreset;
     window.RTSOverlayConfigPresentation?.apply?.(base, config, entry);
+
+    if (target === 'clapper') {
+      const brands = Array.isArray(config?.presets?.branding) ? config.presets.branding : [];
+      const brand = brands.find(item =>
+        String(item?.id || '').toLowerCase() === String(brandingPreset).toLowerCase()
+      ) || brands.find(item => String(item?.id || '').toLowerCase() === 'default');
+
+      if (brand) {
+        base.replayBrandingPresetId = brand.id || brandingPreset;
+        base.replayBrandPrimaryColor = brand.primaryColor || '#0384CBFF';
+        base.replayBrandSecondaryColor = brand.secondaryColor || '#101416FF';
+        base.replayBrandFallbackTextColor = brand.primaryColor || '#0384CBFF';
+        base.replayBrandLabelColor = brand.textColor || '#FFFFFFFF';
+        base.replayBrandLogoUrl = brand.logo || '';
+        base.replayBrandFallbackText = brand.fallbackText || 'RTS';
+        base.replayBrandLabel = brand.brandLabel || 'ACTION REPLAY';
+        base.replayMessageTextColor = brand.titleColor || '#FFFFFFFF';
+        base.replayMessageFont = brand.font || 'Inter';
+      }
+    }
+
     if (target === 'message') base.replayMessage = controls(target, 'text').value.trim() || 'MESSAGE PREVIEW';
     return base;
   };
