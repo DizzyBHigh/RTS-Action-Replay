@@ -122,12 +122,11 @@
     const config = window.rtsOverlayConfig, m = targets[target], entry = { ...(m.entry() || {}) };
     entry.brandingPreset = controls(target, 'brand').value || entry.brandingPreset || 'default'; if (target === 'panel') entry.designPreset = controls(target, 'style')?.value || entry.designPreset || 'broadcast';
     window.RTSOverlayConfigPresentation?.apply?.(base, config, entry);
-    base[targets[target].animation] = profileCommand(target)[targets[target].animation];
     if (target === 'message') base.replayMessage = controls(target, 'text').value.trim() || 'MESSAGE PREVIEW';
     return base;
   };
   const setCommand = (target, custom = true) => {
-    let next = target === 'panel' ? applyPresentation(target, animationCommand(target)) : applyPresentation(target, command());
+    let next = applyPresentation(target, animationCommand(target));
     if (!custom) next = command();
     RTSReplay.command = next; RTSReplayVideo.currentCommand = next;
     if (target === 'player') { RTSReplayControls.configure(next); RTSReplayElements.configure(next); }
