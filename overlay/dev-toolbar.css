@@ -47,7 +47,5 @@
 #rts-dev-toolbar .dev-section[data-target] h3{display:flex;align-items:center;justify-content:space-between}
 #rts-dev-toolbar .dev-section[data-target="message"]{border-left-color:rgba(255,255,255,.35)}
 #rts-dev-toolbar .dev-section[data-target="panel"]{border-color:rgba(240,196,0,.38);box-shadow:0 0 8px rgba(240,196,0,.06)}
-#recent-list,
-#search-panel,
-#playlist-list{border:2px solid rgba(240,196,0,.55);box-shadow:0 0 10px rgba(240,196,0,.08)}
+
 #rts-dev-toolbar .dev-section[data-target] h3{color:#f0c400}
