@@ -134,21 +134,6 @@ public class CPHInline
             CPH.SetArgument("replayDevSkipIn", true);
         }
         if (!CPH.ExecuteMethod(PlaybackAction, "PrepareTestVideo")) return false;
-        if (devComplete)
-        {
-            var operation = CPH.GetGlobalVar<string>("rts.actionreplay.operation.player", false);
-            try
-            {
-                var playerOperation = JObject.Parse(operation ?? "{}");
-                playerOperation["replayDevComplete"] = true;
-                playerOperation["replayDevSkipIn"] = true;
-                CPH.SetGlobalVar("rts.actionreplay.operation.player", playerOperation.ToString(Newtonsoft.Json.Formatting.None), false);
-            }
-            catch
-            {
-                return false;
-            }
-        }
         return CPH.ExecuteMethod(ResolverAction, "ResolvePlayer");
     }
 
